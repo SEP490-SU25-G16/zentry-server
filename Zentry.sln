@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{42A62A62-29EB-43CD-B4B9-B00A7B1BA32B}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yaml = docker-compose.yaml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.API", "src\Zentry.API\Zentry.API.csproj", "{17DAF7D0-868E-49CF-9135-4C50C0DF0831}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.SharedKernel", "src\Zentry.SharedKernel\Zentry.SharedKernel.csproj", "{F51C93A0-BA62-4F9D-AEE6-DD6C005AADC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Infrastructure", "src\Zentry.Infrastructure\Zentry.Infrastructure.csproj", "{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.BackgroundProcessor", "src\Zentry.BackgroundProcessor\Zentry.BackgroundProcessor.csproj", "{9FABFB0A-F04F-4878-8FFB-CA96173705A5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{17DAF7D0-868E-49CF-9135-4C50C0DF0831}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17DAF7D0-868E-49CF-9135-4C50C0DF0831}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17DAF7D0-868E-49CF-9135-4C50C0DF0831}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17DAF7D0-868E-49CF-9135-4C50C0DF0831}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F51C93A0-BA62-4F9D-AEE6-DD6C005AADC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F51C93A0-BA62-4F9D-AEE6-DD6C005AADC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F51C93A0-BA62-4F9D-AEE6-DD6C005AADC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F51C93A0-BA62-4F9D-AEE6-DD6C005AADC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
