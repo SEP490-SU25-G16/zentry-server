@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <PublishAot>true</PublishAot>
+        <PublishAot>false</PublishAot>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
@@ -20,6 +20,12 @@
         <Content Include="..\..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Zentry.Infrastructure\Zentry.Infrastructure.csproj" />
+      <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Infrastructure\Infrastructure.csproj" />
+      <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Presentation\Presentation.csproj" />
     </ItemGroup>
 
 </Project>

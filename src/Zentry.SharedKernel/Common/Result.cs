@@ -8,9 +8,8 @@ public class Result
         Error = error;
     }
 
-    private bool IsSuccess { get; }
+    public bool IsSuccess { get; }
     public string Error { get; }
-    public bool IsFailure => !IsSuccess;
 
     public static Result Success()
     {
