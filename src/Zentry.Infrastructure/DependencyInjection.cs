@@ -15,7 +15,7 @@ public static class DependencyInjection
                 outputTemplate:
                 "[{Timestamp:yyyy-MM-dd HH:mm:ss}] [{Level:u3}] [{Module}] {Message:lj}{NewLine}{Exception}")
             .WriteTo.File(
-                path: "logs/zentry-.txt",
+                "logs/zentry-.txt",
                 rollingInterval: RollingInterval.Day,
                 outputTemplate:
                 "[{Timestamp:yyyy-MM-dd HH:mm:ss}] [{Level:u3}] [{Module}] {Message:lj}{NewLine}{Exception}")

@@ -1,14 +1,10 @@
 using Infrastructure;
-using Infrastructure.Persistence;
 using Zentry.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;
-    });
+    .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = null; });
 
 builder.Services.AddCors(options =>
 {

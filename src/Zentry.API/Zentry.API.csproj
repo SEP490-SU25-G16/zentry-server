@@ -23,9 +23,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Zentry.Infrastructure\Zentry.Infrastructure.csproj" />
-      <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Infrastructure\Infrastructure.csproj" />
-      <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Presentation\Presentation.csproj" />
+        <ProjectReference Include="..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Infrastructure\Infrastructure.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Presentation\Presentation.csproj"/>
     </ItemGroup>
 
 </Project>
