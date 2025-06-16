@@ -1,7 +1,13 @@
+using Zentry.SharedKernel.Abstractions.Domain;
+
 namespace Zentry.SharedKernel.Abstractions.Data;
 
-public interface IRepository<T> where T : class
+public interface IRepository<TEntity> where TEntity : IEntity
 {
-    Task<T> GetByIdAsync(int id);
-    Task AddAsync(T entity);
+    Task<TEntity> GetByIdAsync(object id, CancellationToken cancellationToken);
+    Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken);
+    Task<IEnumerable<TEntity>> FindAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken);
+    Task AddAsync(TEntity entity, CancellationToken cancellationToken);
+    Task UpdateAsync(TEntity entity, CancellationToken cancellationToken);
+    Task DeleteAsync(TEntity entity, CancellationToken cancellationToken);
 }

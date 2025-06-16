@@ -1,5 +1,5 @@
 namespace Zentry.SharedKernel.Abstractions.Application;
 
-public interface IQuery
+public interface IQuery<out TResponse>
 {
 }

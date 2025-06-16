@@ -10,10 +10,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MediatR" Version="12.5.0" />
-        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="9.0.6" />
+        <PackageReference Include="MediatR" Version="12.5.0"/>
+        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="9.0.6"/>
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1"/>
     </ItemGroup>
 
     <ItemGroup>
