@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="MongoDB.Driver" Version="3.4.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0"/>
+        <PackageReference Include="MediatR" Version="12.5.0"/>
+        <PackageReference Include="RabbitMQ.Client" Version="7.1.2"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\src\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
+        <ProjectReference Include="..\src\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
+    </ItemGroup>
+
+</Project>
