@@ -9,13 +9,7 @@
     environment:
       - ASPNETCORE_URLS=http://+:5000
       - ASPNETCORE_ENVIRONMENT=Development
-      # Multiple connection string formats to ensure compatibility
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      - ConnectionStrings__PostgresConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      - ConnectionStrings__DeviceManagementConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      - Postgres_ConnectionString=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      - POSTGRES_CONNECTION_STRING=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      - DATABASE_URL=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       # Other services
       - Redis_ConnectionString=redis:6379
       - MongoDB_ConnectionString=mongodb://admin:pass@mongodb:27017/zentry?authSource=admin
@@ -94,7 +88,7 @@
   mongodb:
     image: mongo:7.0
     ports:
-      - "27017:27017"  # THÊM DÒNG NÀY để expose MongoDB port
+      - "27017:27017"
     volumes:
       - mongodb-data:/data/db
     environment:
@@ -102,8 +96,8 @@
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=pass
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })", "--authenticationDatabase", "admin"]
-      interval: 10s
+      test: [ "CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })", "--authenticationDatabase", "admin" ]
+      interval: 30s
       timeout: 3s
       retries: 3
 
