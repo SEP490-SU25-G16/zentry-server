@@ -1,5 +1,5 @@
-using Infrastructure;
 using Zentry.Infrastructure;
+using Zentry.Modules.DeviceManagement.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
