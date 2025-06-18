@@ -20,7 +20,7 @@ public class Device : AggregateRoot
         AccountId = accountId;
         DeviceName = deviceName;
         DeviceToken = deviceToken;
-        RegisteredAt = DateTime.UtcNow;
+        CreatedAt = DateTime.UtcNow;
         Status = DeviceStatus.Active;
     }
 
@@ -28,7 +28,8 @@ public class Device : AggregateRoot
     public Guid AccountId { get; }
     public DeviceName DeviceName { get; private set; }
     public DeviceToken DeviceToken { get; }
-    public DateTime RegisteredAt { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastVerifiedAt { get; private set; }
     public DeviceStatus Status { get; private set; }
 

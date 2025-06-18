@@ -10,6 +10,8 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
 {
     public void Configure(EntityTypeBuilder<Device> builder)
     {
+        builder.ToTable("Devices");
+
         builder.HasKey(d => d.DeviceId);
         builder.Property(d => d.AccountId).IsRequired();
         builder.Property(d => d.DeviceName)
@@ -17,10 +19,14 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
             .HasMaxLength(255)
             .IsRequired();
         builder.Property(d => d.DeviceToken)
+            .HasConversion(t => t.Value, v => DeviceToken.Create())
             .HasMaxLength(255)
             .IsRequired();
         builder.HasIndex(d => d.DeviceToken).IsUnique();
-        builder.Property(d => d.RegisteredAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(d => d.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Property(d => d.UpdatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAddOrUpdate();
         builder.Property(d => d.LastVerifiedAt);
         builder.Property(d => d.Status)
             .HasConversion(s => s.ToString(), n => DeviceStatus.FromName(n))
