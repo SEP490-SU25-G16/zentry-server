@@ -4,10 +4,11 @@ using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 
 namespace Zentry.Infrastructure.Messaging.External;
+
 public class MessagePublisher : IMessagePublisher, IDisposable
 {
-    private readonly IConnection _connection;
     private readonly IChannel _channel;
+    private readonly IConnection _connection;
 
     public MessagePublisher(IConfiguration configuration)
     {
@@ -23,31 +24,30 @@ public class MessagePublisher : IMessagePublisher, IDisposable
         _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
     }
 
-    public async Task PublishAsync<T>(T message, string queueName, CancellationToken cancellationToken = default)
-    {
-        await _channel.QueueDeclareAsync(
-            queue: queueName,
-            durable: false,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null,
-            cancellationToken: cancellationToken);
-
-        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
-
-        await _channel.BasicPublishAsync<BasicProperties>(
-            exchange: "",
-            routingKey: queueName,
-            mandatory: false,
-            basicProperties: null!,
-            body: body,
-            cancellationToken: cancellationToken);
-    }
-
     public void Dispose()
     {
         _channel?.Dispose();
         _connection?.Dispose();
     }
-}
 
+    public async Task PublishAsync<T>(T message, string queueName, CancellationToken cancellationToken = default)
+    {
+        await _channel.QueueDeclareAsync(
+            queueName,
+            false,
+            false,
+            false,
+            null,
+            cancellationToken: cancellationToken);
+
+        var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+
+        await _channel.BasicPublishAsync<BasicProperties>(
+            "",
+            queueName,
+            false,
+            null!,
+            body,
+            cancellationToken);
+    }
+}

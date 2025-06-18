@@ -1,5 +1,6 @@
 using MongoDB.Driver;
-using System; // Thêm using System; để sử dụng Guid
+
+// Thêm using System; để sử dụng Guid
 
 namespace Zentry.Modules.Notification.Persistence.Data;
 
@@ -10,14 +11,12 @@ public static class NotificationSeed
         var collection = database.GetCollection<Features.ReceiveAttendanceNotification.Notification>("Notifications");
 
         // Kiểm tra nếu collection đã có dữ liệu
-        if (collection.CountDocuments(FilterDefinition<Features.ReceiveAttendanceNotification.Notification>.Empty) > 0)
-        {
-            return;
-        }
+        if (collection.CountDocuments(FilterDefinition<Features.ReceiveAttendanceNotification.Notification>.Empty) >
+            0) return;
 
         var notifications = new List<Features.ReceiveAttendanceNotification.Notification>
         {
-            new Features.ReceiveAttendanceNotification.Notification
+            new()
             {
                 NotificationId = Guid.NewGuid(),
                 // Sửa lỗi Guid ở đây: thêm đủ ký tự để thành 32 chữ số
@@ -26,7 +25,7 @@ public static class NotificationSeed
                 Type = "in_app",
                 SentAt = DateTime.Parse("2025-06-18T10:00:00Z")
             },
-            new Features.ReceiveAttendanceNotification.Notification
+            new()
             {
                 NotificationId = Guid.NewGuid(),
                 UserId = Guid.Parse("10000000-0000-0000-0000-000000000001"),
@@ -34,7 +33,7 @@ public static class NotificationSeed
                 Type = "email",
                 SentAt = DateTime.Parse("2025-06-18T11:00:00Z")
             },
-            new Features.ReceiveAttendanceNotification.Notification
+            new()
             {
                 NotificationId = Guid.NewGuid(),
                 // Sửa lỗi Guid ở đây: thêm đủ ký tự để thành 32 chữ số và các dấu gạch nối
@@ -43,14 +42,14 @@ public static class NotificationSeed
                 Type = "in_app",
                 SentAt = DateTime.Parse("2025-06-18T12:00:00Z")
             },
-            new Features.ReceiveAttendanceNotification.Notification
+            new()
             {
                 NotificationId = Guid.NewGuid(),
                 UserId = Guid.Parse("10000000-0000-0000-0000-000000000002"),
                 Message = "Error in session #124: BLE signal lost.",
                 SentAt = DateTime.Parse("2025-06-18T13:00:00Z")
             },
-            new Features.ReceiveAttendanceNotification.Notification
+            new()
             {
                 NotificationId = Guid.NewGuid(),
                 UserId = Guid.Parse("10000000-0000-0000-0000-000000000003"),

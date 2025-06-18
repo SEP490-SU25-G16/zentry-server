@@ -6,15 +6,8 @@ namespace Zentry.Modules.Notification.Controllers;
 
 [ApiController]
 [Route("api/notifications")]
-public class NotificationsController : ControllerBase
+public class NotificationsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public NotificationsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     [HttpGet]
     public async Task<ActionResult<List<Features.ReceiveAttendanceNotification.Notification>>> GetNotifications(
         [FromQuery] Guid userId,
@@ -23,7 +16,7 @@ public class NotificationsController : ControllerBase
         [FromQuery] int pageSize = 10)
     {
         var query = new ReceiveAttendanceNotificationQuery(userId, page, pageSize);
-        var notifications = await _mediator.Send(query, cancellationToken);
+        var notifications = await mediator.Send(query, cancellationToken);
         return Ok(notifications);
     }
 }

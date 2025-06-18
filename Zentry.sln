@@ -70,7 +70,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Attendance.I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.DeviceManagement.Infrastructure", "src\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement.Infrastructure\Zentry.Modules.DeviceManagement.Infrastructure.csproj", "{84B97191-8C4A-449E-AA31-2D4793737992}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Notification", "Zentry.Modules.Notification\Zentry.Modules.Notification.csproj", "{90303EB6-3225-43CD-960F-A34B7D770660}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Notification", "src\Zentry.Modules\Notification\Zentry.Modules.Notification\Zentry.Modules.Notification.csproj", "{1B3072A1-CFC0-46F0-80BB-B89B122C3CBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -177,10 +177,10 @@ Global
 		{84B97191-8C4A-449E-AA31-2D4793737992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84B97191-8C4A-449E-AA31-2D4793737992}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84B97191-8C4A-449E-AA31-2D4793737992}.Release|Any CPU.Build.0 = Release|Any CPU
-		{90303EB6-3225-43CD-960F-A34B7D770660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{90303EB6-3225-43CD-960F-A34B7D770660}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{90303EB6-3225-43CD-960F-A34B7D770660}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{90303EB6-3225-43CD-960F-A34B7D770660}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B3072A1-CFC0-46F0-80BB-B89B122C3CBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B3072A1-CFC0-46F0-80BB-B89B122C3CBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B3072A1-CFC0-46F0-80BB-B89B122C3CBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B3072A1-CFC0-46F0-80BB-B89B122C3CBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{09FB2F20-4B15-4433-ACEC-15F5E1746C8F} = {E5978E3B-C456-4EFF-8869-BE94283AE234}
@@ -209,6 +209,6 @@ Global
 		{3E3A966E-8DBF-4D1B-97AC-8C0EB04D39AD} = {57F6F123-9FED-4050-9B8F-B6621D500F2C}
 		{A2F27F53-CED7-4A43-8A5E-AC124481E52F} = {09FB2F20-4B15-4433-ACEC-15F5E1746C8F}
 		{84B97191-8C4A-449E-AA31-2D4793737992} = {E24108BB-981E-4040-A043-DA2055EE50B9}
-		{90303EB6-3225-43CD-960F-A34B7D770660} = {9C97D6BC-0882-450F-AB27-E43F07950522}
+		{1B3072A1-CFC0-46F0-80BB-B89B122C3CBE} = {9C97D6BC-0882-450F-AB27-E43F07950522}
 	EndGlobalSection
 EndGlobal

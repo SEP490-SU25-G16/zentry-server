@@ -8,10 +8,7 @@ using Zentry.Modules.Notification;
 
 var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine("=== DEBUG: Environment Variables ===");
-foreach (DictionaryEntry env in Environment.GetEnvironmentVariables())
-{
-    Console.WriteLine($"{env.Key}={env.Value}");
-}
+foreach (DictionaryEntry env in Environment.GetEnvironmentVariables()) Console.WriteLine($"{env.Key}={env.Value}");
 
 Console.WriteLine("=== DEBUG: Connection Strings ===");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

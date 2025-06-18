@@ -12,8 +12,8 @@
         <PackageReference Include="RabbitMQ.Client" Version="7.1.2"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\src\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
-        <ProjectReference Include="..\src\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
+        <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
     </ItemGroup>
 
 </Project>

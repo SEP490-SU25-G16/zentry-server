@@ -31,7 +31,8 @@ public class DeviceRepository : IDeviceRepository
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<Device>> FindAsync(ISpecification<Device> specification, CancellationToken cancellationToken)
+    public Task<IEnumerable<Device>> FindAsync(ISpecification<Device> specification,
+        CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

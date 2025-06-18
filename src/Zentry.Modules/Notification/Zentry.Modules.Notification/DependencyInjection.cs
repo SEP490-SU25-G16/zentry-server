@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Zentry.Infrastructure.Messaging.External;
-using Zentry.Modules.Notification.Persistence;
 using Zentry.Modules.Notification.Persistence.Configurations;
 using Zentry.Modules.Notification.Persistence.Data;
 using Zentry.Modules.Notification.Persistence.Repository;
