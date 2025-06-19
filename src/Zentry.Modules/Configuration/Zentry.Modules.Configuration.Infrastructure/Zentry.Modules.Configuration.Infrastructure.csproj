@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Zentry.Modules.Configuration.Application\Zentry.Modules.Configuration.Application.csproj" />
+      <ProjectReference Include="..\Zentry.Modules.Configuration.Domain\Zentry.Modules.Configuration.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
