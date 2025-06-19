@@ -8,7 +8,10 @@ public class ConfigurationConfiguration : IEntityTypeConfiguration<Domain.Entiti
     public void Configure(EntityTypeBuilder<Domain.Entities.Configuration> builder)
     {
         builder.ToTable("Configurations");
-        builder.HasKey(c => c.Id);
+
+        builder.Property(c => c.ConfigurationId)
+            .IsRequired()
+            .ValueGeneratedNever();
 
         builder.Property(c => c.Key)
             .IsRequired()
@@ -26,6 +29,14 @@ public class ConfigurationConfiguration : IEntityTypeConfiguration<Domain.Entiti
 
         builder.Property(c => c.UpdatedAt);
 
-        builder.HasIndex(c => c.Key).IsUnique();
+        // Unique constraint trên Key
+        builder.HasIndex(c => c.Key)
+            .IsUnique()
+            .HasDatabaseName("IX_Configurations_Key");
+
+        // Nếu ConfigurationId và Id là giống nhau, có thể tạo unique index
+        builder.HasIndex(c => c.ConfigurationId)
+            .IsUnique()
+            .HasDatabaseName("IX_Configurations_ConfigurationId");
     }
 }
