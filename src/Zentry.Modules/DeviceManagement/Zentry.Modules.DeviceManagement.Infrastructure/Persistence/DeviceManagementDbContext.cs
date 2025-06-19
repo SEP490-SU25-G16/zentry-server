@@ -10,5 +10,6 @@ public class DeviceManagementDbContext(DbContextOptions<DeviceManagementDbContex
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DeviceManagementDbContext).Assembly);
+        base.OnModelCreating(modelBuilder);
     }
 }

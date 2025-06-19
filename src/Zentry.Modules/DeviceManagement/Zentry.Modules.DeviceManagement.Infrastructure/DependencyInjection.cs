@@ -13,10 +13,15 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<DeviceManagementDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DeviceManagementConnection")));
+            options.UseNpgsql(
+                configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly("Zentry.Modules.DeviceManagement.Infrastructure")
+            ));
 
         services.AddScoped<IDeviceRepository, DeviceRepository>();
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
         return services;
     }
