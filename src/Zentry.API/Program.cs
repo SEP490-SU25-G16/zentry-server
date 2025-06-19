@@ -19,7 +19,6 @@ builder.Services.AddCors(options =>
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-// Đăng ký tất cả modules
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddDeviceManagementInfrastructure(builder.Configuration);
 builder.Services.AddConfigurationInfrastructure(builder.Configuration);

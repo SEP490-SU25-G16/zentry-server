@@ -15,11 +15,17 @@ public static class DependencyInjection
     {
         var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
                                     throw new ArgumentNullException(nameof(services));
-        var mongoClient = new MongoClient(mongoConnectionString);
 
-        var database = mongoClient.GetDatabase("zentry");
-        NotificationConfiguration.Configure(database);
-        NotificationSeed.SeedData(database);
+        services.AddSingleton<IMongoClient>(s => new MongoClient(mongoConnectionString));
+
+        services.AddSingleton(s =>
+        {
+            var mongoClient = s.GetRequiredService<IMongoClient>();
+            var database = mongoClient.GetDatabase("zentry");
+            NotificationConfiguration.Configure(database);
+            NotificationSeed.SeedData(database);
+            return database;
+        });
 
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
