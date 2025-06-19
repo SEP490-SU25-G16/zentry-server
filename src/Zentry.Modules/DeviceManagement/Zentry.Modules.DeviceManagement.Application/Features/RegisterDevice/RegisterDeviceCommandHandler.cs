@@ -5,13 +5,7 @@ using Zentry.Modules.DeviceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Common;
 
-namespace Zentry.Modules.DeviceManagement.Application.Commands;
-
-public record RegisterDeviceCommand(
-    Guid AccountId,
-    string DeviceName,
-    string DeviceToken
-) : IRequest<Result<Guid>>;
+namespace Zentry.Modules.DeviceManagement.Application.Features.RegisterDevice;
 
 public class RegisterDeviceCommandHandler(
     IDeviceRepository deviceRepository,

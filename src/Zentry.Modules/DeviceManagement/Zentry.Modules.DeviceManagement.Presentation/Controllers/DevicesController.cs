@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Zentry.Modules.DeviceManagement.Application.Commands;
+using Zentry.Modules.DeviceManagement.Application.Features.Commands;
+using Zentry.Modules.DeviceManagement.Application.Features.RegisterDevice;
 using Zentry.Modules.DeviceManagement.Presentation.Requests;
 
 namespace Zentry.Modules.DeviceManagement.Presentation.Controllers;
