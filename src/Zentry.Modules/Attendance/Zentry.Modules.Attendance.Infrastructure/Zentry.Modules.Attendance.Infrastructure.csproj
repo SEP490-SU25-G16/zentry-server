@@ -7,6 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MongoDB.Driver" Version="3.4.0"/>
+        <PackageReference Include="RabbitMQ.Client" Version="7.1.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\Zentry.Modules.Attendance.Application\Zentry.Modules.Attendance.Application.csproj" />
       <ProjectReference Include="..\Zentry.Modules.Attendance.Domain\Zentry.Modules.Attendance.Domain.csproj" />
     </ItemGroup>
