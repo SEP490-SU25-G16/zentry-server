@@ -28,6 +28,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Zentry.Modules\Attendance\Zentry.Modules.Attendance.Infrastructure\Zentry.Modules.Attendance.Infrastructure.csproj" />
+        <ProjectReference Include="..\Zentry.Modules\Attendance\Zentry.Modules.Attendance.Presentation\Zentry.Modules.Attendance.Presentation.csproj" />
         <ProjectReference Include="..\Zentry.Modules\Configuration\Zentry.Modules.Configuration.Infrastructure\Zentry.Modules.Configuration.Infrastructure.csproj" />
         <ProjectReference Include="..\Zentry.Modules\Configuration\Zentry.Modules.Configuration.Presentation\Zentry.Modules.Configuration.Presentation.csproj" />
         <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement.Presentation\Zentry.Modules.DeviceManagement.Presentation.csproj"/>

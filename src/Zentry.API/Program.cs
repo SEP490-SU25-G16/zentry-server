@@ -2,6 +2,8 @@ using System.Collections;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Zentry.Infrastructure;
+using Zentry.Modules.Attendance.Infrastructure;
+using Zentry.Modules.Attendance.Infrastructure.Persistence;
 using Zentry.Modules.Configuration.Infrastructure;
 using Zentry.Modules.Configuration.Infrastructure.Persistence;
 using Zentry.Modules.DeviceManagement.Infrastructure;
@@ -20,6 +22,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddDeviceManagementInfrastructure(builder.Configuration);
 builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddNotificationModule(builder.Configuration);
@@ -47,6 +50,15 @@ using (var scope = app.Services.CreateScope())
                 logger.LogWarning(exception, "Migration attempt {RetryCount} failed. Retrying in {TimeSpan} seconds...",
                     retryCount, timeSpan.TotalSeconds);
             });
+
+    // Migrate Attendance
+    retryPolicy.Execute(() =>
+    {
+        var attendanceContext = serviceProvider.GetRequiredService<AttendanceDbContext>();
+        logger.LogInformation("Applying migrations for AttendanceDbContext...");
+        attendanceContext.Database.Migrate();
+        logger.LogInformation("Attendance migrations applied successfully.");
+    });
 
     // Migrate DeviceManagement
     retryPolicy.Execute(() =>
