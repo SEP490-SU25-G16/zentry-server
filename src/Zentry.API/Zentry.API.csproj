@@ -36,6 +36,8 @@
         <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement.Infrastructure\Zentry.Modules.DeviceManagement.Infrastructure.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\Notification\Zentry.Modules.Notification\Zentry.Modules.Notification.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\Reporting\Zentry.Modules.Reporting\Zentry.Modules.Reporting.csproj" />
+        <ProjectReference Include="..\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Presentation\Zentry.Modules.Schedule.Presentation.csproj" />
+        <ProjectReference Include="..\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Infrastructure\Zentry.Modules.Schedule.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

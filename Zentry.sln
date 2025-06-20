@@ -56,6 +56,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Notification
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Reporting", "src\Zentry.Modules\Reporting\Zentry.Modules.Reporting\Zentry.Modules.Reporting.csproj", "{65F7977D-65B1-4403-A82C-59650D79013C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Schedule", "Schedule", "{E74FBAF5-0D54-482C-B6EA-816DC6921F6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Schedule.Application", "src\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Application\Zentry.Modules.Schedule.Application.csproj", "{42FEB643-CB0B-4A37-B20A-9F3B6A6467E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Schedule.Domain", "src\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Domain\Zentry.Modules.Schedule.Domain.csproj", "{FD266F49-8003-4D01-A49C-2E48CF19A96D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Schedule.Infrastructure", "src\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Infrastructure\Zentry.Modules.Schedule.Infrastructure.csproj", "{4AEF1ABE-98A7-4E49-AC71-27B1ACE4A6F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.Schedule.Presentation", "src\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Presentation\Zentry.Modules.Schedule.Presentation.csproj", "{89039672-1BB3-4B1C-BEC2-D20C6486F71D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -137,6 +147,22 @@ Global
 		{65F7977D-65B1-4403-A82C-59650D79013C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65F7977D-65B1-4403-A82C-59650D79013C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65F7977D-65B1-4403-A82C-59650D79013C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42FEB643-CB0B-4A37-B20A-9F3B6A6467E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42FEB643-CB0B-4A37-B20A-9F3B6A6467E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42FEB643-CB0B-4A37-B20A-9F3B6A6467E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42FEB643-CB0B-4A37-B20A-9F3B6A6467E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD266F49-8003-4D01-A49C-2E48CF19A96D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD266F49-8003-4D01-A49C-2E48CF19A96D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD266F49-8003-4D01-A49C-2E48CF19A96D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD266F49-8003-4D01-A49C-2E48CF19A96D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AEF1ABE-98A7-4E49-AC71-27B1ACE4A6F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AEF1ABE-98A7-4E49-AC71-27B1ACE4A6F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AEF1ABE-98A7-4E49-AC71-27B1ACE4A6F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AEF1ABE-98A7-4E49-AC71-27B1ACE4A6F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89039672-1BB3-4B1C-BEC2-D20C6486F71D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89039672-1BB3-4B1C-BEC2-D20C6486F71D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89039672-1BB3-4B1C-BEC2-D20C6486F71D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89039672-1BB3-4B1C-BEC2-D20C6486F71D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{09FB2F20-4B15-4433-ACEC-15F5E1746C8F} = {E5978E3B-C456-4EFF-8869-BE94283AE234}
@@ -158,5 +184,10 @@ Global
 		{84B97191-8C4A-449E-AA31-2D4793737992} = {E24108BB-981E-4040-A043-DA2055EE50B9}
 		{1B3072A1-CFC0-46F0-80BB-B89B122C3CBE} = {9C97D6BC-0882-450F-AB27-E43F07950522}
 		{65F7977D-65B1-4403-A82C-59650D79013C} = {57F6F123-9FED-4050-9B8F-B6621D500F2C}
+		{E74FBAF5-0D54-482C-B6EA-816DC6921F6C} = {E5978E3B-C456-4EFF-8869-BE94283AE234}
+		{42FEB643-CB0B-4A37-B20A-9F3B6A6467E5} = {E74FBAF5-0D54-482C-B6EA-816DC6921F6C}
+		{FD266F49-8003-4D01-A49C-2E48CF19A96D} = {E74FBAF5-0D54-482C-B6EA-816DC6921F6C}
+		{4AEF1ABE-98A7-4E49-AC71-27B1ACE4A6F3} = {E74FBAF5-0D54-482C-B6EA-816DC6921F6C}
+		{89039672-1BB3-4B1C-BEC2-D20C6486F71D} = {E74FBAF5-0D54-482C-B6EA-816DC6921F6C}
 	EndGlobalSection
 EndGlobal

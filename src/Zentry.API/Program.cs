@@ -11,6 +11,8 @@ using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 using Zentry.Modules.Notification;
 using Zentry.Modules.Reporting;
 using Zentry.Modules.Reporting.Persistence;
+using Zentry.Modules.Schedule.Infrastructure;
+using Zentry.Modules.Schedule.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
+builder.Services.AddScheduleInfrastructure(builder.Configuration);
 builder.Services.AddDeviceManagementInfrastructure(builder.Configuration);
 builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
@@ -61,6 +64,15 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Applying migrations for AttendanceDbContext...");
         attendanceContext.Database.Migrate();
         logger.LogInformation("Attendance migrations applied successfully.");
+    });
+
+    // Migrate Schedule
+    retryPolicy.Execute(() =>
+    {
+        var scheduleContext = serviceProvider.GetRequiredService<ScheduleDbContext>();
+        logger.LogInformation("Applying migrations for ScheduleDbContext...");
+        scheduleContext.Database.Migrate();
+        logger.LogInformation("Schedule migrations applied successfully.");
     });
 
     // Migrate DeviceManagement
