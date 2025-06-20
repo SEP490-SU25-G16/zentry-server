@@ -10,7 +10,7 @@ namespace Zentry.Modules.Notification;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddNotificationModule(this IServiceCollection services,
+    public static IServiceCollection AddNotificationInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
         var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??

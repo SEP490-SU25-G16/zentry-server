@@ -9,6 +9,8 @@ using Zentry.Modules.Configuration.Infrastructure.Persistence;
 using Zentry.Modules.DeviceManagement.Infrastructure;
 using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 using Zentry.Modules.Notification;
+using Zentry.Modules.Reporting;
+using Zentry.Modules.Reporting.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +27,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddDeviceManagementInfrastructure(builder.Configuration);
 builder.Services.AddConfigurationInfrastructure(builder.Configuration);
-builder.Services.AddNotificationModule(builder.Configuration);
+builder.Services.AddNotificationInfrastructure(builder.Configuration);
+builder.Services.AddReportingInfrastructure(builder.Configuration);
 
 builder.Services.AddAuthorization();
 
@@ -76,6 +79,15 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Applying migrations for ConfigurationDbContext...");
         configDbContext.Database.Migrate();
         logger.LogInformation("Configuration migrations applied successfully.");
+    });
+
+    // Migrate Reporting
+    retryPolicy.Execute(() =>
+    {
+        var reportingDbContext = serviceProvider.GetRequiredService<ReportingDbContext>();
+        logger.LogInformation("Applying migrations for ReportingDbContext...");
+        reportingDbContext.Database.Migrate();
+        logger.LogInformation("Reporting migrations applied successfully.");
     });
 }
 
