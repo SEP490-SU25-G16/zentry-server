@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.Reporting.Persistence;
 
 namespace Zentry.Modules.Reporting.Features.ViewClassAttendanceReport;

@@ -13,7 +13,6 @@ public class ViewAttendanceRateQueryHandler(IAttendanceRepository attendanceRepo
             await attendanceRepository.GetAttendanceStatsAsync(request.StudentId, request.CourseId);
 
         if (totalSessions == 0)
-        {
             return new AttendanceRateDto
             {
                 CourseId = request.CourseId,
@@ -23,7 +22,6 @@ public class ViewAttendanceRateQueryHandler(IAttendanceRepository attendanceRepo
                 TotalSessions = 0,
                 AttendedSessions = 0
             };
-        }
 
         var attendanceRate = (double)attendedSessions / totalSessions * 100;
         var threshold = 80.0;

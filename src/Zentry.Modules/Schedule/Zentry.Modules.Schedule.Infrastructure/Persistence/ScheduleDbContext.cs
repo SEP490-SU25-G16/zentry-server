@@ -5,7 +5,7 @@ namespace Zentry.Modules.Schedule.Infrastructure.Persistence;
 
 public class ScheduleDbContext(DbContextOptions<ScheduleDbContext> options) : DbContext(options)
 {
-    public DbSet<Schedule.Domain.Entities.Schedule> Schedules { get; set; }
+    public DbSet<Domain.Entities.Schedule> Schedules { get; set; }
     public DbSet<Course> Courses { get; set; }
     public DbSet<Room> Rooms { get; set; }
 

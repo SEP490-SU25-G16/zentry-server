@@ -4,7 +4,9 @@ namespace Zentry.Modules.Attendance.Domain.Entities;
 
 public class Enrollment : AggregateRoot
 {
-    private Enrollment() : base(Guid.Empty) { } // For EF Core
+    private Enrollment() : base(Guid.Empty)
+    {
+    } // For EF Core
 
     private Enrollment(Guid enrollmentId, Guid studentId, Guid courseId) : base(enrollmentId)
     {

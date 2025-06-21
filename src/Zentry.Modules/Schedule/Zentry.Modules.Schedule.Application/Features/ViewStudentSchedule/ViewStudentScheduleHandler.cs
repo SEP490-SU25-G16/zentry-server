@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Zentry.Modules.Schedule.Application.Abstractions;
@@ -13,11 +12,10 @@ public class ViewStudentScheduleHandler(
     IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<ViewStudentScheduleRequest, List<ScheduleDto>>
 {
-    private readonly IScheduleRepository _scheduleRepository = scheduleRepository;
-
     // private readonly IEnrollmentService _enrollmentService;
     // private readonly IUserService _userService;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly IScheduleRepository _scheduleRepository = scheduleRepository;
 
     // _enrollmentService = enrollmentService;
     // _userService = userService;

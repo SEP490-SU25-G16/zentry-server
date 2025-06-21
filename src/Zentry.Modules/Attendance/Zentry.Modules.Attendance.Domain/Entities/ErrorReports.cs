@@ -4,7 +4,9 @@ namespace Zentry.Modules.Attendance.Domain.Entities;
 
 public class ErrorReport : AggregateRoot
 {
-    private ErrorReport() : base(Guid.Empty) { } // For EF Core
+    private ErrorReport() : base(Guid.Empty)
+    {
+    } // For EF Core
 
     private ErrorReport(Guid errorReportId, Guid deviceId, string errorCode, string? description)
         : base(errorReportId)

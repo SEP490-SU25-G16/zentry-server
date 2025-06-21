@@ -27,16 +27,6 @@ public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepo
         return stats != null ? (stats.TotalSessions, stats.AttendedSessions) : (0, 0);
     }
 
-    public async Task AddAsync(AttendanceRecord attendanceRecord)
-    {
-        await context.AttendanceRecords.AddAsync(attendanceRecord);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await context.SaveChangesAsync();
-    }
-
     public Task<AttendanceRecord> GetByIdAsync(object id, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
@@ -47,7 +37,8 @@ public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepo
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<AttendanceRecord>> FindAsync(ISpecification<AttendanceRecord> specification, CancellationToken cancellationToken)
+    public Task<IEnumerable<AttendanceRecord>> FindAsync(ISpecification<AttendanceRecord> specification,
+        CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
@@ -65,5 +56,15 @@ public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepo
     public Task DeleteAsync(AttendanceRecord entity, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task AddAsync(AttendanceRecord attendanceRecord)
+    {
+        await context.AttendanceRecords.AddAsync(attendanceRecord);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await context.SaveChangesAsync();
     }
 }

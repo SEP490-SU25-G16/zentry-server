@@ -35,7 +35,8 @@ public class BluetoothScanRepository : IBluetoothScanRepository
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<BluetoothScan>> FindAsync(ISpecification<BluetoothScan> specification, CancellationToken cancellationToken)
+    public Task<IEnumerable<BluetoothScan>> FindAsync(ISpecification<BluetoothScan> specification,
+        CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

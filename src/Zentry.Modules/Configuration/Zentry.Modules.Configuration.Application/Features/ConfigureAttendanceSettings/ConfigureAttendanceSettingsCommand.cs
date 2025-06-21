@@ -2,5 +2,4 @@ namespace Zentry.Modules.Configuration.Application.Features.ConfigureAttendanceS
 
 public class ConfigureAttendanceSettingsCommand
 {
-    
 }

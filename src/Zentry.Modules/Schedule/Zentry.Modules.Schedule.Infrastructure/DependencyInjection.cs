@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Zentry.Modules.Schedule.Application.Abstractions;
 using Zentry.Modules.Schedule.Infrastructure.Persistence;
 using Zentry.Modules.Schedule.Infrastructure.Repositories;

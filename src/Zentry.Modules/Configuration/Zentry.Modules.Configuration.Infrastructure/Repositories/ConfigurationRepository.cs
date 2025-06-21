@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.Configuration.Application.Abstractions;
-using Zentry.Modules.Configuration.Infrastructure.Persistence;
 using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.Configuration.Infrastructure.Repositories;

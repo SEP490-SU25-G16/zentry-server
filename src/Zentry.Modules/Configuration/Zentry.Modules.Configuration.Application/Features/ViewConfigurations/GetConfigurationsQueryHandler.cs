@@ -1,7 +1,6 @@
 using MediatR;
 using Zentry.Modules.Configuration.Application.Abstractions;
 using Zentry.Modules.Configuration.Application.Dtos;
-using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.Configuration.Application.Features.ViewConfigurations;
 

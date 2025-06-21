@@ -12,7 +12,8 @@ public static class AttendanceSeed
             var enrollment = Enrollment.Create(Guid.NewGuid(), Guid.NewGuid());
             context.Enrollments.Add(enrollment);
 
-            var round = Round.Create(Guid.NewGuid(), DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(-1).AddHours(1));
+            var round = Round.Create(Guid.NewGuid(), DateTime.UtcNow.AddDays(-1),
+                DateTime.UtcNow.AddDays(-1).AddHours(1));
             context.Rounds.Add(round);
 
             context.AttendanceRecords.Add(AttendanceRecord.Create(enrollment.EnrollmentId, round.RoundId, true));

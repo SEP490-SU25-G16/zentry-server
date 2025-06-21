@@ -4,12 +4,6 @@ namespace Zentry.Modules.Schedule.Domain.Entities;
 
 public class Course : AggregateRoot
 {
-    public Guid CourseId { get; private set; } = Guid.NewGuid();
-    public string Code { get; private set; }
-    public string Name { get; private set; }
-    public string Semester { get; private set; }
-    public Guid LecturerId { get; private set; }
-
     private Course() : base(Guid.Empty)
     {
     } // For EF Core
@@ -30,4 +24,10 @@ public class Course : AggregateRoot
             ? lecturerId
             : throw new ArgumentException("LecturerId cannot be empty.", nameof(lecturerId));
     }
+
+    public Guid CourseId { get; private set; } = Guid.NewGuid();
+    public string Code { get; private set; }
+    public string Name { get; private set; }
+    public string Semester { get; private set; }
+    public Guid LecturerId { get; private set; }
 }

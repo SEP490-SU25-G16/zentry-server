@@ -4,7 +4,9 @@ namespace Zentry.Modules.Attendance.Domain.Entities;
 
 public class Round : AggregateRoot
 {
-    private Round() : base(Guid.Empty) { } // For EF Core
+    private Round() : base(Guid.Empty)
+    {
+    } // For EF Core
 
     private Round(Guid roundId, Guid scheduleId, DateTime startTime, DateTime endTime)
         : base(roundId)

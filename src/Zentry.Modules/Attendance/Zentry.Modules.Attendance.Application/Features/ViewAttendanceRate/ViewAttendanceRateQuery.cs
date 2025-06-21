@@ -4,4 +4,5 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.Attendance.Application.Features.ViewAttendanceRate;
 
-public record ViewAttendanceRateQuery(Guid StudentId, Guid CourseId) : IQuery<AttendanceRateDto>, IRequest<AttendanceRateDto>;
+public record ViewAttendanceRateQuery(Guid StudentId, Guid CourseId)
+    : IQuery<AttendanceRateDto>, IRequest<AttendanceRateDto>;

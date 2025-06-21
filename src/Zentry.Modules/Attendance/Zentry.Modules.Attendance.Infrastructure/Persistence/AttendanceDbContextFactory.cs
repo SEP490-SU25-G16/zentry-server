@@ -10,8 +10,8 @@ public class AttendanceDbContextFactory : IDesignTimeDbContextFactory<Attendance
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddJsonFile("appsettings.json", false)
+            .AddJsonFile("appsettings.Development.json", true)
             .AddEnvironmentVariables()
             .Build();
 
@@ -19,10 +19,8 @@ public class AttendanceDbContextFactory : IDesignTimeDbContextFactory<Attendance
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrEmpty(connectionString))
-        {
             // Fallback connection string for development
             connectionString = "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres";
-        }
 
         optionsBuilder.UseNpgsql(connectionString,
             b => b.MigrationsAssembly("Zentry.Modules.Attendance.Infrastructure"));

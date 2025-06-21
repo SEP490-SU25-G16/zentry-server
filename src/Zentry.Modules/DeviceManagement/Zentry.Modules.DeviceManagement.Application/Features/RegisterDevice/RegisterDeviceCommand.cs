@@ -8,4 +8,3 @@ public record RegisterDeviceCommand(
     string DeviceName,
     string DeviceToken
 ) : IRequest<Result<Guid>>;
-

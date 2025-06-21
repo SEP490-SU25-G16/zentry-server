@@ -10,6 +10,6 @@
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Zentry.Modules.Schedule.Application\Zentry.Modules.Schedule.Application.csproj" />
+        <ProjectReference Include="..\Zentry.Modules.Schedule.Application\Zentry.Modules.Schedule.Application.csproj"/>
     </ItemGroup>
 </Project>

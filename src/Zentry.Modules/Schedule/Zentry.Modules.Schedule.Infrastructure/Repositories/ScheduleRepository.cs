@@ -16,7 +16,8 @@ public class ScheduleRepository(ScheduleDbContext context) : IScheduleRepository
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<Domain.Entities.Schedule>> FindAsync(ISpecification<Domain.Entities.Schedule> specification, CancellationToken cancellationToken)
+    public Task<IEnumerable<Domain.Entities.Schedule>> FindAsync(ISpecification<Domain.Entities.Schedule> specification,
+        CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
@@ -42,7 +43,8 @@ public class ScheduleRepository(ScheduleDbContext context) : IScheduleRepository
         throw new NotImplementedException();
     }
 
-    public Task<List<Domain.Entities.Schedule>> GetSchedulesByCourseIdsAsync(List<Guid> courseIds, DateTime startDate, DateTime endDate)
+    public Task<List<Domain.Entities.Schedule>> GetSchedulesByCourseIdsAsync(List<Guid> courseIds, DateTime startDate,
+        DateTime endDate)
     {
         throw new NotImplementedException();
     }

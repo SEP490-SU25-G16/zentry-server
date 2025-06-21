@@ -12,8 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Zentry.Modules.Attendance.Application\Zentry.Modules.Attendance.Application.csproj" />
-      <ProjectReference Include="..\Zentry.Modules.Attendance.Domain\Zentry.Modules.Attendance.Domain.csproj" />
+        <ProjectReference Include="..\Zentry.Modules.Attendance.Application\Zentry.Modules.Attendance.Application.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules.Attendance.Domain\Zentry.Modules.Attendance.Domain.csproj"/>
     </ItemGroup>
 
 </Project>

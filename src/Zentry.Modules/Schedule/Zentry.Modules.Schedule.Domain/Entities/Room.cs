@@ -4,11 +4,6 @@ namespace Zentry.Modules.Schedule.Domain.Entities;
 
 public class Room : Entity
 {
-    public Guid RoomId { get; private set; } = Guid.NewGuid();
-    public string Name { get; private set; }
-    public string Building { get; private set; }
-    public int Capacity { get; private set; }
-
     private Room() : base(Guid.Empty)
     {
     } // For EF Core
@@ -26,6 +21,11 @@ public class Room : Entity
             ? capacity
             : throw new ArgumentException("Capacity must be positive.", nameof(capacity));
     }
+
+    public Guid RoomId { get; private set; } = Guid.NewGuid();
+    public string Name { get; private set; }
+    public string Building { get; private set; }
+    public int Capacity { get; private set; }
 
     // Static factory method để tạo Room mới
     public static Room Create(string name, string building, int capacity)

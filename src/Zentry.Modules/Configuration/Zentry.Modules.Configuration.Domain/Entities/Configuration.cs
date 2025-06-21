@@ -41,10 +41,7 @@ public class Configuration : AggregateRoot
         Guard.AgainstNull(newValue, nameof(newValue));
 
         Value = newValue;
-        if (newDescription != null)
-        {
-            Description = newDescription;
-        }
+        if (newDescription != null) Description = newDescription;
         UpdatedAt = DateTime.UtcNow;
     }
 

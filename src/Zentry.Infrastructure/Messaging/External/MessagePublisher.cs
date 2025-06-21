@@ -37,7 +37,6 @@ public class MessagePublisher : IMessagePublisher, IDisposable
             false,
             false,
             false,
-            null,
             cancellationToken: cancellationToken);
 
         var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));

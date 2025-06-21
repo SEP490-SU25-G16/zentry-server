@@ -1,10 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
-using Zentry.Infrastructure.Messaging.External;
 using Zentry.Modules.Reporting.Persistence;
-using Zentry.Modules.Reporting.Persistence.Configurations;
 
 namespace Zentry.Modules.Reporting;
 
