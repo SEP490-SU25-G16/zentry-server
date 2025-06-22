@@ -1,0 +1,1739 @@
+openapi: 3.0.0
+info:
+  title: Schedule Management API
+  description: |
+    This API manages courses, rooms, schedules, and enrollments within the Zentry system.
+    It provides functionalities for administrators to create, read, update, and delete these entities,
+    ensuring data integrity and preventing scheduling conflicts. Lecturers and students have read-only
+    access to their relevant schedules.
+
+    ### Key Features:
+    - **Course Management (UC-Schedule-01 to UC-Schedule-04)**: Full CRUD operations for courses.
+    - **Room Management (UC-Schedule-05 to UC-Schedule-08)**: Full CRUD operations for rooms.
+    - **Schedule Management (UC-Schedule-09 to UC-Schedule-12)**: Full CRUD operations for class schedules, with conflict detection.
+    - **Enrollment Management (UC-Schedule-13 to UC-Schedule-15)**: Enroll/unenroll students from courses, and view enrollments.
+    - **Personal Schedule Viewing (UC-Schedule-16)**: Lecturers and students can view their respective class schedules.
+
+    The module relies on PostgreSQL for relational data storage and integrates with other modules
+    like Attendance, Notification, and Reporting.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local server
+  - url: https://api.zentry.com/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /courses:
+    get:
+      summary: Get a list of courses (UC-Schedule-02)
+      operationId: getCourses
+      tags:
+        - Courses
+      description: |
+        Retrieves a paginated and filterable list of courses.
+        - **Role**: Admin.
+      parameters:
+        - name: code
+          in: query
+          required: false
+          description: Optional. Filter courses by exact course code.
+          schema:
+            type: string
+        - name: name
+          in: query
+          required: false
+          description: Optional. Filter courses by partial course name (case-insensitive search).
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination (starts from 1).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page.
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: A list of courses.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new course (UC-Schedule-01)
+      operationId: createCourse
+      tags:
+        - Courses
+      description: |
+        Allows an Admin to create a new course.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Course `code` must be unique.
+      requestBody:
+        description: Course details to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreateRequest'
+      responses:
+        '201':
+          description: Course created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          description: Invalid input or course code already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Course code already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses/{courseId}:
+    get:
+      summary: Get a course by ID (UC-Schedule-02)
+      operationId: getCourseById
+      tags:
+        - Courses
+      description: |
+        Retrieves details of a specific course by its ID.
+        - **Role**: Admin.
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: ID of the course to retrieve.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Course found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a course (UC-Schedule-03)
+      operationId: updateCourse
+      tags:
+        - Courses
+      description: |
+        Allows an Admin to update the details of an existing course.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Course `id` must exist. `code` (if updated) must be unique.
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: ID of the course to update.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated course details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdateRequest'
+      responses:
+        '200':
+          description: Course updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          description: Invalid input or course code already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Course code already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a course (UC-Schedule-04)
+      operationId: deleteCourse
+      tags:
+        - Courses
+      description: |
+        Allows an Admin to delete a course.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Course must not have any associated schedules or enrollments.
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: ID of the course to delete.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Course deleted successfully.
+        '400':
+          description: Cannot delete course with associated schedules or enrollments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rooms:
+    get:
+      summary: Get a list of rooms (UC-Schedule-06)
+      operationId: getRooms
+      tags:
+        - Rooms
+      description: |
+        Retrieves a paginated and filterable list of rooms.
+        - **Role**: Admin.
+      parameters:
+        - name: name
+          in: query
+          required: false
+          description: Optional. Filter rooms by partial room name (case-insensitive search).
+          schema:
+            type: string
+        - name: location
+          in: query
+          required: false
+          description: Optional. Filter rooms by partial location (case-insensitive search).
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination (starts from 1).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page.
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: A list of rooms.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Room'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new room (UC-Schedule-05)
+      operationId: createRoom
+      tags:
+        - Rooms
+      description: |
+        Allows an Admin to create a new room.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Room `name` must be unique.
+      requestBody:
+        description: Room details to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomCreateRequest'
+      responses:
+        '201':
+          description: Room created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          description: Invalid input or room name already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Room name already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rooms/{roomId}:
+    get:
+      summary: Get a room by ID (UC-Schedule-06)
+      operationId: getRoomById
+      tags:
+        - Rooms
+      description: |
+        Retrieves details of a specific room by its ID.
+        - **Role**: Admin.
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: ID of the room to retrieve.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Room found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Room not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a room (UC-Schedule-07)
+      operationId: updateRoom
+      tags:
+        - Rooms
+      description: |
+        Allows an Admin to update the details of an existing room.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Room `id` must exist. `name` (if updated) must be unique.
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: ID of the room to update.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated room details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomUpdateRequest'
+      responses:
+        '200':
+          description: Room updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          description: Invalid input or room name already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Room not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Room name already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a room (UC-Schedule-08)
+      operationId: deleteRoom
+      tags:
+        - Rooms
+      description: |
+        Allows an Admin to delete a room.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Room must not have any associated schedules.
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          description: ID of the room to delete.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Room deleted successfully.
+        '400':
+          description: Cannot delete room with associated schedules.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Room not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /schedules:
+    get:
+      summary: Get a list of schedules (UC-Schedule-10)
+      operationId: getSchedules
+      tags:
+        - Schedules
+      description: |
+        Retrieves a paginated and filterable list of schedules.
+        - **Role**: Admin.
+      parameters:
+        - name: courseId
+          in: query
+          required: false
+          description: Optional. Filter schedules by Course ID.
+          schema:
+            type: string
+            format: uuid
+        - name: lecturerId
+          in: query
+          required: false
+          description: Optional. Filter schedules by Lecturer ID.
+          schema:
+            type: string
+            format: uuid
+        - name: roomId
+          in: query
+          required: false
+          description: Optional. Filter schedules by Room ID.
+          schema:
+            type: string
+            format: uuid
+        - name: dayOfWeek
+          in: query
+          required: false
+          description: Optional. Filter schedules by day of the week (1=Monday, 7=Sunday).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 7
+        - name: startDate
+          in: query
+          required: false
+          description: Optional. Filter schedules starting after or at this date (inclusive).
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: false
+          description: Optional. Filter schedules ending before or at this date (inclusive).
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination (starts from 1).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page.
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: A list of schedules.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleResponse'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new schedule (UC-Schedule-09)
+      operationId: createSchedule
+      tags:
+        - Schedules
+      description: |
+        Allows an Admin to create a new schedule.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. CourseId, LecturerId, RoomId must exist.
+          No scheduling conflicts (lecturer or room) for the specified time and day.
+      requestBody:
+        description: Schedule details to be created.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleCreateRequest'
+      responses:
+        '201':
+          description: Schedule created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+        '400':
+          description: Invalid input, scheduling conflict, or invalid time range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Course, Lecturer, or Room not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Schedule conflict detected for lecturer or room.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /schedules/{scheduleId}:
+    get:
+      summary: Get a schedule by ID (UC-Schedule-10)
+      operationId: getScheduleById
+      tags:
+        - Schedules
+      description: |
+        Retrieves details of a specific schedule by its ID.
+        - **Role**: Admin.
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          description: ID of the schedule to retrieve.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Schedule found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Schedule not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a schedule (UC-Schedule-11)
+      operationId: updateSchedule
+      tags:
+        - Schedules
+      description: |
+        Allows an Admin to update the details of an existing schedule.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Schedule `id` must exist.
+          Updated details must not cause scheduling conflicts.
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          description: ID of the schedule to update.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated schedule details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleUpdateRequest'
+      responses:
+        '200':
+          description: Schedule updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+        '400':
+          description: Invalid input, scheduling conflict, or invalid time range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Schedule, Course, Lecturer, or Room not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Schedule conflict detected for lecturer or room.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a schedule (UC-Schedule-12)
+      operationId: deleteSchedule
+      tags:
+        - Schedules
+      description: |
+        Allows an Admin to delete a schedule.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Schedule must not have any associated rounds or enrollments.
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          description: ID of the schedule to delete.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Schedule deleted successfully.
+        '400':
+          description: Cannot delete schedule with associated rounds or enrollments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Schedule not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /schedules/my:
+    get:
+      summary: Get authenticated user's schedules (UC-Schedule-16)
+      operationId: getMySchedules
+      tags:
+        - Schedules (User View)
+      description: |
+        Allows an authenticated lecturer or student to view their personal schedules.
+        - **Roles**: Lecturer, Student.
+      parameters:
+        - name: dayOfWeek
+          in: query
+          required: false
+          description: Optional. Filter schedules by day of the week (1=Monday, 7=Sunday).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 7
+        - name: startDate
+          in: query
+          required: false
+          description: Optional. Filter schedules starting after or at this date (inclusive).
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: false
+          description: Optional. Filter schedules ending before or at this date (inclusive).
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination (starts from 1).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page.
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: A list of schedules for the authenticated user.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleResponse'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /enrollments:
+    get:
+      summary: Get a list of enrollments for a course (UC-Schedule-15)
+      operationId: getEnrollmentsByCourse
+      tags:
+        - Enrollments
+      description: |
+        Retrieves a paginated list of students enrolled in a specific course.
+        - **Role**: Admin.
+      parameters:
+        - name: courseId
+          in: query
+          required: true
+          description: ID of the course to retrieve enrollments for.
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination (starts from 1).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page.
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: A list of enrollments for the specified course.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnrollmentResponse'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Course not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Enroll a student into a course (UC-Schedule-13)
+      operationId: enrollStudent
+      tags:
+        - Enrollments
+      description: |
+        Allows an Admin to enroll a student into a specific course.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. CourseId and StudentId must exist.
+          Student must not already be enrolled in the course.
+      requestBody:
+        description: Enrollment details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentCreateRequest'
+      responses:
+        '201':
+          description: Student enrolled successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentResponse'
+        '400':
+          description: Invalid input or student already enrolled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Course or Student not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Student already enrolled in this course.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Unenroll a student from a course (UC-Schedule-14)
+      operationId: unenrollStudent
+      tags:
+        - Enrollments
+      description: |
+        Allows an Admin to unenroll a student from a course.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. Enrollment must exist.
+          No associated attendance records for the student in this course.
+      requestBody:
+        description: Course ID and Student ID to unenroll.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentDeleteRequest'
+      responses:
+        '204':
+          description: Student unenrolled successfully.
+        '400':
+          description: Cannot unenroll student with existing attendance records for this course.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Enrollment not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # --- Course Schemas ---
+    Course:
+      type: object
+      description: Represents a course.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the course.
+          readOnly: true
+          example: 123e4567-e89b-12d3-a456-426614174000
+        code:
+          type: string
+          description: Unique code for the course (e.g., "CS101").
+          example: CS101
+        name:
+          type: string
+          description: Name of the course.
+          example: Introduction to Programming
+        description:
+          type: string
+          description: Detailed description of the course.
+          nullable: true
+          example: Basic programming concepts
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the course record was created.
+          readOnly: true
+          example: "2025-06-22T07:28:00+07:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the course record was last updated.
+          readOnly: true
+          nullable: true
+          example: null
+        updatedBy:
+          type: string
+          format: uuid
+          description: ID of the Admin user who last updated this course.
+          readOnly: true
+          nullable: true
+          example: 223e4567-e89b-12d3-a456-426614174001
+        updatedByName:
+          type: string
+          description: Full name of the Admin user who last updated this course. (Populated via join with Users table)
+          readOnly: true
+          nullable: true
+          example: Admin User
+      required:
+        - id
+        - code
+        - name
+        - createdAt
+
+    CourseCreateRequest:
+      type: object
+      description: Request body for creating a new course.
+      properties:
+        code:
+          type: string
+          description: Unique code for the course.
+          example: CS102
+        name:
+          type: string
+          description: Name of the course.
+          example: Advanced Data Structures
+        description:
+          type: string
+          description: Detailed description of the course.
+          nullable: true
+          example: Advanced topics in data structures and algorithms.
+      required:
+        - code
+        - name
+
+    CourseUpdateRequest:
+      type: object
+      description: Request body for updating an existing course.
+      properties:
+        code:
+          type: string
+          description: New unique code for the course (optional, if changing).
+          example: CS101-Revised
+        name:
+          type: string
+          description: New name of the course (optional).
+          example: Intro to Python Programming
+        description:
+          type: string
+          description: New detailed description of the course (optional).
+          nullable: true
+          example: Updated basic programming concepts using Python.
+
+    # --- Room Schemas ---
+    Room:
+      type: object
+      description: Represents a room.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the room.
+          readOnly: true
+          example: 323e4567-e89b-12d3-a456-426614174002
+        name:
+          type: string
+          description: Unique name of the room (e.g., "Room A101").
+          example: Room A101
+        capacity:
+          type: integer
+          description: Maximum capacity of the room.
+          example: 50
+        location:
+          type: string
+          description: Physical location of the room.
+          nullable: true
+          example: Building A, Floor 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the room record was created.
+          readOnly: true
+          example: "2025-06-22T07:28:00+07:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the room record was last updated.
+          readOnly: true
+          nullable: true
+          example: null
+        updatedBy:
+          type: string
+          format: uuid
+          description: ID of the Admin user who last updated this room.
+          readOnly: true
+          nullable: true
+          example: 223e4567-e89b-12d3-a456-426614174001
+        updatedByName:
+          type: string
+          description: Full name of the Admin user who last updated this room.
+          readOnly: true
+          nullable: true
+          example: Admin User
+      required:
+        - id
+        - name
+        - capacity
+        - createdAt
+
+    RoomCreateRequest:
+      type: object
+      description: Request body for creating a new room.
+      properties:
+        name:
+          type: string
+          description: Unique name of the room.
+          example: Room B205
+        capacity:
+          type: integer
+          description: Maximum capacity of the room.
+          example: 30
+        location:
+          type: string
+          description: Physical location of the room.
+          nullable: true
+          example: Building B, Floor 2
+      required:
+        - name
+        - capacity
+
+    RoomUpdateRequest:
+      type: object
+      description: Request body for updating an existing room.
+      properties:
+        name:
+          type: string
+          description: New unique name of the room (optional, if changing).
+          example: Room A101-Updated
+        capacity:
+          type: integer
+          description: New maximum capacity of the room (optional).
+          example: 60
+        location:
+          type: string
+          description: New physical location of the room (optional).
+          nullable: true
+          example: Building A, Ground Floor
+
+    # --- Schedule Schemas ---
+    Schedule: # Core Schedule object without joined data
+      type: object
+      description: Represents a class schedule.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the schedule.
+          readOnly: true
+          example: 423e4567-e89b-12d3-a456-426614174003
+        courseId:
+          type: string
+          format: uuid
+          description: ID of the associated course.
+          example: 123e4567-e89b-12d3-a456-426614174000
+        lecturerId:
+          type: string
+          format: uuid
+          description: ID of the assigned lecturer.
+          example: 523e4567-e89b-12d3-a456-426614174004
+        roomId:
+          type: string
+          format: uuid
+          description: ID of the assigned room.
+          example: 323e4567-e89b-12d3-a456-426614174002
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the class (e.g., "2025-06-23T07:00:00+07:00").
+          example: "2025-06-23T07:00:00+07:00"
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the class (e.g., "2025-06-23T09:00:00+07:00").
+          example: "2025-06-23T09:00:00+07:00"
+        dayOfWeek:
+          type: integer
+          description: Day of the week (1 = Monday, 7 = Sunday).
+          minimum: 1
+          maximum: 7
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the schedule record was created.
+          readOnly: true
+          example: "2025-06-22T07:28:00+07:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the schedule record was last updated.
+          readOnly: true
+          nullable: true
+          example: null
+        updatedBy:
+          type: string
+          format: uuid
+          description: ID of the Admin user who last updated this schedule.
+          readOnly: true
+          nullable: true
+          example: 223e4567-e89b-12d3-a456-426614174001
+      required:
+        - id
+        - courseId
+        - lecturerId
+        - roomId
+        - startTime
+        - endTime
+        - dayOfWeek
+        - createdAt
+
+    ScheduleResponse: # Schedule object with joined data for display
+      type: object
+      description: Represents a class schedule including joined details from Course, User, and Room tables.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the schedule.
+          readOnly: true
+          example: 423e4567-e89b-12d3-a456-426614174003
+        courseId:
+          type: string
+          format: uuid
+          description: ID of the associated course.
+          example: 123e4567-e89b-12d3-a456-426614174000
+        courseName:
+          type: string
+          description: Name of the associated course.
+          example: Introduction to Programming
+        lecturerId:
+          type: string
+          format: uuid
+          description: ID of the assigned lecturer.
+          example: 523e4567-e89b-12d3-a456-426614174004
+        lecturerName:
+          type: string
+          description: Name of the assigned lecturer.
+          example: Dr. Smith
+        roomId:
+          type: string
+          format: uuid
+          description: ID of the assigned room.
+          example: 323e4567-e89b-12d3-a456-426614174002
+        roomName:
+          type: string
+          description: Name of the assigned room.
+          example: Room A101
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the class.
+          example: "2025-06-23T07:00:00+07:00"
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the class.
+          example: "2025-06-23T09:00:00+07:00"
+        dayOfWeek:
+          type: integer
+          description: Day of the week (1 = Monday, 7 = Sunday).
+          minimum: 1
+          maximum: 7
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the schedule record was created.
+          readOnly: true
+          example: "2025-06-22T07:28:00+07:00"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the schedule record was last updated.
+          readOnly: true
+          nullable: true
+          example: null
+        updatedBy:
+          type: string
+          format: uuid
+          description: ID of the Admin user who last updated this schedule.
+          readOnly: true
+          nullable: true
+          example: 223e4567-e89b-12d3-a456-426614174001
+        updatedByName:
+          type: string
+          description: Full name of the Admin user who last updated this schedule.
+          readOnly: true
+          nullable: true
+          example: Admin User
+      required:
+        - id
+        - courseId
+        - courseName
+        - lecturerId
+        - lecturerName
+        - roomId
+        - roomName
+        - startTime
+        - endTime
+        - dayOfWeek
+        - createdAt
+
+    ScheduleCreateRequest:
+      type: object
+      description: Request body for creating a new schedule.
+      properties:
+        courseId:
+          type: string
+          format: uuid
+          description: ID of the course for this schedule.
+          example: 123e4567-e89b-12d3-a456-426614174000
+        lecturerId:
+          type: string
+          format: uuid
+          description: ID of the lecturer for this schedule.
+          example: 523e4567-e89b-12d3-a456-426614174004
+        roomId:
+          type: string
+          format: uuid
+          description: ID of the room for this schedule.
+          example: 323e4567-e89b-12d3-a456-426614174002
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the class.
+          example: "2025-06-23T07:00:00+07:00"
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the class.
+          example: "2025-06-23T09:00:00+07:00"
+        dayOfWeek:
+          type: integer
+          description: Day of the week (1 = Monday, 7 = Sunday).
+          minimum: 1
+          maximum: 7
+          example: 1
+      required:
+        - courseId
+        - lecturerId
+        - roomId
+        - startTime
+        - endTime
+        - dayOfWeek
+
+    ScheduleUpdateRequest:
+      type: object
+      description: Request body for updating an existing schedule.
+      properties:
+        courseId:
+          type: string
+          format: uuid
+          description: New ID of the course for this schedule (optional).
+          example: 123e4567-e89b-12d3-a456-426614174000
+        lecturerId:
+          type: string
+          format: uuid
+          description: New ID of the lecturer for this schedule (optional).
+          example: 523e4567-e89b-12d3-a456-426614174004
+        roomId:
+          type: string
+          format: uuid
+          description: New ID of the room for this schedule (optional).
+          example: 323e4567-e89b-12d3-a456-426614174002
+        startTime:
+          type: string
+          format: date-time
+          description: New start time of the class (optional).
+          example: "2025-06-23T07:30:00+07:00"
+        endTime:
+          type: string
+          format: date-time
+          description: New end time of the class (optional).
+          example: "2025-06-23T09:30:00+07:00"
+        dayOfWeek:
+          type: integer
+          description: New day of the week (1 = Monday, 7 = Sunday) (optional).
+          minimum: 1
+          maximum: 7
+          example: 1
+
+    # --- Enrollment Schemas ---
+    Enrollment: # Core Enrollment object without joined data
+      type: object
+      description: Represents a student's enrollment in a course.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the enrollment.
+          readOnly: true
+          example: 623e4567-e89b-12d3-a456-426614174005
+        courseId:
+          type: string
+          format: uuid
+          description: ID of the enrolled course.
+          example: 123e4567-e89b-12d3-a456-426614174000
+        studentId:
+          type: string
+          format: uuid
+          description: ID of the enrolled student.
+          example: 723e4567-e89b-12d3-a456-426614174006
+        enrolledAt:
+          type: string
+          format: date-time
+          description: Timestamp when the student was enrolled.
+          readOnly: true
+          example: "2025-06-22T07:28:00+07:00"
+      required:
+        - id
+        - courseId
+        - studentId
+        - enrolledAt
+
+    EnrollmentResponse: # Enrollment object with joined data for display
+      type: object
+      description: Represents a student's enrollment in a course including student's full name.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the enrollment.
+          readOnly: true
+          example: 623e4567-e89b-12d3-a456-426614174005
+        courseId:
+          type: string
+          format: uuid
+          description: ID of the enrolled course.
+          example: 123e4567-e89b-12d3-a456-426614174000
+        studentId:
+          type: string
+          format: uuid
+          description: ID of the enrolled student.
+          example: 723e4567-e89b-12d3-a456-426614174006
+        fullName:
+          type: string
+          description: Full name of the enrolled student.
+          readOnly: true
+          example: John Doe
+        enrolledAt:
+          type: string
+          format: date-time
+          description: Timestamp when the student was enrolled.
+          readOnly: true
+          example: "2025-06-22T07:28:00+07:00"
+      required:
+        - id
+        - courseId
+        - studentId
+        - fullName
+        - enrolledAt
+
+    EnrollmentCreateRequest:
+      type: object
+      description: Request body for enrolling a student into a course.
+      properties:
+        courseId:
+          type: string
+          format: uuid
+          description: ID of the course to enroll the student in.
+          example: 123e4567-e89b-12d3-a456-426614174000
+        studentId:
+          type: string
+          format: uuid
+          description: ID of the student to enroll.
+          example: 723e4567-e89b-12d3-a456-426614174006
+      required:
+        - courseId
+        - studentId
+
+    EnrollmentDeleteRequest:
+      type: object
+      description: Request body for unenrolling a student from a course.
+      properties:
+        courseId:
+          type: string
+          format: uuid
+          description: ID of the course to unenroll the student from.
+          example: 123e4567-e89b-12d3-a456-426614174000
+        studentId:
+          type: string
+          format: uuid
+          description: ID of the student to unenroll.
+          example: 723e4567-e89b-12d3-a456-426614174006
+      required:
+        - courseId
+        - studentId
+
+    Error:
+      type: object
+      description: Standard error response format.
+      properties:
+        code:
+          type: string
+          description: A unique error code for the specific error.
+          example: "COURSE_NOT_FOUND"
+        message:
+          type: string
+          description: A human-readable message describing the error.
+          example: "Course with provided ID not found."
+      required:
+        - code
+        - message

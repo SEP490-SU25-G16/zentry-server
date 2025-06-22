@@ -1,0 +1,480 @@
+openapi: 3.0.0
+info:
+  title: Configuration Management API
+  description: |
+    This API manages system-wide configuration parameters for the Zentry system,
+    influencing the behavior of modules like DeviceManagement and Attendance.
+    It provides functionalities for administrators to view, create, update, and delete
+    configuration settings such as `ScanInterval` and `AbsenceThreshold`.
+
+    ### Key Features:
+    - **View Configurations (UC-Config-01)**: Retrieve a list of all system configuration parameters.
+    - **Create Configuration (UC-Config-02)**: Add new configuration parameters to the system.
+    - **Update Configuration (UC-Config-03)**: Modify existing configuration parameter values or descriptions.
+    - **Delete Configuration (UC-Config-04)**: Remove configuration parameters that are no longer needed.
+    - **Retrieve Parameter (UC-Config-05)**: Allows other modules/services to fetch specific configuration values.
+
+    This API ensures centralized and controlled management of system behaviors,
+    providing flexibility and adaptability for future system evolution.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local server
+  - url: https://api.zentry.com/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /configurations:
+    get:
+      summary: Get a list of all configuration parameters (UC-Config-01)
+      operationId: getConfigurations
+      tags:
+        - Configurations
+      description: |
+        Retrieves a list of all system configuration parameters.
+        - **Role**: Admin.
+      parameters:
+        - name: key
+          in: query
+          required: false
+          description: Optional. Filter configurations by a specific key.
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination (starts from 1).
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of records per page.
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: A list of configuration parameters.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Configuration'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create a new configuration parameter (UC-Config-02)
+      operationId: createConfiguration
+      tags:
+        - Configurations
+      description: |
+        Allows an Admin to add a new system configuration parameter.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. The `key` must be unique.
+      requestBody:
+        description: Configuration parameter details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationCreateRequest'
+      responses:
+        '201':
+          description: Configuration parameter created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        '400':
+          description: Invalid input (e.g., invalid value format) or key already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict - Configuration key already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /configurations/{configId}:
+    get:
+      summary: Get a specific configuration parameter by ID (UC-Config-01/UC-Config-05 extended)
+      operationId: getConfigurationById
+      tags:
+        - Configurations
+      description: |
+        Retrieves details of a specific configuration parameter by its ID.
+        This endpoint is for detailed lookup, whereas `GET /configurations/{key}` is for consumption by other modules.
+        - **Role**: Admin.
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          description: ID of the configuration parameter to retrieve.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Configuration parameter found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration parameter not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update an existing configuration parameter (UC-Config-03)
+      operationId: updateConfiguration
+      tags:
+        - Configurations
+      description: |
+        Allows an Admin to update the value or description of an existing configuration parameter.
+        - **Role**: Admin.
+        - **Prerequisites**: User must have Admin role. The `configId` must exist.
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          description: ID of the configuration parameter to update.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Updated configuration parameter details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationUpdateRequest'
+      responses:
+        '200':
+          description: Configuration parameter updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configuration'
+        '400':
+          description: Invalid input (e.g., invalid value format).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration parameter not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a configuration parameter (UC-Config-04)
+      operationId: deleteConfiguration
+      tags:
+        - Configurations
+      description: |
+        Allows an Admin to delete a configuration parameter from the system.
+        - **Role**: Admin.
+        - **Constraint**: Cannot delete protected configuration keys (e.g., `ScanInterval`, `AbsenceThreshold`).
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          description: ID of the configuration parameter to delete.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Configuration parameter deleted successfully.
+        '400':
+          description: Cannot delete a protected configuration parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - User does not have Admin role.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration parameter not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /configurations/by-key/{key}:
+    get:
+      summary: Retrieve a configuration parameter by Key (UC-Config-05)
+      operationId: getConfigurationByKey
+      tags:
+        - Configurations
+      description: |
+        Allows other system modules or services to retrieve the value of a specific
+        configuration parameter by its unique key. This endpoint is optimized for
+        read-only access by internal components.
+        - **Role**: System (or any authenticated user, if exposed externally for system info).
+          Assuming for internal modules, basic authentication (JWT) is sufficient.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: Unique key of the configuration parameter (e.g., 'ScanInterval').
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Configuration parameter found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationValueResponse'
+        '401':
+          description: Unauthorized - Authentication token missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Configuration parameter not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Configuration:
+      type: object
+      description: Represents a system configuration parameter.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the configuration parameter.
+          readOnly: true
+          example: 123e4567-e89b-12d3-a456-426614174000
+        key:
+          type: string
+          description: Unique name of the configuration parameter (e.g., "ScanInterval").
+          example: ScanInterval
+        value:
+          type: string
+          description: The value of the configuration parameter (e.g., "30", "0.6").
+          example: "30"
+        description:
+          type: string
+          description: A detailed description of the parameter's purpose.
+          nullable: true
+          example: "Interval for BLE signal scanning in seconds"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the configuration record was created.
+          readOnly: true
+          example: "2025-06-01T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the configuration record was last updated.
+          readOnly: true
+          nullable: true
+          example: "2025-06-21T08:00:00Z"
+        updatedBy:
+          type: string
+          format: uuid
+          description: ID of the Admin user who last updated this configuration.
+          readOnly: true
+          nullable: true
+          example: 223e4567-e89b-12d3-a456-426614174001
+        updatedByName:
+          type: string
+          description: Full name of the Admin user who last updated this configuration. (Populated via join with Users table)
+          readOnly: true
+          nullable: true
+          example: "Admin User"
+      required:
+        - id
+        - key
+        - value
+        - createdAt
+
+    ConfigurationCreateRequest:
+      type: object
+      description: Request body for creating a new configuration parameter.
+      properties:
+        key:
+          type: string
+          description: Unique name of the new configuration parameter.
+          example: MaxSessionDuration
+        value:
+          type: string
+          description: The value for the new configuration parameter.
+          example: "90"
+        description:
+          type: string
+          description: A detailed description of the new parameter.
+          nullable: true
+          example: "Maximum duration for an attendance session in minutes"
+      required:
+        - key
+        - value
+
+    ConfigurationUpdateRequest:
+      type: object
+      description: Request body for updating an existing configuration parameter.
+      properties:
+        value:
+          type: string
+          description: The new value for the configuration parameter.
+          example: "60"
+        description:
+          type: string
+          description: An updated description of the parameter.
+          nullable: true
+          example: "Updated interval for BLE signal scanning in seconds"
+      # No fields are strictly required for update, as either can be provided.
+
+    ConfigurationValueResponse:
+      type: object
+      description: Response structure for retrieving a configuration parameter's value by key.
+      properties:
+        key:
+          type: string
+          description: The unique key of the configuration parameter.
+          example: ScanInterval
+        value:
+          type: string
+          description: The value of the configuration parameter.
+          example: "30"
+      required:
+        - key
+        - value
+
+    Error:
+      type: object
+      description: Standard error response format.
+      properties:
+        code:
+          type: string
+          description: A unique error code for the specific error.
+          example: "CONFIG_KEY_EXISTS"
+        message:
+          type: string
+          description: A human-readable message describing the error.
+          example: "Configuration key 'ScanInterval' already exists."
+      required:
+        - code
+        - message
