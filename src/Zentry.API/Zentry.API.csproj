@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -28,16 +28,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Zentry.Modules\Attendance\Zentry.Modules.Attendance.Infrastructure\Zentry.Modules.Attendance.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\Attendance\Zentry.Modules.Attendance.Presentation\Zentry.Modules.Attendance.Presentation.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\Configuration\Zentry.Modules.Configuration.Infrastructure\Zentry.Modules.Configuration.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\Configuration\Zentry.Modules.Configuration.Presentation\Zentry.Modules.Configuration.Presentation.csproj"/>
+		<ProjectReference Include="..\Zentry.Modules\AttendanceManagement\Zentry.Modules.AttendanceManagement.Infrastructure\Zentry.Modules.AttendanceManagement.Infrastructure.csproj"/>
+		<ProjectReference Include="..\Zentry.Modules\AttendanceManagement\Zentry.Modules.AttendanceManagement.Presentation\Zentry.Modules.AttendanceManagement.Presentation.csproj"/>
+		<ProjectReference Include="..\Zentry.Modules\ConfigurationManagement\Zentry.Modules.ConfigurationManagement.Infrastructure\Zentry.Modules.ConfigurationManagement.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\ConfigurationManagement\Zentry.Modules.ConfigurationManagement.Presentation\Zentry.Modules.ConfigurationManagement.Presentation.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement.Presentation\Zentry.Modules.DeviceManagement.Presentation.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement.Infrastructure\Zentry.Modules.DeviceManagement.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\Notification\Zentry.Modules.Notification\Zentry.Modules.Notification.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\Reporting\Zentry.Modules.Reporting\Zentry.Modules.Reporting.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Presentation\Zentry.Modules.Schedule.Presentation.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\Schedule\Zentry.Modules.Schedule.Infrastructure\Zentry.Modules.Schedule.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\NotificationService\Zentry.Modules.NotificationService\Zentry.Modules.NotificationService.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\ReportingService\Zentry.Modules.ReportingService\Zentry.Modules.ReportingService.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\ScheduleManagement\Zentry.Modules.ScheduleManagement.Presentation\Zentry.Modules.ScheduleManagement.Presentation.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\ScheduleManagement\Zentry.Modules.ScheduleManagement.Infrastructure\Zentry.Modules.ScheduleManagement.Infrastructure.csproj"/>
     </ItemGroup>
 
 </Project>

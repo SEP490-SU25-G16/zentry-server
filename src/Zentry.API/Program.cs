@@ -1,17 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Zentry.Infrastructure;
-using Zentry.Modules.Attendance.Infrastructure;
-using Zentry.Modules.Attendance.Infrastructure.Persistence;
-using Zentry.Modules.Configuration.Infrastructure;
-using Zentry.Modules.Configuration.Infrastructure.Persistence;
+using Zentry.Modules.AttendanceManagement.Infrastructure;
+using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
+using Zentry.Modules.ConfigurationManagement.Infrastructure;
+using Zentry.Modules.ConfigurationManagement.Infrastructure.Persistence;
 using Zentry.Modules.DeviceManagement.Infrastructure;
 using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
-using Zentry.Modules.Notification;
-using Zentry.Modules.Reporting;
-using Zentry.Modules.Reporting.Persistence;
-using Zentry.Modules.Schedule.Infrastructure;
-using Zentry.Modules.Schedule.Infrastructure.Persistence;
+using Zentry.Modules.NotificationService;
+using Zentry.Modules.ReportingService;
+using Zentry.Modules.ReportingService.Persistence;
+using Zentry.Modules.ScheduleManagement.Infrastructure;
+using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 

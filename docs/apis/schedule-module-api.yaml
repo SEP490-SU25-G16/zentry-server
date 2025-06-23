@@ -15,7 +15,7 @@ info:
     - **Personal Schedule Viewing (UC-Schedule-16)**: Lecturers and students can view their respective class schedules.
 
     The module relies on PostgreSQL for relational data storage and integrates with other modules
-    like Attendance, Notification, and Reporting.
+    like Attendance, Notification, and ReportingService.
   version: 1.0.0
 
 servers:

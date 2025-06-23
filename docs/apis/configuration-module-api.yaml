@@ -3,7 +3,7 @@ info:
   title: Configuration Management API
   description: |
     This API manages system-wide configuration parameters for the Zentry system,
-    influencing the behavior of modules like DeviceManagement and Attendance.
+    influencing the behavior of modules like DeviceManagement and AttendanceManagement.
     It provides functionalities for administrators to view, create, update, and delete
     configuration settings such as `ScanInterval` and `AbsenceThreshold`.
 

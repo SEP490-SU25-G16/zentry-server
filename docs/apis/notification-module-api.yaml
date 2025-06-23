@@ -287,11 +287,11 @@ components:
           example: 223e4567-e89b-12d3-a456-426614174001
         title:
           type: string
-          description: Title of the notification.
+          description: Title of the NotificationService.
           example: Absence Report Approved
         content:
           type: string
-          description: Detailed content of the notification.
+          description: Detailed content of the NotificationService.
           example: Your absence report for session XYZ was approved. Your attendance has been updated.
         type:
           type: string
@@ -303,7 +303,7 @@ components:
           example: Email
         status:
           type: string
-          description: Status of the notification.
+          description: Status of the NotificationService.
           enum:
             - Unread
             - Read
@@ -311,7 +311,7 @@ components:
           example: Unread
         priority:
           type: string
-          description: Priority level of the notification.
+          description: Priority level of the NotificationService.
           enum:
             - Low
             - Normal
@@ -357,11 +357,11 @@ components:
           example: 223e4567-e89b-12d3-a456-426614174001
         title:
           type: string
-          description: The title of the notification.
+          description: The title of the NotificationService.
           example: Absence Report Approved
         content:
           type: string
-          description: The detailed content of the notification.
+          description: The detailed content of the NotificationService.
           example: Your absence report for session XYZ was approved. Your attendance has been updated.
         notificationTypes:
           type: array
@@ -375,7 +375,7 @@ components:
           example: ["InApp", "Email"]
         priority:
           type: string
-          description: Priority level of the notification.
+          description: Priority level of the NotificationService.
           enum:
             - Low
             - Normal
