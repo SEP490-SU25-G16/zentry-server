@@ -1,6 +1,6 @@
 namespace Zentry.Modules.ReportingService.Features.ViewClassAttendanceReport;
 
-public class AttendanceReportDto
+public class AttendanceReportResponse
 {
     public Guid CourseId { get; set; }
     public DateTime GeneratedAt { get; set; }

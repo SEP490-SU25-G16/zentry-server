@@ -22,7 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Attendance", "Attendance", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reporting", "Reporting", "{57F6F123-9FED-4050-9B8F-B6621D500F2C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DeviceManagement", "DeviceManagement", "{E24108BB-981E-4040-A043-DA2055EE50B9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Device", "Device", "{E24108BB-981E-4040-A043-DA2055EE50B9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notification", "Notification", "{9C97D6BC-0882-450F-AB27-E43F07950522}"
 EndProject
@@ -65,6 +65,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.ScheduleManagement.Presentation", "src\Zentry.Modules\ScheduleManagement\Zentry.Modules.ScheduleManagement.Presentation\Zentry.Modules.ScheduleManagement.Presentation.csproj", "{89039672-1BB3-4B1C-BEC2-D20C6486F71D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.NotificationService", "src\Zentry.Modules\NotificationService\Zentry.Modules.NotificationService\Zentry.Modules.NotificationService.csproj", "{FB03B88E-B9B8-E93F-1A8A-F9B874EF36A0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "User", "User", "{674F5320-4F7A-4498-ACBA-11923E1614EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.UserManagement", "src\Zentry.Modules\UserManagement\Zentry.Modules.UserManagement\Zentry.Modules.UserManagement.csproj", "{662279C9-2E3B-4289-87E4-05949F74D6FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -160,6 +164,10 @@ Global
 		{FB03B88E-B9B8-E93F-1A8A-F9B874EF36A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB03B88E-B9B8-E93F-1A8A-F9B874EF36A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB03B88E-B9B8-E93F-1A8A-F9B874EF36A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{662279C9-2E3B-4289-87E4-05949F74D6FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{662279C9-2E3B-4289-87E4-05949F74D6FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{662279C9-2E3B-4289-87E4-05949F74D6FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{662279C9-2E3B-4289-87E4-05949F74D6FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -189,5 +197,7 @@ Global
 		{4AEF1ABE-98A7-4E49-AC71-27B1ACE4A6F3} = {E74FBAF5-0D54-482C-B6EA-816DC6921F6C}
 		{89039672-1BB3-4B1C-BEC2-D20C6486F71D} = {E74FBAF5-0D54-482C-B6EA-816DC6921F6C}
 		{FB03B88E-B9B8-E93F-1A8A-F9B874EF36A0} = {9C97D6BC-0882-450F-AB27-E43F07950522}
+		{674F5320-4F7A-4498-ACBA-11923E1614EF} = {E5978E3B-C456-4EFF-8869-BE94283AE234}
+		{662279C9-2E3B-4289-87E4-05949F74D6FA} = {674F5320-4F7A-4498-ACBA-11923E1614EF}
 	EndGlobalSection
 EndGlobal

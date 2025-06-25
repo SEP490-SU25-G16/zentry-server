@@ -5,11 +5,11 @@ namespace Zentry.Modules.ReportingService.Features.ViewClassAttendanceReport;
 
 public class
     ViewClassAttendanceReportQueryHandler(ReportingDbContext reportingDbContext)
-    : IRequestHandler<ViewClassAttendanceReportQuery, AttendanceReportDto>
+    : IRequestHandler<ViewClassAttendanceReportQuery, AttendanceReportResponse>
 {
     private readonly ReportingDbContext _reportingDbContext = reportingDbContext;
 
-    public Task<AttendanceReportDto> Handle(ViewClassAttendanceReportQuery request,
+    public Task<AttendanceReportResponse> Handle(ViewClassAttendanceReportQuery request,
         CancellationToken cancellationToken)
     {
         // var query = from enrollment in _attendanceDbContext.Set<AttendanceReport>()
