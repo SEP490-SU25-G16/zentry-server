@@ -1,5 +1,0 @@
-namespace Zentry.Modules.ConfigurationManagement.Application.Features.ConfigureAttendanceSettings;
-
-public class ConfigureAttendanceSettingsCommandHandler
-{
-}

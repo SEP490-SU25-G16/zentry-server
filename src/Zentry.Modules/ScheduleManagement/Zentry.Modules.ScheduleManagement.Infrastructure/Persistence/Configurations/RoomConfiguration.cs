@@ -4,26 +4,40 @@ using Zentry.Modules.ScheduleManagement.Domain.Entities;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configurations;
 
+
 public class RoomConfiguration : IEntityTypeConfiguration<Room>
 {
     public void Configure(EntityTypeBuilder<Room> builder)
     {
         builder.ToTable("Rooms");
 
-        // Đặt thuộc tính Id kế thừa làm khóa chính
-        builder.HasKey(d => d.Id);
+        builder.HasKey(r => r.Id);
 
-        // Cấu hình thuộc tính Id
-        builder.Property(d => d.Id)
-            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
+        builder.Property(r => r.Id)
+            .ValueGeneratedOnAdd();
 
-        builder.Property(r => r.Name).IsRequired().HasMaxLength(50);
-        builder.Property(r => r.Building).IsRequired().HasMaxLength(50);
-        builder.Property(r => r.Capacity).IsRequired();
+        builder.Property(r => r.RoomName) // Changed from Name to RoomName
+            .IsRequired()
+            .HasMaxLength(50);
 
+        builder.Property(r => r.Building)
+            .IsRequired()
+            .HasMaxLength(50);
 
-        // Add indexes for performance
-        builder.HasIndex(r => r.Name);
+        builder.Property(r => r.Capacity)
+            .IsRequired();
+
+        builder.Property(r => r.CreatedAt) // Thêm CreatedAt
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .IsRequired();
+
+        builder.Property(r => r.UpdatedAt) // Thêm UpdatedAt
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAddOrUpdate();
+
+        builder.HasIndex(r => r.RoomName)
+            .IsUnique(); // RoomName should be unique
+
         builder.HasIndex(r => r.Building);
     }
 }

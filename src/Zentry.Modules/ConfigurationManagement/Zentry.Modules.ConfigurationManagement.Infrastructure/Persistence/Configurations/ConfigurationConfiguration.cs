@@ -1,40 +1,55 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Zentry.Modules.ConfigurationManagement.Domain.Entities;
+using Zentry.Modules.ConfigurationManagement.Domain.Enums;
 
 namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Persistence.Configurations;
 
-public class ConfigurationConfiguration : IEntityTypeConfiguration<Domain.Entities.Configuration>
+
+public class ConfigurationConfiguration : IEntityTypeConfiguration<Configuration>
 {
-    public void Configure(EntityTypeBuilder<Domain.Entities.Configuration> builder)
+    public void Configure(EntityTypeBuilder<Configuration> builder)
     {
         builder.ToTable("Configurations");
 
-        // Đặt thuộc tính Id kế thừa làm khóa chính
-        builder.HasKey(d => d.Id);
+        builder.HasKey(c => c.Id);
 
-        // Cấu hình thuộc tính Id
-        builder.Property(d => d.Id)
-            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
+        builder.Property(c => c.Id)
+            .ValueGeneratedOnAdd();
 
-        builder.Property(c => c.Key)
+        builder.Property(c => c.AttributeId)
+            .IsRequired();
+
+        builder.Property(c => c.ScopeType)
+            .HasConversion(
+                st => st.ToString(),
+                st => ScopeType.FromName(st)
+            )
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(50);
+
+        builder.Property(c => c.ScopeId)
+            .IsRequired();
 
         builder.Property(c => c.Value)
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.Property(c => c.Description)
-            .HasMaxLength(1000);
-
         builder.Property(c => c.CreatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        builder.Property(c => c.UpdatedAt);
+        builder.Property(c => c.UpdatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAddOrUpdate();
 
-        // Unique constraint trên Key
-        builder.HasIndex(c => c.Key)
-            .IsUnique()
-            .HasDatabaseName("IX_Configurations_Key");
+        builder.HasIndex(c => c.AttributeId);
+        builder.HasIndex(c => c.ScopeType);
+        builder.HasIndex(c => c.ScopeId);
+
+        // Add unique constraint for combination of AttributeId, ScopeType, ScopeId
+        // This ensures a specific configuration value exists only once for a given scope
+        builder.HasIndex(c => new { c.AttributeId, c.ScopeType, c.ScopeId })
+            .IsUnique();
     }
 }

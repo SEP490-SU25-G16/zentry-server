@@ -1,0 +1,16 @@
+using Zentry.SharedKernel.Domain;
+
+namespace Zentry.Modules.ConfigurationManagement.Domain.Enums;
+
+public class DataType : Enumeration
+{
+    public static readonly DataType String = new(1, nameof(String));
+    public static readonly DataType Int = new(2, nameof(Int));
+    public static readonly DataType Boolean = new(3, nameof(Boolean));
+    public static readonly DataType Decimal = new(4, nameof(Decimal));
+    public static readonly DataType Date = new(5, nameof(Date));
+    public static readonly DataType Json = new(6, nameof(Json));
+    private DataType(int id, string name) : base(id, name) { }
+    public static DataType FromName(string name) => FromName<DataType>(name);
+    public static DataType FromId(int id) => FromId<DataType>(id);
+}

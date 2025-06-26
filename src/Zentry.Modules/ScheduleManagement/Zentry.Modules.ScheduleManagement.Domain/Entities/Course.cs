@@ -1,31 +1,35 @@
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
-
 public class Course : AggregateRoot<Guid>
 {
-    private Course() : base(Guid.Empty)
+    private Course() : base(Guid.Empty) { }
+    private Course(Guid id, string code, string name, string description, string semester)
+        : base(id)
     {
-    } // For EF Core
-
-    public Course(Guid courseId, string code, string name, string semester, Guid lecturerId) : base(courseId)
-    {
-        Code = !string.IsNullOrWhiteSpace(code)
-            ? code
-            : throw new ArgumentException("Code cannot be empty.", nameof(code));
-        Name = !string.IsNullOrWhiteSpace(name)
-            ? name
-            : throw new ArgumentException("Name cannot be empty.", nameof(name));
-        Semester = !string.IsNullOrWhiteSpace(semester)
-            ? semester
-            : throw new ArgumentException("Semester cannot be empty.", nameof(semester));
-        LecturerId = lecturerId != Guid.Empty
-            ? lecturerId
-            : throw new ArgumentException("LecturerId cannot be empty.", nameof(lecturerId));
+        Code = code;
+        Name = name;
+        Description = description;
+        Semester = semester;
+        CreatedAt = DateTime.UtcNow;
     }
-
     public string Code { get; private set; }
     public string Name { get; private set; }
+    public string Description { get; private set; }
     public string Semester { get; private set; }
-    public Guid LecturerId { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public static Course Create(string code, string name, string description, string semester)
+    {
+        return new Course(Guid.NewGuid(), code, name, description, semester);
+    }
+
+    public void Update(string? name = null, string? description = null, string? semester = null)
+    {
+        if (!string.IsNullOrWhiteSpace(name)) Name = name;
+        if (!string.IsNullOrWhiteSpace(description)) Description = description;
+        if (!string.IsNullOrWhiteSpace(semester)) Semester = semester;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

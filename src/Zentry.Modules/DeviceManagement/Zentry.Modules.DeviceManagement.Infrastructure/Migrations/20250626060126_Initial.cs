@@ -16,7 +16,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     DeviceName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     DeviceToken = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
@@ -30,11 +30,6 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Devices_AccountId",
-                table: "Devices",
-                column: "AccountId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Devices_DeviceToken",
                 table: "Devices",
                 column: "DeviceToken",
@@ -44,6 +39,11 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
                 name: "IX_Devices_Status",
                 table: "Devices",
                 column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Devices_UserId",
+                table: "Devices",
+                column: "UserId");
         }
 
         /// <inheritdoc />

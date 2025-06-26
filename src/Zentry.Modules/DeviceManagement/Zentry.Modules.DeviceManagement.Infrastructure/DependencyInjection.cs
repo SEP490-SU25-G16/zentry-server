@@ -9,7 +9,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddDeviceManagementInfrastructure(this IServiceCollection services,
+    public static IServiceCollection AddDeviceInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
         services.AddDbContext<DeviceManagementDbContext>(options =>

@@ -12,7 +12,7 @@ using Zentry.Modules.ReportingService.Persistence;
 namespace Zentry.Modules.ReportingService.Migrations
 {
     [DbContext(typeof(ReportingDbContext))]
-    [Migration("20250626024840_Initial")]
+    [Migration("20250626060153_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,29 +25,49 @@ namespace Zentry.Modules.ReportingService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Zentry.Modules.ReportingService.Features.ViewClassAttendanceReport.AttendanceReport", b =>
+            modelBuilder.Entity("Zentry.Modules.ReportingService.Persistence.Entities.AttendanceReport", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("AverageAttendanceRate")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)");
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("CourseId")
+                    b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("GeneratedAt")
+                    b.Property<DateTime?>("ExpiredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("TotalSessions")
-                        .HasColumnType("integer");
+                    b.Property<string>("ReportContent")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("TotalStudents")
-                        .HasColumnType("integer");
+                    b.Property<string>("ReportType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("ScopeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ScopeType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("ReportType");
+
+                    b.HasIndex("ScopeId");
+
+                    b.HasIndex("ScopeType");
 
                     b.ToTable("AttendanceReports", (string)null);
                 });

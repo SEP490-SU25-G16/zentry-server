@@ -6,21 +6,23 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configu
 
 public class RoundConfiguration : IEntityTypeConfiguration<Round>
 {
-    [Obsolete("Obsolete")]
     public void Configure(EntityTypeBuilder<Round> builder)
     {
         builder.ToTable("Rounds");
 
-        // Đặt thuộc tính Id kế thừa làm khóa chính
-        builder.HasKey(d => d.Id);
+        builder.HasKey(r => r.Id);
 
-        // Cấu hình thuộc tính Id
-        builder.Property(d => d.Id)
-            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
+        builder.Property(r => r.Id)
+            .ValueGeneratedOnAdd();
 
-        builder.Property(r => r.ScheduleId)
-            .HasColumnType("uuid")
+        builder.Property(r => r.SessionId)
             .IsRequired();
+
+        builder.Property(r => r.DeviceId)
+            .IsRequired();
+
+        builder.Property(r => r.ClientRequest)
+            .HasMaxLength(255);
 
         builder.Property(r => r.StartTime)
             .IsRequired();
@@ -28,12 +30,15 @@ public class RoundConfiguration : IEntityTypeConfiguration<Round>
         builder.Property(r => r.EndTime)
             .IsRequired();
 
-        // Add indexes for performance
-        builder.HasIndex(r => r.ScheduleId);
+        builder.Property(r => r.CreatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .IsRequired();
+
+        builder.HasIndex(r => r.SessionId);
+        builder.HasIndex(r => r.DeviceId);
         builder.HasIndex(r => r.StartTime);
         builder.HasIndex(r => r.EndTime);
 
-        // Add constraint to ensure EndTime > StartTime
         builder.HasCheckConstraint("CK_Rounds_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");
     }

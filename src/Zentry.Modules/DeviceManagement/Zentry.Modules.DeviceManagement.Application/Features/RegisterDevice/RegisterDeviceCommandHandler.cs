@@ -19,15 +19,6 @@ public class RegisterDeviceCommandHandler(
 
     public async Task<Result<Guid>> Handle(RegisterDeviceCommand request, CancellationToken cancellationToken)
     {
-        // var user = await _userServce.GetUserByIdAsync(request.AccountId, cancellationToken);
-        dynamic user = null;
-        if (user == null)
-            return (Result<Guid>)Result.Failure("User not found.");
-
-        var device = Device.Register(request.AccountId, DeviceName.Create(request.DeviceName), DeviceToken.Create());
-
-        await deviceRepository.AddAsync(device, cancellationToken);
-        await unitOfWork.CommitAsync(cancellationToken);
 
         return (Result<Guid>)Result.Success();
     }

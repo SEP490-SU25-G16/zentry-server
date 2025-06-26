@@ -7,17 +7,8 @@ namespace Zentry.Modules.ConfigurationManagement.Application.Features.ViewConfig
 public class GetConfigurationsQueryHandler(IConfigurationRepository repository)
     : IRequestHandler<GetConfigurationsQuery, List<ConfigurationDto>>
 {
-    public async Task<List<ConfigurationDto>> Handle(GetConfigurationsQuery request,
-        CancellationToken cancellationToken)
+    public Task<List<ConfigurationDto>> Handle(GetConfigurationsQuery request, CancellationToken cancellationToken)
     {
-        var configs = await repository.GetAllAsync(cancellationToken);
-        return configs.Select(c => new ConfigurationDto(
-            Guid.NewGuid(),
-            c.Key,
-            c.Value,
-            c.Description,
-            c.CreatedAt,
-            c.UpdatedAt
-        )).ToList();
+        throw new NotImplementedException();
     }
 }

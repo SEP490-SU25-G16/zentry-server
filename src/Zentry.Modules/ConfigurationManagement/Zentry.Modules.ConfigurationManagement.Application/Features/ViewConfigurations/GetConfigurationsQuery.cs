@@ -1,7 +1,9 @@
 using MediatR;
 using Zentry.Modules.ConfigurationManagement.Application.Dtos;
-using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.Modules.ConfigurationManagement.Domain.Entities;
 
 namespace Zentry.Modules.ConfigurationManagement.Application.Features.ViewConfigurations;
+public record GetConfigurationsQuery : IRequest<List<ConfigurationDto>>
+{
 
-public record GetConfigurationsQuery : IQuery<List<Domain.Entities.Configuration>>, IRequest<List<ConfigurationDto>>;
+}

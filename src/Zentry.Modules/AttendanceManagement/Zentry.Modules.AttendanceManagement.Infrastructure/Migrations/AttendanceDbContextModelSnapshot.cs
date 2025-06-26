@@ -33,54 +33,85 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("EnrollmentId")
-                        .HasColumnType("uuid");
+                    b.Property<DateTime>("ExpiredAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsPresent")
+                    b.Property<bool>("IsAbsent")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("RoundId")
+                    b.Property<bool>("IsManual")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EnrollmentId");
+                    b.HasIndex("SessionId");
 
-                    b.HasIndex("RoundId");
+                    b.HasIndex("Status");
 
-                    b.HasIndex("EnrollmentId", "RoundId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_AttendanceRecords_EnrollmentId_RoundId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("AttendanceRecords", (string)null);
                 });
 
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Enrollment", b =>
+            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CourseId")
+                    b.Property<string>("ClientRequest")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("DeviceId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("StudentId")
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SessionId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("DeviceId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("EndTime");
 
-                    b.HasIndex("StudentId", "CourseId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Enrollments_StudentId_CourseId");
+                    b.HasIndex("SessionId");
 
-                    b.ToTable("Enrollments", (string)null);
+                    b.HasIndex("StartTime");
+
+                    b.ToTable("Rounds", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Rounds_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
+                        });
                 });
 
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.ErrorReport", b =>
+            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Session", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -91,35 +122,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid>("DeviceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ErrorCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("DeviceId");
-
-                    b.HasIndex("ErrorCode");
-
-                    b.ToTable("ErrorReports", (string)null);
-                });
-
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -129,47 +131,21 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
-                    b.HasIndex("EndTime");
+                    b.HasKey("Id");
 
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StartTime");
 
-                    b.ToTable("Rounds", null, t =>
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Sessions", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Rounds_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
+                            t.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                         });
-                });
-
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.AttendanceRecord", b =>
-                {
-                    b.HasOne("Zentry.Modules.AttendanceManagement.Domain.Entities.Enrollment", "Enrollment")
-                        .WithMany("AttendanceRecords")
-                        .HasForeignKey("EnrollmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", "Round")
-                        .WithMany("AttendanceRecords")
-                        .HasForeignKey("RoundId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Enrollment");
-
-                    b.Navigation("Round");
-                });
-
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Enrollment", b =>
-                {
-                    b.Navigation("AttendanceRecords");
-                });
-
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", b =>
-                {
-                    b.Navigation("AttendanceRecords");
                 });
 #pragma warning restore 612, 618
         }

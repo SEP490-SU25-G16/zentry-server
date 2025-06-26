@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configurations;
 
@@ -10,44 +11,43 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
     {
         builder.ToTable("AttendanceRecords");
 
-        // Đặt thuộc tính Id kế thừa làm khóa chính
-        builder.HasKey(d => d.Id);
+        builder.HasKey(ar => ar.Id);
 
-        // Cấu hình thuộc tính Id
-        builder.Property(d => d.Id)
-            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
+        builder.Property(ar => ar.Id)
+            .ValueGeneratedOnAdd();
 
-        builder.Property(ar => ar.EnrollmentId)
-            .HasColumnType("uuid")
+        builder.Property(ar => ar.UserId)
             .IsRequired();
 
-        builder.Property(ar => ar.RoundId)
-            .HasColumnType("uuid")
+        builder.Property(ar => ar.SessionId)
             .IsRequired();
 
-        builder.Property(ar => ar.IsPresent).IsRequired();
+        builder.Property(ar => ar.Status)
+            .HasConversion(
+                s => s.ToString(),
+                s => AttendanceStatus.FromName(s)
+            )
+            .IsRequired();
+
+        builder.Property(ar => ar.IsManual)
+            .IsRequired();
+
+        builder.Property(ar => ar.IsAbsent)
+            .IsRequired();
+
         builder.Property(ar => ar.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        // Add unique constraint to prevent duplicate attendance records
-        builder.HasIndex(ar => new { ar.EnrollmentId, ar.RoundId })
-            .IsUnique()
-            .HasDatabaseName("IX_AttendanceRecords_EnrollmentId_RoundId");
+        builder.Property(ar => ar.ExpiredAt)
+            .IsRequired();
 
-        // Add indexes for performance
-        builder.HasIndex(ar => ar.EnrollmentId);
-        builder.HasIndex(ar => ar.RoundId);
+        builder.Property(ar => ar.UpdatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAddOrUpdate();
 
-        builder.HasOne(ar => ar.Enrollment)
-            .WithMany(e => e.AttendanceRecords)
-            .HasForeignKey(ar => ar.EnrollmentId)
-            .HasPrincipalKey(e => e.Id)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(ar => ar.Round)
-            .WithMany(r => r.AttendanceRecords)
-            .HasForeignKey(ar => ar.RoundId).HasPrincipalKey(r => r.Id)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(ar => ar.UserId);
+        builder.HasIndex(ar => ar.SessionId);
+        builder.HasIndex(ar => ar.Status);
     }
 }

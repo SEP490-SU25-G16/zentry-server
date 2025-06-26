@@ -1,19 +1,20 @@
 using MongoDB.Driver;
+using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 
 namespace Zentry.Modules.NotificationService.Persistence.Repository;
 
 public class NotificationRepository(IMongoDatabase database) : INotificationRepository
 {
-    private readonly IMongoCollection<Features.ReceiveAttendanceNotificationService.Notification> _collection =
-        database.GetCollection<Features.ReceiveAttendanceNotificationService.Notification>("Notifications");
+    private readonly IMongoCollection<Notification> _collection =
+        database.GetCollection<Notification>("Notifications");
 
-    public async Task AddAsync(Features.ReceiveAttendanceNotificationService.Notification notification,
+    public async Task AddAsync(Notification notification,
         CancellationToken cancellationToken)
     {
         await _collection.InsertOneAsync(notification, null, cancellationToken);
     }
 
-    public async Task<List<Features.ReceiveAttendanceNotificationService.Notification>> GetByUserIdAsync(Guid userId, int skip,
+    public async Task<List<Notification>> GetByUserIdAsync(Guid userId, int skip,
         int take, CancellationToken cancellationToken)
     {
         return await _collection

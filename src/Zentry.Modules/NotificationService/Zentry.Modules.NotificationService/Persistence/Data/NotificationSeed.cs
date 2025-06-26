@@ -2,9 +2,10 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using Zentry.Modules.NotificationService.Enums;
+using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 
 namespace Zentry.Modules.NotificationService.Persistence.Data;
-
 public static class NotificationSeed
 {
     private static readonly Guid User1Id = new("10000000-0000-0000-0000-000000000001");
@@ -14,54 +15,48 @@ public static class NotificationSeed
     public static void SeedData(IMongoDatabase database)
     {
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
-        var collection = database.GetCollection<Features.ReceiveAttendanceNotificationService.Notification>("Notifications");
+        var collection = database.GetCollection<Notification>("Notifications");
 
-        // Kiểm tra nếu collection đã có dữ liệu
-        if (collection.CountDocuments(FilterDefinition<Features.ReceiveAttendanceNotificationService.Notification>.Empty) > 0)
+        if (collection.CountDocuments(FilterDefinition<Notification>.Empty) > 0)
             return;
 
-        var notifications = new List<Features.ReceiveAttendanceNotificationService.Notification>
+        var notifications = new List<Notification>
         {
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                UserId = User1Id,
-                Message = "Attendance rate below 70% for course CS101.",
-                Type = "in_app",
-                SentAt = new DateTime(2025, 6, 18, 10, 0, 0, DateTimeKind.Utc)
-            },
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                UserId = User1Id,
-                Message = "Error in session #123: Device not found.",
-                Type = "email",
-                SentAt = new DateTime(2025, 6, 18, 11, 0, 0, DateTimeKind.Utc)
-            },
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                UserId = User2Id,
-                Message = "Your attendance for MATH202 is confirmed.",
-                Type = "in_app",
-                SentAt = new DateTime(2025, 6, 18, 12, 0, 0, DateTimeKind.Utc)
-            },
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                UserId = User2Id,
-                Message = "Error in session #124: BLE signal lost.",
-                Type = "push",
-                SentAt = new DateTime(2025, 6, 18, 13, 0, 0, DateTimeKind.Utc)
-            },
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                UserId = User3Id,
-                Message = "Reminder: Attend session #125 tomorrow.",
-                Type = "email",
-                SentAt = new DateTime(2025, 6, 18, 14, 0, 0, DateTimeKind.Utc)
-            }
+            Notification.Create( // Sử dụng Create method
+                User1Id,
+                "Attendance Alert for CS101", // Title
+                "Attendance rate below 70% for course CS101. Please check student progress.", // Content
+                NotificationType.InApp, // Type (Enumeration)
+                NotificationPriority.High // Priority (Enumeration)
+            ),
+            Notification.Create(
+                User1Id,
+                "Session Error Notification",
+                "Error in session #123: Device not found. Action required.",
+                NotificationType.Email,
+                NotificationPriority.High
+            ),
+            Notification.Create(
+                User2Id,
+                "Attendance Confirmation",
+                "Your attendance for MATH202 is confirmed. Thank you.",
+                NotificationType.InApp,
+                NotificationPriority.Normal
+            ),
+            Notification.Create(
+                User2Id,
+                "Bluetooth Issue Detected",
+                "Error in session #124: BLE signal lost. Please re-check device connection.",
+                NotificationType.Push,
+                NotificationPriority.Normal
+            ),
+            Notification.Create(
+                User3Id,
+                "Session Reminder",
+                "Reminder: Attend session #125 tomorrow at 09:00 AM.",
+                NotificationType.Email,
+                NotificationPriority.Low
+            )
         };
 
         try

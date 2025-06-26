@@ -1,0 +1,19 @@
+using Zentry.SharedKernel.Domain;
+
+namespace Zentry.Modules.ConfigurationManagement.Domain.Enums;
+
+public class ScopeType : Enumeration
+{
+    public static readonly ScopeType GLOBAL = new(1, nameof(GLOBAL));
+    public static readonly ScopeType COURSE = new(2, nameof(COURSE));
+    public static readonly ScopeType USER = new(3, nameof(USER));
+    public static readonly ScopeType SESSION = new(4, nameof(SESSION));
+    public static readonly ScopeType DEVICE = new(5, nameof(DEVICE));
+
+    private ScopeType(int id, string name) : base(id, name)
+    {
+    }
+
+    public static ScopeType FromName(string name) => FromName<ScopeType>(name);
+    public static ScopeType FromId(int id) => FromId<ScopeType>(id);
+}

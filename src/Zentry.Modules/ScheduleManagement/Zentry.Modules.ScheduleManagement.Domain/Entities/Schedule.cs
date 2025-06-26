@@ -1,3 +1,4 @@
+using Zentry.Modules.ScheduleManagement.Domain.Enums;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
@@ -6,41 +7,45 @@ public class Schedule : AggregateRoot<Guid>
 {
     private Schedule() : base(Guid.Empty)
     {
-    } // For EF Core
-
-    public Schedule(Guid scheduleId, Guid courseId, Guid roomId, DateTime startTime, DateTime endTime) :
-        base(scheduleId)
-    {
-        CourseId = courseId != Guid.Empty
-            ? courseId
-            : throw new ArgumentException("CourseId cannot be empty.", nameof(courseId));
-        RoomId = roomId != Guid.Empty ? roomId : throw new ArgumentException("RoomId cannot be empty.", nameof(roomId));
-        StartTime = startTime != default
-            ? startTime
-            : throw new ArgumentException("StartTime cannot be empty.", nameof(startTime));
-        EndTime = endTime > startTime
-            ? endTime
-            : throw new ArgumentException("EndTime must be after StartTime.", nameof(endTime));
     }
 
+    private Schedule(Guid id, Guid lecturerId, Guid courseId, Guid roomId, DateTime startTime, DateTime endTime,
+        DayOfWeekEnum dayOfWeek)
+        : base(id)
+    {
+        LecturerId = lecturerId;
+        CourseId = courseId;
+        RoomId = roomId;
+        StartTime = startTime;
+        EndTime = endTime;
+        DayOfWeek = dayOfWeek;
+        CreatedAt = DateTime.UtcNow;
+    }
+
+    public Guid LecturerId { get; private set; }
     public Guid CourseId { get; private set; }
     public Guid RoomId { get; private set; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
-    public Course Course { get; private set; }
-    public Room Room { get; private set; }
+    public DayOfWeekEnum DayOfWeek { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    public void Update(Guid courseId, Guid roomId, DateTime startTime, DateTime endTime)
+    public static Schedule Create(Guid lecturerId, Guid courseId, Guid roomId, DateTime startTime, DateTime endTime,
+        DayOfWeekEnum dayOfWeek)
     {
-        CourseId = courseId != Guid.Empty
-            ? courseId
-            : throw new ArgumentException("CourseId cannot be empty.", nameof(courseId));
-        RoomId = roomId != Guid.Empty ? roomId : throw new ArgumentException("RoomId cannot be empty.", nameof(roomId));
-        StartTime = startTime != default
-            ? startTime
-            : throw new ArgumentException("StartTime cannot be empty.", nameof(startTime));
-        EndTime = endTime > startTime
-            ? endTime
-            : throw new ArgumentException("EndTime must be after StartTime.", nameof(endTime));
+        return new Schedule(Guid.NewGuid(), lecturerId, courseId, roomId, startTime, endTime, dayOfWeek);
+    }
+
+    public void Update(Guid? lecturerId = null, Guid? courseId = null, Guid? roomId = null, DateTime? startTime = null,
+        DateTime? endTime = null, DayOfWeekEnum? dayOfWeek = null)
+    {
+        if (lecturerId.HasValue) LecturerId = lecturerId.Value;
+        if (courseId.HasValue) CourseId = courseId.Value;
+        if (roomId.HasValue) RoomId = roomId.Value;
+        if (startTime.HasValue) StartTime = startTime.Value;
+        if (endTime.HasValue) EndTime = endTime.Value;
+        if (dayOfWeek != null) DayOfWeek = dayOfWeek; // Fixed: Check for null for reference types
+        UpdatedAt = DateTime.UtcNow;
     }
 }

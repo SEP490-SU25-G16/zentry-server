@@ -19,7 +19,7 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
         builder.Property(d => d.Id)
             .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
-        builder.Property(d => d.AccountId).IsRequired();
+        builder.Property(d => d.UserId).IsRequired();
         builder.Property(d => d.DeviceName)
             .HasConversion(n => n.Value, v => DeviceName.Create(v))
             .HasMaxLength(255)
@@ -38,6 +38,6 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
             .HasConversion(s => s.ToString(), n => DeviceStatus.FromName(n))
             .HasDefaultValueSql("'Active'");
         builder.HasIndex(d => d.Status);
-        builder.HasIndex(d => d.AccountId);
+        builder.HasIndex(d => d.UserId);
     }
 }

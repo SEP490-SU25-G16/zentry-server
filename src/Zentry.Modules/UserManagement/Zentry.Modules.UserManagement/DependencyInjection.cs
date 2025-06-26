@@ -11,7 +11,7 @@ namespace Zentry.Modules.UserManagement;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddUserManagementModule(this IServiceCollection services,
+    public static IServiceCollection AddUserInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
         services.AddDbContext<UserDbContext>(options =>

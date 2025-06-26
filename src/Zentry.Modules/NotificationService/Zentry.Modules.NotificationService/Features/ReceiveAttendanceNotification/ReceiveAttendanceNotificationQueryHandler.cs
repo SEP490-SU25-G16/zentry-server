@@ -1,4 +1,5 @@
 using MediatR;
+using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Common;
 

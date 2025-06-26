@@ -33,8 +33,15 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<Guid>("LecturerId")
-                        .HasColumnType("uuid");
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -46,9 +53,49 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("Semester");
+
                     b.ToTable("Courses", (string)null);
+                });
+
+            modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Enrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("StudentId", "ScheduleId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Enrollments_StudentId_ScheduleId");
+
+                    b.ToTable("Enrollments", (string)null);
                 });
 
             modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Room", b =>
@@ -65,16 +112,27 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.Property<int>("Capacity")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Name")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("RoomName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Building");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("RoomName")
+                        .IsUnique();
 
                     b.ToTable("Rooms", (string)null);
                 });
@@ -88,8 +146,21 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("DayOfWeek")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("LecturerId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uuid");
@@ -97,32 +168,29 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId");
 
+                    b.HasIndex("DayOfWeek");
+
+                    b.HasIndex("EndTime");
+
+                    b.HasIndex("LecturerId");
+
                     b.HasIndex("RoomId");
 
-                    b.ToTable("Schedules", (string)null);
-                });
+                    b.HasIndex("StartTime");
 
-            modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Schedule", b =>
-                {
-                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Course", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Room", "Room")
-                        .WithMany()
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("Room");
+                    b.ToTable("Schedules", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Schedules_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
+                        });
                 });
 #pragma warning restore 612, 618
         }

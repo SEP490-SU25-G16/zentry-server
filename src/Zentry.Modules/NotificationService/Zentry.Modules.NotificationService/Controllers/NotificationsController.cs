@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotificationService;
 
 namespace Zentry.Modules.NotificationService.Controllers;
@@ -9,7 +10,7 @@ namespace Zentry.Modules.NotificationService.Controllers;
 public class NotificationsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<Features.ReceiveAttendanceNotificationService.Notification>>> GetNotifications(
+    public async Task<ActionResult<List<Notification>>> GetNotifications(
         [FromQuery] Guid userId,
         CancellationToken cancellationToken,
         [FromQuery] int page = 1,

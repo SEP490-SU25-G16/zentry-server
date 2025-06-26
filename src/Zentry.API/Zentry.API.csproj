@@ -38,6 +38,7 @@
         <ProjectReference Include="..\Zentry.Modules\ReportingService\Zentry.Modules.ReportingService\Zentry.Modules.ReportingService.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\ScheduleManagement\Zentry.Modules.ScheduleManagement.Presentation\Zentry.Modules.ScheduleManagement.Presentation.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\ScheduleManagement\Zentry.Modules.ScheduleManagement.Infrastructure\Zentry.Modules.ScheduleManagement.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\UserManagement\Zentry.Modules.UserManagement\Zentry.Modules.UserManagement.csproj" />
     </ItemGroup>
 
 </Project>

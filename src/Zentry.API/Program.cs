@@ -12,6 +12,8 @@ using Zentry.Modules.ReportingService;
 using Zentry.Modules.ReportingService.Persistence;
 using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
+using Zentry.Modules.UserManagement;
+using Zentry.Modules.UserManagement.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,10 +29,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
-builder.Services.AddDeviceManagementInfrastructure(builder.Configuration);
+builder.Services.AddDeviceInfrastructure(builder.Configuration);
 builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddReportingInfrastructure(builder.Configuration);
+builder.Services.AddUserInfrastructure(builder.Configuration);
 
 builder.Services.AddAuthorization();
 
@@ -99,6 +102,15 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Applying migrations for ReportingDbContext...");
         reportingDbContext.Database.Migrate();
         logger.LogInformation("Reporting migrations applied successfully.");
+    });
+
+    // Migrate User
+    retryPolicy.Execute(() =>
+    {
+        var userDbContext = serviceProvider.GetRequiredService<UserDbContext>();
+        logger.LogInformation("Applying migrations for UserDbContext...");
+        userDbContext.Database.Migrate();
+        logger.LogInformation("User migrations applied successfully.");
     });
 }
 

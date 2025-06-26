@@ -1,3 +1,4 @@
+using Zentry.Modules.ConfigurationManagement.Domain.Enums;
 using Zentry.SharedKernel.Common;
 using Zentry.SharedKernel.Domain;
 
@@ -5,47 +6,31 @@ namespace Zentry.Modules.ConfigurationManagement.Domain.Entities;
 
 public class Configuration : AggregateRoot<Guid>
 {
-    private Configuration() : base(Guid.Empty)
+    private Configuration() : base(Guid.Empty) { }
+    private Configuration(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
+        : base(id)
     {
-        Key = string.Empty;
-        Value = string.Empty;
-    } // For EF Core
-
-    private Configuration(Guid configurationId, string key, string value, string? description)
-        : base(configurationId)
-    {
-        Guard.AgainstNull(key, nameof(key));
-        Guard.AgainstNull(value, nameof(value));
-
-        Key = key;
+        AttributeId = attributeId;
+        ScopeType = scopeType;
+        ScopeId = scopeId;
         Value = value;
-        Description = description;
         CreatedAt = DateTime.UtcNow;
     }
-
-    public string Key { get; private set; }
+    public Guid AttributeId { get; private set; }
+    public ScopeType ScopeType { get; private set; }
+    public Guid ScopeId { get; private set; }
     public string Value { get; private set; }
-    public string? Description { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime? UpdatedAt { get; private set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    public static Configuration Create(string key, string value, string? description = null)
+    public static Configuration Create(Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
-        return new Configuration(Guid.NewGuid(), key, value, description);
+        return new Configuration(Guid.NewGuid(), attributeId, scopeType, scopeId, value);
     }
 
-    public void UpdateValue(string newValue, string? newDescription = null)
+    public void UpdateValue(string newValue)
     {
-        Guard.AgainstNull(newValue, nameof(newValue));
-
         Value = newValue;
-        if (newDescription != null) Description = newDescription;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void UpdateDescription(string? newDescription)
-    {
-        Description = newDescription;
         UpdatedAt = DateTime.UtcNow;
     }
 }

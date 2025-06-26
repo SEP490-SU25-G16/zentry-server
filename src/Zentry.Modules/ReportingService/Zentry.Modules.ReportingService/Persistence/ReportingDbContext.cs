@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ReportingService.Features.ViewClassAttendanceReport;
+using Zentry.Modules.ReportingService.Persistence.Entities;
 
 namespace Zentry.Modules.ReportingService.Persistence;
 

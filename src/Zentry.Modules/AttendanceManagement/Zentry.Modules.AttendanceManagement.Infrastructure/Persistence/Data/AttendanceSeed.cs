@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Data;
 
@@ -7,17 +8,21 @@ public static class AttendanceSeed
 {
     public static async Task SeedData(AttendanceDbContext context)
     {
-        if (!await context.Enrollments.AnyAsync())
+        if (!await context.Sessions.AnyAsync())
         {
-            var enrollment = Enrollment.Create(Guid.NewGuid(), Guid.NewGuid());
-            context.Enrollments.Add(enrollment);
+            var testScheduleId = Guid.NewGuid();
+            var testLecturerUserId = Guid.NewGuid();
+            var testDeviceId = Guid.NewGuid();
+            var testStudentUserId = Guid.NewGuid();
 
-            var round = Round.Create(Guid.NewGuid(), DateTime.UtcNow.AddDays(-1),
-                DateTime.UtcNow.AddDays(-1).AddHours(1));
+            var session = Session.Create(testScheduleId, testLecturerUserId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(-1).AddHours(2));
+            context.Sessions.Add(session);
+
+            var round = Round.Create(session.Id, testDeviceId, session.StartTime, session.EndTime, "Initial client request");
             context.Rounds.Add(round);
 
-            context.AttendanceRecords.Add(AttendanceRecord.Create(enrollment.Id, round.Id, true));
-            context.ErrorReports.Add(ErrorReport.Create(Guid.NewGuid(), "ERR001", "BLE connection failed"));
+            var attendanceRecord = AttendanceRecord.Create(testStudentUserId, session.Id, AttendanceStatus.Present, false);
+            context.AttendanceRecords.Add(attendanceRecord);
 
             await context.SaveChangesAsync();
         }

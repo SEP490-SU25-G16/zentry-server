@@ -1,42 +1,45 @@
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class AttendanceRecord : AggregateRoot<Guid>
 {
-    private AttendanceRecord() : base(Guid.Empty)
+    private AttendanceRecord() : base(Guid.Empty) { }
+    private AttendanceRecord(Guid id, Guid userId, Guid sessionId, AttendanceStatus status, bool isManual)
+        : base(id)
     {
-    } // For EF Core
-
-    private AttendanceRecord(Guid attendanceRecordId, Guid enrollmentId, Guid roundId, bool isPresent)
-        : base(attendanceRecordId)
-    {
-        EnrollmentId = enrollmentId != Guid.Empty
-            ? enrollmentId
-            : throw new ArgumentException("EnrollmentId cannot be empty.", nameof(enrollmentId));
-        RoundId = roundId != Guid.Empty
-            ? roundId
-            : throw new ArgumentException("RoundId cannot be empty.", nameof(roundId));
-        IsPresent = isPresent;
+        UserId = userId;
+        SessionId = sessionId;
+        Status = status;
+        IsManual = isManual;
+        IsAbsent = (status == AttendanceStatus.Absent);
         CreatedAt = DateTime.UtcNow;
+        ExpiredAt = DateTime.UtcNow;
     }
-
-    public Guid EnrollmentId { get; private set; }
-    public Guid RoundId { get; private set; }
-    public bool IsPresent { get; private set; }
+    public Guid UserId { get; private set; }
+    public Guid SessionId { get; private set; }
+    public AttendanceStatus Status { get; private set; }
+    public bool IsManual { get; private set; }
+    public bool IsAbsent { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime ExpiredAt { get; private set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // Navigation properties
-    public Enrollment? Enrollment { get; private set; }
-    public Round? Round { get; private set; }
-
-    public static AttendanceRecord Create(Guid enrollmentId, Guid roundId, bool isPresent)
+    public static AttendanceRecord Create(Guid userId, Guid sessionId, AttendanceStatus status, bool isManual)
     {
-        return new AttendanceRecord(Guid.NewGuid(), enrollmentId, roundId, isPresent);
+        return new AttendanceRecord(Guid.NewGuid(), userId, sessionId, status, isManual);
     }
 
-    public void UpdatePresence(bool isPresent)
+    public void Update(AttendanceStatus? status = null, bool? isManual = null, DateTime? expiredAt = null)
     {
-        IsPresent = isPresent;
+        if (status != null)
+        {
+            Status = status;
+            IsAbsent = (Status == AttendanceStatus.Absent);
+        }
+        if (isManual.HasValue) IsManual = isManual.Value;
+        if (expiredAt.HasValue) ExpiredAt = expiredAt.Value;
+        UpdatedAt = DateTime.UtcNow;
     }
 }

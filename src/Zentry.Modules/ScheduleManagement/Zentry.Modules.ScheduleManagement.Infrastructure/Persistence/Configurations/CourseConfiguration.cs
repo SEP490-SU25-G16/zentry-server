@@ -4,25 +4,45 @@ using Zentry.Modules.ScheduleManagement.Domain.Entities;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configurations;
 
+
 public class CourseConfiguration : IEntityTypeConfiguration<Course>
 {
     public void Configure(EntityTypeBuilder<Course> builder)
     {
         builder.ToTable("Courses");
 
-        // Đặt thuộc tính Id kế thừa làm khóa chính
-        builder.HasKey(d => d.Id);
+        builder.HasKey(c => c.Id);
 
-        // Cấu hình thuộc tính Id
-        builder.Property(d => d.Id)
-            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
+        builder.Property(c => c.Id)
+            .ValueGeneratedOnAdd();
 
-        builder.Property(c => c.Code).IsRequired().HasMaxLength(20);
-        builder.Property(c => c.Name).IsRequired().HasMaxLength(100);
-        builder.Property(c => c.Semester).IsRequired().HasMaxLength(20);
-        builder.Property(c => c.LecturerId).IsRequired();
+        builder.Property(c => c.Code)
+            .IsRequired()
+            .HasMaxLength(20);
 
-        // Dòng builder.Ignore(c => c.Id); đã được xóa ở lần sửa trước.
-        // Đảm bảo nó không xuất hiện ở đây.
+        builder.Property(c => c.Name)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(c => c.Description) // Thêm cấu hình cho Description
+            .HasMaxLength(500); // Giả định độ dài
+
+        builder.Property(c => c.Semester)
+            .IsRequired()
+            .HasMaxLength(20);
+
+        builder.Property(c => c.CreatedAt) // Thêm CreatedAt
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .IsRequired();
+
+        builder.Property(c => c.UpdatedAt) // Thêm UpdatedAt
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAddOrUpdate();
+
+        // Unique index for Code
+        builder.HasIndex(c => c.Code)
+            .IsUnique();
+
+        builder.HasIndex(c => c.Semester);
     }
 }
