@@ -14,7 +14,7 @@ info:
     - **Send Absence Threshold Warning Notification (UC-Notify-05)**: Automated warnings sent to students who exceed a certain absence threshold.
 
     This module ensures timely and relevant communication to users, enhancing their awareness of system events.
-  version: 1.0.0
+  version: 1.1.0 # Updated version to reflect enum and field alignment
 
 servers:
   - url: http://localhost:8080/api/v1
@@ -91,20 +91,13 @@ paths:
           required: false
           description: Filter notifications by read status.
           schema:
-            type: string
-            enum:
-              - Unread
-              - Read
+            $ref: '#/components/schemas/NotificationReadStatusEnum' # Using new enum
         - name: type
           in: query
           required: false
           description: Filter notifications by channel type.
           schema:
-            type: string
-            enum:
-              - InApp
-              - Push
-              - Email
+            $ref: '#/components/schemas/NotificationTypeEnum' # Using new enum
         - name: startDate
           in: query
           required: false
@@ -144,7 +137,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Notification'
+                  $ref: '#/components/schemas/NotificationResponse' # Renamed to Response
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -166,6 +159,7 @@ paths:
         - User Notifications
       description: |
         Allows an authenticated user to mark a specific notification as "Read".
+        This will update the `ReadAt` timestamp in the notification record.
         - **Roles**: Student, Lecturer.
         - **Prerequisites**: The `notificationId` must exist and belong to the authenticated user.
       parameters:
@@ -212,6 +206,7 @@ paths:
         - User Notifications
       description: |
         Allows an authenticated user to mark multiple notifications as "Read" in a single request.
+        This will update the `ReadAt` timestamp for each notification record.
         - **Roles**: Student, Lecturer.
         - **Prerequisites**: All `notificationIds` must exist and belong to the authenticated user.
       requestBody:
@@ -269,55 +264,70 @@ components:
       bearerFormat: JWT
 
   schemas:
-    Notification:
+    NotificationTypeEnum: # Based on Zentry.Modules.Notification.Domain.Enums.NotificationType
+      type: string
+      description: Enumeration for notification channels.
+      enum:
+        - Email
+        - InApp
+        - SMS
+        - Push
+      example: InApp
+
+    NotificationPriorityEnum: # Based on Zentry.Modules.Notification.Domain.Enums.NotificationPriority
+      type: string
+      description: Enumeration for notification priority levels.
+      enum:
+        - Low
+        - Normal
+        - High
+      example: High
+
+    NotificationReadStatusEnum: # Derived from Notification.ReadAt
+      type: string
+      description: Enumeration for notification read status.
+      enum:
+        - Unread
+        - Read
+      example: Unread
+
+    NotificationResponse: # Renamed from Notification for clarity as it's a response DTO
       type: object
-      description: Represents a notification record.
+      description: Represents a notification record returned in a response.
       properties:
         id:
           type: string
           format: uuid
-          description: Unique identifier for the notification (Primary Key).
+          description: Unique identifier for the notification.
           readOnly: true
           example: 123e4567-e89b-12d3-a456-426614174000
         userId:
           type: string
           format: uuid
-          description: ID of the recipient user (Foreign Key to Users table).
+          description: ID of the recipient user.
           readOnly: true
           example: 223e4567-e89b-12d3-a456-426614174001
         title:
           type: string
-          description: Title of the NotificationService.
+          description: Title of the notification.
           example: Absence Report Approved
         content:
           type: string
-          description: Detailed content of the NotificationService.
+          description: Detailed content of the notification.
           example: Your absence report for session XYZ was approved. Your attendance has been updated.
         type:
-          type: string
+          $ref: '#/components/schemas/NotificationTypeEnum' # Using enum
           description: Type of notification channel.
-          enum:
-            - InApp
-            - Push
-            - Email
           example: Email
-        status:
-          type: string
-          description: Status of the NotificationService.
-          enum:
-            - Unread
-            - Read
-          default: Unread
-          example: Unread
         priority:
-          type: string
-          description: Priority level of the NotificationService.
-          enum:
-            - Low
-            - Normal
-            - High
-          default: Normal
+          $ref: '#/components/schemas/NotificationPriorityEnum' # Using enum
+          description: Priority level of the notification.
           example: High
+        status: # Derived from ReadAt
+          $ref: '#/components/schemas/NotificationReadStatusEnum'
+          description: Read status of the notification. Automatically derived from `readAt`.
+          readOnly: true # This status is derived, not explicitly set by the client
+          example: Unread
         createdAt:
           type: string
           format: date-time
@@ -329,6 +339,7 @@ components:
           format: date-time
           description: Timestamp when the notification was sent.
           nullable: true
+          readOnly: true # Sent by system
           example: "2025-06-22T10:00:01Z"
         readAt:
           type: string
@@ -342,7 +353,6 @@ components:
         - title
         - content
         - type
-        - status
         - priority
         - createdAt
 
@@ -357,35 +367,27 @@ components:
           example: 223e4567-e89b-12d3-a456-426614174001
         title:
           type: string
-          description: The title of the NotificationService.
+          description: The title of the notification.
           example: Absence Report Approved
         content:
           type: string
-          description: The detailed content of the NotificationService.
+          description: The detailed content of the notification.
           example: Your absence report for session XYZ was approved. Your attendance has been updated.
         notificationTypes:
           type: array
           items:
-            type: string
-            enum:
-              - InApp
-              - Push
-              - Email
+            $ref: '#/components/schemas/NotificationTypeEnum' # Using enum
           description: A list of desired notification channels (e.g., ["InApp", "Email"]).
           example: ["InApp", "Email"]
         priority:
-          type: string
-          description: Priority level of the NotificationService.
-          enum:
-            - Low
-            - Normal
-            - High
+          $ref: '#/components/schemas/NotificationPriorityEnum' # Using enum
+          description: Priority level of the notification.
           default: Normal
           example: High
         relatedEntityId:
           type: string
           format: uuid
-          description: Optional. ID of a related entity (e.g., RoundId, ReportId).
+          description: Optional. ID of a related entity (e.g., Session ID, Report ID).
           nullable: true
           example: 523e4567-e89b-12d3-a456-426614174005
         relatedEntityType:
@@ -414,3 +416,4 @@ components:
       required:
         - code
         - message
+

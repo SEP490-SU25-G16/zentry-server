@@ -14,7 +14,7 @@ info:
     - **Device Soft-Delete (UC-Device-06)**: Enables administrators to deactivate devices without permanently removing their records.
 
     This API ensures secure and efficient management of devices, maintaining data integrity and supporting core Zentry functionalities.
-  version: 1.2.0
+  version: 1.2.1 # Updated version to reflect these specific changes
 
 servers:
   - url: http://localhost:8080/api/v1
@@ -34,8 +34,8 @@ paths:
         - Devices
       description: |
         Retrieves a list of registered devices.
-        - **Admin Role**: Can view all devices, optionally filtered by `userId`, `isPrimary`, or `isDeleted`. Includes associated user details (`userName`, `userRole`).
-        - **Student/Lecturer Role**: Can only view their own primary and non-deleted devices.
+        - **Admin Role**: Can view all devices, optionally filtered by `userId`, `status`, or `isPrimary`. Includes associated user details (`userName`, `userRole`).
+        - **Student/Lecturer Role**: Can only view their own devices.
       parameters:
         - name: userId
           in: query
@@ -50,12 +50,12 @@ paths:
           description: Optional. Filter devices by primary status.
           schema:
             type: boolean
-        - name: isDeleted
+        - name: status
           in: query
           required: false
-          description: Optional. Filter devices by soft-delete status (only applicable for Admin role).
+          description: Optional. Filter devices by status (`ACTIVE`, `INACTIVE`, `SOFT_DELETED`).
           schema:
-            type: boolean
+            $ref: '#/components/schemas/DeviceStatusEnum' # Using enum for status
         - name: page
           in: query
           required: false
@@ -81,7 +81,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Device'
+                  $ref: '#/components/schemas/DeviceResponse' # Changed to DeviceResponse
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -108,7 +108,7 @@ paths:
       description: |
         Registers a new mobile device as a virtual BLE device for the authenticated user.
         The system will generate a unique `DeviceToken`.
-        - **Prerequisites**: User must be authenticated with a valid JWT. User must NOT already have a primary device (`IsPrimary = true` and `IsDeleted = false`).
+        - **Prerequisites**: User must be authenticated with a valid JWT. User must NOT already have an active primary device (`IsPrimary = true` and `Status = ACTIVE`).
       requestBody:
         description: Device registration details provided by the client application.
         required: true
@@ -188,7 +188,7 @@ paths:
                 properties:
                   isValid:
                     type: boolean
-                    description: Indicates if the device is a valid, primary, and non-deleted device for the user.
+                    description: Indicates if the device is a valid, primary, and active device for the user.
                     example: true
         '401':
           description: Unauthorized - Authentication token missing or invalid.
@@ -197,7 +197,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden - DeviceToken does not match the user's primary device, or the device is soft-deleted.
+          description: Forbidden - DeviceToken does not match the user's primary device, or the device is not active.
           content:
             application/json:
               schema:
@@ -239,7 +239,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Device'
+                $ref: '#/components/schemas/DeviceResponse' # Changed to DeviceResponse
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -265,16 +265,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
-      summary: Update device details (e.g., DeviceName, IsPrimary)
+      summary: Update device details (e.g., DeviceName, IsPrimary, Status)
       operationId: updateDevice
       tags:
         - Devices
       description: |
-        Updates details of an existing device. This operation can be used to change `deviceName`
-        or set a device as `isPrimary`.
+        Updates details of an existing device. This operation can be used to change `deviceName`,
+        set a device as `isPrimary`, or update its `status`.
         - **User (Student/Lecturer) Role**: Can update their own devices' `deviceName` or set another of their own devices as `isPrimary`.
           Setting `isPrimary=true` for a non-primary device will automatically set the existing primary device (if any) to `isPrimary=false`.
-        - **Admin Role**: Can update any device.
+        - **Admin Role**: Can update any device, including `status`.
       parameters:
         - name: deviceId
           in: path
@@ -296,9 +296,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Device'
+                $ref: '#/components/schemas/DeviceResponse' # Changed to DeviceResponse
         '400':
-          description: Invalid input (e.g., trying to set IsPrimary to false without another primary, or invalid device properties).
+          description: Invalid input (e.g., trying to set primary to false without another primary, invalid device properties, invalid status transition).
           content:
             application/json:
               schema:
@@ -333,7 +333,7 @@ paths:
       tags:
         - Devices
       description: |
-        Deactivates a device by setting its `IsDeleted` flag to `true`. This operation is typically
+        Deactivates a device by setting its `Status` to `SOFT_DELETED`. This operation is typically
         performed by an Admin to invalidate a device, or as part of a device change approval process.
         - **Role**: Admin only.
         - **Constraint**: Cannot soft-delete a primary device if it's the only active primary device for a user, without a replacement.
@@ -349,7 +349,7 @@ paths:
         '204':
           description: Device soft-deleted successfully.
         '400':
-          description: Invalid operation (e.g., attempting to soft-delete a device that is already deleted, or attempting to delete the only primary device without a replacement).
+          description: Invalid operation (e.g., attempting to soft-delete a device that is already soft-deleted, or attempting to delete the only primary device without a replacement).
           content:
             application/json:
               schema:
@@ -386,20 +386,16 @@ paths:
       tags:
         - Device Change Requests
       description: |
-        Retrieves a list of device change requests that are pending Admin approval.
+        Retrieves a list of device change requests.
         - **Role**: Admin only.
       parameters:
         - name: status
           in: query
           required: false
-          description: Filter requests by status (e.g., 'Pending', 'Approved', 'Rejected').
+          description: Filter requests by status (e.g., 'PENDING', 'APPROVED', 'REJECTED').
           schema:
-            type: string
-            enum:
-              - Pending
-              - Approved
-              - Rejected
-            default: Pending
+            $ref: '#/components/schemas/UserRequestStatusEnum' # Changed to UserRequestStatusEnum
+            default: PENDING # Changed to PENDING
         - name: userId
           in: query
           required: false
@@ -432,7 +428,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DeviceChangeRequest'
+                  $ref: '#/components/schemas/DeviceChangeRequestResponse' # Changed to DeviceChangeRequestResponse
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -458,7 +454,7 @@ paths:
         - Device Change Requests
       description: |
         Allows a student or lecturer to submit a request to change their primary device.
-        This will create a new temporary device record (IsPrimary=false, IsDeleted=false) and a pending request for Admin review.
+        This will create a new temporary device record (`isPrimary=false`, `status=INACTIVE`) and a pending UserRequest for Admin review.
         - **Prerequisites**: User must be authenticated. User must have an *active primary device* currently registered.
       requestBody:
         description: Details for the new device to be used as primary. The system will internally generate a temporary DeviceToken for this pending new device.
@@ -468,25 +464,12 @@ paths:
             schema:
               $ref: '#/components/schemas/DeviceChangeRequestInitiation'
       responses:
-        '202':
+        '201': # Changed to 201 for resource creation
           description: Device change request initiated successfully.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  requestId:
-                    type: string
-                    format: uuid
-                    description: Unique ID of the created device change request (corresponds to the ID of the temporary new device record).
-                  status:
-                    type: string
-                    description: Current status of the request (e.g., 'Pending').
-                    example: Pending
-                  requestedAt:
-                    type: string
-                    format: date-time
-                    description: Timestamp when the request was initiated.
+                $ref: '#/components/schemas/DeviceChangeRequestResponse' # Return the created UserRequest
         '400':
           description: Invalid input (e.g., missing newDeviceName) or a pending request already exists for the user, or user has no active primary device.
           content:
@@ -526,15 +509,16 @@ paths:
         - Device Change Requests
       description: |
         Allows an Admin to approve a pending device change request. Upon approval,
-        the old primary device will be soft-deleted (`IsDeleted=true`), and the new device
-        (identified by `requestId`) will be marked as primary (`IsPrimary=true`) with a new generated `DeviceToken`.
+        the old primary device will be soft-deleted (`status=SOFT_DELETED`), and the new device
+        (identified by `requestId` as `relatedEntityId` in UserRequest) will be marked as primary (`isPrimary=true`, `status=ACTIVE`) with its generated `DeviceToken`.
+        The `UserRequest` status will be updated to `APPROVED`.
         - **Role**: Admin only.
-        - **Prerequisites**: The request identified by `requestId` must exist and be in 'Pending' status.
+        - **Prerequisites**: The request identified by `requestId` must exist and be in 'PENDING' status.
       parameters:
         - name: requestId
           in: path
           required: true
-          description: ID of the device change request to approve. This ID is the 'Id' of the temporary device record.
+          description: ID of the device change request (UserRequest) to approve.
           schema:
             type: string
             format: uuid
@@ -549,15 +533,16 @@ paths:
                 notes:
                   type: string
                   description: Optional notes from the admin regarding the approval.
+                  example: "Approved, user confirmed new phone."
       responses:
         '200':
           description: Device change request approved successfully. New primary device details returned.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceChangeApprovalResponse'
+                $ref: '#/components/schemas/DeviceResponse' # Return the new primary device
         '400':
-          description: Invalid request status (e.g., not 'Pending') or validation failed for old/new device data.
+          description: Invalid request status (e.g., not 'PENDING') or validation failed for old/new device data.
           content:
             application/json:
               schema:
@@ -596,14 +581,14 @@ paths:
       description: |
         Allows an Admin to reject a pending device change request. Upon rejection,
         the temporary new device record will be deleted from the system, and the user's current
-        primary device status will remain unchanged.
+        primary device status will remain unchanged. The `UserRequest` status will be updated to `REJECTED`.
         - **Role**: Admin only.
-        - **Prerequisites**: The request identified by `requestId` must exist and be in 'Pending' status.
+        - **Prerequisites**: The request identified by `requestId` must exist and be in 'PENDING' status.
       parameters:
         - name: requestId
           in: path
           required: true
-          description: ID of the device change request to reject. This ID is the 'Id' of the temporary device record.
+          description: ID of the device change request (UserRequest) to reject.
           schema:
             type: string
             format: uuid
@@ -618,11 +603,12 @@ paths:
                 notes:
                   type: string
                   description: Optional notes from the admin regarding the rejection.
+                  example: "Rejected, insufficient reason provided."
       responses:
         '204':
           description: Device change request rejected successfully.
         '400':
-          description: Invalid request status (e.g., not 'Pending').
+          description: Invalid request status (e.g., not 'PENDING').
           content:
             application/json:
               schema:
@@ -660,9 +646,36 @@ components:
       bearerFormat: JWT
 
   schemas:
-    Device:
+    DeviceStatusEnum: # New enum for Device Status
+      type: string
+      description: Enumeration for device statuses.
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - SOFT_DELETED
+      example: ACTIVE
+
+    UserRoleEnum: # Assuming this enum might exist in User Management
+      type: string
+      description: Enumeration for user roles.
+      enum:
+        - Admin
+        - Lecturer
+        - Student
+      example: Student
+
+    UserRequestStatusEnum: # Reusing from User Management Module (UserRequest entity)
+      type: string
+      description: Enumeration for user request statuses.
+      enum:
+        - PENDING
+        - APPROVED
+        - REJECTED
+      example: PENDING
+
+    DeviceResponse: # Renamed from Device for clarity as it's a response DTO
       type: object
-      description: Represents a virtual BLE device record.
+      description: Represents a virtual BLE device record in a response.
       properties:
         id:
           type: string
@@ -683,27 +696,23 @@ components:
           nullable: true
           example: "John Doe"
         userRole:
-          type: string
+          $ref: '#/components/schemas/UserRoleEnum' # Using enum for user role
           description: Role of the user who owns the device (populated for Admin views).
           readOnly: true
           nullable: true
-          example: "Student"
+          example: Student
         deviceToken:
           type: string
           description: Unique authentication token for the device.
           example: "abc123xyz789..."
-          # This is generated by system and returned, not provided by client for existing device updates
         isPrimary:
           type: boolean
           description: Flag indicating if this is the user's primary device.
-          default: true
           example: true
-        isDeleted:
-          type: boolean
-          description: Soft-delete flag. If true, the device is inactive and cannot be used for attendance.
-          default: false
-          readOnly: true
-          example: false
+        status: # Changed from isDeleted to status for better representation of DeviceStatus
+          $ref: '#/components/schemas/DeviceStatusEnum'
+          description: Current status of the device.
+          example: ACTIVE
         deviceName:
           type: string
           description: Display name of the device.
@@ -740,7 +749,7 @@ components:
         - userId
         - deviceToken
         - isPrimary
-        - isDeleted
+        - status
         - deviceName
         - createdAt
 
@@ -763,32 +772,39 @@ components:
           type: string
           format: uuid
           description: Unique identifier of the newly registered device.
+          example: 123e4567-e89b-12d3-a456-426614174000
         userId:
           type: string
           format: uuid
           description: ID of the user to whom the device is registered.
+          example: 223e4567-e89b-12d3-a456-426614174001
         deviceToken:
           type: string
           description: The unique DeviceToken generated by the system for this device. **This token must be securely stored by the client for future use.**
+          example: "abc123xyz789..."
         isPrimary:
           type: boolean
           description: Indicates if this device is set as the primary device.
-        isDeleted:
-          type: boolean
-          description: Indicates if the device is soft-deleted.
+          example: true
+        status: # Changed from isDeleted to status
+          $ref: '#/components/schemas/DeviceStatusEnum'
+          description: Current status of the device.
+          example: ACTIVE
         deviceName:
           type: string
           description: Display name of the device.
+          example: "My New iPhone 15"
         createdAt:
           type: string
           format: date-time
           description: Timestamp when the device record was created.
+          example: "2025-06-01T10:00:00Z"
       required:
         - id
         - userId
         - deviceToken
         - isPrimary
-        - isDeleted
+        - status
         - deviceName
         - createdAt
 
@@ -804,6 +820,10 @@ components:
           type: boolean
           description: Set to `true` if this device should become the primary device for the user. If `true` and another primary exists, the old one will be automatically set to `isPrimary=false`. Setting to `false` directly for the current primary is generally not allowed without a replacement device being registered first.
           example: true
+        status: # Added status update capability for admins
+          $ref: '#/components/schemas/DeviceStatusEnum'
+          description: New status for the device. Only admins can change status.
+          example: SOFT_DELETED
       # No fields are strictly required, as any combination of provided fields can be updated.
 
     DeviceChangeRequestInitiation:
@@ -817,111 +837,88 @@ components:
       required:
         - newDeviceName
 
-    DeviceChangeRequest:
+    DeviceChangeRequestResponse: # Represents a UserRequest for device change
       type: object
-      description: Represents a pending device change request record.
+      description: Represents a device change request record (UserRequest entity with specific type).
       properties:
-        requestId:
+        id: # Corresponds to UserRequest.Id
           type: string
           format: uuid
-          description: Unique ID of the device change request (corresponds to the ID of the temporary new device record).
+          description: Unique ID of the device change request.
           readOnly: true
           example: 42661417-4000-12d3-a456-123e4567e89b
-        userId:
+        requestedByUserId: # Corresponds to UserRequest.RequestedByUserId
           type: string
           format: uuid
           description: ID of the user who initiated the request.
           readOnly: true
           example: 223e4567-e89b-12d3-a456-426614174001
-        userName:
+        userName: # Derived for API response clarity
           type: string
           description: Full name of the user who initiated the request (for Admin view).
           readOnly: true
           nullable: true
           example: "John Doe"
-        userRole:
-          type: string
+        userRole: # Derived for API response clarity
+          $ref: '#/components/schemas/UserRoleEnum'
           description: Role of the user who initiated the request (for Admin view).
           readOnly: true
           nullable: true
-          example: "Student"
-        newDeviceName:
+          example: Student
+        relatedEntityId: # Corresponds to UserRequest.RelatedEntityId (ID of the temporary new device)
+          type: string
+          format: uuid
+          description: ID of the temporary new device record created for this request.
+          readOnly: true
+          example: f0eebc99-9c0b-4ef8-bb6d-6bb9bd380f01
+        newDeviceName: # Derived from the temporary new device's name
           type: string
           description: The proposed name for the new primary device.
           readOnly: true
           example: "New Google Pixel"
-        status:
-          type: string
-          description: Current status of the request.
-          enum:
-            - Pending
-            - Approved
-            - Rejected
-          default: Pending
+        status: # Corresponds to UserRequest.Status
+          $ref: '#/components/schemas/UserRequestStatusEnum'
+          description: Current status of the request (`PENDING`, `APPROVED`, `REJECTED`).
           readOnly: true
-          example: Pending
-        requestedAt:
+          example: PENDING
+        requestType: # Corresponds to UserRequest.RequestType
+          type: string
+          description: Type of request (e.g., 'DeviceChange').
+          readOnly: true
+          example: "DeviceChange"
+        createdAt: # Corresponds to UserRequest.CreatedAt
           type: string
           format: date-time
           description: Timestamp when the request was initiated.
           readOnly: true
           example: "2025-06-22T15:30:00Z"
-        approvedRejectedAt:
+        processedAt: # Corresponds to UserRequest.ProcessedAt
           type: string
           format: date-time
           description: Timestamp when the request was approved or rejected.
           readOnly: true
           nullable: true
-        approvedRejectedByUserId:
+        processedByUserId: # Corresponds to UserRequest.ProcessedByUserId
           type: string
           format: uuid
           description: ID of the admin who approved or rejected the request.
           readOnly: true
           nullable: true
-        notes:
+        reason: # Corresponds to UserRequest.Reason (used for notes from admin)
           type: string
-          description: Optional notes provided during approval or rejection.
+          description: Optional notes provided by the admin during approval or rejection.
           nullable: true
+          readOnly: true
       required:
-        - requestId
-        - userId
+        - id
+        - requestedByUserId
+        - relatedEntityId
         - newDeviceName
         - status
-        - requestedAt
+        - requestType
+        - createdAt
 
-    DeviceChangeApprovalResponse:
-      type: object
-      description: Response body upon successful approval of a device change request.
-      properties:
-        requestId:
-          type: string
-          format: uuid
-          description: The ID of the approved device change request.
-          example: 42661417-4000-12d3-a456-123e4567e89b
-        status:
-          type: string
-          description: The new status of the request (e.g., 'Approved').
-          example: Approved
-        newDeviceId:
-          type: string
-          format: uuid
-          description: The ID of the new device that is now set as primary.
-          example: 123e4567-e89b-12d3-a456-426614174000
-        newDeviceToken:
-          type: string
-          description: The unique DeviceToken generated for the new primary device. This token must be securely stored by the client.
-          example: "newGeneratedDeviceTokenString456xyz"
-        oldDeviceId:
-          type: string
-          format: uuid
-          description: The ID of the old device that was soft-deleted.
-          example: 223e4567-e89b-12d3-a456-426614174001
-      required:
-        - requestId
-        - status
-        - newDeviceId
-        - newDeviceToken
-        - oldDeviceId
+    # DeviceChangeApprovalResponse schema removed as the response for approval is now the DeviceResponse of the new primary device.
 
     Error:
       type: object
@@ -934,7 +931,8 @@ components:
         message:
           type: string
           description: A human-readable message describing the error.
-          example: "User already has a primary device registered. Please submit a change request."
+          example: "User already has an active primary device."
       required:
         - code
         - message
+

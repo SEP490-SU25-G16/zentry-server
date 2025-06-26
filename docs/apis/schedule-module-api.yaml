@@ -16,7 +16,7 @@ info:
 
     The module relies on PostgreSQL for relational data storage and integrates with other modules
     like Attendance, Notification, and ReportingService.
-  version: 1.0.0
+  version: 1.0.1 # Updated version to reflect completed paths and schemas
 
 servers:
   - url: http://localhost:8080/api/v1
@@ -75,7 +75,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Course'
+                  $ref: '#/components/schemas/CourseResponse' # Renamed to CourseResponse
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -116,7 +116,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/CourseResponse' # Renamed to CourseResponse
         '400':
           description: Invalid input or course code already exists.
           content:
@@ -171,7 +171,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/CourseResponse' # Renamed to CourseResponse
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -226,7 +226,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
+                $ref: '#/components/schemas/CourseResponse' # Renamed to CourseResponse
         '400':
           description: Invalid input or course code already exists.
           content:
@@ -361,7 +361,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Room'
+                  $ref: '#/components/schemas/RoomResponse' # Renamed to RoomResponse
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -402,7 +402,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Room'
+                $ref: '#/components/schemas/RoomResponse' # Renamed to RoomResponse
         '400':
           description: Invalid input or room name already exists.
           content:
@@ -457,7 +457,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Room'
+                $ref: '#/components/schemas/RoomResponse' # Renamed to RoomResponse
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -512,7 +512,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Room'
+                $ref: '#/components/schemas/RoomResponse' # Renamed to RoomResponse
         '400':
           description: Invalid input or room name already exists.
           content:
@@ -634,11 +634,9 @@ paths:
         - name: dayOfWeek
           in: query
           required: false
-          description: Optional. Filter schedules by day of the week (1=Monday, 7=Sunday).
+          description: Optional. Filter schedules by day of the week.
           schema:
-            type: integer
-            minimum: 1
-            maximum: 7
+            $ref: '#/components/schemas/DayOfWeekEnum' # Using enum
         - name: startDate
           in: query
           required: false
@@ -938,11 +936,9 @@ paths:
         - name: dayOfWeek
           in: query
           required: false
-          description: Optional. Filter schedules by day of the week (1=Monday, 7=Sunday).
+          description: Optional. Filter schedules by day of the week.
           schema:
-            type: integer
-            minimum: 1
-            maximum: 7
+            $ref: '#/components/schemas/DayOfWeekEnum' # Using enum
         - name: startDate
           in: query
           required: false
@@ -998,18 +994,25 @@ paths:
 
   /enrollments:
     get:
-      summary: Get a list of enrollments for a course (UC-Schedule-15)
-      operationId: getEnrollmentsByCourse
+      summary: Get a list of enrollments (UC-Schedule-15)
+      operationId: getEnrollments
       tags:
         - Enrollments
       description: |
-        Retrieves a paginated list of students enrolled in a specific course.
-        - **Role**: Admin.
+        Retrieves a paginated and filterable list of enrollments.
+        - **Roles**: Admin (can view all enrollments), Student (can view their own enrollments).
       parameters:
-        - name: courseId
+        - name: scheduleId
           in: query
-          required: true
-          description: ID of the course to retrieve enrollments for.
+          required: false
+          description: Optional. Filter enrollments by Schedule ID.
+          schema:
+            type: string
+            format: uuid
+        - name: studentId
+          in: query
+          required: false
+          description: Optional. Filter enrollments by Student ID.
           schema:
             type: string
             format: uuid
@@ -1032,7 +1035,7 @@ paths:
             maximum: 100
       responses:
         '200':
-          description: A list of enrollments for the specified course.
+          description: A list of enrollments.
           content:
             application/json:
               schema:
@@ -1046,13 +1049,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden - User does not have Admin role.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Course not found.
+          description: Forbidden - User does not have permission to view these enrollments.
           content:
             application/json:
               schema:
@@ -1064,15 +1061,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     post:
-      summary: Enroll a student into a course (UC-Schedule-13)
+      summary: Enroll a student into a schedule (UC-Schedule-13)
       operationId: enrollStudent
       tags:
         - Enrollments
       description: |
-        Allows an Admin to enroll a student into a specific course.
+        Allows an Admin to enroll a student into a specific schedule.
         - **Role**: Admin.
-        - **Prerequisites**: User must have Admin role. CourseId and StudentId must exist.
-          Student must not already be enrolled in the course.
+        - **Prerequisites**: Student and Schedule must exist. Student must not already be enrolled in this schedule.
       requestBody:
         description: Enrollment details.
         required: true
@@ -1088,7 +1084,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnrollmentResponse'
         '400':
-          description: Invalid input or student already enrolled.
+          description: Invalid input or student already enrolled in schedule.
           content:
             application/json:
               schema:
@@ -1106,13 +1102,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Course or Student not found.
+          description: Student or Schedule not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '409':
-          description: Conflict - Student already enrolled in this course.
+          description: Conflict - Student already enrolled in this schedule.
           content:
             application/json:
               schema:
@@ -1123,32 +1119,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /enrollments/{enrollmentId}:
     delete:
-      summary: Unenroll a student from a course (UC-Schedule-14)
+      summary: Unenroll a student from a schedule (UC-Schedule-14)
       operationId: unenrollStudent
       tags:
         - Enrollments
       description: |
-        Allows an Admin to unenroll a student from a course.
+        Allows an Admin to unenroll a student from a specific schedule.
         - **Role**: Admin.
-        - **Prerequisites**: User must have Admin role. Enrollment must exist.
-          No associated attendance records for the student in this course.
-      requestBody:
-        description: Course ID and Student ID to unenroll.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EnrollmentDeleteRequest'
+        - **Prerequisites**: Enrollment `id` must exist.
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          description: ID of the enrollment to delete.
+          schema:
+            type: string
+            format: uuid
       responses:
         '204':
           description: Student unenrolled successfully.
-        '400':
-          description: Cannot unenroll student with existing attendance records for this course.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '401':
           description: Unauthorized - Authentication token missing or invalid.
           content:
@@ -1182,10 +1174,22 @@ components:
       bearerFormat: JWT
 
   schemas:
-    # --- Course Schemas ---
-    Course:
+    DayOfWeekEnum:
+      type: integer
+      description: Day of the week (1=Monday, 7=Sunday).
+      enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+      example: 1
+
+    CourseResponse: # Renamed from Course for clarity as it's a response DTO
       type: object
-      description: Represents a course.
+      description: Represents a course record.
       properties:
         id:
           type: string
@@ -1195,47 +1199,40 @@ components:
           example: 123e4567-e89b-12d3-a456-426614174000
         code:
           type: string
-          description: Unique code for the course (e.g., "CS101").
+          description: Unique course code (e.g., "CS101").
           example: CS101
         name:
           type: string
-          description: Name of the course.
-          example: Introduction to Programming
+          description: Full name of the course (e.g., "Introduction to Computer Science").
+          example: Introduction to Computer Science
         description:
           type: string
-          description: Detailed description of the course.
+          description: Optional. Detailed description of the course.
           nullable: true
-          example: Basic programming concepts
+          example: This course covers fundamental concepts of computer science.
+        credits:
+          type: number
+          format: float
+          description: Number of academic credits for the course.
+          example: 3.0
         createdAt:
           type: string
           format: date-time
           description: Timestamp when the course record was created.
           readOnly: true
-          example: "2025-06-22T07:28:00+07:00"
+          example: "2025-01-15T08:00:00Z"
         updatedAt:
           type: string
           format: date-time
           description: Timestamp when the course record was last updated.
           readOnly: true
           nullable: true
-          example: null
-        updatedBy:
-          type: string
-          format: uuid
-          description: ID of the Admin user who last updated this course.
-          readOnly: true
-          nullable: true
-          example: 223e4567-e89b-12d3-a456-426614174001
-        updatedByName:
-          type: string
-          description: Full name of the Admin user who last updated this course. (Populated via join with Users table)
-          readOnly: true
-          nullable: true
-          example: Admin User
+          example: "2025-01-16T09:30:00Z"
       required:
         - id
         - code
         - name
+        - credits
         - createdAt
 
     CourseCreateRequest:
@@ -1244,20 +1241,26 @@ components:
       properties:
         code:
           type: string
-          description: Unique code for the course.
-          example: CS102
+          description: Unique course code (e.g., "CS101").
+          example: CS101
         name:
           type: string
-          description: Name of the course.
-          example: Advanced Data Structures
+          description: Full name of the course (e.g., "Introduction to Computer Science").
+          example: Introduction to Computer Science
         description:
           type: string
-          description: Detailed description of the course.
+          description: Optional. Detailed description of the course.
           nullable: true
-          example: Advanced topics in data structures and algorithms.
+          example: This course covers fundamental concepts of computer science.
+        credits:
+          type: number
+          format: float
+          description: Number of academic credits for the course.
+          example: 3.0
       required:
         - code
         - name
+        - credits
 
     CourseUpdateRequest:
       type: object
@@ -1265,71 +1268,63 @@ components:
       properties:
         code:
           type: string
-          description: New unique code for the course (optional, if changing).
-          example: CS101-Revised
+          description: Unique course code (e.g., "CS101").
+          example: CS101_Revised
         name:
           type: string
-          description: New name of the course (optional).
-          example: Intro to Python Programming
+          description: Full name of the course (e.g., "Introduction to Computer Science").
+          example: Intro to Comp Sci (Updated)
         description:
           type: string
-          description: New detailed description of the course (optional).
+          description: Optional. Detailed description of the course.
           nullable: true
-          example: Updated basic programming concepts using Python.
+          example: This course covers fundamental concepts of computer science. Updated description.
+        credits:
+          type: number
+          format: float
+          description: Number of academic credits for the course.
+          example: 3.5
+      # No fields are strictly required, as any combination of provided fields can be updated.
 
-    # --- Room Schemas ---
-    Room:
+    RoomResponse: # Renamed from Room for clarity as it's a response DTO
       type: object
-      description: Represents a room.
+      description: Represents a room record.
       properties:
         id:
           type: string
           format: uuid
           description: Unique identifier for the room.
           readOnly: true
-          example: 323e4567-e89b-12d3-a456-426614174002
+          example: 123e4567-e89b-12d3-a456-426614174000
         name:
           type: string
-          description: Unique name of the room (e.g., "Room A101").
-          example: Room A101
-        capacity:
-          type: integer
-          description: Maximum capacity of the room.
-          example: 50
+          description: Unique room name (e.g., "Room 101").
+          example: Room 101
         location:
           type: string
-          description: Physical location of the room.
-          nullable: true
-          example: Building A, Floor 1
+          description: Location of the room (e.g., "Building A, 1st Floor").
+          example: Building A, 1st Floor
+        capacity:
+          type: integer
+          description: Maximum student capacity of the room.
+          example: 50
         createdAt:
           type: string
           format: date-time
           description: Timestamp when the room record was created.
           readOnly: true
-          example: "2025-06-22T07:28:00+07:00"
+          example: "2025-01-15T08:00:00Z"
         updatedAt:
           type: string
           format: date-time
           description: Timestamp when the room record was last updated.
           readOnly: true
           nullable: true
-          example: null
-        updatedBy:
-          type: string
-          format: uuid
-          description: ID of the Admin user who last updated this room.
-          readOnly: true
-          nullable: true
-          example: 223e4567-e89b-12d3-a456-426614174001
-        updatedByName:
-          type: string
-          description: Full name of the Admin user who last updated this room.
-          readOnly: true
-          nullable: true
-          example: Admin User
+          example: "2025-01-16T09:30:00Z"
       required:
         - id
         - name
+        - location
         - capacity
         - createdAt
 
@@ -1339,19 +1334,19 @@ components:
       properties:
         name:
           type: string
-          description: Unique name of the room.
-          example: Room B205
-        capacity:
-          type: integer
-          description: Maximum capacity of the room.
-          example: 30
+          description: Unique room name (e.g., "Room 101").
+          example: Room 101
         location:
           type: string
-          description: Physical location of the room.
-          nullable: true
-          example: Building B, Floor 2
+          description: Location of the room (e.g., "Building A, 1st Floor").
+          example: Building A, 1st Floor
+        capacity:
+          type: integer
+          description: Maximum student capacity of the room.
+          example: 50
       required:
         - name
+        - location
         - capacity
 
     RoomUpdateRequest:
@@ -1360,180 +1355,116 @@ components:
       properties:
         name:
           type: string
-          description: New unique name of the room (optional, if changing).
-          example: Room A101-Updated
-        capacity:
-          type: integer
-          description: New maximum capacity of the room (optional).
-          example: 60
+          description: Unique room name (e.g., "Room 101").
+          example: Room 101A
         location:
           type: string
-          description: New physical location of the room (optional).
-          nullable: true
-          example: Building A, Ground Floor
-
-    # --- Schedule Schemas ---
-    Schedule: # Core Schedule object without joined data
-      type: object
-      description: Represents a class schedule.
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Unique identifier for the schedule.
-          readOnly: true
-          example: 423e4567-e89b-12d3-a456-426614174003
-        courseId:
-          type: string
-          format: uuid
-          description: ID of the associated course.
-          example: 123e4567-e89b-12d3-a456-426614174000
-        lecturerId:
-          type: string
-          format: uuid
-          description: ID of the assigned lecturer.
-          example: 523e4567-e89b-12d3-a456-426614174004
-        roomId:
-          type: string
-          format: uuid
-          description: ID of the assigned room.
-          example: 323e4567-e89b-12d3-a456-426614174002
-        startTime:
-          type: string
-          format: date-time
-          description: Start time of the class (e.g., "2025-06-23T07:00:00+07:00").
-          example: "2025-06-23T07:00:00+07:00"
-        endTime:
-          type: string
-          format: date-time
-          description: End time of the class (e.g., "2025-06-23T09:00:00+07:00").
-          example: "2025-06-23T09:00:00+07:00"
-        dayOfWeek:
+          description: Location of the room (e.g., "Building A, 1st Floor").
+          example: Building B, 2nd Floor
+        capacity:
           type: integer
-          description: Day of the week (1 = Monday, 7 = Sunday).
-          minimum: 1
-          maximum: 7
-          example: 1
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp when the schedule record was created.
-          readOnly: true
-          example: "2025-06-22T07:28:00+07:00"
-        updatedAt:
-          type: string
-          format: date-time
-          description: Timestamp when the schedule record was last updated.
-          readOnly: true
-          nullable: true
-          example: null
-        updatedBy:
-          type: string
-          format: uuid
-          description: ID of the Admin user who last updated this schedule.
-          readOnly: true
-          nullable: true
-          example: 223e4567-e89b-12d3-a456-426614174001
-      required:
-        - id
-        - courseId
-        - lecturerId
-        - roomId
-        - startTime
-        - endTime
-        - dayOfWeek
-        - createdAt
+          description: Maximum student capacity of the room.
+          example: 60
+      # No fields are strictly required, as any combination of provided fields can be updated.
 
-    ScheduleResponse: # Schedule object with joined data for display
+    ScheduleResponse:
       type: object
-      description: Represents a class schedule including joined details from Course, User, and Room tables.
+      description: Represents a schedule record with associated course, lecturer, and room details.
       properties:
         id:
           type: string
           format: uuid
           description: Unique identifier for the schedule.
           readOnly: true
-          example: 423e4567-e89b-12d3-a456-426614174003
+          example: 123e4567-e89b-12d3-a456-426614174000
         courseId:
           type: string
           format: uuid
           description: ID of the associated course.
-          example: 123e4567-e89b-12d3-a456-426614174000
+          example: 223e4567-e89b-12d3-a456-426614174001
+        courseCode:
+          type: string
+          description: Code of the associated course (e.g., "CS101").
+          readOnly: true
+          example: CS101
         courseName:
           type: string
-          description: Name of the associated course.
-          example: Introduction to Programming
+          description: Name of the associated course (e.g., "Introduction to Computer Science").
+          readOnly: true
+          example: Introduction to Computer Science
         lecturerId:
           type: string
           format: uuid
           description: ID of the assigned lecturer.
-          example: 523e4567-e89b-12d3-a456-426614174004
-        lecturerName:
+          example: 323e4567-e89b-12d3-a456-426614174002
+        lecturerFullName:
           type: string
-          description: Name of the assigned lecturer.
-          example: Dr. Smith
+          description: Full name of the assigned lecturer.
+          readOnly: true
+          example: Alice Smith
+        lecturerEmail:
+          type: string
+          format: email
+          description: Email of the assigned lecturer.
+          readOnly: true
+          example: alice.smith@example.com
         roomId:
           type: string
           format: uuid
           description: ID of the assigned room.
-          example: 323e4567-e89b-12d3-a456-426614174002
+          example: 423e4567-e89b-12d3-a456-426614174003
         roomName:
           type: string
-          description: Name of the assigned room.
-          example: Room A101
+          description: Name of the assigned room (e.g., "Room 101").
+          readOnly: true
+          example: Room 101
+        dayOfWeek:
+          $ref: '#/components/schemas/DayOfWeekEnum' # Using enum
+          description: Day of the week for the class (1=Monday, 7=Sunday).
+          example: 1
         startTime:
           type: string
-          format: date-time
-          description: Start time of the class.
-          example: "2025-06-23T07:00:00+07:00"
+          format: time
+          description: Start time of the class (HH:MM).
+          example: "09:00"
         endTime:
           type: string
-          format: date-time
-          description: End time of the class.
-          example: "2025-06-23T09:00:00+07:00"
-        dayOfWeek:
-          type: integer
-          description: Day of the week (1 = Monday, 7 = Sunday).
-          minimum: 1
-          maximum: 7
-          example: 1
+          format: time
+          description: End time of the class (HH:MM).
+          example: "10:30"
+        startDate:
+          type: string
+          format: date
+          description: Start date of the schedule.
+          example: "2025-09-01"
+        endDate:
+          type: string
+          format: date
+          description: End date of the schedule.
+          example: "2025-12-15"
         createdAt:
           type: string
           format: date-time
           description: Timestamp when the schedule record was created.
           readOnly: true
-          example: "2025-06-22T07:28:00+07:00"
+          example: "2025-07-01T10:00:00Z"
         updatedAt:
           type: string
           format: date-time
           description: Timestamp when the schedule record was last updated.
           readOnly: true
           nullable: true
-          example: null
-        updatedBy:
-          type: string
-          format: uuid
-          description: ID of the Admin user who last updated this schedule.
-          readOnly: true
-          nullable: true
-          example: 223e4567-e89b-12d3-a456-426614174001
-        updatedByName:
-          type: string
-          description: Full name of the Admin user who last updated this schedule.
-          readOnly: true
-          nullable: true
-          example: Admin User
+          example: "2025-07-02T11:00:00Z"
       required:
         - id
         - courseId
-        - courseName
         - lecturerId
-        - lecturerName
         - roomId
-        - roomName
+        - dayOfWeek
         - startTime
         - endTime
-        - dayOfWeek
+        - startDate
+        - endDate
         - createdAt
 
     ScheduleCreateRequest:
@@ -1543,41 +1474,51 @@ components:
         courseId:
           type: string
           format: uuid
-          description: ID of the course for this schedule.
-          example: 123e4567-e89b-12d3-a456-426614174000
+          description: ID of the associated course.
+          example: 223e4567-e89b-12d3-a456-426614174001
         lecturerId:
           type: string
           format: uuid
-          description: ID of the lecturer for this schedule.
-          example: 523e4567-e89b-12d3-a456-426614174004
+          description: ID of the assigned lecturer.
+          example: 323e4567-e89b-12d3-a456-426614174002
         roomId:
           type: string
           format: uuid
-          description: ID of the room for this schedule.
-          example: 323e4567-e89b-12d3-a456-426614174002
+          description: ID of the assigned room.
+          example: 423e4567-e89b-12d3-a456-426614174003
+        dayOfWeek:
+          $ref: '#/components/schemas/DayOfWeekEnum' # Using enum
+          description: Day of the week for the class (1=Monday, 7=Sunday).
+          example: 1
         startTime:
           type: string
-          format: date-time
-          description: Start time of the class.
-          example: "2025-06-23T07:00:00+07:00"
+          format: time
+          description: Start time of the class (HH:MM).
+          example: "09:00"
         endTime:
           type: string
-          format: date-time
-          description: End time of the class.
-          example: "2025-06-23T09:00:00+07:00"
-        dayOfWeek:
-          type: integer
-          description: Day of the week (1 = Monday, 7 = Sunday).
-          minimum: 1
-          maximum: 7
-          example: 1
+          format: time
+          description: End time of the class (HH:MM).
+          example: "10:30"
+        startDate:
+          type: string
+          format: date
+          description: Start date of the schedule.
+          example: "2025-09-01"
+        endDate:
+          type: string
+          format: date
+          description: End date of the schedule.
+          example: "2025-12-15"
       required:
         - courseId
         - lecturerId
         - roomId
+        - dayOfWeek
         - startTime
         - endTime
-        - dayOfWeek
+        - startDate
+        - endDate
 
     ScheduleUpdateRequest:
       type: object
@@ -1586,141 +1527,114 @@ components:
         courseId:
           type: string
           format: uuid
-          description: New ID of the course for this schedule (optional).
-          example: 123e4567-e89b-12d3-a456-426614174000
+          description: ID of the associated course.
+          example: 223e4567-e89b-12d3-a456-426614174001
         lecturerId:
           type: string
           format: uuid
-          description: New ID of the lecturer for this schedule (optional).
-          example: 523e4567-e89b-12d3-a456-426614174004
+          description: ID of the assigned lecturer.
+          example: 323e4567-e89b-12d3-a456-426614174002
         roomId:
           type: string
           format: uuid
-          description: New ID of the room for this schedule (optional).
-          example: 323e4567-e89b-12d3-a456-426614174002
+          description: ID of the assigned room.
+          example: 423e4567-e89b-12d3-a456-426614174003
+        dayOfWeek:
+          $ref: '#/components/schemas/DayOfWeekEnum' # Using enum
+          description: Day of the week for the class (1=Monday, 7=Sunday).
+          example: 2
         startTime:
           type: string
-          format: date-time
-          description: New start time of the class (optional).
-          example: "2025-06-23T07:30:00+07:00"
+          format: time
+          description: Start time of the class (HH:MM).
+          example: "10:00"
         endTime:
           type: string
-          format: date-time
-          description: New end time of the class (optional).
-          example: "2025-06-23T09:30:00+07:00"
-        dayOfWeek:
-          type: integer
-          description: New day of the week (1 = Monday, 7 = Sunday) (optional).
-          minimum: 1
-          maximum: 7
-          example: 1
+          format: time
+          description: End time of the class (HH:MM).
+          example: "11:30"
+        startDate:
+          type: string
+          format: date
+          description: Start date of the schedule.
+          example: "2025-09-01"
+        endDate:
+          type: string
+          format: date
+          description: End date of the schedule.
+          example: "2025-12-15"
+      # No fields are strictly required, as any combination of provided fields can be updated.
 
-    # --- Enrollment Schemas ---
-    Enrollment: # Core Enrollment object without joined data
+    EnrollmentResponse:
       type: object
-      description: Represents a student's enrollment in a course.
+      description: Represents an enrollment record with associated student and schedule details.
       properties:
         id:
           type: string
           format: uuid
           description: Unique identifier for the enrollment.
           readOnly: true
-          example: 623e4567-e89b-12d3-a456-426614174005
-        courseId:
-          type: string
-          format: uuid
-          description: ID of the enrolled course.
           example: 123e4567-e89b-12d3-a456-426614174000
         studentId:
           type: string
           format: uuid
           description: ID of the enrolled student.
-          example: 723e4567-e89b-12d3-a456-426614174006
-        enrolledAt:
-          type: string
-          format: date-time
-          description: Timestamp when the student was enrolled.
-          readOnly: true
-          example: "2025-06-22T07:28:00+07:00"
-      required:
-        - id
-        - courseId
-        - studentId
-        - enrolledAt
-
-    EnrollmentResponse: # Enrollment object with joined data for display
-      type: object
-      description: Represents a student's enrollment in a course including student's full name.
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Unique identifier for the enrollment.
-          readOnly: true
-          example: 623e4567-e89b-12d3-a456-426614174005
-        courseId:
-          type: string
-          format: uuid
-          description: ID of the enrolled course.
-          example: 123e4567-e89b-12d3-a456-426614174000
-        studentId:
-          type: string
-          format: uuid
-          description: ID of the enrolled student.
-          example: 723e4567-e89b-12d3-a456-426614174006
-        fullName:
+          example: 223e4567-e89b-12d3-a456-426614174001
+        studentFullName:
           type: string
           description: Full name of the enrolled student.
           readOnly: true
-          example: John Doe
+          example: Jane Doe
+        studentEmail:
+          type: string
+          format: email
+          description: Email of the enrolled student.
+          readOnly: true
+          example: jane.doe@example.com
+        scheduleId:
+          type: string
+          format: uuid
+          description: ID of the enrolled schedule.
+          example: 323e4567-e89b-12d3-a456-426614174002
+        scheduleCourseName:
+          type: string
+          description: Name of the course for the enrolled schedule.
+          readOnly: true
+          example: Introduction to Computer Science
+        scheduleLecturerName:
+          type: string
+          description: Name of the lecturer for the enrolled schedule.
+          readOnly: true
+          example: Alice Smith
         enrolledAt:
           type: string
           format: date-time
           description: Timestamp when the student was enrolled.
           readOnly: true
-          example: "2025-06-22T07:28:00+07:00"
+          example: "2025-08-20T14:00:00Z"
       required:
         - id
-        - courseId
         - studentId
-        - fullName
+        - scheduleId
         - enrolledAt
 
     EnrollmentCreateRequest:
       type: object
-      description: Request body for enrolling a student into a course.
+      description: Request body for enrolling a student into a schedule.
       properties:
-        courseId:
-          type: string
-          format: uuid
-          description: ID of the course to enroll the student in.
-          example: 123e4567-e89b-12d3-a456-426614174000
         studentId:
           type: string
           format: uuid
           description: ID of the student to enroll.
-          example: 723e4567-e89b-12d3-a456-426614174006
-      required:
-        - courseId
-        - studentId
-
-    EnrollmentDeleteRequest:
-      type: object
-      description: Request body for unenrolling a student from a course.
-      properties:
-        courseId:
+          example: 223e4567-e89b-12d3-a456-426614174001
+        scheduleId:
           type: string
           format: uuid
-          description: ID of the course to unenroll the student from.
-          example: 123e4567-e89b-12d3-a456-426614174000
-        studentId:
-          type: string
-          format: uuid
-          description: ID of the student to unenroll.
-          example: 723e4567-e89b-12d3-a456-426614174006
+          description: ID of the schedule to enroll the student into.
+          example: 323e4567-e89b-12d3-a456-426614174002
       required:
-        - courseId
         - studentId
+        - scheduleId
 
     Error:
       type: object
@@ -1729,11 +1643,12 @@ components:
         code:
           type: string
           description: A unique error code for the specific error.
-          example: "COURSE_NOT_FOUND"
+          example: "SCHEDULE_CONFLICT"
         message:
           type: string
           description: A human-readable message describing the error.
-          example: "Course with provided ID not found."
+          example: "Scheduling conflict detected for lecturer or room."
       required:
         - code
         - message
+
