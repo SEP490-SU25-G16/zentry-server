@@ -2,7 +2,7 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
-public class Schedule : AggregateRoot
+public class Schedule : AggregateRoot<Guid>
 {
     private Schedule() : base(Guid.Empty)
     {
@@ -11,7 +11,6 @@ public class Schedule : AggregateRoot
     public Schedule(Guid scheduleId, Guid courseId, Guid roomId, DateTime startTime, DateTime endTime) :
         base(scheduleId)
     {
-        ScheduleId = scheduleId;
         CourseId = courseId != Guid.Empty
             ? courseId
             : throw new ArgumentException("CourseId cannot be empty.", nameof(courseId));
@@ -24,7 +23,6 @@ public class Schedule : AggregateRoot
             : throw new ArgumentException("EndTime must be after StartTime.", nameof(endTime));
     }
 
-    public Guid ScheduleId { get; private set; } = Guid.NewGuid();
     public Guid CourseId { get; private set; }
     public Guid RoomId { get; private set; }
     public DateTime StartTime { get; private set; }

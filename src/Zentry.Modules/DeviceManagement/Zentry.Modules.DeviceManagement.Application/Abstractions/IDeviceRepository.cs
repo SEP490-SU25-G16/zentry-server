@@ -3,9 +3,8 @@ using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.DeviceManagement.Application.Abstractions;
 
-public interface IDeviceRepository : IRepository<Device>
+public interface IDeviceRepository : IRepository<Device, Guid>
 {
-    Task<Device> GetByIdAsync(Guid deviceId, CancellationToken cancellationToken);
     Task<IEnumerable<Device>> GetByAccountIdAsync(Guid accountId, CancellationToken cancellationToken);
     Task<Device> GetByDeviceTokenAsync(string deviceToken, CancellationToken cancellationToken);
 }

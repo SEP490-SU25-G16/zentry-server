@@ -23,7 +23,7 @@ public class ReportingDbContextFactory : IDesignTimeDbContextFactory<ReportingDb
             connectionString = "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres";
 
         optionsBuilder.UseNpgsql(connectionString,
-            b => b.MigrationsAssembly("Zentry.Modules.Reporting"));
+            b => b.MigrationsAssembly("Zentry.Modules.ReportingService"));
 
         return new ReportingDbContext(optionsBuilder.Options);
     }

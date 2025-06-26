@@ -12,7 +12,7 @@ using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(DeviceManagementDbContext))]
-    [Migration("20250619033214_Initial")]
+    [Migration("20250626024609_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -27,7 +27,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.DeviceManagement.Domain.Entities.Device", b =>
                 {
-                    b.Property<Guid>("DeviceId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -63,7 +63,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.HasKey("DeviceId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 

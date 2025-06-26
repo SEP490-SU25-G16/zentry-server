@@ -24,7 +24,8 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Domain.Entities.Configuration", b =>
                 {
-                    b.Property<Guid>("ConfigurationId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -47,11 +48,7 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.HasKey("ConfigurationId");
-
-                    b.HasIndex("ConfigurationId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Configurations_ConfigurationId");
+                    b.HasKey("Id");
 
                     b.HasIndex("Key")
                         .IsUnique()

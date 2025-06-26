@@ -2,7 +2,7 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
-public class Round : AggregateRoot
+public class Round : AggregateRoot<Guid>
 {
     private Round() : base(Guid.Empty)
     {
@@ -11,7 +11,6 @@ public class Round : AggregateRoot
     private Round(Guid roundId, Guid scheduleId, DateTime startTime, DateTime endTime)
         : base(roundId)
     {
-        RoundId = roundId;
         ScheduleId = scheduleId != Guid.Empty
             ? scheduleId
             : throw new ArgumentException("ScheduleId cannot be empty.", nameof(scheduleId));
@@ -23,7 +22,6 @@ public class Round : AggregateRoot
             : throw new ArgumentException("EndTime must be after StartTime.", nameof(endTime));
     }
 
-    public Guid RoundId { get; private set; }
     public Guid ScheduleId { get; private set; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }

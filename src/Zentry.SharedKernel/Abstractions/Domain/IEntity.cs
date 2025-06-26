@@ -1,6 +1,8 @@
 namespace Zentry.SharedKernel.Abstractions.Domain;
 
-public interface IEntity
+// IEntity giờ đây là generic
+public interface IEntity<TId>
+    where TId : notnull // Đảm bảo TId không null
 {
-    object Id { get; }
+    TId Id { get; }
 }

@@ -10,12 +10,12 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
     {
         builder.ToTable("Enrollments");
 
-        // Use EnrollmentId as primary key
-        builder.HasKey(e => e.EnrollmentId);
+        // Đặt thuộc tính Id kế thừa làm khóa chính
+        builder.HasKey(d => d.Id);
 
-        builder.Property(e => e.EnrollmentId)
-            .HasColumnType("uuid")
-            .IsRequired();
+        // Cấu hình thuộc tính Id
+        builder.Property(d => d.Id)
+            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
         builder.Property(e => e.StudentId)
             .HasColumnType("uuid")

@@ -24,7 +24,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.DeviceManagement.Domain.Entities.Device", b =>
                 {
-                    b.Property<Guid>("DeviceId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -60,7 +60,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.HasKey("DeviceId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 

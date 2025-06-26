@@ -31,7 +31,6 @@ public static class DependencyInjection
         {
             var mongoClient = s.GetRequiredService<IMongoClient>();
             var database = mongoClient.GetDatabase("zentry");
-            BluetoothScanConfiguration.Configure(database);
             return database;
         });
 

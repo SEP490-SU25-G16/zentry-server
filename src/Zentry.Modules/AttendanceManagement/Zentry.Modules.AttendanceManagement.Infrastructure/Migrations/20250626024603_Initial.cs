@@ -15,20 +15,20 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 name: "Enrollments",
                 columns: table => new
                 {
-                    EnrollmentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     StudentId = table.Column<Guid>(type: "uuid", nullable: false),
                     CourseId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Enrollments", x => x.EnrollmentId);
+                    table.PrimaryKey("PK_Enrollments", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "ErrorReports",
                 columns: table => new
                 {
-                    ErrorReportId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
                     ErrorCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
@@ -36,21 +36,21 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ErrorReports", x => x.ErrorReportId);
+                    table.PrimaryKey("PK_ErrorReports", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Rounds",
                 columns: table => new
                 {
-                    RoundId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ScheduleId = table.Column<Guid>(type: "uuid", nullable: false),
                     StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Rounds", x => x.RoundId);
+                    table.PrimaryKey("PK_Rounds", x => x.Id);
                     table.CheckConstraint("CK_Rounds_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                 });
 
@@ -58,7 +58,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 name: "AttendanceRecords",
                 columns: table => new
                 {
-                    AttendanceRecordId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     EnrollmentId = table.Column<Guid>(type: "uuid", nullable: false),
                     RoundId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsPresent = table.Column<bool>(type: "boolean", nullable: false),
@@ -66,18 +66,18 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AttendanceRecords", x => x.AttendanceRecordId);
+                    table.PrimaryKey("PK_AttendanceRecords", x => x.Id);
                     table.ForeignKey(
                         name: "FK_AttendanceRecords_Enrollments_EnrollmentId",
                         column: x => x.EnrollmentId,
                         principalTable: "Enrollments",
-                        principalColumn: "EnrollmentId",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AttendanceRecords_Rounds_RoundId",
                         column: x => x.RoundId,
                         principalTable: "Rounds",
-                        principalColumn: "RoundId",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 

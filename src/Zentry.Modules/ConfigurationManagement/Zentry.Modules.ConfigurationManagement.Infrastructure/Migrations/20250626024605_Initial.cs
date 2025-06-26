@@ -15,7 +15,7 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
                 name: "Configurations",
                 columns: table => new
                 {
-                    ConfigurationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Key = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Value = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
@@ -24,14 +24,8 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Configurations", x => x.ConfigurationId);
+                    table.PrimaryKey("PK_Configurations", x => x.Id);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Configurations_ConfigurationId",
-                table: "Configurations",
-                column: "ConfigurationId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Configurations_Key",

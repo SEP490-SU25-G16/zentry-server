@@ -16,7 +16,7 @@ public static class AttendanceSeed
                 DateTime.UtcNow.AddDays(-1).AddHours(1));
             context.Rounds.Add(round);
 
-            context.AttendanceRecords.Add(AttendanceRecord.Create(enrollment.EnrollmentId, round.RoundId, true));
+            context.AttendanceRecords.Add(AttendanceRecord.Create(enrollment.Id, round.Id, true));
             context.ErrorReports.Add(ErrorReport.Create(Guid.NewGuid(), "ERR001", "BLE connection failed"));
 
             await context.SaveChangesAsync();

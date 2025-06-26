@@ -15,7 +15,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
                 name: "Devices",
                 columns: table => new
                 {
-                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     AccountId = table.Column<Guid>(type: "uuid", nullable: false),
                     DeviceName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     DeviceToken = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
@@ -26,7 +26,7 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Devices", x => x.DeviceId);
+                    table.PrimaryKey("PK_Devices", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(

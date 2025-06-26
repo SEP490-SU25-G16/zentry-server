@@ -2,7 +2,9 @@ using Zentry.SharedKernel.Abstractions.Domain;
 
 namespace Zentry.SharedKernel.Domain;
 
-public abstract class AggregateRoot(object id) : Entity(id), IAggregateRoot
+// AggregateRoot giờ đây cũng là generic
+public abstract class AggregateRoot<TId>(TId id) : Entity<TId>(id), IAggregateRoot<TId>
+    where TId : notnull // Đảm bảo TId không null
 {
     private readonly List<IDomainEvent> _domainEvents = [];
 

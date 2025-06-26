@@ -2,7 +2,7 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
-public class Room : Entity
+public class Room : AggregateRoot<Guid>
 {
     private Room() : base(Guid.Empty)
     {
@@ -10,7 +10,6 @@ public class Room : Entity
 
     public Room(Guid roomId, string name, string building, int capacity) : base(roomId)
     {
-        RoomId = roomId;
         Name = !string.IsNullOrWhiteSpace(name)
             ? name
             : throw new ArgumentException("Name cannot be empty.", nameof(name));
@@ -22,7 +21,6 @@ public class Room : Entity
             : throw new ArgumentException("Capacity must be positive.", nameof(capacity));
     }
 
-    public Guid RoomId { get; private set; } = Guid.NewGuid();
     public string Name { get; private set; }
     public string Building { get; private set; }
     public int Capacity { get; private set; }

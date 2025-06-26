@@ -11,12 +11,12 @@ public class RoundConfiguration : IEntityTypeConfiguration<Round>
     {
         builder.ToTable("Rounds");
 
-        // Use RoundId as primary key
-        builder.HasKey(r => r.RoundId);
+        // Đặt thuộc tính Id kế thừa làm khóa chính
+        builder.HasKey(d => d.Id);
 
-        builder.Property(r => r.RoundId)
-            .HasColumnType("uuid")
-            .IsRequired();
+        // Cấu hình thuộc tính Id
+        builder.Property(d => d.Id)
+            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
         builder.Property(r => r.ScheduleId)
             .HasColumnType("uuid")

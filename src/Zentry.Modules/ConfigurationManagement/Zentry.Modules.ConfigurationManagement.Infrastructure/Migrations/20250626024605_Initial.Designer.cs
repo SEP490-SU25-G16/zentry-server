@@ -12,7 +12,7 @@ using Zentry.Modules.ConfigurationManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ConfigurationDbContext))]
-    [Migration("20250619034050_Initial")]
+    [Migration("20250626024605_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -27,7 +27,8 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Domain.Entities.Configuration", b =>
                 {
-                    b.Property<Guid>("ConfigurationId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -50,11 +51,7 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.HasKey("ConfigurationId");
-
-                    b.HasIndex("ConfigurationId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_Configurations_ConfigurationId");
+                    b.HasKey("Id");
 
                     b.HasIndex("Key")
                         .IsUnique()

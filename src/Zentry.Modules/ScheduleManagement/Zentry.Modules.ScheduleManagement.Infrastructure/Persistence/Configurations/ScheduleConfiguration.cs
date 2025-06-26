@@ -9,7 +9,12 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Domain.Entities.Sc
     {
         builder.ToTable("Schedules");
 
-        builder.HasKey(s => s.ScheduleId);
+        // Đặt thuộc tính Id kế thừa làm khóa chính
+        builder.HasKey(d => d.Id);
+
+        // Cấu hình thuộc tính Id
+        builder.Property(d => d.Id)
+            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
         builder.Property(s => s.CourseId).IsRequired()
             .HasColumnType("uuid")

@@ -2,7 +2,7 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
-public class Course : AggregateRoot
+public class Course : AggregateRoot<Guid>
 {
     private Course() : base(Guid.Empty)
     {
@@ -10,7 +10,6 @@ public class Course : AggregateRoot
 
     public Course(Guid courseId, string code, string name, string semester, Guid lecturerId) : base(courseId)
     {
-        CourseId = courseId;
         Code = !string.IsNullOrWhiteSpace(code)
             ? code
             : throw new ArgumentException("Code cannot be empty.", nameof(code));
@@ -25,7 +24,6 @@ public class Course : AggregateRoot
             : throw new ArgumentException("LecturerId cannot be empty.", nameof(lecturerId));
     }
 
-    public Guid CourseId { get; private set; } = Guid.NewGuid();
     public string Code { get; private set; }
     public string Name { get; private set; }
     public string Semester { get; private set; }

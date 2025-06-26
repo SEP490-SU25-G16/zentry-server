@@ -2,7 +2,7 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
-public class AttendanceRecord : AggregateRoot
+public class AttendanceRecord : AggregateRoot<Guid>
 {
     private AttendanceRecord() : base(Guid.Empty)
     {
@@ -11,7 +11,6 @@ public class AttendanceRecord : AggregateRoot
     private AttendanceRecord(Guid attendanceRecordId, Guid enrollmentId, Guid roundId, bool isPresent)
         : base(attendanceRecordId)
     {
-        AttendanceRecordId = attendanceRecordId;
         EnrollmentId = enrollmentId != Guid.Empty
             ? enrollmentId
             : throw new ArgumentException("EnrollmentId cannot be empty.", nameof(enrollmentId));
@@ -22,7 +21,6 @@ public class AttendanceRecord : AggregateRoot
         CreatedAt = DateTime.UtcNow;
     }
 
-    public Guid AttendanceRecordId { get; private set; }
     public Guid EnrollmentId { get; private set; }
     public Guid RoundId { get; private set; }
     public bool IsPresent { get; private set; }

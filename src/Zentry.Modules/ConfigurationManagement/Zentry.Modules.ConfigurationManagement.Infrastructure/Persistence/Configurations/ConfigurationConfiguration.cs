@@ -9,9 +9,12 @@ public class ConfigurationConfiguration : IEntityTypeConfiguration<Domain.Entiti
     {
         builder.ToTable("Configurations");
 
-        builder.Property(c => c.ConfigurationId)
-            .IsRequired()
-            .ValueGeneratedNever();
+        // Đặt thuộc tính Id kế thừa làm khóa chính
+        builder.HasKey(d => d.Id);
+
+        // Cấu hình thuộc tính Id
+        builder.Property(d => d.Id)
+            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
         builder.Property(c => c.Key)
             .IsRequired()
@@ -33,10 +36,5 @@ public class ConfigurationConfiguration : IEntityTypeConfiguration<Domain.Entiti
         builder.HasIndex(c => c.Key)
             .IsUnique()
             .HasDatabaseName("IX_Configurations_Key");
-
-        // Nếu ConfigurationId và Id là giống nhau, có thể tạo unique index
-        builder.HasIndex(c => c.ConfigurationId)
-            .IsUnique()
-            .HasDatabaseName("IX_Configurations_ConfigurationId");
     }
 }

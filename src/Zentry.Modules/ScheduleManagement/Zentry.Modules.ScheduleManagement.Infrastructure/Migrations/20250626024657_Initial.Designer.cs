@@ -12,7 +12,7 @@ using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ScheduleDbContext))]
-    [Migration("20250620042000_Initial")]
+    [Migration("20250626024657_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -27,7 +27,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Course", b =>
                 {
-                    b.Property<Guid>("CourseId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -49,14 +49,14 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.HasKey("CourseId");
+                    b.HasKey("Id");
 
                     b.ToTable("Courses", (string)null);
                 });
 
             modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Room", b =>
                 {
-                    b.Property<Guid>("RoomId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -73,7 +73,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.HasKey("RoomId");
+                    b.HasKey("Id");
 
                     b.HasIndex("Building");
 
@@ -84,7 +84,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Schedule", b =>
                 {
-                    b.Property<Guid>("ScheduleId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -100,7 +100,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("ScheduleId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CourseId");
 

@@ -6,7 +6,32 @@ namespace Zentry.Modules.DeviceManagement.Infrastructure.Repositories;
 
 public class DeviceRepository : IDeviceRepository
 {
-    public Task<Device> GetByIdAsync(Guid deviceId, CancellationToken cancellationToken)
+    public Task<IEnumerable<Device>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Device?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddAsync(Device entity, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Update(Device entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Delete(Device entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
@@ -17,37 +42,6 @@ public class DeviceRepository : IDeviceRepository
     }
 
     public Task<Device> GetByDeviceTokenAsync(string deviceToken, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Device> GetByIdAsync(object id, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IEnumerable<Device>> GetAllAsync(CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IEnumerable<Device>> FindAsync(ISpecification<Device> specification,
-        CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task AddAsync(Device device, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task UpdateAsync(Device device, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task DeleteAsync(Device device, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

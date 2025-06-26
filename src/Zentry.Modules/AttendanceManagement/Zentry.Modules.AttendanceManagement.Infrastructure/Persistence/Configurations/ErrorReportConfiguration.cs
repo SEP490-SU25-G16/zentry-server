@@ -10,12 +10,12 @@ public class ErrorReportConfiguration : IEntityTypeConfiguration<ErrorReport>
     {
         builder.ToTable("ErrorReports");
 
-        // Use ErrorReportId as primary key
-        builder.HasKey(er => er.ErrorReportId);
+        // Đặt thuộc tính Id kế thừa làm khóa chính
+        builder.HasKey(d => d.Id);
 
-        builder.Property(er => er.ErrorReportId)
-            .HasColumnType("uuid")
-            .IsRequired();
+        // Cấu hình thuộc tính Id
+        builder.Property(d => d.Id)
+            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
         builder.Property(er => er.DeviceId)
             .HasColumnType("uuid")

@@ -10,12 +10,12 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
     {
         builder.ToTable("AttendanceRecords");
 
-        // Use AttendanceRecordId as primary key instead of Id
-        builder.HasKey(ar => ar.AttendanceRecordId);
+        // Đặt thuộc tính Id kế thừa làm khóa chính
+        builder.HasKey(d => d.Id);
 
-        builder.Property(ar => ar.AttendanceRecordId)
-            .HasColumnType("uuid")
-            .IsRequired();
+        // Cấu hình thuộc tính Id
+        builder.Property(d => d.Id)
+            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
         builder.Property(ar => ar.EnrollmentId)
             .HasColumnType("uuid")
@@ -42,13 +42,12 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
         builder.HasOne(ar => ar.Enrollment)
             .WithMany(e => e.AttendanceRecords)
             .HasForeignKey(ar => ar.EnrollmentId)
-            .HasPrincipalKey(e => e.EnrollmentId)
+            .HasPrincipalKey(e => e.Id)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(ar => ar.Round)
             .WithMany(r => r.AttendanceRecords)
-            .HasForeignKey(ar => ar.RoundId)
-            .HasPrincipalKey(r => r.RoundId)
+            .HasForeignKey(ar => ar.RoundId).HasPrincipalKey(r => r.Id)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

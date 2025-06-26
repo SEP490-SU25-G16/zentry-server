@@ -12,7 +12,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250620015748_Initial")]
+    [Migration("20250626024603_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -27,7 +27,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.AttendanceRecord", b =>
                 {
-                    b.Property<Guid>("AttendanceRecordId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -45,7 +45,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<Guid>("RoundId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("AttendanceRecordId");
+                    b.HasKey("Id");
 
                     b.HasIndex("EnrollmentId");
 
@@ -60,7 +60,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Enrollment", b =>
                 {
-                    b.Property<Guid>("EnrollmentId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -70,7 +70,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("EnrollmentId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CourseId");
 
@@ -85,7 +85,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.ErrorReport", b =>
                 {
-                    b.Property<Guid>("ErrorReportId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -106,7 +106,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.HasKey("ErrorReportId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
 
@@ -119,7 +119,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", b =>
                 {
-                    b.Property<Guid>("RoundId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -132,7 +132,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("RoundId");
+                    b.HasKey("Id");
 
                     b.HasIndex("EndTime");
 

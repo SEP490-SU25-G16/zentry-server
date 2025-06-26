@@ -10,18 +10,17 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
     {
         builder.ToTable("Rooms");
 
-        builder.HasKey(r => r.RoomId);
+        // Đặt thuộc tính Id kế thừa làm khóa chính
+        builder.HasKey(d => d.Id);
 
-        builder.Property(r => r.RoomId)
-            .HasColumnType("uuid")
-            .IsRequired();
+        // Cấu hình thuộc tính Id
+        builder.Property(d => d.Id)
+            .ValueGeneratedOnAdd(); // Đảm bảo Id được tạo khi thêm mới
 
         builder.Property(r => r.Name).IsRequired().HasMaxLength(50);
         builder.Property(r => r.Building).IsRequired().HasMaxLength(50);
         builder.Property(r => r.Capacity).IsRequired();
 
-        // Ignore property Id từ Entity base class
-        builder.Ignore(r => r.Id);
 
         // Add indexes for performance
         builder.HasIndex(r => r.Name);

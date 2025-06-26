@@ -12,7 +12,7 @@ using Zentry.Modules.ReportingService.Persistence;
 namespace Zentry.Modules.ReportingService.Migrations
 {
     [DbContext(typeof(ReportingDbContext))]
-    [Migration("20250620031532_Initial")]
+    [Migration("20250626024840_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

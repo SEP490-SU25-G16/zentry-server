@@ -8,37 +8,12 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepository
 {
-    public async Task<(int TotalSessions, int AttendedSessions)> GetAttendanceStatsAsync(Guid studentId, Guid courseId)
-    {
-        var stats = await context.AttendanceRecords
-            .Join(context.Enrollments,
-                ar => ar.EnrollmentId,
-                e => e.Id,
-                (ar, e) => new { ar, e })
-            .Where(x => x.e.StudentId == studentId && x.e.CourseId == courseId)
-            .GroupBy(x => new { x.e.StudentId, x.e.CourseId })
-            .Select(g => new
-            {
-                TotalSessions = g.Count(),
-                AttendedSessions = g.Sum(x => x.ar.IsPresent ? 1 : 0)
-            })
-            .FirstOrDefaultAsync();
-
-        return stats != null ? (stats.TotalSessions, stats.AttendedSessions) : (0, 0);
-    }
-
-    public Task<AttendanceRecord> GetByIdAsync(object id, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<IEnumerable<AttendanceRecord>> GetAllAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<AttendanceRecord>> FindAsync(ISpecification<AttendanceRecord> specification,
-        CancellationToken cancellationToken)
+    public Task<AttendanceRecord?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
@@ -48,23 +23,23 @@ public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepo
         throw new NotImplementedException();
     }
 
-    public Task UpdateAsync(AttendanceRecord entity, CancellationToken cancellationToken)
+    public void Update(AttendanceRecord entity)
     {
         throw new NotImplementedException();
     }
 
-    public Task DeleteAsync(AttendanceRecord entity, CancellationToken cancellationToken)
+    public void Delete(AttendanceRecord entity)
     {
         throw new NotImplementedException();
     }
 
-    public async Task AddAsync(AttendanceRecord attendanceRecord)
+    public Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        await context.AttendanceRecords.AddAsync(attendanceRecord);
+        throw new NotImplementedException();
     }
 
-    public async Task SaveChangesAsync()
+    public Task<(int TotalSessions, int AttendedSessions)> GetAttendanceStatsAsync(Guid studentId, Guid courseId)
     {
-        await context.SaveChangesAsync();
+        throw new NotImplementedException();
     }
 }

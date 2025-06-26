@@ -5,18 +5,21 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.DeviceManagement.Domain.Entities;
 
-public class Device : AggregateRoot
+// Kế thừa từ AggregateRoot<Guid> và loại bỏ thuộc tính DeviceId trùng lặp
+public class Device : AggregateRoot<Guid>
 {
+    // Constructor mặc định cho EF Core
     private Device() : base(Guid.Empty)
     {
-    } // For EF Core
+    }
 
+    // Constructor chính, sử dụng 'id' được truyền vào làm khóa chính của thực thể
     private Device(Guid deviceId, Guid accountId, DeviceName deviceName, DeviceToken deviceToken)
-        : base(deviceId)
+        : base(deviceId) // Truyền deviceId vào constructor của lớp cơ sở AggregateRoot
     {
         Guard.AgainstNull(deviceName, nameof(deviceName));
         Guard.AgainstNull(deviceToken, nameof(deviceToken));
-        DeviceId = deviceId;
+        // Id đã được gán bởi lớp cơ sở Entity thông qua AggregateRoot
         AccountId = accountId;
         DeviceName = deviceName;
         DeviceToken = deviceToken;
@@ -24,7 +27,8 @@ public class Device : AggregateRoot
         Status = DeviceStatus.Active;
     }
 
-    public Guid DeviceId { get; private set; }
+    // Thuộc tính Id đã được kế thừa từ Entity<Guid>
+    // public Guid DeviceId { get; private set; } // Loại bỏ thuộc tính này
     public Guid AccountId { get; }
     public DeviceName DeviceName { get; private set; }
     public DeviceToken DeviceToken { get; }
@@ -35,11 +39,13 @@ public class Device : AggregateRoot
 
     public static Device Register(Guid accountId, DeviceName deviceName, DeviceToken deviceToken)
     {
+        // Sử dụng Guid.NewGuid() để tạo Id cho thực thể mới
         return new Device(Guid.NewGuid(), accountId, deviceName, deviceToken);
     }
 
     public void Update(DeviceName deviceName, DeviceStatus status, bool isAdmin, Guid requestingUserId)
     {
+        // So sánh AccountId với requestingUserId
         if (!isAdmin && AccountId != requestingUserId)
             throw new UnauthorizedAccessException("User can only update their own device.");
 
@@ -49,10 +55,11 @@ public class Device : AggregateRoot
 
     public void Delete(bool isAdmin, Guid requestingUserId)
     {
+        // So sánh AccountId với requestingUserId
         if (!isAdmin && AccountId != requestingUserId)
             throw new UnauthorizedAccessException("User can only delete their own device.");
 
-        // Soft delete or mark as inactive
+        // Xóa mềm hoặc đánh dấu không hoạt động
         Status = DeviceStatus.Inactive;
     }
 

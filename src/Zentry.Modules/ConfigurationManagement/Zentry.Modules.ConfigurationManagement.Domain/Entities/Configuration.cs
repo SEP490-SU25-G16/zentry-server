@@ -3,7 +3,7 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ConfigurationManagement.Domain.Entities;
 
-public class Configuration : AggregateRoot
+public class Configuration : AggregateRoot<Guid>
 {
     private Configuration() : base(Guid.Empty)
     {
@@ -17,14 +17,12 @@ public class Configuration : AggregateRoot
         Guard.AgainstNull(key, nameof(key));
         Guard.AgainstNull(value, nameof(value));
 
-        ConfigurationId = configurationId;
         Key = key;
         Value = value;
         Description = description;
         CreatedAt = DateTime.UtcNow;
     }
 
-    public Guid ConfigurationId { get; private set; }
     public string Key { get; private set; }
     public string Value { get; private set; }
     public string? Description { get; private set; }
