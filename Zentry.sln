@@ -14,8 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.SharedKernel", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Infrastructure", "src\Zentry.Infrastructure\Zentry.Infrastructure.csproj", "{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.BackgroundProcessor", "src\Zentry.BackgroundProcessor\Zentry.BackgroundProcessor.csproj", "{9FABFB0A-F04F-4878-8FFB-CA96173705A5}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Zentry.Modules", "Zentry.Modules", "{E5978E3B-C456-4EFF-8869-BE94283AE234}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Attendance", "Attendance", "{09FB2F20-4B15-4433-ACEC-15F5E1746C8F}"
@@ -88,10 +86,6 @@ Global
 		{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5FB823E-13FE-4E52-9D2E-C1FED3F3437E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9FABFB0A-F04F-4878-8FFB-CA96173705A5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{20036B57-8D03-40E0-B14B-8B9A936AEA43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{20036B57-8D03-40E0-B14B-8B9A936AEA43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20036B57-8D03-40E0-B14B-8B9A936AEA43}.Release|Any CPU.ActiveCfg = Release|Any CPU
