@@ -5,6 +5,8 @@ using Zentry.Modules.UserManagement.Features.SignIn;
 
 namespace Zentry.Modules.UserManagement.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
 public class AuthController(IMediator mediator) : ControllerBase
 {
     [HttpPost("sign-in")]

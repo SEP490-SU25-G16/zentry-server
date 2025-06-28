@@ -1,13 +1,14 @@
 ﻿services:
   zentry-api:
+    container_name: zentry-api
     image: zentry.api
     build:
       context: .
       dockerfile: src/Zentry.API/Dockerfile
     ports:
-      - "5000:5000"
+      - "8080:8080"
     environment:
-      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       # Other services
@@ -16,6 +17,10 @@
       - RabbitMQ_Host=rabbitmq
       - RabbitMQ_Username=admin
       - RabbitMQ_Password=pass
+      - Jwt__Secret=a-super-secret-key-that-is-long-enough-for-hs256-algorithm
+      - Jwt__Issuer=https://zentry.local
+      - Jwt__Audience=https://zentry.local
+      - Jwt__ExpirationMinutes=60
     depends_on:
       postgres:
         condition: service_healthy
@@ -26,57 +31,16 @@
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 30s
       timeout: 3s
       retries: 3
-
-  #  zentry-background:
-  #    image: zentry.background
-  #    build:
-  #      context: .
-  #      dockerfile: src/Zentry.BackgroundProcessor/Dockerfile
-  #    environment:
-  #      - ASPNETCORE_ENVIRONMENT=Development
-  #      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass
-  #      - RabbitMQ__Host=rabbitmq
-  #      - RabbitMQ__Username=admin
-  #      - RabbitMQ__Password=pass
-  #    depends_on:
-  #      rabbitmq:
-  #        condition: service_healthy
-  #    healthcheck:
-  #      test: ["CMD-SHELL", "python -c 'import pika' || exit 1"]
-  #      interval: 30s
-  #      timeout: 3s
-  #      retries: 3
-
-  #  zentry-python-worker:
-  #    image: zentry.python-worker
-  #    build:
-  #      context: src/Zentry.BackgroundProcessor
-  #      dockerfile: Dockerfile.python
-  #    environment:
-  #      - RabbitMQ__Host=rabbitmq
-  #      - RabbitMQ__Username=admin
-  #      - RabbitMQ__Password=pass
-  #      - RABBITMQ_HOST=rabbitmq
-  #      - RABBITMQ_USERNAME=admin
-  #      - RABBITMQ_PASSWORD=pass
-  #    depends_on:
-  #      rabbitmq:
-  #        condition: service_healthy
-  #    healthcheck:
-  #      test: ["CMD-SHELL", "python -c 'import pika' || exit 1"]
-  #      interval: 30s
-  #      timeout: 3s
-  #      retries: 3
 
   redis:
     image: redis:7.4-alpine
     command: redis-server --maxmemory 500mb --maxmemory-policy allkeys-lru
     ports:
-      - "6379:6379"  # Thêm port mapping cho Redis nếu cần truy cập từ bên ngoài
+      - "6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
