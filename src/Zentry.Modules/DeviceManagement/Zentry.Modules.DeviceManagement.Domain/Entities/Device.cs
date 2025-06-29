@@ -4,9 +4,13 @@ using Zentry.SharedKernel.Common;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.DeviceManagement.Domain.Entities;
+
 public class Device : AggregateRoot<Guid>
 {
-    private Device() : base(Guid.Empty) { }
+    private Device() : base(Guid.Empty)
+    {
+    }
+
     private Device(Guid id, Guid userId, DeviceName deviceName, DeviceToken deviceToken)
         : base(id)
     {
@@ -18,6 +22,7 @@ public class Device : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
         Status = DeviceStatus.Active;
     }
+
     public Guid UserId { get; }
     public DeviceName DeviceName { get; private set; }
     public DeviceToken DeviceToken { get; }

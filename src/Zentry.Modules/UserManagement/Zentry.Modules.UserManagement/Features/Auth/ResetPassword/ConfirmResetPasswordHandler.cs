@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.UserManagement.Persistence;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 
@@ -24,11 +23,12 @@ public class ConfirmResetPasswordHandler(UserDbContext dbContext, IPasswordHashe
                 account.ClearResetToken();
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
+
             throw new InvalidOperationException("Invalid or expired token. Please request a new password reset.");
         }
 
         // Hash new password using Argon2id và sử dụng phương thức SetNewPassword của entity Account
-        (string newPasswordHash, string newPasswordSalt) = passwordHasher.HashPassword(request.NewPassword);
+        var (newPasswordHash, newPasswordSalt) = passwordHasher.HashPassword(request.NewPassword);
         account.SetNewPassword(newPasswordHash, newPasswordSalt);
 
         // Clear the token and expiry time after successful reset bằng phương thức ClearResetToken

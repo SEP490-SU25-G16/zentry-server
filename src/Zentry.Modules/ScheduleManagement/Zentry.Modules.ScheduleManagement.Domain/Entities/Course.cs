@@ -1,9 +1,13 @@
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
+
 public class Course : AggregateRoot<Guid>
 {
-    private Course() : base(Guid.Empty) { }
+    private Course() : base(Guid.Empty)
+    {
+    }
+
     private Course(Guid id, string code, string name, string description, string semester)
         : base(id)
     {
@@ -13,6 +17,7 @@ public class Course : AggregateRoot<Guid>
         Semester = semester;
         CreatedAt = DateTime.UtcNow;
     }
+
     public string Code { get; private set; }
     public string Name { get; private set; }
     public string Description { get; private set; }

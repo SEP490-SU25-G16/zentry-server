@@ -1,6 +1,7 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
-using Zentry.Modules.UserManagement.Services;
-using Zentry.SharedKernel.Abstractions.Application; // Đảm bảo using này có mặt
+using Zentry.SharedKernel.Abstractions.Application;
+
+// Đảm bảo using này có mặt
 
 namespace Zentry.Modules.UserManagement.Features.GetUsers;
 

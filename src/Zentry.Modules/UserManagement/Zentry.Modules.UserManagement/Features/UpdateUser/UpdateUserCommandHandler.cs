@@ -1,5 +1,4 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
-using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.UpdateUser;
@@ -12,23 +11,15 @@ public class UpdateUserCommandHandler(IUserRepository userRepository)
     public async Task<UpdateUserResponse> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetUserById(command.UserId);
-        if (user == null)
-        {
-            return new UpdateUserResponse { Success = false, Message = "User not found." };
-        }
+        if (user == null) return new UpdateUserResponse { Success = false, Message = "User not found." };
 
         var account = await userRepository.GetAccountById(user.AccountId);
         if (account == null)
-        {
             return new UpdateUserResponse { Success = false, Message = "Associated account not found." };
-        }
 
         user.UpdateUser(command.FullName, command.PhoneNumber);
 
-        if (!string.IsNullOrWhiteSpace(command.Role))
-        {
-            account.UpdateAccount(role: command.Role);
-        }
+        if (!string.IsNullOrWhiteSpace(command.Role)) account.UpdateAccount(role: command.Role);
 
         await userRepository.UpdateUser(user);
         await userRepository.UpdateAccount(account);

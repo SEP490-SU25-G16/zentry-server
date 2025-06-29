@@ -1,12 +1,14 @@
 using Zentry.Modules.ConfigurationManagement.Domain.Enums;
-using Zentry.SharedKernel.Common;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ConfigurationManagement.Domain.Entities;
 
 public class Configuration : AggregateRoot<Guid>
 {
-    private Configuration() : base(Guid.Empty) { }
+    private Configuration() : base(Guid.Empty)
+    {
+    }
+
     private Configuration(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
         : base(id)
     {
@@ -16,6 +18,7 @@ public class Configuration : AggregateRoot<Guid>
         Value = value;
         CreatedAt = DateTime.UtcNow;
     }
+
     public Guid AttributeId { get; private set; }
     public ScopeType ScopeType { get; private set; }
     public Guid ScopeId { get; private set; }

@@ -5,7 +5,10 @@ namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class AttendanceRecord : AggregateRoot<Guid>
 {
-    private AttendanceRecord() : base(Guid.Empty) { }
+    private AttendanceRecord() : base(Guid.Empty)
+    {
+    }
+
     private AttendanceRecord(Guid id, Guid userId, Guid sessionId, AttendanceStatus status, bool isManual)
         : base(id)
     {
@@ -13,10 +16,11 @@ public class AttendanceRecord : AggregateRoot<Guid>
         SessionId = sessionId;
         Status = status;
         IsManual = isManual;
-        IsAbsent = (status == AttendanceStatus.Absent);
+        IsAbsent = status == AttendanceStatus.Absent;
         CreatedAt = DateTime.UtcNow;
         ExpiredAt = DateTime.UtcNow;
     }
+
     public Guid UserId { get; private set; }
     public Guid SessionId { get; private set; }
     public AttendanceStatus Status { get; private set; }
@@ -36,8 +40,9 @@ public class AttendanceRecord : AggregateRoot<Guid>
         if (status != null)
         {
             Status = status;
-            IsAbsent = (Status == AttendanceStatus.Absent);
+            IsAbsent = Status == AttendanceStatus.Absent;
         }
+
         if (isManual.HasValue) IsManual = isManual.Value;
         if (expiredAt.HasValue) ExpiredAt = expiredAt.Value;
         UpdatedAt = DateTime.UtcNow;

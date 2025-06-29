@@ -8,6 +8,6 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
     Task<bool> HasConflictAsync(Guid roomId, Guid lecturerId, DateTime startTime, DateTime endTime,
         Guid? excludeScheduleId = null);
 
-    Task<List<Domain.Entities.Schedule>> GetSchedulesByCourseIdsAsync(List<Guid> courseIds, DateTime startDate,
+    Task<List<Schedule>> GetSchedulesByCourseIdsAsync(List<Guid> courseIds, DateTime startDate,
         DateTime endDate);
 }

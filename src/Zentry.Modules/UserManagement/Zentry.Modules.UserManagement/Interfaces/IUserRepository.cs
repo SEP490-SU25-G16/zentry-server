@@ -16,11 +16,13 @@ public interface IUserRepository
 
     Task UpdateUser(User user);
     Task UpdateAccount(Account account);
+
     Task<(IEnumerable<UserListItemDto> Users, int TotalCount)> GetUsersAsync(
         int pageNumber,
         int pageSize,
         string? searchTerm,
         string? role,
         string? status);
+
     Task SoftDeleteUserAsync(Guid userId);
 }

@@ -1,6 +1,4 @@
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.UserManagement.Persistence;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Persistence.Enums;
 using Zentry.Modules.UserManagement.Services;
@@ -17,13 +15,9 @@ public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPas
             .FirstOrDefaultAsync(a => a.Email == request.Email, cancellationToken);
 
         // --- Bổ sung kiểm tra trạng thái tài khoản ---
-        if (account == null)
-        {
-            throw new UnauthorizedAccessException("Invalid credentials."); // Không tìm thấy email
-        }
+        if (account == null) throw new UnauthorizedAccessException("Invalid credentials."); // Không tìm thấy email
 
         if (account.Status != AccountStatus.Active)
-        {
             // Trả về lỗi phù hợp với trạng thái tài khoản
             throw account.Status.Id switch
             {
@@ -31,15 +25,12 @@ public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPas
                 3 => new UnauthorizedAccessException("Account is locked."),
                 _ => new UnauthorizedAccessException("Account is not active.")
             };
-        }
         // --- Kết thúc bổ sung kiểm tra trạng thái tài khoản ---
 
         // For security reasons, don't distinguish between invalid email and invalid password
         if (string.IsNullOrEmpty(account.PasswordHash) || string.IsNullOrEmpty(account.PasswordSalt) ||
             !passwordHasher.VerifyHashedPassword(account.PasswordHash, account.PasswordSalt, request.Password))
-        {
             throw new UnauthorizedAccessException("Invalid credentials."); // Sai mật khẩu
-        }
 
         // Tạo JWT. Đảm bảo IJwtService.GenerateToken có thể nhận các tham số này
         var token = jwtService.GenerateToken(account.Id, account.Email, account.Role);

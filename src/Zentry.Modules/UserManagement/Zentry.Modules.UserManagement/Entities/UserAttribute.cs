@@ -1,9 +1,13 @@
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.UserManagement.Persistence.Entities;
+
 public class UserAttribute : AggregateRoot<Guid>
 {
-    private UserAttribute() : base(Guid.Empty) { }
+    private UserAttribute() : base(Guid.Empty)
+    {
+    }
+
     private UserAttribute(Guid id, Guid userId, Guid attributeId, string attributeValue)
         : base(id)
     {
@@ -12,6 +16,7 @@ public class UserAttribute : AggregateRoot<Guid>
         AttributeValue = attributeValue;
         CreatedAt = DateTime.UtcNow;
     }
+
     public Guid UserId { get; private set; }
     public Guid AttributeId { get; private set; }
     public string AttributeValue { get; private set; }

@@ -2,9 +2,13 @@ using Zentry.Modules.UserManagement.Persistence.Enums;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.UserManagement.Persistence.Entities;
+
 public class Account : AggregateRoot<Guid>
 {
-    private Account() : base(Guid.Empty) { }
+    private Account() : base(Guid.Empty)
+    {
+    }
+
     private Account(Guid id, string email, string passwordHash, string passwordSalt, string role)
         : base(id)
     {
@@ -15,6 +19,7 @@ public class Account : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
         Status = AccountStatus.Active;
     }
+
     public string Email { get; private set; }
     public string PasswordHash { get; private set; }
     public string PasswordSalt { get; private set; }
@@ -36,23 +41,27 @@ public class Account : AggregateRoot<Guid>
         if (!string.IsNullOrWhiteSpace(role)) Role = role;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdateStatus(AccountStatus newStatus)
     {
         Status = newStatus;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void SetNewPassword(string newPasswordHash, string newPasswordSalt)
     {
         PasswordHash = newPasswordHash;
         PasswordSalt = newPasswordSalt;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void SetResetToken(string token, DateTime expiryTime)
     {
         ResetToken = token;
         ResetTokenExpiryTime = expiryTime;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void ClearResetToken()
     {
         ResetToken = null;

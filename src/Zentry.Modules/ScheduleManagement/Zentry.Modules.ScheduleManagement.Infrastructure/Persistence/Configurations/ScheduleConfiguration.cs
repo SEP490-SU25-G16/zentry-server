@@ -5,7 +5,6 @@ using Zentry.Modules.ScheduleManagement.Domain.Enums;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configurations;
 
-
 public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 {
     [Obsolete("Obsolete")]

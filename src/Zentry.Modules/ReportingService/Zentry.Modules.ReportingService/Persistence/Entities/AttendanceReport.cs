@@ -5,8 +5,12 @@ namespace Zentry.Modules.ReportingService.Persistence.Entities;
 
 public class AttendanceReport : AggregateRoot<Guid>
 {
-    private AttendanceReport() : base(Guid.Empty) { }
-    private AttendanceReport(Guid id, Guid scopeId, ReportScopeType scopeType, ReportType reportType, string reportContent, Guid? createdBy = null)
+    private AttendanceReport() : base(Guid.Empty)
+    {
+    }
+
+    private AttendanceReport(Guid id, Guid scopeId, ReportScopeType scopeType, ReportType reportType,
+        string reportContent, Guid? createdBy = null)
         : base(id)
     {
         ScopeId = scopeId;
@@ -16,6 +20,7 @@ public class AttendanceReport : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
         CreatedBy = createdBy;
     }
+
     public Guid ScopeId { get; private set; }
     public ReportScopeType ScopeType { get; private set; }
     public ReportType ReportType { get; private set; }
@@ -24,7 +29,8 @@ public class AttendanceReport : AggregateRoot<Guid>
     public Guid? CreatedBy { get; private set; }
     public DateTime? ExpiredAt { get; private set; }
 
-    public static AttendanceReport Create(Guid scopeId, ReportScopeType scopeType, ReportType reportType, string reportContent, Guid? createdBy = null)
+    public static AttendanceReport Create(Guid scopeId, ReportScopeType scopeType, ReportType reportType,
+        string reportContent, Guid? createdBy = null)
     {
         return new AttendanceReport(Guid.NewGuid(), scopeId, scopeType, reportType, reportContent, createdBy);
     }

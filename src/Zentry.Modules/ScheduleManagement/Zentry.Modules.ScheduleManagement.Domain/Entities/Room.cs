@@ -4,7 +4,10 @@ namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
 public class Room : AggregateRoot<Guid>
 {
-    private Room() : base(Guid.Empty) { }
+    private Room() : base(Guid.Empty)
+    {
+    }
+
     private Room(Guid id, string roomName, string building, int capacity)
         : base(id)
     {
@@ -13,6 +16,7 @@ public class Room : AggregateRoot<Guid>
         Capacity = capacity;
         CreatedAt = DateTime.UtcNow;
     }
+
     public string RoomName { get; private set; }
     public string Building { get; private set; }
     public int Capacity { get; private set; }

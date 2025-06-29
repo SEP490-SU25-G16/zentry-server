@@ -33,7 +33,7 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         // Cấu hình thuộc tính Status
         builder.Property(a => a.Status)
             .HasConversion(
-                s => s.ToString(),             // Chuyển Enum sang string khi lưu vào DB
+                s => s.ToString(), // Chuyển Enum sang string khi lưu vào DB
                 s => (AccountStatus)Enum.Parse(typeof(AccountStatus), s) // Chuyển string từ DB sang Enum
             )
             .IsRequired()

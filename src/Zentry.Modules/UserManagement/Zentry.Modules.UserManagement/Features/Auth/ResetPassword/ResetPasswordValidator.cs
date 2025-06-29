@@ -29,6 +29,7 @@ public class ConfirmResetPasswordCommandValidator : AbstractValidator<ConfirmRes
             .Matches("[A-Z]").WithMessage("New password must contain at least one uppercase letter.")
             .Matches("[a-z]").WithMessage("New password must contain at least one lowercase letter.")
             .Matches("[0-9]").WithMessage("New password must contain at least one digit.")
-            .Matches("[^a-zA-Z0-9]").WithMessage("New password must contain at least one special character."); // Stronger password requirements
+            .Matches("[^a-zA-Z0-9]")
+            .WithMessage("New password must contain at least one special character."); // Stronger password requirements
     }
 }

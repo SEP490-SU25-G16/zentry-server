@@ -20,7 +20,8 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrEmpty(connectionString))
-            connectionString = "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres"; // Example fallback for development
+            connectionString =
+                "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres"; // Example fallback for development
 
         optionsBuilder.UseNpgsql(connectionString,
             b => b.MigrationsAssembly("Zentry.Modules.UserManagement"));

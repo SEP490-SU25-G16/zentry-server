@@ -4,7 +4,10 @@ namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class Round : AggregateRoot<Guid>
 {
-    private Round() : base(Guid.Empty) { }
+    private Round() : base(Guid.Empty)
+    {
+    }
+
     private Round(Guid id, Guid sessionId, Guid deviceId, DateTime startTime, DateTime endTime, string? clientRequest)
         : base(id)
     {
@@ -15,6 +18,7 @@ public class Round : AggregateRoot<Guid>
         ClientRequest = clientRequest;
         CreatedAt = DateTime.UtcNow;
     }
+
     public Guid SessionId { get; private set; }
     public Guid DeviceId { get; private set; }
     public DateTime StartTime { get; private set; }
@@ -22,7 +26,8 @@ public class Round : AggregateRoot<Guid>
     public string? ClientRequest { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
-    public static Round Create(Guid sessionId, Guid deviceId, DateTime startTime, DateTime endTime, string? clientRequest)
+    public static Round Create(Guid sessionId, Guid deviceId, DateTime startTime, DateTime endTime,
+        string? clientRequest)
     {
         return new Round(Guid.NewGuid(), sessionId, deviceId, startTime, endTime, clientRequest);
     }

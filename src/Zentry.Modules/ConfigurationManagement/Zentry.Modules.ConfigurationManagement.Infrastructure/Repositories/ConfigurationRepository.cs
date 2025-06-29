@@ -1,6 +1,5 @@
 using Zentry.Modules.ConfigurationManagement.Application.Abstractions;
 using Zentry.Modules.ConfigurationManagement.Domain.Entities;
-using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Repositories;
 

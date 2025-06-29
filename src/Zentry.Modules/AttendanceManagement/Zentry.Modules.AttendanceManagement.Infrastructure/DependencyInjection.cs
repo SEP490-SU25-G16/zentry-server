@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
-using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configurations;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure;

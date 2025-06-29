@@ -1,6 +1,5 @@
 using Zentry.Modules.DeviceManagement.Application.Abstractions;
 using Zentry.Modules.DeviceManagement.Domain.Entities;
-using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.DeviceManagement.Infrastructure.Repositories;
 

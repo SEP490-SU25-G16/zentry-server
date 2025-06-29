@@ -8,11 +8,11 @@ namespace Zentry.Modules.UserManagement.Services;
 
 public class JwtService : IJwtService
 {
-    private readonly IConfiguration _configuration;
-    private readonly string _secret;
-    private readonly string _issuer;
     private readonly string _audience;
+    private readonly IConfiguration _configuration;
     private readonly int _expirationMinutes;
+    private readonly string _issuer;
+    private readonly string _secret;
 
     public JwtService(IConfiguration configuration)
     {
@@ -30,9 +30,9 @@ public class JwtService : IJwtService
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Email, email),
-            new Claim(ClaimTypes.Role, role)
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.Email, email),
+            new(ClaimTypes.Role, role)
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -41,7 +41,8 @@ public class JwtService : IJwtService
             Expires = DateTime.UtcNow.AddMinutes(_expirationMinutes),
             Issuer = _issuer,
             Audience = _audience,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);

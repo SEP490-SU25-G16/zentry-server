@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
-using Zentry.Modules.UserManagement.Persistence.Entities;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
+using Zentry.Modules.UserManagement.Persistence.Entities;
 using Zentry.Modules.UserManagement.Persistence.Enums;
 
 namespace Zentry.Modules.UserManagement.Persistence.Repositories;
@@ -84,15 +84,10 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                                      x.User.FullName.ToLower().Contains(lowerSearchTerm));
         }
 
-        if (!string.IsNullOrWhiteSpace(role))
-        {
-            query = query.Where(x => x.Account.Role == role);
-        }
+        if (!string.IsNullOrWhiteSpace(role)) query = query.Where(x => x.Account.Role == role);
 
         if (!string.IsNullOrWhiteSpace(status))
-        {
             query = query.Where(x => x.Account.Status == AccountStatus.FromName(status));
-        }
 
         // Đếm tổng số lượng trước khi phân trang
         var totalCount = await query.CountAsync();
@@ -109,7 +104,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                 FullName = x.User.FullName,
                 Role = x.Account.Role,
                 Status = x.Account.Status.ToString(),
-                CreatedAt = x.Account.CreatedAt,
+                CreatedAt = x.Account.CreatedAt
             })
             .ToListAsync();
 
@@ -120,17 +115,13 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
     {
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
-        {
             // Xử lý trường hợp người dùng không tồn tại
             throw new InvalidOperationException($"User with ID '{userId}' not found.");
-        }
 
         var account = await dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == user.AccountId);
         if (account == null)
-        {
             // Xử lý trường hợp không tìm thấy tài khoản liên quan
             throw new InvalidOperationException($"Associated account for user ID '{userId}' not found.");
-        }
 
         // Cập nhật trạng thái của tài khoản thành "Deleted" hoặc "Inactive"
         // Bạn nên định nghĩa các hằng số hoặc enum cho các trạng thái này

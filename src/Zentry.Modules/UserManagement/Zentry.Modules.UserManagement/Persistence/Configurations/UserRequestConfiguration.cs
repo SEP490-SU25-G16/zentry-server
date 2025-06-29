@@ -5,7 +5,6 @@ using Zentry.Modules.UserManagement.Persistence.Enums;
 
 namespace Zentry.Modules.UserManagement.Persistence.Configurations;
 
-
 public class UserRequestConfiguration : IEntityTypeConfiguration<UserRequest>
 {
     public void Configure(EntityTypeBuilder<UserRequest> builder)

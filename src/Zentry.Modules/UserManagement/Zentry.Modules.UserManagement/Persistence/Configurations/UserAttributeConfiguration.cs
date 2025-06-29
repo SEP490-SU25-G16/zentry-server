@@ -4,7 +4,6 @@ using Zentry.Modules.UserManagement.Persistence.Entities;
 
 namespace Zentry.Modules.UserManagement.Persistence.Configurations;
 
-
 public class UserAttributeConfiguration : IEntityTypeConfiguration<UserAttribute>
 {
     public void Configure(EntityTypeBuilder<UserAttribute> builder)

@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.UserManagement.Persistence;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 
@@ -15,11 +14,9 @@ public class RequestResetPasswordHandler(UserDbContext dbContext, IEmailService 
             .FirstOrDefaultAsync(a => a.Email == request.Email, cancellationToken);
 
         if (account == null)
-        {
             // For security reasons, always send a success response even if the email doesn't exist
             // to prevent email enumeration.
             return;
-        }
 
         var token = Guid.NewGuid().ToString("N"); // Simple token generation
         var expiryTime = DateTime.UtcNow.AddHours(1); // Token valid for 1 hour

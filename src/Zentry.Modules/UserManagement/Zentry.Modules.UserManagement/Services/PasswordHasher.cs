@@ -1,6 +1,6 @@
-using Konscious.Security.Cryptography;
 using System.Security.Cryptography;
 using System.Text;
+using Konscious.Security.Cryptography;
 
 namespace Zentry.Modules.UserManagement.Services;
 
@@ -16,7 +16,7 @@ public class PasswordHasher : IPasswordHasher
 
     public (string HashedPassword, string Salt) HashPassword(string password)
     {
-        byte[] salt = new byte[SaltSize];
+        var salt = new byte[SaltSize];
         RandomNumberGenerator.Fill(salt); // Sinh salt ngẫu nhiên và an toàn
 
         var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
@@ -27,7 +27,7 @@ public class PasswordHasher : IPasswordHasher
             DegreeOfParallelism = Parallelism
         };
 
-        byte[] hash = argon2.GetBytes(HashSize);
+        var hash = argon2.GetBytes(HashSize);
 
         // Chuyển đổi byte array sang Base64 string để lưu vào DB
         return (Convert.ToBase64String(hash), Convert.ToBase64String(salt));
@@ -37,8 +37,8 @@ public class PasswordHasher : IPasswordHasher
     {
         try
         {
-            byte[] salt = Convert.FromBase64String(storedSalt);
-            byte[] storedHash = Convert.FromBase64String(storedHashedPassword);
+            var salt = Convert.FromBase64String(storedSalt);
+            var storedHash = Convert.FromBase64String(storedHashedPassword);
 
             var argon2 = new Argon2id(Encoding.UTF8.GetBytes(providedPassword))
             {
@@ -48,7 +48,7 @@ public class PasswordHasher : IPasswordHasher
                 DegreeOfParallelism = Parallelism
             };
 
-            byte[] computedHash = argon2.GetBytes(HashSize);
+            var computedHash = argon2.GetBytes(HashSize);
 
             // So sánh an toàn thời gian để ngăn chặn tấn công timing attacks
             return CryptographicOperations.FixedTimeEquals(computedHash, storedHash);

@@ -4,7 +4,10 @@ namespace Zentry.Modules.ConfigurationManagement.Domain.Entities;
 
 public class Option : AggregateRoot<Guid>
 {
-    private Option() : base(Guid.Empty) { }
+    private Option() : base(Guid.Empty)
+    {
+    }
+
     private Option(Guid id, Guid attributeId, string value, string displayLabel, int sortOrder)
         : base(id)
     {
@@ -14,6 +17,7 @@ public class Option : AggregateRoot<Guid>
         SortOrder = sortOrder;
         CreatedAt = DateTime.UtcNow;
     }
+
     public Guid AttributeId { get; private set; }
     public string Value { get; private set; }
     public string DisplayLabel { get; private set; }

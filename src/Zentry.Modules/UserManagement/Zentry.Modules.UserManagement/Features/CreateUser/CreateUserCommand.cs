@@ -1,16 +1,11 @@
-﻿using MediatR;
-using Zentry.SharedKernel.Abstractions.Application; // Thêm using này
+﻿using Zentry.SharedKernel.Abstractions.Application;
+
+// Thêm using này
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
 public class CreateUserCommand : ICommand<CreateUserResponse>
 {
-    public string Email { get; init; }
-    public string Password { get; init; }
-    public string FullName { get; init; }
-    public string? PhoneNumber { get; init; }
-    public string Role { get; init; } = "User";
-
     public CreateUserCommand(CreateUserRequest request)
     {
         Email = request.Email;
@@ -19,4 +14,10 @@ public class CreateUserCommand : ICommand<CreateUserResponse>
         PhoneNumber = request.PhoneNumber;
         Role = request.Role;
     }
+
+    public string Email { get; init; }
+    public string Password { get; init; }
+    public string FullName { get; init; }
+    public string? PhoneNumber { get; init; }
+    public string Role { get; init; } = "User";
 }

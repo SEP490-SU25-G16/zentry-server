@@ -4,7 +4,10 @@ namespace Zentry.Modules.UserManagement.Persistence.Entities;
 
 public class User : AggregateRoot<Guid>
 {
-    private User() : base(Guid.Empty) { }
+    private User() : base(Guid.Empty)
+    {
+    }
+
     private User(Guid id, Guid accountId, string fullName, string? phoneNumber)
         : base(id)
     {
@@ -13,6 +16,7 @@ public class User : AggregateRoot<Guid>
         PhoneNumber = phoneNumber;
         CreatedAt = DateTime.UtcNow;
     }
+
     public Guid AccountId { get; private set; }
     public string FullName { get; private set; }
     public string? PhoneNumber { get; private set; }

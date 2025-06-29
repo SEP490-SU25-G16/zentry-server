@@ -1,7 +1,9 @@
 ﻿using MediatR;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.Entities;
-using Zentry.Modules.UserManagement.Services; // Đảm bảo đúng namespace cho interfaces
+using Zentry.Modules.UserManagement.Services;
+
+// Đảm bảo đúng namespace cho interfaces
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
@@ -13,13 +15,10 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordH
         // 1. Kiểm tra xem email đã tồn tại chưa
         var emailExists = await userRepository.ExistsByEmail(command.Email);
         if (emailExists)
-        {
             // Tùy chọn: ném exception hoặc trả về lỗi cụ thể
             throw new InvalidOperationException($"Email '{command.Email}' đã tồn tại.");
-            // Hoặc nếu bạn muốn mô hình Result<T> để xử lý lỗi một cách graceful hơn
-            // return new CreateUserResponse { Success = false, ErrorMessage = "Email already exists" };
-        }
-
+        // Hoặc nếu bạn muốn mô hình Result<T> để xử lý lỗi một cách graceful hơn
+        // return new CreateUserResponse { Success = false, ErrorMessage = "Email already exists" };
         // 2. Băm mật khẩu
         var (hashedPassword, salt) = passwordHasher.HashPassword(command.Password);
 

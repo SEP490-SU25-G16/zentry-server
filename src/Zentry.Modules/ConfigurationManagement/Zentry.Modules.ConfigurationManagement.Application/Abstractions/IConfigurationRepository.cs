@@ -5,5 +5,5 @@ namespace Zentry.Modules.ConfigurationManagement.Application.Abstractions;
 
 public interface IConfigurationRepository : IRepository<Configuration, Guid>
 {
-    Task<Domain.Entities.Configuration?> GetByKeyAsync(string key, CancellationToken cancellationToken);
+    Task<Configuration?> GetByKeyAsync(string key, CancellationToken cancellationToken);
 }

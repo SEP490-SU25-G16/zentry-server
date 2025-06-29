@@ -2,10 +2,15 @@ using Zentry.Modules.UserManagement.Persistence.Enums;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.UserManagement.Persistence.Entities;
+
 public class UserRequest : AggregateRoot<Guid>
 {
-    private UserRequest() : base(Guid.Empty) { }
-    private UserRequest(Guid id, Guid requestedByUserId, Guid targetUserId, string requestType, Guid relatedEntityId, string reason)
+    private UserRequest() : base(Guid.Empty)
+    {
+    }
+
+    private UserRequest(Guid id, Guid requestedByUserId, Guid targetUserId, string requestType, Guid relatedEntityId,
+        string reason)
         : base(id)
     {
         RequestedByUserId = requestedByUserId;
@@ -16,6 +21,7 @@ public class UserRequest : AggregateRoot<Guid>
         Reason = reason;
         CreatedAt = DateTime.UtcNow;
     }
+
     public Guid RequestedByUserId { get; private set; }
     public Guid TargetUserId { get; private set; }
     public string RequestType { get; private set; }
@@ -25,7 +31,8 @@ public class UserRequest : AggregateRoot<Guid>
     public DateTime CreatedAt { get; private set; }
     public DateTime? ProcessedAt { get; private set; }
 
-    public static UserRequest Create(Guid requestedByUserId, Guid targetUserId, string requestType, Guid relatedEntityId, string reason)
+    public static UserRequest Create(Guid requestedByUserId, Guid targetUserId, string requestType,
+        Guid relatedEntityId, string reason)
     {
         return new UserRequest(Guid.NewGuid(), requestedByUserId, targetUserId, requestType, relatedEntityId, reason);
     }
@@ -35,6 +42,7 @@ public class UserRequest : AggregateRoot<Guid>
         Status = UserRequestStatus.APPROVED;
         ProcessedAt = DateTime.UtcNow;
     }
+
     public void Reject()
     {
         Status = UserRequestStatus.REJECTED;

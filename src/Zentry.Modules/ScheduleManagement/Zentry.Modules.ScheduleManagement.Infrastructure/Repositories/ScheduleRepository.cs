@@ -1,7 +1,6 @@
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
-using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 

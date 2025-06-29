@@ -2,10 +2,12 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
-
 public class Session : AggregateRoot<Guid>
 {
-    private Session() : base(Guid.Empty) { }
+    private Session() : base(Guid.Empty)
+    {
+    }
+
     private Session(Guid id, Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime)
         : base(id)
     {
@@ -15,6 +17,7 @@ public class Session : AggregateRoot<Guid>
         EndTime = endTime;
         CreatedAt = DateTime.UtcNow;
     }
+
     public Guid ScheduleId { get; private set; }
     public Guid UserId { get; private set; }
     public DateTime StartTime { get; private set; }

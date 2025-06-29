@@ -6,6 +6,7 @@ using Zentry.Modules.NotificationService.Enums;
 using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 
 namespace Zentry.Modules.NotificationService.Persistence.Data;
+
 public static class NotificationSeed
 {
     private static readonly Guid User1Id = new("10000000-0000-0000-0000-000000000001");

@@ -14,6 +14,13 @@ public class ScopeType : Enumeration
     {
     }
 
-    public static ScopeType FromName(string name) => FromName<ScopeType>(name);
-    public static ScopeType FromId(int id) => FromId<ScopeType>(id);
+    public static ScopeType FromName(string name)
+    {
+        return FromName<ScopeType>(name);
+    }
+
+    public static ScopeType FromId(int id)
+    {
+        return FromId<ScopeType>(id);
+    }
 }

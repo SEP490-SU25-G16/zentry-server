@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.ConfigurationManagement.Domain.Entities;
 
 namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Persistence;
 
 public class ConfigurationDbContext(DbContextOptions<ConfigurationDbContext> options) : DbContext(options)
 {
-    public DbSet<Domain.Entities.Configuration> Configurations { get; set; }
+    public DbSet<Configuration> Configurations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

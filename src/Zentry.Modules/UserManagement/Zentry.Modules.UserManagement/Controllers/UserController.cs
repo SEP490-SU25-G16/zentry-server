@@ -1,11 +1,14 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http; // Thêm using MediatR
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.UserManagement.Features.CreateUser;
 using Zentry.Modules.UserManagement.Features.DeleteUser;
 using Zentry.Modules.UserManagement.Features.GetUser;
 using Zentry.Modules.UserManagement.Features.GetUsers;
-using Zentry.Modules.UserManagement.Features.UpdateUser; // Thêm using này nếu chưa có
+using Zentry.Modules.UserManagement.Features.UpdateUser;
+// Thêm using MediatR
+
+// Thêm using này nếu chưa có
 
 namespace Zentry.Modules.UserManagement.Controllers;
 
@@ -43,10 +46,7 @@ public class UserController(IMediator mediator) : ControllerBase
         {
             var response = await mediator.Send(query);
 
-            if (response == null)
-            {
-                return NotFound(new { message = $"User with ID '{id}' not found." });
-            }
+            if (response == null) return NotFound(new { message = $"User with ID '{id}' not found." });
 
             return Ok(response);
         }
@@ -102,9 +102,7 @@ public class UserController(IMediator mediator) : ControllerBase
             if (!response.Success)
             {
                 if (response.Message == "User not found." || response.Message == "Associated account not found.")
-                {
                     return NotFound(new { message = response.Message });
-                }
 
                 return BadRequest(new { message = response.Message });
             }
@@ -134,9 +132,7 @@ public class UserController(IMediator mediator) : ControllerBase
             if (!response.Success)
             {
                 if (response.Message.Contains("not found")) // Kiểm tra tin nhắn để phân biệt lỗi
-                {
                     return NotFound(new { message = response.Message });
-                }
                 return BadRequest(new { message = response.Message });
             }
 

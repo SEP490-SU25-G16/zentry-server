@@ -11,7 +11,18 @@ public class DayOfWeekEnum : Enumeration
     public static readonly DayOfWeekEnum Friday = new(5, nameof(Friday));
     public static readonly DayOfWeekEnum Saturday = new(6, nameof(Saturday));
     public static readonly DayOfWeekEnum Sunday = new(7, nameof(Sunday));
-    private DayOfWeekEnum(int id, string name) : base(id, name) { }
-    public static DayOfWeekEnum FromName(string name) => FromName<DayOfWeekEnum>(name);
-    public static DayOfWeekEnum FromId(int id) => FromId<DayOfWeekEnum>(id);
+
+    private DayOfWeekEnum(int id, string name) : base(id, name)
+    {
+    }
+
+    public static DayOfWeekEnum FromName(string name)
+    {
+        return FromName<DayOfWeekEnum>(name);
+    }
+
+    public static DayOfWeekEnum FromId(int id)
+    {
+        return FromId<DayOfWeekEnum>(id);
+    }
 }

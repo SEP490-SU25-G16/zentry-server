@@ -4,7 +4,10 @@ namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotificat
 
 public class Notification
 {
-    private Notification() { } // Private constructor for factory method
+    private Notification()
+    {
+    } // Private constructor for factory method
+
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -15,7 +18,8 @@ public class Notification
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReadAt { get; set; }
 
-    public static Notification Create(Guid userId, string title, string content, NotificationType type, NotificationPriority priority)
+    public static Notification Create(Guid userId, string title, string content, NotificationType type,
+        NotificationPriority priority)
     {
         return new Notification
         {

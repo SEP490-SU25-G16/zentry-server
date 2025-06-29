@@ -5,7 +5,6 @@ using Zentry.Modules.ConfigurationManagement.Domain.Enums;
 
 namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Persistence.Configurations;
 
-
 public class AttributeDefinitionConfiguration : IEntityTypeConfiguration<AttributeDefinition>
 {
     public void Configure(EntityTypeBuilder<AttributeDefinition> builder)

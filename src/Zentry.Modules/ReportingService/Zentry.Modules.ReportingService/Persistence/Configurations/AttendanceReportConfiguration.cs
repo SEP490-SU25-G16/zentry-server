@@ -1,11 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Zentry.Modules.ReportingService.Features.ViewClassAttendanceReport;
 using Zentry.Modules.ReportingService.Persistence.Entities;
 using Zentry.Modules.ReportingService.Persistence.Enums;
 
 namespace Zentry.Modules.ReportingService.Persistence.Configurations;
-
 
 public class AttendanceReportConfiguration : IEntityTypeConfiguration<AttendanceReport>
 {
