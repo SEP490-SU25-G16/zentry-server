@@ -1,4 +1,5 @@
-﻿using Zentry.Modules.UserManagement.Persistence.Entities;
+﻿using Zentry.Modules.UserManagement.Features.GetUsers;
+using Zentry.Modules.UserManagement.Persistence.Entities;
 
 namespace Zentry.Modules.UserManagement.Interfaces;
 
@@ -7,18 +8,19 @@ public interface IUserRepository
     Task Add(Account account, User user);
     Task<bool> ExistsByEmail(string email);
 
-    // Phương thức mới: Tìm User theo ID
     Task<User?> GetUserById(Guid userId);
+    Task<Account?> GetAccountById(Guid accountId); // Lấy Account theo ID của nó
 
-    // Phương thức mới: Tìm Account theo ID (của Account)
-    Task<Account?> GetAccountById(Guid accountId);
+    // Phương thức mới: Lấy Account theo User ID (vì User có AccountId)
+    Task<Account?> GetAccountByUserId(Guid userId); // Phương thức này sẽ thuận tiện hơn
 
-    // Phương thức mới: Cập nhật User
     Task UpdateUser(User user);
-
-    // Phương thức mới: Cập nhật Account
     Task UpdateAccount(Account account);
-
-    // Có thể thêm một phương thức SaveChanges tổng quát nếu bạn không muốn SaveChanges trong mỗi Add/Update
-    // Task SaveChangesAsync();
+    Task<(IEnumerable<UserListItemDto> Users, int TotalCount)> GetUsersAsync(
+        int pageNumber,
+        int pageSize,
+        string? searchTerm,
+        string? role,
+        string? status);
+    Task SoftDeleteUserAsync(Guid userId);
 }

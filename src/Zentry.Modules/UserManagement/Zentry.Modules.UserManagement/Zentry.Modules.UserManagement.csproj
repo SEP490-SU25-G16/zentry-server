@@ -21,5 +21,9 @@
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Auth\" />
+    </ItemGroup>
+
 
 </Project>

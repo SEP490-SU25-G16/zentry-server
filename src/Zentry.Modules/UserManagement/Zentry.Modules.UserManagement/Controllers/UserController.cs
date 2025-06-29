@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Http; // Thêm using MediatR
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.UserManagement.Features.CreateUser;
+using Zentry.Modules.UserManagement.Features.DeleteUser;
+using Zentry.Modules.UserManagement.Features.GetUser;
+using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Features.UpdateUser; // Thêm using này nếu chưa có
 
 namespace Zentry.Modules.UserManagement.Controllers;
@@ -10,6 +13,51 @@ namespace Zentry.Modules.UserManagement.Controllers;
 [Route("api/[controller]")]
 public class UserController(IMediator mediator) : ControllerBase
 {
+    [HttpGet] // HTTP GET không có ID trong URL path để lấy danh sách
+    [ProducesResponseType(typeof(GetUsersResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetUsers([FromQuery] GetUsersQuery query) // [FromQuery] để lấy từ query string
+    {
+        try
+        {
+            var response = await mediator.Send(query);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            // Ghi log lỗi
+            // Logger.LogError(ex, "Error getting list of users.");
+            return BadRequest(new { message = "An error occurred while retrieving the list of users." });
+        }
+    }
+
+    [HttpGet("{id}")] // HTTP GET để lấy thông tin
+    [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetUserDetail(Guid id)
+    {
+        var query = new GetUserQuery(id);
+
+        try
+        {
+            var response = await mediator.Send(query);
+
+            if (response == null)
+            {
+                return NotFound(new { message = $"User with ID '{id}' not found." });
+            }
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            // Ghi log lỗi
+            // Logger.LogError(ex, "Error getting user detail for ID: {UserId}", id);
+            return BadRequest(new { message = "An error occurred while retrieving user details." });
+        }
+    }
+
     [HttpPost("create-user")]
     [ProducesResponseType(typeof(CreateUserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -57,6 +105,7 @@ public class UserController(IMediator mediator) : ControllerBase
                 {
                     return NotFound(new { message = response.Message });
                 }
+
                 return BadRequest(new { message = response.Message });
             }
 
@@ -67,6 +116,37 @@ public class UserController(IMediator mediator) : ControllerBase
             // Ghi log lỗi và trả về lỗi chung
             // Logger.LogError(ex, "Error updating user with ID: {UserId}", id);
             return BadRequest(new { message = "An error occurred while updating the user." });
+        }
+    }
+
+    [HttpDelete("{id}")] // HTTP DELETE để xóa (soft delete)
+    [ProducesResponseType(typeof(DeleteUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SoftDeleteUser(Guid id)
+    {
+        var command = new DeleteUserCommand(id);
+
+        try
+        {
+            var response = await mediator.Send(command);
+
+            if (!response.Success)
+            {
+                if (response.Message.Contains("not found")) // Kiểm tra tin nhắn để phân biệt lỗi
+                {
+                    return NotFound(new { message = response.Message });
+                }
+                return BadRequest(new { message = response.Message });
+            }
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            // Ghi log lỗi
+            // Logger.LogError(ex, "Error soft deleting user with ID: {UserId}", id);
+            return BadRequest(new { message = "An unexpected error occurred during soft delete." });
         }
     }
 }
