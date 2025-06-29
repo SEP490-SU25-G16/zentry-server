@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Zentry.Modules.UserManagement.Services;
 
-public class Argon2PasswordHasher : IArgon2PasswordHasher
+public class PasswordHasher : IPasswordHasher
 {
     // Cấu hình các tham số cho Argon2id.
     // Đây là các giá trị khuyến nghị ban đầu, có thể điều chỉnh tùy theo yêu cầu bảo mật và tài nguyên hệ thống.

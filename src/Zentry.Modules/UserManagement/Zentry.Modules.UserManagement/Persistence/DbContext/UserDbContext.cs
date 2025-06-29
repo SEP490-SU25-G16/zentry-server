@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Persistence.Entities;
 
-namespace Zentry.Modules.UserManagement.Persistence;
+namespace Zentry.Modules.UserManagement.Persistence.DbContext;
 
-public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(options)
+public class UserDbContext(DbContextOptions<UserDbContext> options) : Microsoft.EntityFrameworkCore.DbContext(options)
 {
     public DbSet<Account> Accounts { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

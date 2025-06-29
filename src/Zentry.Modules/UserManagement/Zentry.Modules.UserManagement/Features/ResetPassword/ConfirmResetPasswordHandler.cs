@@ -1,11 +1,12 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Persistence;
+using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 
 namespace Zentry.Modules.UserManagement.Features.ResetPassword;
 
-public class ConfirmResetPasswordHandler(UserDbContext dbContext, IArgon2PasswordHasher passwordHasher)
+public class ConfirmResetPasswordHandler(UserDbContext dbContext, IPasswordHasher passwordHasher)
     : IRequestHandler<ConfirmResetPasswordCommand>
 {
     public async Task Handle(ConfirmResetPasswordCommand request, CancellationToken cancellationToken)

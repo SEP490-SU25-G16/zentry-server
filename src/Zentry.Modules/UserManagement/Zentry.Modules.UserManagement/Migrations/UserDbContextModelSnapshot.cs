@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Zentry.Modules.UserManagement.Persistence;
+using Zentry.Modules.UserManagement.Persistence.DbContext;
 
 #nullable disable
 

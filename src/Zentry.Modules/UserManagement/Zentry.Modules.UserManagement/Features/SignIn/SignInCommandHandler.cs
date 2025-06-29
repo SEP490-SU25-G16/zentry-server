@@ -1,13 +1,15 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Persistence;
+using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Persistence.Enums;
 using Zentry.Modules.UserManagement.Services;
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.SignIn;
 
-public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IArgon2PasswordHasher passwordHasher)
-    : IRequestHandler<SignInCommand, SignInResponse>
+public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPasswordHasher passwordHasher)
+    : ICommandHandler<SignInCommand, SignInResponse>
 {
     public async Task<SignInResponse> Handle(SignInCommand request, CancellationToken cancellationToken)
     {

@@ -1,9 +1,11 @@
+using MediatR;
+
 namespace Zentry.SharedKernel.Abstractions.Application;
 
-public interface ICommand
+public interface ICommand : ICommand<Unit>
 {
 }
 
-public interface ICommand<out TResponse> : ICommand
+public interface ICommand<out TResponse> : IRequest<TResponse>
 {
 }

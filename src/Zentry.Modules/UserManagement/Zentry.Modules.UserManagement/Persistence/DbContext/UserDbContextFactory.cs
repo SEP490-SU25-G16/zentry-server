@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Zentry.Modules.UserManagement.Persistence.DbContext;
 
 namespace Zentry.Modules.UserManagement.Persistence;
 

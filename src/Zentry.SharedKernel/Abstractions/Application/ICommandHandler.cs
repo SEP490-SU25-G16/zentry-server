@@ -1,13 +1,16 @@
+using MediatR;
+
 namespace Zentry.SharedKernel.Abstractions.Application;
 
 public interface ICommandHandler<in TCommand>
-    where TCommand : ICommand
+    : IRequestHandler<TCommand, Unit>
+    where TCommand : ICommand<Unit>
 {
-    Task HandleAsync(TCommand command, CancellationToken cancellationToken);
 }
 
 public interface ICommandHandler<in TCommand, TResponse>
+    : IRequestHandler<TCommand, TResponse>
     where TCommand : ICommand<TResponse>
+    where TResponse : notnull
 {
-    Task<TResponse> HandleAsync(TCommand command, CancellationToken cancellationToken);
 }

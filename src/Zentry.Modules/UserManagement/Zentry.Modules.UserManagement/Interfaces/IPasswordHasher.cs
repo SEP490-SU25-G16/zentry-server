@@ -1,6 +1,6 @@
 namespace Zentry.Modules.UserManagement.Services;
 
-public interface IArgon2PasswordHasher
+public interface IPasswordHasher
 {
     /// <summary>
     /// Hashes a password using Argon2id and returns the hashed password and its salt.

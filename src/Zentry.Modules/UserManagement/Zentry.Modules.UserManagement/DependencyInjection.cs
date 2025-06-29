@@ -3,9 +3,11 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence;
+using Zentry.Modules.UserManagement.Persistence.DbContext;
+using Zentry.Modules.UserManagement.Persistence.Repositories;
 using Zentry.Modules.UserManagement.Services;
-// using Mailgun.Net.Extensions; // New: For Mailgun DI
 
 namespace Zentry.Modules.UserManagement;
 
@@ -14,6 +16,8 @@ public static class DependencyInjection
     public static IServiceCollection AddUserInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddScoped<IUserRepository, UserRepository>();
+
         services.AddDbContext<UserDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -30,7 +34,7 @@ public static class DependencyInjection
         // Register services (Real implementations)
         services.AddTransient<IJwtService, JwtService>(); // Real JWT Service
         services.AddTransient<IEmailService, SendGridEmailService>(); // NEW: Use SendGrid Email Service
-        services.AddTransient<IArgon2PasswordHasher, Argon2PasswordHasher>(); // Argon2 Password Hasher
+        services.AddTransient<IPasswordHasher, PasswordHasher>(); // Argon2 Password Hasher
 
 
         return services;
