@@ -1,8 +1,7 @@
 using Zentry.Modules.UserManagement.Enums;
-using Zentry.Modules.UserManagement.Persistence.Enums;
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.UserManagement.Persistence.Entities;
+namespace Zentry.Modules.UserManagement.Entities;
 
 public class Account : AggregateRoot<Guid>
 {

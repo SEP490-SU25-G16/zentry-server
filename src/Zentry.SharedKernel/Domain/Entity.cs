@@ -12,34 +12,25 @@ public abstract class Entity<TId>(TId id) : IEntity<TId>
     public override bool Equals(object? obj)
     {
         // Kiểm tra xem Id có phải là kiểu giá trị và có giá trị mặc định không
-        if (typeof(TId).IsValueType && EqualityComparer<TId>.Default.Equals(Id, default(TId)!))
-        {
+        if (typeof(TId).IsValueType && EqualityComparer<TId>.Default.Equals(Id, default!))
             return ReferenceEquals(this, obj); // Nếu Id là default cho kiểu giá trị, so sánh tham chiếu
-        }
 
-        if (obj is Entity<TId> other)
-        {
-            return EqualityComparer<TId>.Default.Equals(Id, other.Id);
-        }
+        if (obj is Entity<TId> other) return EqualityComparer<TId>.Default.Equals(Id, other.Id);
         return false;
     }
 
     public override int GetHashCode()
     {
         // Xử lý trường hợp Id là default cho kiểu giá trị (ví dụ Guid.Empty)
-        if (typeof(TId).IsValueType && EqualityComparer<TId>.Default.Equals(Id, default(TId)!))
-        {
+        if (typeof(TId).IsValueType &&
+            EqualityComparer<TId>.Default.Equals(Id, default!))
             return base.GetHashCode(); // Sử dụng GetHashCode của object
-        }
         return Id.GetHashCode();
     }
 
     public static bool operator ==(Entity<TId> left, Entity<TId>? right)
     {
-        if (ReferenceEquals(left, null))
-        {
-            return ReferenceEquals(right, null);
-        }
+        if (ReferenceEquals(left, null)) return ReferenceEquals(right, null);
         return left.Equals(right);
     }
 

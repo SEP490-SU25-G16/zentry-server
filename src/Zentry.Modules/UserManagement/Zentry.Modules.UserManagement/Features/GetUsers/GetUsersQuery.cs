@@ -14,7 +14,8 @@ public class GetUsersQuery : IQuery<GetUsersResponse>
     }
 
     // Constructor hiện có của bạn (vẫn giữ lại nếu bạn cần tạo query với các giá trị cụ thể)
-    public GetUsersQuery(int pageNumber, int pageSize, string? searchTerm = null, string? role = null, string? status = null)
+    public GetUsersQuery(int pageNumber, int pageSize, string? searchTerm = null, string? role = null,
+        string? status = null)
     {
         // Bạn có thể giữ logic kiểm tra này ở đây hoặc chuyển vào validator
         PageNumber = pageNumber <= 0 ? 1 : pageNumber;
@@ -25,7 +26,7 @@ public class GetUsersQuery : IQuery<GetUsersResponse>
     }
 
     public int PageNumber { get; init; } = 1; // Mặc định trang 1
-    public int PageSize { get; init; } = 10;  // Mặc định 10 người dùng mỗi trang
+    public int PageSize { get; init; } = 10; // Mặc định 10 người dùng mỗi trang
 
     public string? SearchTerm { get; init; }
     public string? Role { get; init; }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Persistence.Entities;
 
 namespace Zentry.Modules.UserManagement.Persistence.DbContext;

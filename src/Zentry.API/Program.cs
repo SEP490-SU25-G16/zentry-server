@@ -13,7 +13,6 @@ using Zentry.Modules.ReportingService.Persistence;
 using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 using Zentry.Modules.UserManagement;
-using Zentry.Modules.UserManagement.Persistence;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 
 var builder = WebApplication.CreateBuilder(args);

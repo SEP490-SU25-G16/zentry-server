@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Persistence.Entities;
-using Zentry.Modules.UserManagement.Persistence.Enums;
 
 namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
@@ -90,7 +90,6 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
 
         // ✅ SỬA: Filter cho Smart Enum
         if (!string.IsNullOrWhiteSpace(status))
-        {
             try
             {
                 var statusEnum = AccountStatus.FromName(status);
@@ -100,7 +99,6 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
             {
                 // Ignore invalid status filter
             }
-        }
 
         var totalCount = await query.CountAsync();
 
