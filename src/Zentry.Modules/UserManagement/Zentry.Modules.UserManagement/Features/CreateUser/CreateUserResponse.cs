@@ -1,4 +1,5 @@
-﻿using Zentry.Modules.UserManagement.Persistence.Enums;
+﻿using Zentry.Modules.UserManagement.Enums;
+using Zentry.Modules.UserManagement.Persistence.Enums;
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
