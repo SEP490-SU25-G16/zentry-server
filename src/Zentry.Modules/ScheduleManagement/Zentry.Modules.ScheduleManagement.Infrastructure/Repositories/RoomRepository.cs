@@ -1,0 +1,96 @@
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetRooms;
+using Zentry.Modules.ScheduleManagement.Domain.Entities;
+using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
+
+namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
+
+public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
+{
+    public async Task AddAsync(Room entity, CancellationToken cancellationToken)
+    {
+        await dbContext.Rooms.AddAsync(entity, cancellationToken);
+    }
+
+    public void Delete(Room entity)
+    {
+        dbContext.Rooms.Remove(entity);
+    }
+
+    public async Task<IEnumerable<Room>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Rooms.ToListAsync(cancellationToken);
+    }
+
+    public async Task<Room?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Rooms.FindAsync(new object[] { id }, cancellationToken);
+    }
+
+    public async Task<bool> IsRoomNameUniqueAsync(string roomName, CancellationToken cancellationToken)
+    {
+        return !await dbContext.Rooms.AnyAsync(r => r.RoomName == roomName, cancellationToken);
+    }
+
+    // Triển khai IsRoomNameUniqueExcludingSelfAsync
+    public async Task<bool> IsRoomNameUniqueExcludingSelfAsync(Guid roomId, string roomName,
+        CancellationToken cancellationToken)
+    {
+        return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName, cancellationToken);
+    }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public void Update(Room entity)
+    {
+        dbContext.Rooms.Update(entity);
+    }
+
+    public async Task<Tuple<List<Room>, int>> GetPagedRoomsAsync(RoomListCriteria criteria,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.Rooms.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
+            query = query.Where(r =>
+                r.RoomName.Contains(criteria.SearchTerm) ||
+                r.Building.Contains(criteria.SearchTerm)
+            );
+
+        if (!string.IsNullOrWhiteSpace(criteria.Building)) query = query.Where(r => r.Building == criteria.Building);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(criteria.SortBy))
+        {
+            Expression<Func<Room, object>> orderByExpression = criteria.SortBy.ToLower() switch
+            {
+                "roomname" => r => r.RoomName,
+                "building" => r => r.Building,
+                "capacity" => r => r.Capacity,
+                "createdat" => r => r.CreatedAt,
+                _ => r => r.CreatedAt
+            };
+
+            query = criteria.SortOrder?.ToLower() == "desc"
+                ? query.OrderByDescending(orderByExpression)
+                : query.OrderBy(orderByExpression);
+        }
+        else
+        {
+            query = query.OrderByDescending(r => r.CreatedAt);
+        }
+
+        var rooms = await query
+            .Skip((criteria.PageNumber - 1) * criteria.PageSize)
+            .Take(criteria.PageSize)
+            .ToListAsync(cancellationToken);
+
+        return Tuple.Create(rooms, totalCount);
+    }
+}
