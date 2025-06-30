@@ -2,11 +2,11 @@ using System.Reflection;
 
 namespace Zentry.SharedKernel.Domain;
 
-public abstract class Enumeration : IComparable
+public abstract class Enumeration(int id, string name) : IComparable
 {
-    public int Id { get; }
-    private string Name { get; }
-    protected Enumeration(int id, string name) => (Id, Name) = (id, name);
+    public int Id { get; } = id;
+    private string Name { get; } = name;
+
     public int CompareTo(object? obj)
     {
         if (obj is Enumeration other) return Id.CompareTo(other.Id);

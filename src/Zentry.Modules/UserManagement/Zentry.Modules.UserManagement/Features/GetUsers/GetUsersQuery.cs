@@ -6,9 +6,17 @@ namespace Zentry.Modules.UserManagement.Features.GetUsers;
 
 public class GetUsersQuery : IQuery<GetUsersResponse>
 {
-    public GetUsersQuery(int pageNumber, int pageSize, string? searchTerm = null, string? role = null,
-        string? status = null)
+    // Thêm constructor không có tham số (parameterless constructor)
+    public GetUsersQuery()
     {
+        // Các giá trị mặc định cho PageNumber và PageSize đã được đặt ở thuộc tính init
+        // Nên bạn không cần làm gì thêm ở đây, hoặc có thể thêm logic khởi tạo nếu cần
+    }
+
+    // Constructor hiện có của bạn (vẫn giữ lại nếu bạn cần tạo query với các giá trị cụ thể)
+    public GetUsersQuery(int pageNumber, int pageSize, string? searchTerm = null, string? role = null, string? status = null)
+    {
+        // Bạn có thể giữ logic kiểm tra này ở đây hoặc chuyển vào validator
         PageNumber = pageNumber <= 0 ? 1 : pageNumber;
         PageSize = pageSize <= 0 ? 10 : pageSize;
         SearchTerm = searchTerm?.Trim();
@@ -17,10 +25,9 @@ public class GetUsersQuery : IQuery<GetUsersResponse>
     }
 
     public int PageNumber { get; init; } = 1; // Mặc định trang 1
-    public int PageSize { get; init; } = 10; // Mặc định 10 người dùng mỗi trang
+    public int PageSize { get; init; } = 10;  // Mặc định 10 người dùng mỗi trang
 
-    // Các trường tùy chọn để lọc
-    public string? SearchTerm { get; init; } // Có thể tìm kiếm theo Email, FullName
+    public string? SearchTerm { get; init; }
     public string? Role { get; init; }
-    public string? Status { get; init; } // Ví dụ: "Active", "Inactive", "Locked"
+    public string? Status { get; init; }
 }

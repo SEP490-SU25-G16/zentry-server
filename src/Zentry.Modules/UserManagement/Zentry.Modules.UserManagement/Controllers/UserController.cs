@@ -58,7 +58,7 @@ public class UserController(IMediator mediator) : ControllerBase
         }
     }
 
-    [HttpPost("create-user")]
+    [HttpPost]
     [ProducesResponseType(typeof(CreateUserResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]

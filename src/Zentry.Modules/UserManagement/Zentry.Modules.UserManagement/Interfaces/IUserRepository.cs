@@ -1,9 +1,10 @@
 ﻿using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Persistence.Entities;
+using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.UserManagement.Interfaces;
 
-public interface IUserRepository
+public interface IUserRepository : IRepository<User, Guid>
 {
     Task Add(Account account, User user);
     Task<bool> ExistsByEmail(string email);

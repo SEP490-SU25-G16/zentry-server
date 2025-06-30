@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.UserManagement.Persistence.Enums;
+namespace Zentry.Modules.UserManagement.Enums;
 
 public class AccountStatus : Enumeration
 {

@@ -34,7 +34,7 @@ public abstract class Entity<TId>(TId id) : IEntity<TId>
         return Id.GetHashCode();
     }
 
-    public static bool operator ==(Entity<TId> left, Entity<TId> right)
+    public static bool operator ==(Entity<TId> left, Entity<TId>? right)
     {
         if (ReferenceEquals(left, null))
         {

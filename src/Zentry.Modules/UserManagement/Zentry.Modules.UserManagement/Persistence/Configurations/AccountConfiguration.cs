@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.Entities;
 using Zentry.Modules.UserManagement.Persistence.Enums;
 
@@ -30,14 +31,19 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
 
-        // Cấu hình thuộc tính Status
+        // SỬA LỖI: Cấu hình đúng cho AccountStatus (Enumeration tùy chỉnh)
         builder.Property(a => a.Status)
             .HasConversion(
-                s => s.ToString(), // Chuyển Enum sang string khi lưu vào DB
-                s => (AccountStatus)Enum.Parse(typeof(AccountStatus), s) // Chuyển string từ DB sang Enum
+                // Chuyển AccountStatus sang string khi lưu vào DB
+                status => status.ToString(),
+                // Chuyển string từ DB sang AccountStatus
+                statusString => AccountStatus.FromName(statusString)
             )
             .IsRequired()
-            .HasDefaultValue(AccountStatus.Active); // Đặt giá trị mặc định trong DB
+            // BỎ HasDefaultValue vì không thể set default value cho custom enumeration
+            // Thay vào đó sẽ dùng HasDefaultValueSql với string value
+            .HasDefaultValueSql("'Active'"); // Sử dụng SQL default value
+
         builder.HasIndex(a => a.Status); // Thêm index cho Status
 
         // Configure Password Reset Token properties

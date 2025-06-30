@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
@@ -84,17 +85,27 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                                      x.User.FullName.ToLower().Contains(lowerSearchTerm));
         }
 
-        if (!string.IsNullOrWhiteSpace(role)) query = query.Where(x => x.Account.Role == role);
+        if (!string.IsNullOrWhiteSpace(role))
+            query = query.Where(x => x.Account.Role == role);
 
+        // ✅ SỬA: Filter cho Smart Enum
         if (!string.IsNullOrWhiteSpace(status))
-            query = query.Where(x => x.Account.Status == AccountStatus.FromName(status));
+        {
+            try
+            {
+                var statusEnum = AccountStatus.FromName(status);
+                query = query.Where(x => x.Account.Status == statusEnum);
+            }
+            catch (InvalidOperationException)
+            {
+                // Ignore invalid status filter
+            }
+        }
 
-        // Đếm tổng số lượng trước khi phân trang
         var totalCount = await query.CountAsync();
 
-        // Áp dụng phân trang
         var users = await query
-            .OrderBy(x => x.Account.Email) // Sắp xếp để có kết quả ổn định
+            .OrderBy(x => x.Account.Email)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new UserListItemDto
@@ -103,7 +114,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                 Email = x.Account.Email,
                 FullName = x.User.FullName,
                 Role = x.Account.Role,
-                Status = x.Account.Status.ToString(),
+                Status = x.Account.Status.ToString(), // Smart Enum tự động convert sang string
                 CreatedAt = x.Account.CreatedAt
             })
             .ToListAsync();
@@ -129,5 +140,35 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
 
         dbContext.Accounts.Update(account);
         await dbContext.SaveChangesAsync();
+    }
+
+    public Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddAsync(User entity, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Update(User entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Delete(User entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

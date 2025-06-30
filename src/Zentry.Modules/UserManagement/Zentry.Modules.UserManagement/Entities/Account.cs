@@ -1,3 +1,4 @@
+using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.Enums;
 using Zentry.SharedKernel.Domain;
 
