@@ -1,3 +1,5 @@
+// File: Zentry.Modules.ScheduleManagement.Infrastructure/Persistence/Configurations/CourseConfiguration.cs
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
@@ -23,25 +25,32 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(c => c.Description) // Thêm cấu hình cho Description
-            .HasMaxLength(500); // Giả định độ dài
+        builder.Property(c => c.Description)
+            .HasMaxLength(500);
 
         builder.Property(c => c.Semester)
             .IsRequired()
             .HasMaxLength(20);
 
-        builder.Property(c => c.CreatedAt) // Thêm CreatedAt
+        builder.Property(c => c.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        builder.Property(c => c.UpdatedAt) // Thêm UpdatedAt
+        builder.Property(c => c.UpdatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
+
+        builder.Property(c => c.IsDeleted) // Cấu hình IsDeleted
+            .IsRequired()
+            .HasDefaultValue(false); // Mặc định là false
 
         // Unique index for Code
         builder.HasIndex(c => c.Code)
             .IsUnique();
 
         builder.HasIndex(c => c.Semester);
+
+        // Global Query Filter: Đảm bảo chỉ trả về các bản ghi IsDeleted = false
+        builder.HasQueryFilter(c => !c.IsDeleted);
     }
 }

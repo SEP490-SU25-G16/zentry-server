@@ -24,6 +24,7 @@ public class Course : AggregateRoot<Guid>
     public string Semester { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; private set; }
 
     public static Course Create(string code, string name, string description, string semester)
     {
@@ -35,6 +36,11 @@ public class Course : AggregateRoot<Guid>
         if (!string.IsNullOrWhiteSpace(name)) Name = name;
         if (!string.IsNullOrWhiteSpace(description)) Description = description;
         if (!string.IsNullOrWhiteSpace(semester)) Semester = semester;
+        UpdatedAt = DateTime.UtcNow;
+    }
+    public void Delete()
+    {
+        IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
     }
 }

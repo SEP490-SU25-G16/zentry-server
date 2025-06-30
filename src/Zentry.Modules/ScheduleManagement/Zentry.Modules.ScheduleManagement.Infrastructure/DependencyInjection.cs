@@ -17,7 +17,7 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly("Zentry.Modules.ScheduleManagement.Infrastructure")
             ));
-
+        services.AddScoped<ICourseRepository, CourseRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
         services.AddMediatR(cfg =>
