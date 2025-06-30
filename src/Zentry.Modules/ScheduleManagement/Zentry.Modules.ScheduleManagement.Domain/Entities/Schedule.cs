@@ -45,7 +45,7 @@ public class Schedule : AggregateRoot<Guid>
         if (roomId.HasValue) RoomId = roomId.Value;
         if (startTime.HasValue) StartTime = startTime.Value;
         if (endTime.HasValue) EndTime = endTime.Value;
-        if (dayOfWeek != null) DayOfWeek = dayOfWeek; // Fixed: Check for null for reference types
+        if (dayOfWeek != null) DayOfWeek = dayOfWeek;
         UpdatedAt = DateTime.UtcNow;
     }
 }
