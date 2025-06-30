@@ -1,6 +1,4 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Application/Dtos/CourseDetailDto.cs
-
-namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
+﻿namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
 
 public class CourseDetailDto
 {

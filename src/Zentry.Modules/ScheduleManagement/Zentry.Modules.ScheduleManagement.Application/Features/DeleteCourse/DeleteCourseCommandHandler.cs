@@ -1,7 +1,4 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Application/Features/DeleteCourse/DeleteCourseCommandHandler.cs
-
-using MediatR;
-using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.DeleteCourse;
@@ -13,10 +10,7 @@ public class DeleteCourseCommandHandler(ICourseRepository courseRepository) : IC
         // GetByIdAsync sẽ chỉ trả về Course nếu IsDeleted = false
         var course = await courseRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        if (course == null)
-        {
-            throw new Exception($"Course with ID '{command.Id}' not found or already deleted.");
-        }
+        if (course == null) throw new Exception($"Course with ID '{command.Id}' not found or already deleted.");
 
         // Gọi phương thức soft delete trên repository
         await courseRepository.SoftDeleteAsync(command.Id, cancellationToken);

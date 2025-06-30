@@ -1,4 +1,6 @@
-﻿using Zentry.SharedKernel.Abstractions.Application; // Đảm bảo using này có mặt
+﻿using Zentry.SharedKernel.Abstractions.Application;
+
+// Đảm bảo using này có mặt
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
 
@@ -9,7 +11,8 @@ public class GetCoursesQuery : IQuery<GetCoursesResponse>
         // Parameterless constructor cho model binding từ query string
     }
 
-    public GetCoursesQuery(int pageNumber, int pageSize, string? searchTerm = null, string? semester = null, string? sortBy = null, string? sortOrder = null)
+    public GetCoursesQuery(int pageNumber, int pageSize, string? searchTerm = null, string? semester = null,
+        string? sortBy = null, string? sortOrder = null)
     {
         PageNumber = pageNumber <= 0 ? 1 : pageNumber;
         PageSize = pageSize <= 0 ? 10 : pageSize;

@@ -1,38 +1,29 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Infrastructure/Repositories/CourseRepository.cs
-
+﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
-using System.Linq.Expressions;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
-public class CourseRepository : ICourseRepository
+public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
 {
-    private readonly ScheduleDbContext _dbContext;
-
-    public CourseRepository(ScheduleDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task AddAsync(Course entity, CancellationToken cancellationToken)
     {
-        await _dbContext.Courses.AddAsync(entity, cancellationToken);
+        await dbContext.Courses.AddAsync(entity, cancellationToken);
     }
 
     // Phương thức SoftDelete mới
     public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         // GetByIdAsync sẽ tự động chỉ lấy các bản ghi !IsDeleted
-        var course = await _dbContext.Courses.FindAsync([id], cancellationToken);
+        var course = await dbContext.Courses.FindAsync([id], cancellationToken);
 
         if (course != null)
         {
             course.Delete(); // Gọi phương thức Delete trên Domain Entity
-            _dbContext.Courses.Update(course); // Đánh dấu entity là Modified để lưu thay đổi
+            dbContext.Courses.Update(course); // Đánh dấu entity là Modified để lưu thay đổi
         }
         // Nếu không tìm thấy (do đã bị xóa mềm hoặc không tồn tại), không làm gì
         // Hoặc bạn có thể ném một ngoại lệ NotFoundException ở tầng Application
@@ -42,13 +33,13 @@ public class CourseRepository : ICourseRepository
     public async Task<IEnumerable<Course>> GetAllAsync(CancellationToken cancellationToken)
     {
         // Do HasQueryFilter, nó sẽ tự động chỉ lấy các Course !IsDeleted
-        return await _dbContext.Courses.ToListAsync(cancellationToken);
+        return await dbContext.Courses.ToListAsync(cancellationToken);
     }
 
     public async Task<Course?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         // Do HasQueryFilter, nó sẽ tự động chỉ lấy các Course !IsDeleted
-        return await _dbContext.Courses.FindAsync(new object[] { id }, cancellationToken);
+        return await dbContext.Courses.FindAsync(new object[] { id }, cancellationToken);
     }
 
     public async Task<bool> IsCodeUniqueAsync(string code, CancellationToken cancellationToken)
@@ -58,7 +49,7 @@ public class CourseRepository : ICourseRepository
         // Hoặc bạn có thể bỏ qua bản ghi đã xóa mềm nếu logic nghiệp vụ cho phép tái sử dụng code.
         // Ở đây, tôi sẽ kiểm tra DUY NHẤT TRONG SỐ CÁC KHÓA HỌC HIỆN CÓ (chưa xóa mềm)
         // Nếu bạn muốn kiểm tra trên tất cả các bản ghi (kể cả đã xóa mềm), bạn cần dùng IgnoreQueryFilters()
-        return !await _dbContext.Courses
+        return !await dbContext.Courses
             .IgnoreQueryFilters() // Tạm thời bỏ qua global filter để kiểm tra tất cả các bản ghi
             .AnyAsync(c => c.Code == code, cancellationToken);
     }
@@ -70,32 +61,28 @@ public class CourseRepository : ICourseRepository
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public void Update(Course entity)
     {
-        _dbContext.Courses.Update(entity);
+        dbContext.Courses.Update(entity);
     }
 
-    public async Task<Tuple<List<Course>, int>> GetPagedCoursesAsync(CourseListCriteria criteria, CancellationToken cancellationToken)
+    public async Task<Tuple<List<Course>, int>> GetPagedCoursesAsync(CourseListCriteria criteria,
+        CancellationToken cancellationToken)
     {
         // Query filter đã tự động được áp dụng tại đây
-        var query = _dbContext.Courses.AsQueryable();
+        var query = dbContext.Courses.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
-        {
             query = query.Where(c =>
                 c.Name.Contains(criteria.SearchTerm) ||
                 c.Code.Contains(criteria.SearchTerm) ||
                 (c.Description != null && c.Description.Contains(criteria.SearchTerm))
             );
-        }
 
-        if (!string.IsNullOrWhiteSpace(criteria.Semester))
-        {
-            query = query.Where(c => c.Semester == criteria.Semester);
-        }
+        if (!string.IsNullOrWhiteSpace(criteria.Semester)) query = query.Where(c => c.Semester == criteria.Semester);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -110,9 +97,9 @@ public class CourseRepository : ICourseRepository
                 _ => c => c.CreatedAt
             };
 
-            query = criteria.SortOrder?.ToLower() == "desc" ?
-                query.OrderByDescending(orderByExpression) :
-                query.OrderBy(orderByExpression);
+            query = criteria.SortOrder?.ToLower() == "desc"
+                ? query.OrderByDescending(orderByExpression)
+                : query.OrderBy(orderByExpression);
         }
         else
         {

@@ -1,6 +1,4 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Presentation/Controllers/CoursesController.cs
-
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
@@ -19,12 +17,10 @@ public class CoursesController(IMediator mediator) : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(CourseCreatedResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request,
+        CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var response = await mediator.Send(request, cancellationToken);
 
@@ -38,10 +34,7 @@ public class CoursesController(IMediator mediator) : ControllerBase
     {
         // Model binding sẽ tự động điền các thuộc tính của GetCoursesQuery từ query string
         // Bạn có thể thêm validation ở đây nếu cần (ví dụ: dùng FluentValidation)
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var response = await mediator.Send(query, cancellationToken);
         return Ok(response);
@@ -71,13 +64,11 @@ public class CoursesController(IMediator mediator) : ControllerBase
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(CourseDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)] // Invalid input or business logic error
-    [ProducesResponseType(StatusCodes.Status404NotFound)]  // Course not found
-    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseCommand request, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status404NotFound)] // Course not found
+    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseCommand request,
+        CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         // Đảm bảo Id trong URL khớp với Id trong body của request nếu bạn muốn
         // if (id != request.Id)

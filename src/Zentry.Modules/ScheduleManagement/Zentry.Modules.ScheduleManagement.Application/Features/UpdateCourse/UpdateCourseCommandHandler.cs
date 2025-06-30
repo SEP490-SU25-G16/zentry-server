@@ -1,7 +1,4 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Application/Features/UpdateCourse/UpdateCourseCommandHandler.cs
-
-using MediatR;
-using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 
@@ -22,18 +19,15 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand, C
         var course = await _courseRepository.GetByIdAsync(command.Id, cancellationToken);
 
         // 2. Kiểm tra nếu không tìm thấy
-        if (course == null)
-        {
-            throw new Exception($"Course with ID '{command.Id}' not found.");
-        }
+        if (course == null) throw new Exception($"Course with ID '{command.Id}' not found.");
 
         // 3. Áp dụng các thay đổi cho Domain Entity
         // Lưu ý: Code thường không được thay đổi. Nếu cần thay đổi Code, cần thêm logic kiểm tra trùng lặp.
         // Hiện tại, giả định Code là immutable sau khi tạo.
         course.Update(
-            name: command.Name,
-            description: command.Description,
-            semester: command.Semester
+            command.Name,
+            command.Description,
+            command.Semester
         );
 
         // 4. Lưu các thay đổi vào database

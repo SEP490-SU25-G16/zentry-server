@@ -1,6 +1,4 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Infrastructure/Common/CourseListCriteria.cs
-
-namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
+﻿namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
 
 public class CourseListCriteria
 {

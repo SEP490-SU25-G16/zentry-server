@@ -1,12 +1,10 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Application/Features/GetCourses/GetCoursesResponse.cs
-
-using Zentry.Modules.ScheduleManagement.Application.Dtos;
+﻿using Zentry.Modules.ScheduleManagement.Application.Dtos;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
 
 public class GetCoursesResponse
 {
-    public List<CourseListItemDto> Items { get; set; } = new List<CourseListItemDto>();
+    public List<CourseListItemDto> Items { get; set; } = new();
     public int TotalCount { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }

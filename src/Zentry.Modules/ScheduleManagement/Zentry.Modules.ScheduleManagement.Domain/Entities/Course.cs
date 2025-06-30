@@ -38,6 +38,7 @@ public class Course : AggregateRoot<Guid>
         if (!string.IsNullOrWhiteSpace(semester)) Semester = semester;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Delete()
     {
         IsDeleted = true;

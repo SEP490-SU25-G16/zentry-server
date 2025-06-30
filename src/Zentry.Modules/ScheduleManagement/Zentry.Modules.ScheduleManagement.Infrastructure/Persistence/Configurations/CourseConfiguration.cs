@@ -1,5 +1,3 @@
-// File: Zentry.Modules.ScheduleManagement.Infrastructure/Persistence/Configurations/CourseConfiguration.cs
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;

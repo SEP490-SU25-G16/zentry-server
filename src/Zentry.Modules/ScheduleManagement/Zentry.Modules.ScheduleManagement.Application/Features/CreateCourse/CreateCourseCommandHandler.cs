@@ -12,10 +12,7 @@ public class CreateCourseCommandHandler(ICourseRepository courseRepository)
     {
         // 1. Business Rule: Code khóa học phải là duy nhất
         var isCodeUnique = await courseRepository.IsCodeUniqueAsync(command.Code, cancellationToken);
-        if (!isCodeUnique)
-        {
-            throw new DuplicateNameException($"Course with code '{command.Code}' already exists.");
-        }
+        if (!isCodeUnique) throw new DuplicateNameException($"Course with code '{command.Code}' already exists.");
 
         // 2. Tạo đối tượng Course Domain Entity
         var course = Course.Create(

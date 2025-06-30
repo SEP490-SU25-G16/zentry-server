@@ -4,15 +4,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
 
-public class GetCoursesQueryHandler : IQueryHandler<GetCoursesQuery, GetCoursesResponse>
+public class GetCoursesQueryHandler(ICourseRepository courseRepository)
+    : IQueryHandler<GetCoursesQuery, GetCoursesResponse>
 {
-    private readonly ICourseRepository _courseRepository;
-
-    public GetCoursesQueryHandler(ICourseRepository courseRepository)
-    {
-        _courseRepository = courseRepository;
-    }
-
     public async Task<GetCoursesResponse> Handle(GetCoursesQuery query, CancellationToken cancellationToken)
     {
         // Ánh xạ Query sang Criteria để truyền xuống Repository
@@ -27,7 +21,7 @@ public class GetCoursesQueryHandler : IQueryHandler<GetCoursesQuery, GetCoursesR
         };
 
         // Lấy dữ liệu đã phân trang từ Repository
-        var (courses, totalCount) = await _courseRepository.GetPagedCoursesAsync(criteria, cancellationToken);
+        var (courses, totalCount) = await courseRepository.GetPagedCoursesAsync(criteria, cancellationToken);
 
         // Ánh xạ từ Domain Entities sang DTOs
         var courseDtos = courses.Select(c => new CourseListItemDto

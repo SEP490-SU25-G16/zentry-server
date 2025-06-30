@@ -1,35 +1,23 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Application/Features/GetCourseById/GetCourseByIdQueryHandler.cs
-
-using MediatR;
-using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourseById;
 
-public class GetCourseByIdQueryHandler : IQueryHandler<GetCourseByIdQuery, CourseDetailDto?>
+public class GetCourseByIdQueryHandler(ICourseRepository courseRepository)
+    : IQueryHandler<GetCourseByIdQuery, CourseDetailDto?>
 {
-    private readonly ICourseRepository _courseRepository;
-
-    public GetCourseByIdQueryHandler(ICourseRepository courseRepository)
-    {
-        _courseRepository = courseRepository;
-    }
-
     public async Task<CourseDetailDto?> Handle(GetCourseByIdQuery query, CancellationToken cancellationToken)
     {
         // 1. Lấy Course Entity từ Repository
-        var course = await _courseRepository.GetByIdAsync(query.Id, cancellationToken);
+        var course = await courseRepository.GetByIdAsync(query.Id, cancellationToken);
 
         // 2. Kiểm tra nếu không tìm thấy
         if (course == null)
-        {
             // Có thể ném một ngoại lệ NotFoundException để middleware xử lý thành 404
             throw new Exception($"Course with ID '{query.Id}' not found.");
-            // Hoặc đơn giản là trả về null và Controller sẽ xử lý thành NotFound()
-            // return null;
-        }
-
+        // Hoặc đơn giản là trả về null và Controller sẽ xử lý thành NotFound()
+        // return null;
         // 3. Ánh xạ từ Domain Entity sang DTO để trả về
         var courseDetailDto = new CourseDetailDto
         {
