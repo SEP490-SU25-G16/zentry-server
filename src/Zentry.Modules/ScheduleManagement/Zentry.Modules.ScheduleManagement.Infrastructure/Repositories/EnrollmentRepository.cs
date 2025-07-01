@@ -54,7 +54,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         EnrollmentListCriteria criteria,
         CancellationToken cancellationToken)
     {
-        IQueryable<Enrollment> query = dbContext.Enrollments
+        var query = dbContext.Enrollments
             .Include(e => e.Schedule!)
             .ThenInclude(s => s.Course)
             .Include(e => e.Schedule!)
@@ -65,32 +65,23 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
 
         // Lọc theo CourseId (qua Schedule)
         if (criteria.CourseId.HasValue && criteria.CourseId.Value != Guid.Empty)
-        {
             query = query.Where(e => e.Schedule != null && e.Schedule.CourseId == criteria.CourseId.Value);
-        }
 
         // Lọc theo StudentId
         if (criteria.StudentId.HasValue && criteria.StudentId.Value != Guid.Empty)
-        {
             query = query.Where(e => e.StudentId == criteria.StudentId.Value);
-        }
 
         // Lọc theo ScheduleId
         if (criteria.ScheduleId.HasValue && criteria.ScheduleId.Value != Guid.Empty)
-        {
             query = query.Where(e => e.ScheduleId == criteria.ScheduleId.Value);
-        }
 
         // Lọc theo Status
-        if (criteria.Status.HasValue)
-        {
-            query = query.Where(e => e.Status == criteria.Status.Value);
-        }
+        if (criteria.Status.HasValue) query = query.Where(e => e.Status == criteria.Status.Value);
 
         // Lọc theo SearchTerm
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
-            string searchTermLower = criteria.SearchTerm.ToLower();
+            var searchTermLower = criteria.SearchTerm.ToLower();
             query = query.Where(e => e.Schedule != null &&
                                      e.Schedule.Course != null &&
                                      e.Schedule.Course.Name.ToLower().Contains(searchTermLower));
@@ -100,7 +91,6 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
 
         // Sắp xếp
         if (!string.IsNullOrEmpty(criteria.SortBy))
-        {
             switch (criteria.SortBy.ToLower())
             {
                 case "enrollmentdate":
@@ -122,11 +112,8 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
                     query = query.OrderBy(e => e.Id);
                     break;
             }
-        }
         else
-        {
             query = query.OrderBy(e => e.EnrolledAt);
-        }
 
         // Phân trang
         var enrollments = await query

@@ -41,17 +41,12 @@ public class UserQueryService(IUserRepository userRepository) : IUserQueryServic
         // };
         // Dữ liệu mock để thử nghiệm:
         if (userId == new Guid("00000000-0000-0000-0000-000000000001")) // Giả lập Admin User
-        {
-            return await Task.FromResult<UserLookupDto?>(new UserLookupDto { Id = userId, Name = "Admin User"});
-        }
+            return await Task.FromResult<UserLookupDto?>(new UserLookupDto { Id = userId, Name = "Admin User" });
         if (userId == new Guid("00000000-0000-0000-0000-000000000002")) // Giả lập Student User
-        {
-            return await Task.FromResult<UserLookupDto?>(new UserLookupDto { Id = userId, Name = "Student A", StudentCode = "ST001"});
-        }
+            return await Task.FromResult<UserLookupDto?>(new UserLookupDto
+                { Id = userId, Name = "Student A", StudentCode = "ST001" });
         if (userId == new Guid("00000000-0000-0000-0000-000000000003")) // Giả lập non-student/non-admin user
-        {
-            return await Task.FromResult<UserLookupDto?>(new UserLookupDto { Id = userId, Name = "Teacher B"});
-        }
+            return await Task.FromResult<UserLookupDto?>(new UserLookupDto { Id = userId, Name = "Teacher B" });
 
         return await Task.FromResult<UserLookupDto?>(null); // Không tìm thấy user
     }

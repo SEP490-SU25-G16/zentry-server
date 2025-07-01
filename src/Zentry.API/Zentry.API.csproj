@@ -30,8 +30,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Zentry.Modules\AttendanceManagement\Zentry.Modules.AttendanceManagement.Infrastructure\Zentry.Modules.AttendanceManagement.Infrastructure.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\AttendanceManagement\Zentry.Modules.AttendanceManagement.Presentation\Zentry.Modules.AttendanceManagement.Presentation.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\ConfigurationManagement\Zentry.Modules.ConfigurationManagement.Infrastructure\Zentry.Modules.ConfigurationManagement.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\ConfigurationManagement\Zentry.Modules.ConfigurationManagement.Presentation\Zentry.Modules.ConfigurationManagement.Presentation.csproj"/>
+        <ProjectReference Include="..\Zentry.Modules\ConfigurationManagement\Zentry.Modules.ConfigurationManagement\Zentry.Modules.ConfigurationManagement.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement.Presentation\Zentry.Modules.DeviceManagement.Presentation.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement.Infrastructure\Zentry.Modules.DeviceManagement.Infrastructure.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\NotificationService\Zentry.Modules.NotificationService\Zentry.Modules.NotificationService.csproj"/>

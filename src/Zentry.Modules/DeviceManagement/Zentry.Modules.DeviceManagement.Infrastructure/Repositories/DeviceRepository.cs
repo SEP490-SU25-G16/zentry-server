@@ -3,6 +3,7 @@ using Zentry.Modules.DeviceManagement.Application.Abstractions;
 using Zentry.Modules.DeviceManagement.Domain.Entities;
 using Zentry.Modules.DeviceManagement.Domain.Enums;
 using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
+
 // Assuming DeviceDbContext is here
 // For Entity Framework Core methods
 // For DeviceStatus enum

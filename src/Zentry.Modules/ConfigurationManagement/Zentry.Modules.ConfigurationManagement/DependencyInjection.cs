@@ -1,0 +1,28 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Zentry.Modules.ConfigurationManagement.Abstractions;
+using Zentry.Modules.ConfigurationManagement.Persistence;
+using Zentry.Modules.ConfigurationManagement.Persistence.Repositories;
+
+namespace Zentry.Modules.ConfigurationManagement;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddConfigurationInfrastructure(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        // Đảm bảo DbContextOptions<ConfigurationDbContext> được typed đúng
+        services.AddDbContext<ConfigurationDbContext>(options =>
+            options.UseNpgsql(
+                configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly("Zentry.Modules.ConfigurationManagement.Infrastructure")
+            ));
+
+        services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+
+        return services;
+    }
+}

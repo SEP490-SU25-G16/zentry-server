@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.DeviceManagement.Application.Features.RegisterDevice;
 using Zentry.Modules.DeviceManagement.Presentation.Requests;
 using Zentry.SharedKernel.Exceptions;
+
 // Assuming RegisterDeviceRequest is here
 // For [Authorize] attribute
 // For ClaimTypes
