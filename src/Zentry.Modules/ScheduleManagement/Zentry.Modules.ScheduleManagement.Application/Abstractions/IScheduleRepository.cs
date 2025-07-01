@@ -15,4 +15,8 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
 
     Task<Tuple<List<Schedule>, int>> GetPagedSchedulesAsync(ScheduleListCriteria criteria,
         CancellationToken cancellationToken);
+
+    Task<Tuple<List<Schedule>, int>> GetPagedSchedulesWithIncludesAsync(
+        ScheduleListCriteria criteria,
+        CancellationToken cancellationToken);
 }

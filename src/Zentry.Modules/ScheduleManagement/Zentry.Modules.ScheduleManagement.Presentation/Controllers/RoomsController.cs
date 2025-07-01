@@ -15,7 +15,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 public class RoomsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    [ProducesResponseType(typeof(RoomCreatedResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CreatedRoomResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRoom([FromBody] CreateRoomCommand request,
         CancellationToken cancellationToken)
@@ -60,26 +60,25 @@ public class RoomsController(IMediator mediator) : ControllerBase
 
     [HttpPut("{id:guid}")] // Định tuyến PUT với ID từ URL
     [ProducesResponseType(typeof(RoomDetailDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)] // Invalid input or business logic error
-    [ProducesResponseType(StatusCodes.Status404NotFound)] // Room not found
-    public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomCommand request,
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        // Tạo một bản sao của request với Id từ URL, đảm bảo Id trong command khớp với Id trong route
-        var command = request with { Id = id };
+        var command = new UpdateRoomCommand(id, request);
 
         try
         {
             var response = await mediator.Send(command, cancellationToken);
-            return Ok(response); // Trả về 200 OK với thông tin phòng học đã cập nhật
+            return Ok(response);
         }
         catch (BadHttpRequestException ex)
         {
             return NotFound(new { errors = ex.Message });
         }
-        catch (Exception ex) // Bắt các lỗi nghiệp vụ khác
+        catch (Exception ex)
         {
             return BadRequest(new { errors = ex.Message });
         }

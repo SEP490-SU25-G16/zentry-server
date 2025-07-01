@@ -1,6 +1,6 @@
 ﻿namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateRoom;
 
-public class RoomCreatedResponseDto
+public class CreatedRoomResponse
 {
     public Guid Id { get; set; }
     public string RoomName { get; set; } = string.Empty;

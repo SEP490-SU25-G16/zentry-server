@@ -9,13 +9,10 @@ public class UpdateRoomCommandHandler(IRoomRepository roomRepository)
 {
     public async Task<RoomDetailDto> Handle(UpdateRoomCommand command, CancellationToken cancellationToken)
     {
-        // 1. Tìm phòng học trong database
         var room = await roomRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        // 2. Kiểm tra nếu không tìm thấy
         if (room == null) throw new Exception($"Room with ID '{command.Id}' not found.");
 
-        // 3. Business Rule: Kiểm tra RoomName mới có duy nhất không (nếu RoomName thay đổi)
         if (room.RoomName != command.RoomName)
         {
             var isRoomNameUnique =
@@ -25,18 +22,14 @@ public class UpdateRoomCommandHandler(IRoomRepository roomRepository)
                 throw new Exception($"Room with name '{command.RoomName}' already exists for another room.");
         }
 
-        // 4. Áp dụng các thay đổi cho Domain Entity
         room.Update(
             command.RoomName,
             command.Building,
             command.Capacity
         );
 
-        // 5. Lưu các thay đổi vào database
-        roomRepository.Update(room); // Entity Framework sẽ theo dõi và cập nhật
-        await roomRepository.SaveChangesAsync(cancellationToken);
+        await roomRepository.UpdateAsync(room, cancellationToken);
 
-        // 6. Ánh xạ từ Domain Entity đã cập nhật sang DTO để trả về
         var responseDto = new RoomDetailDto
         {
             Id = room.Id,

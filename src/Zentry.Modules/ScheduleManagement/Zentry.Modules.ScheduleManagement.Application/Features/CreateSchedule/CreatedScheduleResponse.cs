@@ -2,7 +2,7 @@
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
 
-public class ScheduleCreatedResponseDto
+public class CreatedScheduleResponse
 {
     public Guid Id { get; set; }
     public Guid LecturerId { get; set; }

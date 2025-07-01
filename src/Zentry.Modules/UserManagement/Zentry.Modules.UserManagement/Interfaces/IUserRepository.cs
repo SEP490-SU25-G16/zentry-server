@@ -10,15 +10,9 @@ public interface IUserRepository : IRepository<User, Guid>
     Task Add(Account account, User user);
     Task<bool> ExistsByEmail(string email);
 
-    Task<User?> GetUserById(Guid userId);
-    Task<Account?> GetAccountById(Guid accountId); // Lấy Account theo ID của nó
-
-    // Phương thức mới: Lấy Account theo User ID (vì User có AccountId)
-    Task<Account?> GetAccountByUserId(Guid userId); // Phương thức này sẽ thuận tiện hơn
-
-    Task UpdateUser(User user);
+    Task<Account?> GetAccountById(Guid accountId);
+    Task<Account?> GetAccountByUserId(Guid userId);
     Task UpdateAccount(Account account);
-
     Task<(IEnumerable<UserListItemDto> Users, int TotalCount)> GetUsersAsync(
         int pageNumber,
         int pageSize,

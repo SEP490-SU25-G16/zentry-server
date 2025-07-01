@@ -21,12 +21,12 @@ public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepo
         throw new NotImplementedException();
     }
 
-    public void Update(AttendanceRecord entity)
+    public Task UpdateAsync(AttendanceRecord entity, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public void Delete(AttendanceRecord entity)
+    public Task DeleteAsync(AttendanceRecord entity, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

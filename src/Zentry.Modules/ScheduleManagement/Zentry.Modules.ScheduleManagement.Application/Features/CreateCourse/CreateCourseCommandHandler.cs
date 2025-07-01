@@ -6,9 +6,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateCourse;
 
 public class CreateCourseCommandHandler(ICourseRepository courseRepository)
-    : ICommandHandler<CreateCourseCommand, CourseCreatedResponseDto>
+    : ICommandHandler<CreateCourseCommand, CourseCreatedResponse>
 {
-    public async Task<CourseCreatedResponseDto> Handle(CreateCourseCommand command, CancellationToken cancellationToken)
+    public async Task<CourseCreatedResponse> Handle(CreateCourseCommand command, CancellationToken cancellationToken)
     {
         // 1. Business Rule: Code khóa học phải là duy nhất
         var isCodeUnique = await courseRepository.IsCodeUniqueAsync(command.Code, cancellationToken);
@@ -27,7 +27,7 @@ public class CreateCourseCommandHandler(ICourseRepository courseRepository)
         await courseRepository.SaveChangesAsync(cancellationToken);
 
         // 4. Ánh xạ từ Domain Entity sang DTO để trả về
-        var responseDto = new CourseCreatedResponseDto
+        var responseDto = new CourseCreatedResponse
         {
             Id = course.Id,
             Name = course.Name,

@@ -7,4 +7,4 @@ public record CreateCourseCommand(
     string Code,
     string Description,
     string Semester // Thêm Semester
-) : ICommand<CourseCreatedResponseDto>;
+) : ICommand<CourseCreatedResponse>;

@@ -3,10 +3,11 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateRoom;
 
-// Record để tạo Command immutable. Id là từ URL, các trường còn lại từ Body.
-public record UpdateRoomCommand(
-    Guid Id, // ID của phòng học cần cập nhật
-    string RoomName,
-    string Building,
-    int Capacity
-) : ICommand<RoomDetailDto>; // Trả về DTO của phòng học đã cập nhật
+public class UpdateRoomCommand(Guid roomId, UpdateRoomRequest request)
+    : ICommand<RoomDetailDto>
+{
+    public Guid Id { get; init; } = roomId;
+    public string? RoomName { get; init; } = request.RoomName;
+    public string? Building { get; init; } = request.Building;
+    public int Capacity { get; init; } = request.Capacity;
+}

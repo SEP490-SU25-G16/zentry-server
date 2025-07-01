@@ -11,17 +11,18 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 public class SchedulesController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    [ProducesResponseType(typeof(ScheduleCreatedResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CreatedScheduleResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)] // Nếu Course/Room/Lecturer không tồn tại
-    public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleCommand request,
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         try
         {
-            var response = await mediator.Send(request, cancellationToken);
+            var command = new CreateScheduleCommand(request);
+            var response = await mediator.Send(command, cancellationToken);
             return CreatedAtAction(nameof(CreateSchedule), new { id = response.Id }, response);
         }
         catch (BadHttpRequestException ex)

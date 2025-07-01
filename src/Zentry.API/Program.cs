@@ -10,6 +10,7 @@ using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 using Zentry.Modules.NotificationService;
 using Zentry.Modules.ReportingService;
 using Zentry.Modules.ReportingService.Persistence;
+using Zentry.Modules.ScheduleManagement.Application;
 using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 using Zentry.Modules.UserManagement;
@@ -29,6 +30,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
+builder.Services.AddScheduleApplication();
 builder.Services.AddDeviceInfrastructure(builder.Configuration);
 builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddNotificationInfrastructure(builder.Configuration);

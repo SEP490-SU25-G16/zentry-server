@@ -11,7 +11,7 @@ public interface IRepository<TEntity, in TId>
     // Các phương thức cơ bản mà mọi repository nên có
     Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken);
     Task AddAsync(TEntity entity, CancellationToken cancellationToken);
-    void Update(TEntity entity);
-    void Delete(TEntity entity);
+    Task UpdateAsync(TEntity entity, CancellationToken cancellationToken);
+    Task DeleteAsync(TEntity entity, CancellationToken cancellationToken);
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

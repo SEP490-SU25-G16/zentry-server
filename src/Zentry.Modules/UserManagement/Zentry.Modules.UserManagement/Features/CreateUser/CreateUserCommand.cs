@@ -1,7 +1,5 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
 
-// Thêm using này
-
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
 public class CreateUserCommand : ICommand<CreateUserResponse>

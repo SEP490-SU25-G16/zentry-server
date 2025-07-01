@@ -15,7 +15,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 public class CoursesController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    [ProducesResponseType(typeof(CourseCreatedResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CourseCreatedResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request,
         CancellationToken cancellationToken)
@@ -45,50 +45,40 @@ public class CoursesController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCourseById(Guid id, CancellationToken cancellationToken)
     {
-        // Không cần ModelState.IsValid ở đây vì chỉ có 1 tham số đơn giản
         var query = new GetCourseByIdQuery(id);
 
         try
         {
             var response = await mediator.Send(query, cancellationToken);
-            return Ok(response); // Trả về 200 OK nếu tìm thấy
+            return Ok(response);
         }
         catch (Exception ex)
         {
-            // Bắt NotFoundException và trả về 404 Not Found
             return NotFound(new { errors = ex.Message });
         }
-        // Các exception khác (ví dụ: BusinessLogicException) sẽ được middleware xử lý
     }
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(CourseDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)] // Invalid input or business logic error
     [ProducesResponseType(StatusCodes.Status404NotFound)] // Course not found
-    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseCommand request,
+    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        // Đảm bảo Id trong URL khớp với Id trong body của request nếu bạn muốn
-        // if (id != request.Id)
-        // {
-        //     return BadRequest(new { errors = "ID in URL and body do not match." });
-        // }
-        // Hoặc đơn giản hơn là bỏ qua Id trong body và luôn dùng Id từ URL Path
-        // Để phù hợp với record UpdateCourseCommand(Guid Id, ...), ta cần tạo Command mới
-        var command = request with { Id = id }; // Tạo một bản sao của request với Id từ URL
+        var command = new UpdateCourseCommand(id, request);
 
         try
         {
             var response = await mediator.Send(command, cancellationToken);
-            return Ok(response); // Trả về 200 OK với thông tin khóa học đã cập nhật
+            return Ok(response);
         }
         catch (DirectoryNotFoundException ex)
         {
             return NotFound(new { errors = ex.Message });
         }
-        catch (Exception ex) // Bắt các lỗi nghiệp vụ khác
+        catch (Exception ex)
         {
             return BadRequest(new { errors = ex.Message });
         }

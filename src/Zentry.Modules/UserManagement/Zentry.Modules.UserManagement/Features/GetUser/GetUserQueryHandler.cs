@@ -11,7 +11,7 @@ public class GetUserQueryHandler(IUserRepository userRepository)
     public async Task<GetUserResponse> Handle(GetUserQuery query, CancellationToken cancellationToken)
     {
         // 1. Tìm User
-        var user = await userRepository.GetUserById(query.UserId);
+        var user = await userRepository.GetByIdAsync(query.UserId, cancellationToken);
         if (user == null) return null; // Hoặc ném ngoại lệ NotFoundException, tùy thuộc vào chiến lược lỗi của bạn
 
         // 2. Tìm Account liên quan (sử dụng phương thức mới)

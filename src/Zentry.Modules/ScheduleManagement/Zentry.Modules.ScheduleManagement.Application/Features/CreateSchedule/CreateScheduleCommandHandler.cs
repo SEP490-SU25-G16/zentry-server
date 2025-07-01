@@ -10,17 +10,14 @@ public class CreateScheduleCommandHandler(
     ICourseRepository courseRepository,
     IRoomRepository roomRepository,
     IUserScheduleService lecturerScheduleService)
-    : ICommandHandler<CreateScheduleCommand, ScheduleCreatedResponseDto>
+    : ICommandHandler<CreateScheduleCommand, CreatedScheduleResponse>
 {
-    public async Task<ScheduleCreatedResponseDto> Handle(CreateScheduleCommand command,
+    public async Task<CreatedScheduleResponse> Handle(CreateScheduleCommand command,
         CancellationToken cancellationToken)
     {
-        // 1. Basic Validation
         if (!command.IsValidTimeRange())
-            // Sử dụng BusinessLogicException cho các lỗi nghiệp vụ
             throw new Exception("StartTime must be before EndTime.");
 
-        // 2. Kiểm tra sự tồn tại của các Entities liên quan
         var courseExists = await courseRepository.GetByIdAsync(command.CourseId, cancellationToken);
         if (courseExists == null) throw new NotFoundException($"Course with ID '{command.CourseId}' not found.");
 
@@ -34,9 +31,6 @@ public class CreateScheduleCommandHandler(
                 $"Lecturer with ID '{command.LecturerId}' not found or is not a valid lecturer.");
 
 
-        // 3. Kiểm tra trùng lặp thời gian / khả dụng (Business Rules quan trọng)
-
-        // Kiểm tra giảng viên có bận vào thời gian này không
         var isLecturerAvailable = await scheduleRepository.IsLecturerAvailableAsync(
             command.LecturerId,
             command.DayOfWeek,
@@ -76,7 +70,7 @@ public class CreateScheduleCommandHandler(
         await scheduleRepository.SaveChangesAsync(cancellationToken);
 
         // 6. Ánh xạ từ Domain Entity sang DTO để trả về
-        var responseDto = new ScheduleCreatedResponseDto
+        var responseDto = new CreatedScheduleResponse
         {
             Id = schedule.Id,
             LecturerId = schedule.LecturerId,

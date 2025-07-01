@@ -1,6 +1,6 @@
 ﻿namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateCourse;
 
-public class CourseCreatedResponseDto
+public class CourseCreatedResponse
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;

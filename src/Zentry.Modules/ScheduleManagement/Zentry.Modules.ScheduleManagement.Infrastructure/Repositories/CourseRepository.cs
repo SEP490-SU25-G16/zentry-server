@@ -17,16 +17,13 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
     // Phương thức SoftDelete mới
     public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        // GetByIdAsync sẽ tự động chỉ lấy các bản ghi !IsDeleted
         var course = await dbContext.Courses.FindAsync([id], cancellationToken);
 
         if (course != null)
         {
-            course.Delete(); // Gọi phương thức Delete trên Domain Entity
-            dbContext.Courses.Update(course); // Đánh dấu entity là Modified để lưu thay đổi
+            course.Delete();
+            dbContext.Courses.Update(course);
         }
-        // Nếu không tìm thấy (do đã bị xóa mềm hoặc không tồn tại), không làm gì
-        // Hoặc bạn có thể ném một ngoại lệ NotFoundException ở tầng Application
     }
 
 
@@ -54,9 +51,11 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
             .AnyAsync(c => c.Code == code, cancellationToken);
     }
 
-    public void Delete(Course entity)
+
+    public async Task DeleteAsync(Course entity, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        dbContext.Courses.Remove(entity);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
@@ -64,9 +63,10 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public void Update(Course entity)
+    public async Task UpdateAsync(Course entity, CancellationToken cancellationToken)
     {
         dbContext.Courses.Update(entity);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task<Tuple<List<Course>, int>> GetPagedCoursesAsync(CourseListCriteria criteria,

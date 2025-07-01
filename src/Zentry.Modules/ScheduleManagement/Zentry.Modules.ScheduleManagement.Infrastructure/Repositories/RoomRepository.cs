@@ -14,11 +14,6 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
         await dbContext.Rooms.AddAsync(entity, cancellationToken);
     }
 
-    public void Delete(Room entity)
-    {
-        dbContext.Rooms.Remove(entity);
-    }
-
     public async Task<IEnumerable<Room>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Rooms.ToListAsync(cancellationToken);
@@ -34,11 +29,16 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
         return !await dbContext.Rooms.AnyAsync(r => r.RoomName == roomName, cancellationToken);
     }
 
-    // Triển khai IsRoomNameUniqueExcludingSelfAsync
     public async Task<bool> IsRoomNameUniqueExcludingSelfAsync(Guid roomId, string roomName,
         CancellationToken cancellationToken)
     {
         return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName, cancellationToken);
+    }
+
+    public async Task DeleteAsync(Room entity, CancellationToken cancellationToken)
+    {
+        dbContext.Rooms.Remove(entity);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
@@ -46,9 +46,10 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public void Update(Room entity)
+    public async Task UpdateAsync(Room entity, CancellationToken cancellationToke)
     {
         dbContext.Rooms.Update(entity);
+        await SaveChangesAsync(cancellationToke);
     }
 
     public async Task<Tuple<List<Room>, int>> GetPagedRoomsAsync(RoomListCriteria criteria,

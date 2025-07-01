@@ -10,14 +10,10 @@ namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
-    // Đã sửa từ DbContext sang UserDbContext
-
-    // Constructor đã sửa
-
     public async Task Add(Account account, User user)
     {
-        await dbContext.Accounts.AddAsync(account); // Sử dụng DbSet trực tiếp
-        await dbContext.Users.AddAsync(user); // Sử dụng DbSet trực tiếp
+        await dbContext.Accounts.AddAsync(account);
+        await dbContext.Users.AddAsync(user);
         await dbContext.SaveChangesAsync();
     }
 
@@ -26,20 +22,12 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         return await dbContext.Accounts.AnyAsync(a => a.Email == email);
     }
 
-    // Phương thức mới: Tìm User theo ID
-    public async Task<User?> GetUserById(Guid userId)
-    {
-        return await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-    }
-
-    // Phương thức mới: Tìm Account theo ID (của Account)
 
     public async Task<Account?> GetAccountById(Guid accountId)
     {
         return await dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == accountId);
     }
 
-    // Phương thức mới: Lấy Account theo User ID
     public async Task<Account?> GetAccountByUserId(Guid userId)
     {
         return await dbContext.Accounts
@@ -52,17 +40,10 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
             .FirstOrDefaultAsync();
     }
 
-    // Phương thức mới: Cập nhật User
-    public async Task UpdateUser(User user)
-    {
-        dbContext.Users.Update(user); // Đánh dấu entity là Modified
-        await dbContext.SaveChangesAsync();
-    }
-
     // Phương thức mới: Cập nhật Account
     public async Task UpdateAccount(Account account)
     {
-        dbContext.Accounts.Update(account); // Đánh dấu entity là Modified
+        dbContext.Accounts.Update(account);
         await dbContext.SaveChangesAsync();
     }
 
@@ -81,8 +62,9 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var lowerSearchTerm = searchTerm.ToLower();
-            query = query.Where(x => x.Account.Email.ToLower().Contains(lowerSearchTerm) ||
-                                     x.User.FullName.ToLower().Contains(lowerSearchTerm));
+            query = query.Where(x =>
+                x.Account.Email.Contains(lowerSearchTerm, StringComparison.CurrentCultureIgnoreCase) ||
+                x.User.FullName.Contains(lowerSearchTerm, StringComparison.CurrentCultureIgnoreCase));
         }
 
         if (!string.IsNullOrWhiteSpace(role))
@@ -97,7 +79,6 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
             }
             catch (InvalidOperationException)
             {
-                // Ignore invalid status filter
             }
 
         var totalCount = await query.CountAsync();
@@ -112,7 +93,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                 Email = x.Account.Email,
                 FullName = x.User.FullName,
                 Role = x.Account.Role,
-                Status = x.Account.Status.ToString(), // Smart Enum tự động convert sang string
+                Status = x.Account.Status.ToString(),
                 CreatedAt = x.Account.CreatedAt
             })
             .ToListAsync();
@@ -140,30 +121,33 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         await dbContext.SaveChangesAsync();
     }
 
-    public Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return await dbContext.Users.ToListAsync(cancellationToken);
     }
 
-    public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        return await dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken: cancellationToken);
     }
+
 
     public Task AddAsync(User entity, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException("Use Add(Account, User) for creating new users with accounts.");
     }
 
-    public void Update(User entity)
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        dbContext.Users.Update(user);
+        await SaveChangesAsync(cancellationToken);
     }
 
-    public void Delete(User entity)
+    public Task DeleteAsync(User entity, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException("Use Add(Account, User) for creating new users with accounts.");
     }
+
 
     public Task SaveChangesAsync(CancellationToken cancellationToken)
     {

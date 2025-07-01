@@ -10,7 +10,7 @@ public class UpdateUserCommandHandler(IUserRepository userRepository)
     // Phương thức Handle vẫn giữ nguyên tên và chữ ký như của MediatR.IRequestHandler
     public async Task<UpdateUserResponse> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetUserById(command.UserId);
+        var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user == null) return new UpdateUserResponse { Success = false, Message = "User not found." };
 
         var account = await userRepository.GetAccountById(user.AccountId);
@@ -21,7 +21,7 @@ public class UpdateUserCommandHandler(IUserRepository userRepository)
 
         if (!string.IsNullOrWhiteSpace(command.Role)) account.UpdateAccount(role: command.Role);
 
-        await userRepository.UpdateUser(user);
+        await userRepository.UpdateAsync(user, cancellationToken);
         await userRepository.UpdateAccount(account);
 
         return new UpdateUserResponse { Success = true, Message = "User updated successfully." };

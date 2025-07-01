@@ -1,15 +1,13 @@
-﻿using MediatR;
-using Zentry.Modules.UserManagement.Entities;
+﻿using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.Entities;
 using Zentry.Modules.UserManagement.Services;
-
-// Đảm bảo đúng namespace cho interfaces
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
 public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordHasher passwordHasher)
-    : IRequestHandler<CreateUserCommand, CreateUserResponse>
+    : ICommandHandler<CreateUserCommand, CreateUserResponse>
 {
     public async Task<CreateUserResponse> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {

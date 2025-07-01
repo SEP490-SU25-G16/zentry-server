@@ -6,4 +6,4 @@ public record CreateRoomCommand(
     string RoomName,
     string Building,
     int Capacity
-) : ICommand<RoomCreatedResponseDto>;
+) : ICommand<CreatedRoomResponse>;

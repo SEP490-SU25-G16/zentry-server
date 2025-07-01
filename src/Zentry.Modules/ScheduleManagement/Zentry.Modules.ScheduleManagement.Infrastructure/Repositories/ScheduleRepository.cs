@@ -8,38 +8,38 @@ using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
-public class ScheduleRepository(ScheduleDbContext context) : IScheduleRepository
+public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
-    private readonly ScheduleDbContext _dbContext = context;
-
     public async Task<IEnumerable<Schedule>> GetAllAsync(CancellationToken cancellationToken)
     {
-        return await _dbContext.Schedules.ToListAsync(cancellationToken);
+        return await dbContext.Schedules.ToListAsync(cancellationToken);
     }
 
     public async Task<Schedule?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbContext.Schedules.FindAsync(new object[] { id }, cancellationToken);
+        return await dbContext.Schedules.FindAsync([id], cancellationToken);
     }
 
     public async Task AddAsync(Schedule entity, CancellationToken cancellationToken)
     {
-        await _dbContext.Schedules.AddAsync(entity, cancellationToken);
+        await dbContext.Schedules.AddAsync(entity, cancellationToken);
     }
 
-    public void Update(Schedule entity)
+    public async Task UpdateAsync(Schedule entity, CancellationToken cancellationToke)
     {
-        _dbContext.Schedules.Update(entity);
+        dbContext.Schedules.Update(entity);
+        await SaveChangesAsync(cancellationToke);
     }
 
-    public void Delete(Schedule entity)
+    public async Task DeleteAsync(Schedule entity, CancellationToken cancellationToken)
     {
-        _dbContext.Schedules.Remove(entity);
+        dbContext.Schedules.Remove(entity);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     // Triển khai IsLecturerAvailableAsync
@@ -53,7 +53,7 @@ public class ScheduleRepository(ScheduleDbContext context) : IScheduleRepository
         var newStartTimeOfDay = startTime.TimeOfDay;
         var newEndTimeOfDay = endTime.TimeOfDay;
 
-        var overlappingSchedules = await _dbContext.Schedules
+        var overlappingSchedules = await dbContext.Schedules
             .AnyAsync(s =>
                     s.LecturerId == lecturerId &&
                     s.DayOfWeek == dayOfWeek &&
@@ -74,7 +74,7 @@ public class ScheduleRepository(ScheduleDbContext context) : IScheduleRepository
         var newStartTimeOfDay = startTime.TimeOfDay;
         var newEndTimeOfDay = endTime.TimeOfDay;
 
-        var overlappingSchedules = await _dbContext.Schedules
+        var overlappingSchedules = await dbContext.Schedules
             .AnyAsync(s =>
                     s.RoomId == roomId &&
                     s.DayOfWeek == dayOfWeek &&
@@ -87,7 +87,7 @@ public class ScheduleRepository(ScheduleDbContext context) : IScheduleRepository
     public async Task<Tuple<List<Schedule>, int>> GetPagedSchedulesAsync(ScheduleListCriteria criteria,
         CancellationToken cancellationToken)
     {
-        var query = _dbContext.Schedules.AsQueryable();
+        var query = dbContext.Schedules.AsQueryable();
 
         // Filtering
         if (criteria.LecturerId.HasValue) query = query.Where(s => s.LecturerId == criteria.LecturerId.Value);
@@ -129,6 +129,76 @@ public class ScheduleRepository(ScheduleDbContext context) : IScheduleRepository
         else
         {
             query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime); // Default sort
+        }
+
+        // Pagination
+        var schedules = await query
+            .Skip((criteria.PageNumber - 1) * criteria.PageSize)
+            .Take(criteria.PageSize)
+            .ToListAsync(cancellationToken);
+
+        return Tuple.Create(schedules, totalCount);
+    }
+
+    public async Task<Tuple<List<Schedule>, int>> GetPagedSchedulesWithIncludesAsync(
+        ScheduleListCriteria criteria,
+        CancellationToken cancellationToken)
+    {
+        var query = dbContext.Schedules
+            .Include(s => s.Course) // Include Course
+            .Include(s => s.Room) // Include Room
+            .AsQueryable();
+
+        // Apply filtering
+        if (criteria.LecturerId.HasValue)
+            query = query.Where(s => s.LecturerId == criteria.LecturerId.Value);
+        if (criteria.CourseId.HasValue)
+            query = query.Where(s => s.CourseId == criteria.CourseId.Value);
+        if (criteria.RoomId.HasValue)
+            query = query.Where(s => s.RoomId == criteria.RoomId.Value);
+        if (criteria.DayOfWeek != null)
+            query = query.Where(s => s.DayOfWeek.Id == criteria.DayOfWeek.Id);
+
+        // Search trong related entities
+        if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
+        {
+            var searchTerm = criteria.SearchTerm.ToLower();
+            query = query.Where(s =>
+                s.Course!.Name.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
+                s.Course!.Code.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
+                s.Room!.RoomName.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
+                s.Room!.Building.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase)
+            );
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        // Sorting with related entities
+        if (!string.IsNullOrWhiteSpace(criteria.SortBy))
+        {
+            query = criteria.SortBy.ToLower() switch
+            {
+                "coursename" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(s => s.Course!.Name)
+                    : query.OrderBy(s => s.Course!.Name),
+                "roomname" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(s => s.Room!.RoomName)
+                    : query.OrderBy(s => s.Room!.RoomName),
+                "starttime" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(s => s.StartTime)
+                    : query.OrderBy(s => s.StartTime),
+                "endtime" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(s => s.EndTime)
+                    : query.OrderBy(s => s.EndTime),
+                "dayofweek" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(s => s.DayOfWeek)
+                    : query.OrderBy(s => s.DayOfWeek),
+                _ => query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
+            };
+        }
+        else
+        {
+            query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime);
         }
 
         // Pagination

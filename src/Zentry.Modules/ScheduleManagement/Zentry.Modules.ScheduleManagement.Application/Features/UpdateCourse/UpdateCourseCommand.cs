@@ -3,10 +3,11 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateCourse;
 
-// Record để tạo Command immutable. Id là từ URL, các trường còn lại từ Body.
-public record UpdateCourseCommand(
-    Guid Id, // ID của khóa học cần cập nhật
-    string Name,
-    string Description,
-    string Semester
-) : ICommand<CourseDetailDto>; // Trả về DTO của khóa học đã cập nhật
+public class UpdateCourseCommand(Guid courseId, UpdateCourseRequest request)
+    : ICommand<CourseDetailDto>
+{
+    public Guid Id { get; init; } = courseId;
+    public string? Name { get; init; } = request.Name;
+    public string? Description { get; init; } = request.Description;
+    public string? Semester { get; init; } = request.Semester;
+}

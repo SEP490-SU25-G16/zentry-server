@@ -20,12 +20,12 @@ public class ConfigurationRepository : IConfigurationRepository
         throw new NotImplementedException();
     }
 
-    public void Update(Configuration entity)
+    public Task UpdateAsync(Configuration entity, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
 
-    public void Delete(Configuration entity)
+    public Task DeleteAsync(Configuration entity, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

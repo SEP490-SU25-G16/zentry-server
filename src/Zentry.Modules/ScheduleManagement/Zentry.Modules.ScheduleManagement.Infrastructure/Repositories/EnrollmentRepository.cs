@@ -11,7 +11,6 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
 {
     public async Task<bool> ExistsAsync(Guid studentId, Guid scheduleId, CancellationToken cancellationToken)
     {
-        // Kiểm tra xem đã có bản ghi ghi danh active nào cho cặp StudentId và ScheduleId này chưa
         return await dbContext.Enrollments
             .AsNoTracking()
             .AnyAsync(
@@ -29,7 +28,6 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    // --- Các phương thức khác của IRepository<Enrollment, Guid> ---
     public async Task<IEnumerable<Enrollment>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Enrollments.ToListAsync(cancellationToken);
@@ -40,14 +38,16 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         return await dbContext.Enrollments.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
-    public void Update(Enrollment entity)
+    public async Task UpdateAsync(Enrollment entity, CancellationToken cancellationToken)
     {
         dbContext.Enrollments.Update(entity);
+        await SaveChangesAsync(cancellationToken);
     }
 
-    public void Delete(Enrollment entity)
+    public async Task DeleteAsync(Enrollment entity, CancellationToken cancellationToken)
     {
         dbContext.Enrollments.Remove(entity);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<(List<Enrollment> Enrollments, int TotalCount)> GetPagedEnrollmentsAsync(
@@ -90,27 +90,19 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
 
         // Sắp xếp
         if (!string.IsNullOrEmpty(criteria.SortBy))
-            switch (criteria.SortBy.ToLower())
+            query = criteria.SortBy.ToLower() switch
             {
-                case "enrollmentdate":
-                    query = criteria.SortOrder?.ToLower() == "desc"
-                        ? query.OrderByDescending(e => e.EnrolledAt)
-                        : query.OrderBy(e => e.EnrolledAt);
-                    break;
-                case "studentid":
-                    query = criteria.SortOrder?.ToLower() == "desc"
-                        ? query.OrderByDescending(e => e.StudentId)
-                        : query.OrderBy(e => e.StudentId);
-                    break;
-                case "coursename":
-                    query = criteria.SortOrder?.ToLower() == "desc"
-                        ? query.OrderByDescending(e => e.Schedule!.Course!.Name)
-                        : query.OrderBy(e => e.Schedule!.Course!.Name);
-                    break;
-                default:
-                    query = query.OrderBy(e => e.Id);
-                    break;
-            }
+                "enrollmentdate" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(e => e.EnrolledAt)
+                    : query.OrderBy(e => e.EnrolledAt),
+                "studentid" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(e => e.StudentId)
+                    : query.OrderBy(e => e.StudentId),
+                "coursename" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(e => e.Schedule!.Course!.Name)
+                    : query.OrderBy(e => e.Schedule!.Course!.Name),
+                _ => query.OrderBy(e => e.Id)
+            };
         else
             query = query.OrderBy(e => e.EnrolledAt);
 
