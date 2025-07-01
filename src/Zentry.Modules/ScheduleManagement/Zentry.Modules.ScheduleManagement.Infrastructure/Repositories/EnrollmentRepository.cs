@@ -60,7 +60,6 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
             .Include(e => e.Schedule!)
             .ThenInclude(s => s.Room)
             .Include(e => e.Schedule!)
-            .ThenInclude(s => s.Lecturer)
             .AsNoTracking();
 
         // Lọc theo CourseId (qua Schedule)

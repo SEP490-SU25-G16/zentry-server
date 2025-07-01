@@ -12,8 +12,8 @@ using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ScheduleDbContext))]
-    [Migration("20250630102245_update")]
-    partial class update
+    [Migration("20250701135534_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -89,6 +89,11 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uuid");
@@ -199,6 +204,36 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Schedules_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                         });
+                });
+
+            modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Enrollment", b =>
+                {
+                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Schedule", "Schedule")
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
+                });
+
+            modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Schedule", b =>
+                {
+                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Room");
                 });
 #pragma warning restore 612, 618
         }

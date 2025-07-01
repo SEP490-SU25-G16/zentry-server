@@ -58,11 +58,6 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasForeignKey(s => s.RoomId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(s => s.Lecturer)
-            .WithMany()
-            .HasForeignKey(s => s.LecturerId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         // Indices
         builder.HasIndex(s => s.LecturerId);
         builder.HasIndex(s => s.CourseId);

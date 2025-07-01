@@ -9,10 +9,10 @@ using Zentry.Modules.ConfigurationManagement.Persistence;
 
 #nullable disable
 
-namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
+namespace Zentry.Modules.ConfigurationManagement.Persistence.Migrations
 {
     [DbContext(typeof(ConfigurationDbContext))]
-    [Migration("20250626060121_Initial")]
+    [Migration("20250701135838_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Domain.Entities.AttributeDefinition", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.AttributeDefinition", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -81,7 +81,7 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
                     b.ToTable("AttributeDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Domain.Entities.Configuration", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.Configuration", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -127,7 +127,7 @@ namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
                     b.ToTable("Configurations", (string)null);
                 });
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Domain.Entities.Option", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.Option", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

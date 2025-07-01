@@ -12,8 +12,8 @@ using Zentry.Modules.UserManagement.Persistence.DbContext;
 namespace Zentry.Modules.UserManagement.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20250630102224_update")]
-    partial class update
+    [Migration("20250701134727_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

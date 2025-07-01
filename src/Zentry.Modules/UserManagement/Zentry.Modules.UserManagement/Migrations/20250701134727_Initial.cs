@@ -22,7 +22,7 @@ namespace Zentry.Modules.UserManagement.Migrations
                     Role = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    Status = table.Column<string>(type: "text", nullable: false, defaultValue: "Active"),
+                    Status = table.Column<string>(type: "text", nullable: false, defaultValueSql: "'Active'"),
                     ResetToken = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     ResetTokenExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },

@@ -23,7 +23,7 @@ public class ConfigurationDbContextFactory : IDesignTimeDbContextFactory<Configu
             connectionString = "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres";
 
         optionsBuilder.UseNpgsql(connectionString,
-            b => b.MigrationsAssembly("Zentry.Modules.ConfigurationManagement.Infrastructure"));
+            b => b.MigrationsAssembly("Zentry.Modules.ConfigurationManagement"));
 
         return new ConfigurationDbContext(optionsBuilder.Options);
     }

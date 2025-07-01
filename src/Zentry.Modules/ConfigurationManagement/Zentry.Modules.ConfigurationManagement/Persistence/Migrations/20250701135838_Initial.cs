@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Zentry.Modules.ConfigurationManagement.Infrastructure.Migrations
+namespace Zentry.Modules.ConfigurationManagement.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration

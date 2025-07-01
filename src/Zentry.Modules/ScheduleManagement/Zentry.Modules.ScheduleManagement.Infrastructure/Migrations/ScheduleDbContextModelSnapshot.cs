@@ -202,6 +202,36 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_Schedules_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                         });
                 });
+
+            modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Enrollment", b =>
+                {
+                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Schedule", "Schedule")
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Schedule");
+                });
+
+            modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Schedule", b =>
+                {
+                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Room");
+                });
 #pragma warning restore 612, 618
         }
     }
