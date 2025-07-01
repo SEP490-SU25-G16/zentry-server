@@ -1,18 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Zentry.Modules.ScheduleManagement.Domain.Enums;
+﻿using Zentry.Modules.ScheduleManagement.Domain.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
 
 public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
 {
-    public Guid LecturerId { get; set; }
-    public Guid CourseId { get; set; }
-    public Guid RoomId { get; set; }
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public DayOfWeekEnum DayOfWeek { get; set; }
-
     public CreateScheduleCommand(
         Guid lecturerId,
         Guid courseId,
@@ -55,6 +47,13 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
         EndTime = request.EndTime;
         DayOfWeek = DayOfWeekEnum.FromName(request.DayOfWeek);
     }
+
+    public Guid LecturerId { get; set; }
+    public Guid CourseId { get; set; }
+    public Guid RoomId { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public DayOfWeekEnum DayOfWeek { get; set; }
 
     public bool IsValidTimeRange()
     {

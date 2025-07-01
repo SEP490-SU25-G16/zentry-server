@@ -128,7 +128,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
 
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken: cancellationToken);
+        return await dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
 

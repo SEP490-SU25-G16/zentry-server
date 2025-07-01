@@ -4,7 +4,6 @@ using Zentry.Modules.DeviceManagement.Domain.Entities;
 using Zentry.Modules.DeviceManagement.Domain.Enums;
 using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 
-
 namespace Zentry.Modules.DeviceManagement.Infrastructure.Repositories;
 
 public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository

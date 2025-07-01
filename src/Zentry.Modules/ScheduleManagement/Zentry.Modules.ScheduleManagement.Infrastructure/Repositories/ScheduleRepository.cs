@@ -175,7 +175,6 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
 
         // Sorting with related entities
         if (!string.IsNullOrWhiteSpace(criteria.SortBy))
-        {
             query = criteria.SortBy.ToLower() switch
             {
                 "coursename" => criteria.SortOrder?.ToLower() == "desc"
@@ -195,11 +194,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
                     : query.OrderBy(s => s.DayOfWeek),
                 _ => query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
             };
-        }
         else
-        {
             query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime);
-        }
 
         // Pagination
         var schedules = await query

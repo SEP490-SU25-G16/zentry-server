@@ -13,6 +13,7 @@ public interface IUserRepository : IRepository<User, Guid>
     Task<Account?> GetAccountById(Guid accountId);
     Task<Account?> GetAccountByUserId(Guid userId);
     Task UpdateAccount(Account account);
+
     Task<(IEnumerable<UserListItemDto> Users, int TotalCount)> GetUsersAsync(
         int pageNumber,
         int pageSize,

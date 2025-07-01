@@ -46,6 +46,5 @@ public class UserQueryService(IUserRepository userRepository) : IUserQueryServic
             return await Task.FromResult<UserLookupDto?>(new UserLookupDto { Id = userId, Name = "Teacher B" });
 
         return await Task.FromResult<UserLookupDto?>(null);
-
     }
 }

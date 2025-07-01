@@ -5,17 +5,6 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 
 public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
 {
-    public Guid AdminId { get; set; }
-    public int PageNumber { get; set; } = 1;
-    public int PageSize { get; set; } = 10;
-    public string? SearchTerm { get; set; }
-    public Guid? StudentId { get; set; }
-    public Guid? ScheduleId { get; set; }
-    public Guid? CourseId { get; set; }
-    public EnrollmentStatus? Status { get; set; }
-    public string? SortBy { get; set; }
-    public string? SortOrder { get; set; }
-
     public GetEnrollmentsQuery(GetEnrollmentsRequest request)
     {
         PageNumber = request.PageNumber;
@@ -29,17 +18,22 @@ public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
         Status = ParseEnrollmentStatus(request.Status);
     }
 
+    public Guid AdminId { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    public string? SearchTerm { get; set; }
+    public Guid? StudentId { get; set; }
+    public Guid? ScheduleId { get; set; }
+    public Guid? CourseId { get; set; }
+    public EnrollmentStatus? Status { get; set; }
+    public string? SortBy { get; set; }
+    public string? SortOrder { get; set; }
+
     private EnrollmentStatus? ParseEnrollmentStatus(string? statusString)
     {
-        if (string.IsNullOrWhiteSpace(statusString))
-        {
-            return null;
-        }
+        if (string.IsNullOrWhiteSpace(statusString)) return null;
 
-        if (Enum.TryParse<Domain.Enums.EnrollmentStatus>(statusString, true, out var status))
-        {
-            return status;
-        }
+        if (Enum.TryParse<EnrollmentStatus>(statusString, true, out var status)) return status;
 
         return null;
     }
