@@ -43,6 +43,11 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -81,6 +86,11 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uuid");

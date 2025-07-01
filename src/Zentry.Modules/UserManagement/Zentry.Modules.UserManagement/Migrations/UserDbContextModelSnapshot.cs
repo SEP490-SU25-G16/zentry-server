@@ -22,7 +22,7 @@ namespace Zentry.Modules.UserManagement.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Zentry.Modules.UserManagement.Persistence.Entities.Account", b =>
+            modelBuilder.Entity("Zentry.Modules.UserManagement.Entities.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

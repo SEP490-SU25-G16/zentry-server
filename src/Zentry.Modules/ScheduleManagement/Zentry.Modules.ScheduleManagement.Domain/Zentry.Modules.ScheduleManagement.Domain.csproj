@@ -7,5 +7,6 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
+        <ProjectReference Include="..\..\UserManagement\Zentry.Modules.UserManagement\Zentry.Modules.UserManagement.csproj" />
     </ItemGroup>
 </Project>

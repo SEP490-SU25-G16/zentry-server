@@ -2,7 +2,8 @@
 
 namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
-public interface ILecturerLookupService
+public interface IUserScheduleService
 {
     Task<LecturerLookupDto?> GetLecturerByIdAsync(Guid lecturerId, CancellationToken cancellationToken);
+    Task<UserLookupDto?> GetByIdAsync(Guid userId, CancellationToken cancellationToken);
 }

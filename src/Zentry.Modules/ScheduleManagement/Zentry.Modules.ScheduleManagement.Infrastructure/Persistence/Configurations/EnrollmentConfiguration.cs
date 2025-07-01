@@ -18,12 +18,22 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
         builder.Property(e => e.StudentId)
             .IsRequired();
 
-        builder.Property(e => e.ScheduleId) // Changed from CourseId to ScheduleId based on DB design and logic
+        builder.Property(e => e.ScheduleId)
             .IsRequired();
 
         builder.Property(e => e.EnrolledAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
+
+        builder.Property(e => e.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        // Configure Relationships
+        builder.HasOne(e => e.Schedule)
+            .WithMany()
+            .HasForeignKey(e => e.ScheduleId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(e => new { e.StudentId, e.ScheduleId })
             .IsUnique()

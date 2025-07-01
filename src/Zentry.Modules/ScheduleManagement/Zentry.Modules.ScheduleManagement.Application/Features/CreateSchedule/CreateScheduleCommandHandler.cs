@@ -9,7 +9,7 @@ public class CreateScheduleCommandHandler(
     IScheduleRepository scheduleRepository,
     ICourseRepository courseRepository,
     IRoomRepository roomRepository,
-    ILecturerLookupService lecturerLookupService)
+    IUserScheduleService lecturerScheduleService)
     : ICommandHandler<CreateScheduleCommand, ScheduleCreatedResponseDto>
 {
     public async Task<ScheduleCreatedResponseDto> Handle(CreateScheduleCommand command,
@@ -28,7 +28,7 @@ public class CreateScheduleCommandHandler(
         if (roomExists == null) throw new NotFoundException($"Room with ID '{command.RoomId}' not found.");
 
         // Kiểm tra LecturerId bằng ILecturerLookupService
-        var lecturerExists = await lecturerLookupService.GetLecturerByIdAsync(command.LecturerId, cancellationToken);
+        var lecturerExists = await lecturerScheduleService.GetLecturerByIdAsync(command.LecturerId, cancellationToken);
         if (lecturerExists == null)
             throw new NotFoundException(
                 $"Lecturer with ID '{command.LecturerId}' not found or is not a valid lecturer.");

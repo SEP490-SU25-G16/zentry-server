@@ -12,7 +12,7 @@ public static class DependencyInjection
     public static IServiceCollection AddDeviceInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<DeviceManagementDbContext>(options =>
+        services.AddDbContext<DeviceDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly("Zentry.Modules.DeviceManagement.Infrastructure")

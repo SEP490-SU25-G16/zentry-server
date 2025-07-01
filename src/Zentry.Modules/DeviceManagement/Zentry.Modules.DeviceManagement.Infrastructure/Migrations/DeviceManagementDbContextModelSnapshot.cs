@@ -10,7 +10,7 @@ using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 
 namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
 {
-    [DbContext(typeof(DeviceManagementDbContext))]
+    [DbContext(typeof(DeviceDbContext))]
     partial class DeviceManagementDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

@@ -21,7 +21,8 @@ public static class DependencyInjection
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
         services.AddScoped<ICourseRepository, CourseRepository>();
         services.AddScoped<IRoomRepository, RoomRepository>();
-        services.AddScoped<ILecturerLookupService, LecturerLookupService>();
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+        services.AddScoped<IUserScheduleService, UserScheduleService>();
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));

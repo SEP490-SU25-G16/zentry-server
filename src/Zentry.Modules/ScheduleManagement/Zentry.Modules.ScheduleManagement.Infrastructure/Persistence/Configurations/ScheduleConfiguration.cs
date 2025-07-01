@@ -7,7 +7,6 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configura
 
 public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 {
-    [Obsolete("Obsolete")]
     public void Configure(EntityTypeBuilder<Schedule> builder)
     {
         builder.ToTable("Schedules");
@@ -17,7 +16,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(s => s.LecturerId) // Thêm LecturerId
+        builder.Property(s => s.LecturerId)
             .IsRequired();
 
         builder.Property(s => s.CourseId)
@@ -32,13 +31,13 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.EndTime)
             .IsRequired();
 
-        builder.Property(s => s.DayOfWeek) // Cấu hình DayOfWeek (Enumeration)
+        builder.Property(s => s.DayOfWeek)
             .HasConversion(
                 dw => dw.ToString(),
                 dw => DayOfWeekEnum.FromName(dw)
             )
             .IsRequired()
-            .HasMaxLength(20); // Giả định độ dài
+            .HasMaxLength(20);
 
         builder.Property(s => s.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -47,6 +46,22 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.UpdatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
+
+        // Configure Relationships
+        builder.HasOne(s => s.Course)
+            .WithMany()
+            .HasForeignKey(s => s.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(s => s.Room)
+            .WithMany()
+            .HasForeignKey(s => s.RoomId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(s => s.Lecturer)
+            .WithMany()
+            .HasForeignKey(s => s.LecturerId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Indices
         builder.HasIndex(s => s.LecturerId);
@@ -58,10 +73,5 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 
         builder.HasCheckConstraint("CK_Schedules_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");
-
-        // Navigation properties (Nếu có trong entity Schedule)
-        // builder.HasOne(s => s.Course).WithMany().HasForeignKey(s => s.CourseId);
-        // builder.HasOne(s => s.Room).WithMany().HasForeignKey(s => s.RoomId);
-        // builder.HasOne(s => s.Lecturer).WithMany().HasForeignKey(s => s.LecturerId);
     }
 }

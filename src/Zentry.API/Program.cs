@@ -80,7 +80,7 @@ using (var scope = app.Services.CreateScope())
     // Migrate DeviceManagement
     retryPolicy.Execute(() =>
     {
-        var deviceDbContext = serviceProvider.GetRequiredService<DeviceManagementDbContext>();
+        var deviceDbContext = serviceProvider.GetRequiredService<DeviceDbContext>();
         logger.LogInformation("Applying migrations for DeviceManagementDbContext...");
         deviceDbContext.Database.Migrate();
         logger.LogInformation("DeviceManagement migrations applied successfully.");

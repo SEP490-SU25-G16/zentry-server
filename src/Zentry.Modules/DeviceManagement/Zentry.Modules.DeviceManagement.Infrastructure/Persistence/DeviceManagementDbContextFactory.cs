@@ -4,9 +4,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 
-public class DeviceManagementDbContextFactory : IDesignTimeDbContextFactory<DeviceManagementDbContext>
+public class DeviceManagementDbContextFactory : IDesignTimeDbContextFactory<DeviceDbContext>
 {
-    public DeviceManagementDbContext CreateDbContext(string[] args)
+    public DeviceDbContext CreateDbContext(string[] args)
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -15,7 +15,7 @@ public class DeviceManagementDbContextFactory : IDesignTimeDbContextFactory<Devi
             .AddEnvironmentVariables()
             .Build();
 
-        var optionsBuilder = new DbContextOptionsBuilder<DeviceManagementDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<DeviceDbContext>();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrEmpty(connectionString))
@@ -25,6 +25,6 @@ public class DeviceManagementDbContextFactory : IDesignTimeDbContextFactory<Devi
         optionsBuilder.UseNpgsql(connectionString,
             b => b.MigrationsAssembly("Zentry.Modules.DeviceManagement.Infrastructure"));
 
-        return new DeviceManagementDbContext(optionsBuilder.Options);
+        return new DeviceDbContext(optionsBuilder.Options);
     }
 }

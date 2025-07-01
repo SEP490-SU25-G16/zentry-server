@@ -19,6 +19,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
+        <ProjectReference Include="..\..\DeviceManagement\Zentry.Modules.DeviceManagement.Application\Zentry.Modules.DeviceManagement.Application.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

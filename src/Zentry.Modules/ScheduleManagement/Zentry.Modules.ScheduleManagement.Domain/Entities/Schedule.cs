@@ -1,4 +1,5 @@
 using Zentry.Modules.ScheduleManagement.Domain.Enums;
+using Zentry.Modules.UserManagement.Persistence.Entities;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
@@ -30,6 +31,9 @@ public class Schedule : AggregateRoot<Guid>
     public DayOfWeekEnum DayOfWeek { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public virtual Course? Course { get; private set; }
+    public virtual Room? Room { get; private set; }
+    public virtual User? Lecturer { get; private set; }
 
     public static Schedule Create(Guid lecturerId, Guid courseId, Guid roomId, DateTime startTime, DateTime endTime,
         DayOfWeekEnum dayOfWeek)

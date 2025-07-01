@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Enums;
-using Zentry.Modules.UserManagement.Persistence.Entities;
 
 namespace Zentry.Modules.UserManagement.Persistence.Configurations;
 
