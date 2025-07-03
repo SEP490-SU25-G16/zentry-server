@@ -47,7 +47,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
     public async Task DeleteAsync(Enrollment entity, CancellationToken cancellationToken)
     {
         dbContext.Enrollments.Remove(entity);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task<(List<Enrollment> Enrollments, int TotalCount)> GetPagedEnrollmentsAsync(

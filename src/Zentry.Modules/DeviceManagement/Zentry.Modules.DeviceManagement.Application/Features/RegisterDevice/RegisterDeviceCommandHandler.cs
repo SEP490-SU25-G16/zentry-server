@@ -15,12 +15,10 @@ public class RegisterDeviceCommandHandler(
 {
     private readonly IMediator _mediator = mediator; // For publishing domain events if needed
 
-    // Inject IMediator if you plan to publish domain events
-
     public async Task<RegisterDeviceResponse> Handle(RegisterDeviceCommand command, CancellationToken cancellationToken)
     {
         // 1. Validate UserId existence (from Identity Module)
-        var userExists = await userDeviceService.CheckUserExistsAsync(command.UserId);
+        var userExists = await userDeviceService.CheckUserExistsAsync(command.UserId, cancellationToken);
         if (!userExists)
             // This scenario should ideally be caught by authentication middleware,
             // but good to have a robust check.
@@ -33,7 +31,6 @@ public class RegisterDeviceCommandHandler(
             throw new BusinessLogicException("User already has a primary device registered.");
 
         // 3. Create DeviceName ValueObject
-        // The command contains string, convert to ValueObject here.
         DeviceName deviceNameVo;
         try
         {
@@ -44,16 +41,21 @@ public class RegisterDeviceCommandHandler(
             throw new BusinessLogicException($"Invalid device name: {ex.Message}");
         }
 
-
         // 4. Generate DeviceToken ValueObject
-        // The DeviceToken ValueObject itself contains the generation logic.
         var deviceTokenVo = DeviceToken.Create();
 
         // 5. Create the new Device entity using the factory method
+        //    Truyền tất cả các trường optional từ command vào phương thức Create của entity Device
         var newDevice = Device.Create(
             command.UserId,
             deviceNameVo,
-            deviceTokenVo
+            deviceTokenVo,
+            command.Platform,
+            command.OsVersion,
+            command.Model,
+            command.Manufacturer,
+            command.AppVersion,
+            command.PushNotificationToken
         );
 
         // 6. Add the new device to the repository
@@ -79,6 +81,10 @@ public class RegisterDeviceCommandHandler(
             UserId = newDevice.UserId,
             DeviceToken = newDevice.DeviceToken.Value, // Return the string value of the token
             CreatedAt = newDevice.CreatedAt
+            // Nếu muốn, bạn có thể trả về các thông tin optional đã lưu vào DB
+            // Platform = newDevice.Platform,
+            // OSVersion = newDevice.OSVersion,
+            // ...
         };
     }
 }

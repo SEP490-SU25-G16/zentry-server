@@ -22,7 +22,7 @@ public class UpdateUserCommandHandler(IUserRepository userRepository)
         if (!string.IsNullOrWhiteSpace(command.Role)) account.UpdateAccount(role: command.Role);
 
         await userRepository.UpdateAsync(user, cancellationToken);
-        await userRepository.UpdateAccount(account);
+        await userRepository.UpdateAccountAsync(account, cancellationToken);
 
         return new UpdateUserResponse { Success = true, Message = "User updated successfully." };
     }

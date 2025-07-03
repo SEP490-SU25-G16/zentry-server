@@ -11,7 +11,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
-        <ProjectReference Include="..\..\UserManagement\Zentry.Modules.UserManagement\Zentry.Modules.UserManagement.csproj"/>
         <ProjectReference Include="..\Zentry.Modules.ScheduleManagement.Domain\Zentry.Modules.ScheduleManagement.Domain.csproj"/>
     </ItemGroup>
 </Project>

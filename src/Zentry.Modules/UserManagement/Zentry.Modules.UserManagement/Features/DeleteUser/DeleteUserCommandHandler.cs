@@ -12,7 +12,7 @@ public class DeleteUserCommandHandler(IUserRepository userRepository)
     {
         try
         {
-            await userRepository.SoftDeleteUserAsync(command.UserId);
+            await userRepository.SoftDeleteUserAsync(command.UserId, cancellationToken);
             return new DeleteUserResponse { Success = true, Message = "User soft deleted successfully." };
         }
         catch (InvalidOperationException ex)

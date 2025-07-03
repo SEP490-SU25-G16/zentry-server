@@ -27,7 +27,7 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordH
         var user = User.Create(account.Id, command.FullName, command.PhoneNumber);
 
         // 4. Lưu vào cơ sở dữ liệu
-        await userRepository.Add(account, user);
+        await userRepository.AddAsync(account, user, cancellationToken);
 
         // 5. Trả về Response
         return new CreateUserResponse

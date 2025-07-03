@@ -27,7 +27,7 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
         throw new NotSupportedException("Use Soft delete please.");
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default) //
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await dbContext.SaveChangesAsync(cancellationToken);
     }

@@ -1,19 +1,10 @@
-﻿using Zentry.Modules.DeviceManagement.Application.Abstractions;
-using Zentry.Modules.UserManagement.Interfaces;
+﻿using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Contracts;
 
 namespace Zentry.Modules.UserManagement.Services;
 
-public class UserQueryService(IUserRepository userRepository) : IUserQueryService, IUserDeviceService
+public class UserQueryService(IUserRepository userRepository) : IUserQueryService
 {
-    public Task<bool> CheckUserExistsAsync(Guid userId)
-    {
-        // *** IMPORTANT: Replace with actual logic to check user existence in the User module. ***
-        // Example: return await _identityDbContext.Users.AnyAsync(u => u.Id == userId);
-        // For now, a simple mock:
-        return Task.FromResult(userId != Guid.Empty); // Assuming Guid.Empty is an invalid user
-    }
-
     public async Task<LecturerLookupDto?> GetLecturerByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByIdAsync(userId, cancellationToken);
@@ -46,5 +37,10 @@ public class UserQueryService(IUserRepository userRepository) : IUserQueryServic
             return await Task.FromResult<UserLookupDto?>(new UserLookupDto { Id = userId, Name = "Teacher B" });
 
         return await Task.FromResult<UserLookupDto?>(null);
+    }
+
+    public async Task<bool> CheckUserExistsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await userRepository.ExistsByIdAsync(userId, cancellationToken);
     }
 }

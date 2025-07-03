@@ -11,5 +11,6 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Zentry.Modules.ScheduleManagement.Application\Zentry.Modules.ScheduleManagement.Application.csproj"/>
+        <ProjectReference Include="..\..\UserManagement\Zentry.Modules.UserManagement\Zentry.Modules.UserManagement.csproj"/>
     </ItemGroup>
 </Project>

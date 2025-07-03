@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Zentry.Modules.DeviceManagement.Infrastructure.Migrations
+namespace Zentry.Modules.DeviceManagement.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(DeviceDbContext))]
-    partial class DeviceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250703015135_Add field to device entity")]
+    partial class Addfieldtodeviceentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

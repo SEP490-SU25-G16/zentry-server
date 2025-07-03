@@ -1,7 +1,9 @@
-﻿using SendGrid.Helpers.Errors.Model;
+﻿// using SendGrid.Helpers.Errors.Model;
+
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
 
@@ -19,15 +21,17 @@ public class CreateScheduleCommandHandler(
             throw new Exception("StartTime must be before EndTime.");
 
         var courseExists = await courseRepository.GetByIdAsync(command.CourseId, cancellationToken);
-        if (courseExists == null) throw new NotFoundException($"Course with ID '{command.CourseId}' not found.");
+        if (courseExists == null)
+            throw new NotFoundException(nameof(ScheduleManagement), $"Course with ID '{command.CourseId}' not found.");
 
         var roomExists = await roomRepository.GetByIdAsync(command.RoomId, cancellationToken);
-        if (roomExists == null) throw new NotFoundException($"Room with ID '{command.RoomId}' not found.");
+        if (roomExists == null)
+            throw new NotFoundException(nameof(ScheduleManagement), $"Room with ID '{command.RoomId}' not found.");
 
         // Kiểm tra LecturerId bằng ILecturerLookupService
         var lecturerExists = await lecturerScheduleService.GetLecturerByIdAsync(command.LecturerId, cancellationToken);
         if (lecturerExists == null)
-            throw new NotFoundException(
+            throw new NotFoundException(nameof(ScheduleManagement),
                 $"Lecturer with ID '{command.LecturerId}' not found or is not a valid lecturer.");
 
 

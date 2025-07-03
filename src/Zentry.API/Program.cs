@@ -5,6 +5,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.Modules.ConfigurationManagement;
 using Zentry.Modules.ConfigurationManagement.Persistence;
+using Zentry.Modules.DeviceManagement.Application;
 using Zentry.Modules.DeviceManagement.Infrastructure;
 using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 using Zentry.Modules.NotificationService;
@@ -23,8 +24,8 @@ builder.Services.AddControllers()
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    options.AddPolicy("AllowAll", corsPolicyBuilder =>
+        corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -32,6 +33,7 @@ builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
 builder.Services.AddScheduleApplication();
 builder.Services.AddDeviceInfrastructure(builder.Configuration);
+builder.Services.AddDeviceApplication();
 builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddReportingInfrastructure(builder.Configuration);

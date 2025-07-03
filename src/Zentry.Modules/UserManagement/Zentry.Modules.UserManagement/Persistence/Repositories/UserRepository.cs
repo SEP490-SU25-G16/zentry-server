@@ -10,11 +10,16 @@ namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
-    public async Task Add(Account account, User user)
+    public async Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        await dbContext.Accounts.AddAsync(account);
-        await dbContext.Users.AddAsync(user);
-        await dbContext.SaveChangesAsync();
+        return await dbContext.Users.AnyAsync(a => a.Id == userId, cancellationToken);
+    }
+
+    public async Task AddAsync(Account account, User user, CancellationToken cancellationToken)
+    {
+        await dbContext.Accounts.AddAsync(account, cancellationToken);
+        await dbContext.Users.AddAsync(user, cancellationToken);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task<bool> ExistsByEmail(string email)
@@ -41,10 +46,10 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
     }
 
     // Phương thức mới: Cập nhật Account
-    public async Task UpdateAccount(Account account)
+    public async Task UpdateAccountAsync(Account account, CancellationToken cancellationToken)
     {
         dbContext.Accounts.Update(account);
-        await dbContext.SaveChangesAsync();
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task<(IEnumerable<UserListItemDto> Users, int TotalCount)> GetUsersAsync(
@@ -101,14 +106,16 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         return (users, totalCount);
     }
 
-    public async Task SoftDeleteUserAsync(Guid userId)
+    public async Task SoftDeleteUserAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         if (user == null)
             // Xử lý trường hợp người dùng không tồn tại
             throw new InvalidOperationException($"User with ID '{userId}' not found.");
 
-        var account = await dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == user.AccountId);
+        var account =
+            await dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == user.AccountId,
+                cancellationToken);
         if (account == null)
             // Xử lý trường hợp không tìm thấy tài khoản liên quan
             throw new InvalidOperationException($"Associated account for user ID '{userId}' not found.");
@@ -118,7 +125,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         account.UpdateStatus(AccountStatus.Inactive); // Giả sử "Inactive" là trạng thái soft delete
 
         dbContext.Accounts.Update(account);
-        await dbContext.SaveChangesAsync();
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken)
@@ -149,8 +156,8 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
     }
 
 
-    public Task SaveChangesAsync(CancellationToken cancellationToken)
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

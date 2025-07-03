@@ -7,12 +7,13 @@ namespace Zentry.Modules.UserManagement.Interfaces;
 
 public interface IUserRepository : IRepository<User, Guid>
 {
-    Task Add(Account account, User user);
+    Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task AddAsync(Account account, User user, CancellationToken cancellationToken);
     Task<bool> ExistsByEmail(string email);
 
     Task<Account?> GetAccountById(Guid accountId);
     Task<Account?> GetAccountByUserId(Guid userId);
-    Task UpdateAccount(Account account);
+    Task UpdateAccountAsync(Account account, CancellationToken cancellationToken);
 
     Task<(IEnumerable<UserListItemDto> Users, int TotalCount)> GetUsersAsync(
         int pageNumber,
@@ -21,5 +22,5 @@ public interface IUserRepository : IRepository<User, Guid>
         string? role,
         string? status);
 
-    Task SoftDeleteUserAsync(Guid userId);
+    Task SoftDeleteUserAsync(Guid userId, CancellationToken cancellationToken);
 }

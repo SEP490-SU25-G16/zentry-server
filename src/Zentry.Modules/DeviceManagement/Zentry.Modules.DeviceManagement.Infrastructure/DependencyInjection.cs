@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.DeviceManagement.Application.Abstractions;
 using Zentry.Modules.DeviceManagement.Infrastructure.Persistence;
 using Zentry.Modules.DeviceManagement.Infrastructure.Repositories;
+using Zentry.Modules.DeviceManagement.Infrastructure.Services;
 
 namespace Zentry.Modules.DeviceManagement.Infrastructure;
 
@@ -19,9 +20,7 @@ public static class DependencyInjection
             ));
 
         services.AddScoped<IDeviceRepository, DeviceRepository>();
-
-        services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        services.AddScoped<IUserDeviceService, UserDeviceService>();
 
         return services;
     }
