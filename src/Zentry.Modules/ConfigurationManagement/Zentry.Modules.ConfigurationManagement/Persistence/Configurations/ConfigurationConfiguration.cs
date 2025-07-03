@@ -50,5 +50,12 @@ public class ConfigurationConfiguration : IEntityTypeConfiguration<Configuration
         // This ensures a specific configuration value exists only once for a given scope
         builder.HasIndex(c => new { c.AttributeId, c.ScopeType, c.ScopeId })
             .IsUnique();
+
+        // THÊM CẤU HÌNH MỐI QUAN HỆ VỚI ATTRIBUTEDEFINITION
+        // Mỗi Configuration có một AttributeDefinition
+        builder.HasOne(c => c.AttributeDefinition) // Configuration có một AttributeDefinition
+            .WithMany() // AttributeDefinition có thể có nhiều Configurations (nếu bạn muốn AttributeDefinition biết các Configurations của nó, bạn sẽ cần thêm collection vào AttributeDefinition)
+            .HasForeignKey(c => c.AttributeId) // Khóa ngoại là AttributeId
+            .IsRequired(); // Bắt buộc phải có AttributeDefinition
     }
 }

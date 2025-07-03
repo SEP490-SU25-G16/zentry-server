@@ -25,7 +25,7 @@ public class Configuration : AggregateRoot<Guid>
     public string Value { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
+    public virtual AttributeDefinition AttributeDefinition { get; private set; }
     public static Configuration Create(Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
         return new Configuration(Guid.NewGuid(), attributeId, scopeType, scopeId, value);

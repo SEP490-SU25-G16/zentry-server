@@ -6,6 +6,8 @@ namespace Zentry.Modules.ConfigurationManagement.Persistence;
 public class ConfigurationDbContext(DbContextOptions<ConfigurationDbContext> options) : DbContext(options)
 {
     public DbSet<Configuration> Configurations { get; set; }
+    public DbSet<Option> Options { get; set; }
+    public DbSet<AttributeDefinition> AttributeDefinitions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
