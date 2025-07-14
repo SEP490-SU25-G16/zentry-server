@@ -20,9 +20,7 @@ public class
             .Include(c => c.AttributeDefinition);
 
         if (query.AttributeId.HasValue)
-        {
             configurationsQuery = configurationsQuery.Where(c => c.AttributeId == query.AttributeId.Value);
-        }
 
         // Chuyển đổi string ScopeTypeString từ query sang Smart Enum
         if (!string.IsNullOrWhiteSpace(query.ScopeTypeString))
@@ -41,13 +39,11 @@ public class
         }
 
         if (query.ScopeId.HasValue)
-        {
             configurationsQuery = configurationsQuery.Where(c => c.ScopeId == query.ScopeId.Value);
-        }
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
-            string lowerSearchTerm = query.SearchTerm.ToLower();
+            var lowerSearchTerm = query.SearchTerm.ToLower();
             configurationsQuery = configurationsQuery.Where(c =>
                 (c.AttributeDefinition != null && (c.AttributeDefinition.Key.ToLower().Contains(lowerSearchTerm) ||
                                                    c.AttributeDefinition.DisplayName.ToLower()

@@ -52,55 +52,33 @@ public class ConfigurationsController(IMediator mediator) : ControllerBase
         CancellationToken cancellationToken)
     {
         // Validate request
-        if (request == null)
-        {
-            return BadRequest(new { message = "Request body is required." });
-        }
+        if (request == null) return BadRequest(new { message = "Request body is required." });
 
         if (request.AttributeDefinitionDetails == null)
-        {
             return BadRequest(new { message = "AttributeDefinitionDetails is required." });
-        }
 
         if (string.IsNullOrWhiteSpace(request.AttributeDefinitionDetails.Key))
-        {
             return BadRequest(new { message = "AttributeDefinitionDetails.Key is required." });
-        }
 
         if (string.IsNullOrWhiteSpace(request.AttributeDefinitionDetails.DisplayName))
-        {
             return BadRequest(new { message = "AttributeDefinitionDetails.DisplayName is required." });
-        }
 
         if (string.IsNullOrWhiteSpace(request.AttributeDefinitionDetails.DataType))
-        {
             return BadRequest(new { message = "AttributeDefinitionDetails.DataType is required." });
-        }
 
         if (string.IsNullOrWhiteSpace(request.AttributeDefinitionDetails.ScopeType))
-        {
             return BadRequest(new { message = "AttributeDefinitionDetails.ScopeType is required." });
-        }
 
-        if (request.Configuration == null)
-        {
-            return BadRequest(new { message = "Configuration details are required." });
-        }
+        if (request.Configuration == null) return BadRequest(new { message = "Configuration details are required." });
 
         if (string.IsNullOrWhiteSpace(request.Configuration.ScopeType))
-        {
             return BadRequest(new { message = "Configuration.ScopeType is required." });
-        }
 
         if (request.Configuration.ScopeId == Guid.Empty)
-        {
             return BadRequest(new { message = "Configuration.ScopeId is required." });
-        }
 
         if (string.IsNullOrWhiteSpace(request.Configuration.Value))
-        {
             return BadRequest(new { message = "Configuration.Value is required." });
-        }
 
         try
         {

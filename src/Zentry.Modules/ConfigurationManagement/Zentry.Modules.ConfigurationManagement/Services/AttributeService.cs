@@ -24,43 +24,26 @@ public class AttributeService(ConfigurationDbContext dbContext) : IAttributeServ
     {
         var attributeDefinition = await GetAttributeDefinitionByIdAsync(attributeId);
         if (attributeDefinition == null)
-        {
             throw new BusinessLogicException($"Attribute Definition with ID '{attributeId}' not found.");
-        }
 
         // So sánh DataType với các Smart Enum instances
-        if (attributeDefinition.DataType.Equals(DataType.String))
-        {
-            return true; // String luôn hợp lệ
-        }
-        else if (attributeDefinition.DataType.Equals(DataType.Int))
-        {
-            return int.TryParse(value, out _);
-        }
-        else if (attributeDefinition.DataType.Equals(DataType.Boolean))
-        {
-            return bool.TryParse(value, out _);
-        }
-        else if (attributeDefinition.DataType.Equals(DataType.Decimal))
-        {
-            return decimal.TryParse(value, out _);
-        }
-        else if (attributeDefinition.DataType.Equals(DataType.Date))
-        {
-            return DateTime.TryParse(value, out _);
-        }
-        else if (attributeDefinition.DataType.Equals(DataType.Json))
-        {
+        if (attributeDefinition.DataType.Equals(DataType.String)) return true; // String luôn hợp lệ
+
+        if (attributeDefinition.DataType.Equals(DataType.Int)) return int.TryParse(value, out _);
+
+        if (attributeDefinition.DataType.Equals(DataType.Boolean)) return bool.TryParse(value, out _);
+
+        if (attributeDefinition.DataType.Equals(DataType.Decimal)) return decimal.TryParse(value, out _);
+
+        if (attributeDefinition.DataType.Equals(DataType.Date)) return DateTime.TryParse(value, out _);
+
+        if (attributeDefinition.DataType.Equals(DataType.Json))
             return await IsValueValidAsJsonOption(attributeId, value);
-        }
-        else if (attributeDefinition.DataType.Equals(DataType.Selection))
-        {
+
+        if (attributeDefinition.DataType.Equals(DataType.Selection))
             return await IsValueValidForSelectionAttribute(attributeId, value);
-        }
-        else
-        {
-            return false; // Unknown data type
-        }
+
+        return false; // Unknown data type
     }
 
     private async Task<bool> IsValueValidForSelectionAttribute(Guid attributeId, string value)

@@ -11,31 +11,23 @@ using Zentry.SharedKernel.Exceptions;
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateConfiguration;
 
 public class
-    CreateConfigurationCommandHandler : ICommandHandler<CreateConfigurationCommand, CreateConfigurationResponse>
-{
-    private readonly IAttributeService _attributeService;
-    private readonly ConfigurationDbContext _dbContext;
-    private readonly IMediator _mediator;
-
-    public CreateConfigurationCommandHandler(
+    CreateConfigurationCommandHandler(
         IAttributeService attributeService,
         ConfigurationDbContext dbContext,
         IMediator mediator)
-    {
-        _attributeService = attributeService;
-        _dbContext = dbContext;
-        _mediator = mediator;
-    }
+    : ICommandHandler<CreateConfigurationCommand, CreateConfigurationResponse>
+{
+    private readonly IMediator _mediator = mediator;
 
     public async Task<CreateConfigurationResponse> Handle(CreateConfigurationCommand command,
         CancellationToken cancellationToken)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
             AttributeDefinition attributeDefinition;
-            List<Option> createdOrUpdatedOptions = new();
+            List<Option> createdOrUpdatedOptions = [];
 
             // 1. Xử lý AttributeDefinition
             if (command.AttributeDefinitionDetails != null)
@@ -54,7 +46,7 @@ public class
                         $"Invalid DataType or ScopeType provided for Attribute Definition: {ex.Message}");
                 }
 
-                var existingAttributeDefinition = await _dbContext.AttributeDefinitions
+                var existingAttributeDefinition = await dbContext.AttributeDefinitions
                     .FirstOrDefaultAsync(ad => ad.Key == command.AttributeDefinitionDetails.Key, cancellationToken);
 
                 if (existingAttributeDefinition != null)
@@ -69,7 +61,7 @@ public class
                             attributeDefinitionScopeType,
                             command.AttributeDefinitionDetails.Unit
                         );
-                        _dbContext.AttributeDefinitions.Update(existingAttributeDefinition);
+                        dbContext.AttributeDefinitions.Update(existingAttributeDefinition);
                         attributeDefinition = existingAttributeDefinition;
                     }
                     else
@@ -88,10 +80,10 @@ public class
                         attributeDefinitionScopeType,
                         command.AttributeDefinitionDetails.Unit
                     );
-                    await _dbContext.AttributeDefinitions.AddAsync(attributeDefinition, cancellationToken);
+                    await dbContext.AttributeDefinitions.AddAsync(attributeDefinition, cancellationToken);
                 }
 
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
 
                 // 2. Xử lý Options nếu DataType là Selection
                 if (attributeDefinition.DataType == DataType.Selection)
@@ -100,11 +92,11 @@ public class
                         command.AttributeDefinitionDetails.Options.Any())
                     {
                         // Xóa tất cả options cũ
-                        var oldOptions = await _dbContext.Options
+                        var oldOptions = await dbContext.Options
                             .Where(o => o.AttributeId == attributeDefinition.Id)
                             .ToListAsync(cancellationToken);
-                        _dbContext.Options.RemoveRange(oldOptions);
-                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        dbContext.Options.RemoveRange(oldOptions);
+                        await dbContext.SaveChangesAsync(cancellationToken);
 
                         // Tạo options mới
                         foreach (var optionDto in command.AttributeDefinitionDetails.Options)
@@ -116,15 +108,15 @@ public class
                                 optionDto.SortOrder
                             );
                             createdOrUpdatedOptions.Add(newOption);
-                            await _dbContext.Options.AddAsync(newOption, cancellationToken);
+                            await dbContext.Options.AddAsync(newOption, cancellationToken);
                         }
 
-                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await dbContext.SaveChangesAsync(cancellationToken);
                     }
                     else
                     {
                         throw new BusinessLogicException(
-                            $"Attribute Definition with DataType 'Selection' must have options provided.");
+                            "Attribute Definition with DataType 'Selection' must have options provided.");
                     }
                 }
             }
@@ -147,23 +139,19 @@ public class
 
             // 4. Validate Value của Configuration dựa trên DataType của AttributeDefinition
             // QUAN TRỌNG: Phải validate sau khi đã lưu Options (nếu có) vào database
-            if (!await _attributeService.IsValueValidForAttribute(attributeDefinition.Id, command.Configuration.Value))
-            {
+            if (!await attributeService.IsValueValidForAttribute(attributeDefinition.Id, command.Configuration.Value))
                 throw new BusinessLogicException(
                     $"Provided value '{command.Configuration.Value}' is not valid for Attribute '{attributeDefinition.DisplayName}' (DataType: {attributeDefinition.DataType}).");
-            }
 
             // 5. Kiểm tra xem cấu hình cho AttributeId, ScopeType, ScopeId đã tồn tại chưa
-            var existingConfiguration = await _dbContext.Configurations
+            var existingConfiguration = await dbContext.Configurations
                 .FirstOrDefaultAsync(c => c.AttributeId == attributeDefinition.Id &&
                                           c.ScopeType == configurationScopeType &&
                                           c.ScopeId == command.Configuration.ScopeId, cancellationToken);
 
             if (existingConfiguration != null)
-            {
                 throw new BusinessLogicException(
                     $"Configuration for Attribute '{attributeDefinition.Key}' with Scope '{configurationScopeType}' and ScopeId '{command.Configuration.ScopeId}' already exists.");
-            }
 
             // 6. Tạo Configuration entity mới
             var newConfiguration = Configuration.Create(
@@ -174,8 +162,8 @@ public class
             );
 
             // 7. Thêm Configuration vào DbContext
-            await _dbContext.Configurations.AddAsync(newConfiguration, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.Configurations.AddAsync(newConfiguration, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             // 8. Hoàn thành giao dịch
             await transaction.CommitAsync(cancellationToken);

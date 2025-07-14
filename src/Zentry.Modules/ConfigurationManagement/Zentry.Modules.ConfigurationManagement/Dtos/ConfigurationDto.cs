@@ -1,7 +1,4 @@
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
-
 namespace Zentry.Modules.ConfigurationManagement.Dtos;
-
 
 public class ConfigurationDto
 {
