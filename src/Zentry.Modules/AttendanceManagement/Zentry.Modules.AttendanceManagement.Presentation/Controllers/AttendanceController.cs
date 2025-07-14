@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
-using Zentry.Modules.AttendanceManagement.Application.Features.ViewAttendanceRate;
 using Zentry.Modules.AttendanceManagement.Presentation.Requests;
 
 namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
@@ -10,14 +9,6 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 [Route("api/attendance")]
 public class AttendanceController(IMediator mediator) : ControllerBase
 {
-    [HttpGet("rate")]
-    public async Task<IActionResult> GetAttendanceRate([FromQuery] Guid studentId, [FromQuery] Guid courseId)
-    {
-        var query = new ViewAttendanceRateQuery(studentId, courseId);
-        var result = await mediator.Send(query);
-        return Ok(result);
-    }
-
     [HttpPost("sessions")] // Endpoint mới để tạo session
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request, CancellationToken cancellationToken)
     {
