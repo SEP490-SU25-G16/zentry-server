@@ -1,4 +1,4 @@
-﻿namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
+﻿namespace Zentry.Infrastructure.Caching;
 
 public interface IRedisService
 {

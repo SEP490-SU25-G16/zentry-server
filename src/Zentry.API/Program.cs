@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Zentry.Infrastructure;
+using Zentry.Modules.AttendanceManagement.Application;
 using Zentry.Modules.AttendanceManagement.Infrastructure;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.Modules.ConfigurationManagement;
@@ -30,6 +31,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
+builder.Services.AddAttendanceApplication();
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
 builder.Services.AddScheduleApplication();
 builder.Services.AddDeviceInfrastructure(builder.Configuration);

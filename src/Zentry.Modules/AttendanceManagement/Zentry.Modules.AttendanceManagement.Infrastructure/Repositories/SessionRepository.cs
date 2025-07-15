@@ -1,4 +1,5 @@
-﻿using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+﻿using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 
@@ -11,14 +12,16 @@ public class SessionRepository(AttendanceDbContext context) : ISessionRepository
         await context.Sessions.AddAsync(entity, cancellationToken);
     }
 
-    public Task<IEnumerable<Session>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<IEnumerable<Session>> GetAllAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        // Triển khai lấy tất cả, EF Core sẽ load cả SessionConfigs
+        return await context.Sessions.ToListAsync(cancellationToken);
     }
 
-    public Task<Session?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Session?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        // Triển khai lấy theo ID, EF Core sẽ load cả SessionConfigs
+        return await context.Sessions.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public Task UpdateAsync(Session entity, CancellationToken cancellationToken)

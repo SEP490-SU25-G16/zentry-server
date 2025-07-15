@@ -36,18 +36,18 @@
       timeout: 3s
       retries: 3
 
-  #  redis:
-  #    image: redis:7.4-alpine
-  #    command: redis-server --maxmemory 500mb --maxmemory-policy allkeys-lru
-  #    ports:
-  #      - "6379:6379"
-  #    volumes:
-  #      - redis-data:/data
-  #    healthcheck:
-  #      test: [ "CMD", "redis-cli", "ping" ]
-  #      interval: 10s
-  #      timeout: 3s
-  #      retries: 3
+  redis:
+    image: redis:7.4-alpine
+    command: redis-server --maxmemory 500mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   #  mongodb:
   #    image: mongo:7.0
@@ -96,6 +96,6 @@
 #      retries: 3
 
 volumes:
-  #  redis-data:
+  redis-data:
   #  mongodb-data:
   postgres-data:

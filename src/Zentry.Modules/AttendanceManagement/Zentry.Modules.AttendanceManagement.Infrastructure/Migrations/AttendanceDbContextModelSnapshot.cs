@@ -147,6 +147,42 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                         });
                 });
+
+            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Session", b =>
+                {
+                    b.OwnsOne("Zentry.Modules.AttendanceManagement.Domain.ValueObjects.SessionConfigSnapshot", "SessionConfigs", b1 =>
+                        {
+                            b1.Property<Guid>("SessionId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("AbsentReportGracePeriodHours")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("AttendanceWindowMinutes")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("FaceIdVerificationTimeoutSeconds")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("ManualAdjustmentGracePeriodHours")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("TotalAttendanceRounds")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("SessionId");
+
+                            b1.ToTable("Sessions");
+
+                            b1.ToJson("SessionConfigs");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SessionId");
+                        });
+
+                    b.Navigation("SessionConfigs")
+                        .IsRequired();
+                });
 #pragma warning restore 612, 618
         }
     }

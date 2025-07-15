@@ -1,30 +1,28 @@
-﻿// File: Zentry.Infrastructure.Services/RedisService.cs (hoặc Zentry.Modules.AttendanceManagement.Infrastructure.Services/RedisService.cs)
-
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
-namespace Zentry.Modules.AttendanceManagement.Infrastructure.Services; // Hoặc namespace phù hợp với module của bạn
+namespace Zentry.Infrastructure.Caching;
 
 public class RedisService : IRedisService
 {
     private readonly IDatabase _database;
     private readonly ILogger<RedisService> _logger;
 
-    public RedisService(string connectionString, ILogger<RedisService> logger)
+    // Thay đổi constructor để nhận IConnectionMultiplexer
+    public RedisService(IConnectionMultiplexer redisConnection, ILogger<RedisService> logger)
     {
         _logger = logger;
         try
         {
-            var redis = ConnectionMultiplexer.Connect(connectionString);
-            _database = redis.GetDatabase();
-            _logger.LogInformation("Successfully connected to Redis at {ConnectionString}", connectionString);
+            // Lấy database từ ConnectionMultiplexer đã được inject
+            _database = redisConnection.GetDatabase();
+            _logger.LogInformation("RedisService initialized. Connected to Redis.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to connect to Redis at {ConnectionString}", connectionString);
-            throw; // Re-throw the exception to prevent the application from starting without Redis
+            _logger.LogError(ex, "Failed to initialize RedisService with existing ConnectionMultiplexer.");
+            throw; // Re-throw the exception if initialization fails
         }
     }
 
@@ -32,12 +30,12 @@ public class RedisService : IRedisService
     {
         try
         {
-            var jsonValue = JsonSerializer.Serialize(value); // Serialize đối tượng thành chuỗi JSON
+            var jsonValue = JsonSerializer.Serialize(value);
             return await _database.StringSetAsync(key, jsonValue, expiry);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to set Redis key '{Key}' with value '{Value}'.", key, value);
+            _logger.LogError(ex, "Failed to set Redis key '{Key}'.", key);
             return false;
         }
     }
@@ -51,7 +49,7 @@ public class RedisService : IRedisService
             {
                 return default;
             }
-            return JsonSerializer.Deserialize<T>(redisValue!); // Deserialize chuỗi JSON thành đối tượng T
+            return JsonSerializer.Deserialize<T>(redisValue!);
         }
         catch (Exception ex)
         {

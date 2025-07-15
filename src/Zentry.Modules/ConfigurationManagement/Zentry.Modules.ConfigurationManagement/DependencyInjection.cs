@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
         services.AddScoped<IAttributeService, AttributeService>();
+        services.AddScoped<IConfigurationService, ConfigurationService>();
         return services;
     }
 }

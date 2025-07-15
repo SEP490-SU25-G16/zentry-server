@@ -13,4 +13,7 @@
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
         <ProjectReference Include="..\Zentry.Modules.AttendanceManagement.Domain\Zentry.Modules.AttendanceManagement.Domain.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Dtos\" />
+    </ItemGroup>
 </Project>

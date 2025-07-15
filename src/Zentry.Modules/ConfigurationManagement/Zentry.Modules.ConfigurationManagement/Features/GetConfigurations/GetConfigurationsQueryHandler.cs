@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
@@ -10,32 +11,51 @@ namespace Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
 
 public class
     GetConfigurationsQueryHandler(
-        ConfigurationDbContext dbContext)
+        ConfigurationDbContext dbContext,
+        IRedisService redisService)
     : IQueryHandler<GetConfigurationsQuery, GetConfigurationsResponse>
 {
+    private readonly TimeSpan _cacheExpiry = TimeSpan.FromHours(1);
+
     public async Task<GetConfigurationsResponse> Handle(GetConfigurationsQuery query,
         CancellationToken cancellationToken)
     {
+        // Tạo cache key dựa trên các tham số query
+        // Đảm bảo cache key đủ độc đáo cho mỗi loại query
+        var cacheKey =
+            $"configurations:{query.AttributeId?.ToString() ?? "null"}:{query.ScopeTypeString ?? "null"}:{query.ScopeId?.ToString() ?? "null"}:{query.SearchTerm ?? "null"}:{query.PageNumber}:{query.PageSize}";
+
+        // 1. Thử lấy từ Redis trước
+        var cachedResponse = await redisService.GetAsync<GetConfigurationsResponse>(cacheKey);
+        if (cachedResponse != null)
+        {
+            // Log for debugging (optional)
+            Console.WriteLine($"Cache hit for key: {cacheKey}");
+            return cachedResponse;
+        }
+
+        // Log for debugging (optional)
+        Console.WriteLine($"Cache miss for key: {cacheKey}. Fetching from DB...");
+
         IQueryable<Configuration> configurationsQuery = dbContext.Configurations
             .Include(c => c.AttributeDefinition);
 
         if (query.AttributeId.HasValue)
             configurationsQuery = configurationsQuery.Where(c => c.AttributeId == query.AttributeId.Value);
 
+        ScopeType? requestedScopeType = null;
         // Chuyển đổi string ScopeTypeString từ query sang Smart Enum
         if (!string.IsNullOrWhiteSpace(query.ScopeTypeString))
         {
-            ScopeType scopeType;
             try
             {
-                scopeType = ScopeType.FromName(query.ScopeTypeString);
+                requestedScopeType = ScopeType.FromName(query.ScopeTypeString);
+                configurationsQuery = configurationsQuery.Where(c => c.ScopeType == requestedScopeType);
             }
             catch (ArgumentException ex)
             {
                 throw new BusinessLogicException($"Invalid ScopeType provided: {ex.Message}");
             }
-
-            configurationsQuery = configurationsQuery.Where(c => c.ScopeType == scopeType);
         }
 
         if (query.ScopeId.HasValue)
@@ -73,12 +93,29 @@ public class
             UpdatedAt = c.UpdatedAt
         }).ToList();
 
-        return new GetConfigurationsResponse
+        var response = new GetConfigurationsResponse
         {
             Items = configDtos,
             TotalCount = totalCount,
             PageNumber = query.PageNumber,
             PageSize = query.PageSize
         };
+
+        // 2. Lưu vào Redis nếu ScopeType phù hợp và không có SearchTerm (để tránh cache quá nhiều data linh tinh)
+        // Chỉ cache nếu không có searchTerm, và ScopeType là GLOBAL, COURSE, hoặc SESSION
+        var canCache = string.IsNullOrWhiteSpace(query.SearchTerm) &&
+                       (requestedScopeType == ScopeType.GLOBAL ||
+                        requestedScopeType == ScopeType.COURSE ||
+                        requestedScopeType ==
+                        ScopeType
+                            .SESSION); // Sử dụng `SESSION` như định nghĩa của bạn cho `ScopeType` là lịch trình/buổi học
+
+        if (canCache)
+        {
+            await redisService.SetAsync(cacheKey, response, _cacheExpiry);
+            Console.WriteLine($"Cached response for key: {cacheKey}"); // Log for debugging
+        }
+
+        return response;
     }
 }

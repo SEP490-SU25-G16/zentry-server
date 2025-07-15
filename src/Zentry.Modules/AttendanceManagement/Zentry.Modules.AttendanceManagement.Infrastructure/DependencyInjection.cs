@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
@@ -22,6 +23,10 @@ public static class DependencyInjection
             ));
 
         services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+        services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<IScheduleService, ScheduleService>();
+        services.AddScoped<IUserAttendanceService, UserAttendanceService>();
+        services.AddScoped<IAppConfigurationService, AppConfigurationService>();
 
         var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
                                     throw new ArgumentNullException(nameof(services));
@@ -37,17 +42,6 @@ public static class DependencyInjection
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-
-        var redisConnectionString = configuration.GetSection("Redis:ConnectionString").Value
-                                    ?? throw new ArgumentNullException(nameof(AttendanceManagement),
-                                        "Redis:ConnectionString is not configured in appsettings.json.");
-
-        // Đăng ký IRedisService là Singleton
-        services.AddSingleton<IRedisService>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<RedisService>>();
-            return new RedisService(redisConnectionString, logger);
-        });
 
         return services;
     }
