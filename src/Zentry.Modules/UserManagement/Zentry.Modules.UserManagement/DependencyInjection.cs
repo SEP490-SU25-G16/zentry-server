@@ -16,7 +16,6 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IUserQueryService, UserQueryService>();
         services.AddDbContext<UserDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),

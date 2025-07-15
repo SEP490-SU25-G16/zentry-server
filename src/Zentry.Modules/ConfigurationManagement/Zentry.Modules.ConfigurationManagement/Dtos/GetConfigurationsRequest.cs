@@ -3,7 +3,7 @@
 public class GetConfigurationsRequest
 {
     public Guid? AttributeId { get; init; }
-    public string? ScopeType { get; init; } // Đã đổi thành string
+    public string? ScopeType { get; init; } 
     public Guid? ScopeId { get; init; }
     public string? SearchTerm { get; init; }
     public int PageNumber { get; init; } = 1; // Giá trị mặc định

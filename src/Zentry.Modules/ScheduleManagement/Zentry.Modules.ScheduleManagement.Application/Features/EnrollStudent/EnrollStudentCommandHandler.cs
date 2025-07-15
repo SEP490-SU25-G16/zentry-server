@@ -17,7 +17,8 @@ public class EnrollStudentCommandHandler(
 
     public async Task<EnrollmentResponse> Handle(EnrollStudentCommand command, CancellationToken cancellationToken)
     {
-        var studentUser = await userLookupService.GetByIdAsync(command.StudentId, cancellationToken);
+        var studentUser =
+            await userLookupService.GetUserByIdAndRoleAsync("student", command.StudentId, cancellationToken);
         if (studentUser == null)
             throw new NotFoundException("Student", command.StudentId); // Lỗi 404
 
@@ -40,7 +41,7 @@ public class EnrollStudentCommandHandler(
             EnrollmentId = enrollment.Id,
             ScheduleId = enrollment.ScheduleId,
             StudentId = enrollment.StudentId,
-            StudentName = studentUser.Name ?? "Unknown Student",
+            StudentName = studentUser.FullName ?? "Unknown Student",
             EnrollmentDate = enrollment.EnrolledAt,
             Status = enrollment.Status.ToString()
         };

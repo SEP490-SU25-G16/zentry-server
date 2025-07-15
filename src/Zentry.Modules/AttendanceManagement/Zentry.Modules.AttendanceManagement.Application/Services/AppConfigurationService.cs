@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
-using Zentry.Modules.ConfigurationManagement.Abstractions;
-using Zentry.SharedKernel.Contracts;
+using Zentry.SharedKernel.Contracts.Configuration;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Services;
 
@@ -13,9 +13,8 @@ public static class AttendanceScopeTypes
     public const string Session = "SESSION";
 }
 
-
 public class AppConfigurationService(
-    IConfigurationService configurationService,
+    IMediator mediator,
     IRedisService redisService,
     ILogger<AppConfigurationService> logger)
     : IAppConfigurationService
@@ -38,21 +37,14 @@ public class AppConfigurationService(
         logger.LogDebug("Local cache miss for config key: {Key}. Fetching from Configuration Module.", localCacheKey);
 
         // 2. Nếu không có trong cache, GỌI IConfigurationService TỪ CONFIGURATION MODULE
-        var request = new ConfigLookupRequestDto // <-- Dùng contract mới
-        {
-            Key = key, // <-- Dùng thuộc tính Key trong contract
-            ScopeType = scopeType,
-            ScopeId = scopeId,
-            // PageNumber = 1, // Không cần nếu chỉ lấy một
-            // PageSize = 1 // Không cần nếu chỉ lấy một
-        };
+        var request = new GetConfigurationsIntegrationQuery(key, scopeType, scopeId);
 
         try
         {
-            // GỌI PHƯƠNG THỨC TRÊN IConfigurationService CỦA CONFIGURATION MODULE
-            var response = await configurationService.GetConfigurationsAsync(request); // <-- Gọi với contract request
+            var response = await mediator.Send(request);
             var configDto = response.Items.FirstOrDefault(c =>
-                c.AttributeKey.Equals(key, StringComparison.OrdinalIgnoreCase)); // <-- configDto là từ SharedKernel.Contracts
+                c.AttributeKey.Equals(key,
+                    StringComparison.OrdinalIgnoreCase));
 
             if (configDto != null)
             {
@@ -94,7 +86,8 @@ public class AppConfigurationService(
         string? value = null;
         if (scopeId.HasValue && scopeId.Value != Guid.Empty)
         {
-            value = await GetConfigurationValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Session, scopeId.Value)
+            value = await GetConfigurationValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Session,
+                        scopeId.Value)
                     ?? await GetConfigurationValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Course,
                         scopeId.Value);
         }
@@ -137,8 +130,10 @@ public class AppConfigurationService(
         string? value = null;
         if (scopeId.HasValue && scopeId.Value != Guid.Empty)
         {
-            value = await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Session, scopeId.Value)
-                    ?? await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Course, scopeId.Value);
+            value = await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Session,
+                        scopeId.Value)
+                    ?? await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Course,
+                        scopeId.Value);
         }
 
         value ??= await GetGlobalConfigurationValueAsync("TotalAttendanceRounds");

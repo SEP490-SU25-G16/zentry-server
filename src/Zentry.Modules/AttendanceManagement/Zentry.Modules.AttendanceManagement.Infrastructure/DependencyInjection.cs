@@ -1,13 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
-using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
-using Zentry.Modules.AttendanceManagement.Infrastructure.Services;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure;
 
@@ -24,9 +21,6 @@ public static class DependencyInjection
 
         services.AddScoped<IAttendanceRepository, AttendanceRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
-        services.AddScoped<IScheduleService, ScheduleService>();
-        services.AddScoped<IUserAttendanceService, UserAttendanceService>();
-        services.AddScoped<IAppConfigurationService, AppConfigurationService>();
 
         var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
                                     throw new ArgumentNullException(nameof(services));

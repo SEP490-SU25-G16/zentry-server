@@ -110,11 +110,9 @@ public class
                         ScopeType
                             .SESSION); // Sử dụng `SESSION` như định nghĩa của bạn cho `ScopeType` là lịch trình/buổi học
 
-        if (canCache)
-        {
-            await redisService.SetAsync(cacheKey, response, _cacheExpiry);
-            Console.WriteLine($"Cached response for key: {cacheKey}"); // Log for debugging
-        }
+        if (!canCache) return response;
+        await redisService.SetAsync(cacheKey, response, _cacheExpiry);
+        Console.WriteLine($"Cached response for key: {cacheKey}"); // Log for debugging
 
         return response;
     }

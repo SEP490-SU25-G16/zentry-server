@@ -1,10 +1,8 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts;
+using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
-
-// Để truy cập UserLookupDto, LecturerLookupDto
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 
@@ -63,19 +61,21 @@ public class GetEnrollmentsQueryHandler(
         var studentIds = enrollments.Select(e => e.StudentId).Distinct().ToList();
 
         // Thực hiện lookup các thông tin User một lần (nếu UserLookupService hỗ trợ batch lookup, thì tốt hơn)
-        var students = new Dictionary<Guid, UserLookupDto>();
+        var students = new Dictionary<Guid, GetUserByIdAndRoleIntegrationResponse>();
         foreach (var studentId in studentIds)
         {
-            var studentDto = await _userScheduleService.GetByIdAsync(studentId, cancellationToken);
+            var studentDto =
+                await _userScheduleService.GetUserByIdAndRoleAsync("student", studentId, cancellationToken);
             if (studentDto != null) students[studentId] = studentDto;
         }
 
         // Xử lý Lecturer lookup (nếu LecturerId không được Include từ Schedule)
         var lecturerIds = enrollments.Select(e => e.Schedule.LecturerId).Distinct().ToList();
-        var lecturers = new Dictionary<Guid, LecturerLookupDto>();
+        var lecturers = new Dictionary<Guid, GetUserByIdAndRoleIntegrationResponse>();
         foreach (var lecturerId in lecturerIds)
         {
-            var lecturerDto = await _userScheduleService.GetLecturerByIdAsync(lecturerId, cancellationToken);
+            var lecturerDto =
+                await _userScheduleService.GetUserByIdAndRoleAsync("Lecturer", lecturerId, cancellationToken);
             if (lecturerDto != null) lecturers[lecturerId] = lecturerDto;
         }
 
@@ -89,10 +89,9 @@ public class GetEnrollmentsQueryHandler(
                 EnrollmentId = enrollment.Id,
                 EnrollmentDate = enrollment.EnrolledAt,
                 StudentId = enrollment.StudentId,
-                StudentCode = studentDto?.StudentCode,
-                StudentName = studentDto?.Name,
+                StudentName = studentDto?.FullName,
                 ScheduleId = enrollment.ScheduleId,
-                ScheduleName = enrollment.Schedule.Course?.Name, // Hoặc tên khác của Schedule nếu có
+                ScheduleName = enrollment.Schedule.Course?.Name,
                 CourseId = enrollment.Schedule.CourseId,
                 CourseCode = enrollment.Schedule.Course?.Code,
                 CourseName = enrollment.Schedule.Course?.Name,

@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Enums;
-using Zentry.Modules.UserManagement.Features.SignIn;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 
-namespace Zentry.Modules.UserManagement.Features.Auth.SignIn;
+namespace Zentry.Modules.UserManagement.Features.SignIn;
 
 public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPasswordHasher passwordHasher)
     : ICommandHandler<SignInCommand, SignInResponse>

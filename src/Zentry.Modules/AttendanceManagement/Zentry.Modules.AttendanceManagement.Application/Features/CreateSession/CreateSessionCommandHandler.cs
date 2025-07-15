@@ -22,7 +22,7 @@ public class CreateSessionCommandHandler(
         // --- 1. Kiểm tra điều kiện nghiệp vụ ---
 
         // 1.1. Kiểm tra giảng viên có tồn tại và có quyền
-        var lecturer = await userAttendanceService.GetLecturerByIdAsync(request.UserId, cancellationToken);
+        var lecturer = await userAttendanceService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
         if (lecturer == null)
         {
             logger.LogWarning("CreateSession failed: Lecturer with ID {LecturerId} not found or not authorized.",

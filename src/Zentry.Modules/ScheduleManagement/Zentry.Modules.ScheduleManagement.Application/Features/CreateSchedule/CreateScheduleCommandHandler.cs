@@ -29,7 +29,8 @@ public class CreateScheduleCommandHandler(
             throw new NotFoundException(nameof(ScheduleManagement), $"Room with ID '{command.RoomId}' not found.");
 
         // Kiểm tra LecturerId bằng ILecturerLookupService
-        var lecturerExists = await lecturerScheduleService.GetLecturerByIdAsync(command.LecturerId, cancellationToken);
+        var lecturerExists =
+            await lecturerScheduleService.GetUserByIdAndRoleAsync("Lecturer", command.LecturerId, cancellationToken);
         if (lecturerExists == null)
             throw new NotFoundException(nameof(ScheduleManagement),
                 $"Lecturer with ID '{command.LecturerId}' not found or is not a valid lecturer.");

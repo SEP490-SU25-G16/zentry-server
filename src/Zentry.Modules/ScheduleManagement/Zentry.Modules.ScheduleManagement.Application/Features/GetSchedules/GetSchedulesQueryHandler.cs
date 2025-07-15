@@ -36,12 +36,12 @@ public class GetSchedulesQueryHandler(
 
         foreach (var lecturerId in lecturerIds)
         {
-            var lecturer = await lecturerLookupService.GetLecturerByIdAsync(lecturerId, cancellationToken);
+            var lecturer =
+                await lecturerLookupService.GetUserByIdAndRoleAsync("Lecturer", lecturerId, cancellationToken);
             if (lecturer != null)
                 lecturerNames[lecturerId] = lecturer.FullName;
         }
 
-        // Map to DTOs - Course và Room đã có sẵn từ Include
         var scheduleDtos = schedules.Select(s => new ScheduleDto
         {
             Id = s.Id,
