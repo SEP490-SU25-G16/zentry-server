@@ -2,4 +2,5 @@
 
 namespace Zentry.SharedKernel.Contracts.User;
 
-public record GetUserByIdAndRoleIntegrationQuery(string Role, Guid UserId) : IQuery<GetUserByIdAndRoleIntegrationResponse>;
+public record GetUserByIdAndRoleIntegrationQuery(string Role, Guid UserId)
+    : IQuery<GetUserByIdAndRoleIntegrationResponse>;

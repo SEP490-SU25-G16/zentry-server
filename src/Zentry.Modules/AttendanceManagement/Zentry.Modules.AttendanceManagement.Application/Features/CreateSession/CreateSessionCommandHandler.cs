@@ -1,10 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using Zentry.Infrastructure.Caching; // Vẫn sử dụng nếu đây là RedisService của bạn
+﻿using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Application.Services;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Exceptions;
+// Vẫn sử dụng nếu đây là RedisService của bạn
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
 
@@ -22,7 +25,8 @@ public class CreateSessionCommandHandler(
         // --- 1. Kiểm tra điều kiện nghiệp vụ ---
 
         // 1.1. Kiểm tra giảng viên có tồn tại và có quyền
-        var lecturer = await userAttendanceService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
+        var lecturer =
+            await userAttendanceService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
         if (lecturer == null)
         {
             logger.LogWarning("CreateSession failed: Lecturer with ID {LecturerId} not found or not authorized.",
@@ -116,7 +120,7 @@ public class CreateSessionCommandHandler(
 
         // BỔ SUNG: Lưu toàn bộ Session entity vào Redis để các service khác có thể lấy nhanh
         // Điều này sẽ cache cả SessionConfigs JSON nhờ cấu hình ToJson() của EF Core.
-        await redisService.SetAsync($"session:{session.Id}", System.Text.Json.JsonSerializer.Serialize(session),
+        await redisService.SetAsync($"session:{session.Id}", JsonSerializer.Serialize(session),
             totalSessionDuration);
 
         // --- 6. Ghi log hành động khởi tạo phiên ---

@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.Modules.AttendanceManagement.Domain.Enums;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Data;
 

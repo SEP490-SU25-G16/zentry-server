@@ -45,10 +45,7 @@ public class RedisService : IRedisService
         try
         {
             var redisValue = await _database.StringGetAsync(key);
-            if (redisValue.IsNullOrEmpty)
-            {
-                return default;
-            }
+            if (redisValue.IsNullOrEmpty) return default;
             return JsonSerializer.Deserialize<T>(redisValue!);
         }
         catch (Exception ex)

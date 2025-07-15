@@ -1,7 +1,6 @@
-﻿using Zentry.Modules.AttendanceManagement.Application.Abstractions;
-using Zentry.SharedKernel.Contracts;
+﻿using Zentry.SharedKernel.Contracts;
 
-namespace Zentry.Modules.AttendanceManagement.Infrastructure.Services;
+namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public class ScheduleService : IScheduleService
 {
@@ -10,7 +9,8 @@ public class ScheduleService : IScheduleService
         throw new NotImplementedException();
     }
 
-    public Task<bool> IsLecturerAssignedToScheduleAsync(Guid lecturerId, Guid scheduleId, CancellationToken cancellationToken)
+    public Task<bool> IsLecturerAssignedToScheduleAsync(Guid lecturerId, Guid scheduleId,
+        CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

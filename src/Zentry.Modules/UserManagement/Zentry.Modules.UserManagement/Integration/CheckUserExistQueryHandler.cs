@@ -1,7 +1,6 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Integration;
 

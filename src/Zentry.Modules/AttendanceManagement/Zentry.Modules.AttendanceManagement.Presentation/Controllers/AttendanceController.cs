@@ -10,7 +10,8 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 public class AttendanceController(IMediator mediator) : ControllerBase
 {
     [HttpPost("sessions")] // Endpoint mới để tạo session
-    public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request,
+        CancellationToken cancellationToken)
     {
         var command = new CreateSessionCommand(
             request.ScheduleId,

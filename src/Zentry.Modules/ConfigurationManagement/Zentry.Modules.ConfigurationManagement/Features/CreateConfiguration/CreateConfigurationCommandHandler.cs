@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Abstractions;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Persistence;
@@ -6,8 +8,6 @@ using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Exceptions;
-using Microsoft.Extensions.Logging;
-using Zentry.Infrastructure.Caching;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateConfiguration;
 
@@ -246,7 +246,7 @@ public class
     }
 
     /// <summary>
-    /// Xóa các cache keys liên quan đến cấu hình vừa được tạo/cập nhật.
+    ///     Xóa các cache keys liên quan đến cấu hình vừa được tạo/cập nhật.
     /// </summary>
     /// <param name="attributeId">ID của AttributeDefinition.</param>
     /// <param name="scopeType">Loại phạm vi (Global, Course, Session).</param>
@@ -277,10 +277,7 @@ public class
             $"configurations:{attributeId}:{scopeType}:{scopeId}:null:1:1"; // Giả định page 1, size 1 nếu có query chính xác
 
         var removedPreciseKey = await redisService.RemoveAsync(preciseKey);
-        if (removedPreciseKey)
-        {
-            logger.LogDebug("Removed precise cache key: {Key}", preciseKey);
-        }
+        if (removedPreciseKey) logger.LogDebug("Removed precise cache key: {Key}", preciseKey);
 
         // 2. Xóa các cache tổng quát hơn có thể bị ảnh hưởng.
         // Đây là phần khó và có nhiều chiến lược. Dưới đây là một số ví dụ đơn giản:
@@ -321,10 +318,10 @@ public class
         // Invalidating global configurations (if this change impacts global configurations, e.g., if scopeType is GLOBAL)
         if (scopeType == ScopeType.GLOBAL)
         {
-            string keyPatternGlobal = $"configurations:null:GLOBAL:*"; // Only for Global scopeType
+            var keyPatternGlobal = "configurations:null:GLOBAL:*"; // Only for Global scopeType
             await DeleteKeysByPattern(keyPatternGlobal);
             // Also consider invalidating generic global lists (e.g., configurations:null:null:null:*)
-            string keyPatternVeryGeneral = "configurations:null:null:null:*";
+            var keyPatternVeryGeneral = "configurations:null:null:null:*";
             await DeleteKeysByPattern(keyPatternVeryGeneral);
         }
 
@@ -332,10 +329,10 @@ public class
     }
 
     /// <summary>
-    /// Helper method to delete keys matching a pattern.
-    /// WARNING: Using KEYS * in production with a large dataset can cause performance issues.
-    /// Consider using SCAN command for production environments.
-    /// For small datasets or development, this is acceptable.
+    ///     Helper method to delete keys matching a pattern.
+    ///     WARNING: Using KEYS * in production with a large dataset can cause performance issues.
+    ///     Consider using SCAN command for production environments.
+    ///     For small datasets or development, this is acceptable.
     /// </summary>
     /// <param name="redisService">The IRedisService instance.</param>
     /// <param name="pattern">The key pattern (e.g., "prefix:*:suffix").</param>

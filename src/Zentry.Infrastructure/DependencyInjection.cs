@@ -2,11 +2,13 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using StackExchange.Redis;
 using Zentry.Infrastructure.Caching;
 using Zentry.Infrastructure.Logging;
-using Microsoft.Extensions.Logging; // Thêm using này nếu chưa có
+
+// Thêm using này nếu chưa có
 
 namespace Zentry.Infrastructure;
 
@@ -34,9 +36,7 @@ public static class DependencyInjection
                                     ?? throw new ArgumentNullException(nameof(Zentry),
                                         "Redis:ConnectionString is not configured in appsettings.json.");
         if (string.IsNullOrEmpty(redisConnectionString))
-        {
             throw new InvalidOperationException("RedisConnection string is not configured.");
-        }
 
         // Đăng ký IConnectionMultiplexer là Singleton (nên là một thể hiện duy nhất)
         services.AddSingleton<IConnectionMultiplexer>(sp =>

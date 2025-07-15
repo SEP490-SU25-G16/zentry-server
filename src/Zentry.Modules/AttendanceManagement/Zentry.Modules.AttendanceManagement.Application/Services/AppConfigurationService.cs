@@ -1,10 +1,9 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
-using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Contracts.Configuration;
 
-namespace Zentry.Modules.AttendanceManagement.Infrastructure.Services;
+namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public static class AttendanceScopeTypes
 {
@@ -85,12 +84,10 @@ public class AppConfigurationService(
     {
         string? value = null;
         if (scopeId.HasValue && scopeId.Value != Guid.Empty)
-        {
             value = await GetConfigurationValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Session,
                         scopeId.Value)
                     ?? await GetConfigurationValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Course,
                         scopeId.Value);
-        }
 
         value ??= await GetGlobalConfigurationValueAsync("AttendanceWindowMinutes");
 
@@ -129,12 +126,10 @@ public class AppConfigurationService(
     {
         string? value = null;
         if (scopeId.HasValue && scopeId.Value != Guid.Empty)
-        {
             value = await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Session,
                         scopeId.Value)
                     ?? await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Course,
                         scopeId.Value);
-        }
 
         value ??= await GetGlobalConfigurationValueAsync("TotalAttendanceRounds");
 

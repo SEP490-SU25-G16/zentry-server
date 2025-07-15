@@ -1,4 +1,4 @@
-﻿namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
+﻿namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public interface IAppConfigurationService
 {
@@ -7,7 +7,10 @@ public interface IAppConfigurationService
     Task<TimeSpan> GetFaceIdVerificationTimeoutAsync();
     Task<int> GetBluetoothRssiThresholdAsync();
     Task<TimeSpan> GetContinuousScanIntervalAsync();
-    Task<int> GetTotalAttendanceRoundsAsync(Guid? scopeId = null); // Tổng số round dựa trên thời lượng buổi học, có thể theo Course/Session
+
+    Task<int>
+        GetTotalAttendanceRoundsAsync(
+            Guid? scopeId = null); // Tổng số round dựa trên thời lượng buổi học, có thể theo Course/Session
 
     // Cấu hình liên quan đến các grace period cho báo cáo/điều chỉnh
     Task<TimeSpan> GetAbsentReportGracePeriodAsync();

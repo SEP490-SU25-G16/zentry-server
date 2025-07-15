@@ -46,7 +46,6 @@ public class
         ScopeType? requestedScopeType = null;
         // Chuyển đổi string ScopeTypeString từ query sang Smart Enum
         if (!string.IsNullOrWhiteSpace(query.ScopeTypeString))
-        {
             try
             {
                 requestedScopeType = ScopeType.FromName(query.ScopeTypeString);
@@ -56,7 +55,6 @@ public class
             {
                 throw new BusinessLogicException($"Invalid ScopeType provided: {ex.Message}");
             }
-        }
 
         if (query.ScopeId.HasValue)
             configurationsQuery = configurationsQuery.Where(c => c.ScopeId == query.ScopeId.Value);

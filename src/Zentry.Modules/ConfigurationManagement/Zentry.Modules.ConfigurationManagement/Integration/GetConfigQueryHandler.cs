@@ -27,10 +27,7 @@ public class GetConfigQueryHandler(
 
         // Try to get from cache first
         var cachedResponse = await redisService.GetAsync<GetConfigurationsIntegrationResponse>(cacheKey);
-        if (cachedResponse != null)
-        {
-            return cachedResponse;
-        }
+        if (cachedResponse != null) return cachedResponse;
 
         // Build and execute query
         var response = await ExecuteQueryAsync(query, requestedScopeType, cancellationToken);
@@ -111,21 +108,14 @@ public class GetConfigQueryHandler(
 
         // Apply ScopeType filter
         if (requestedScopeType != null)
-        {
             configurationsQuery = configurationsQuery.Where(c => c.ScopeType == requestedScopeType);
-        }
 
         // Apply ScopeId filter
         if (query.ScopeId.HasValue)
-        {
             configurationsQuery = configurationsQuery.Where(c => c.ScopeId == query.ScopeId.Value);
-        }
 
         // Apply Key search filter
-        if (!string.IsNullOrWhiteSpace(query.Key))
-        {
-            configurationsQuery = ApplyKeyFilter(configurationsQuery, query.Key);
-        }
+        if (!string.IsNullOrWhiteSpace(query.Key)) configurationsQuery = ApplyKeyFilter(configurationsQuery, query.Key);
 
         return configurationsQuery;
     }
@@ -148,9 +138,7 @@ public class GetConfigQueryHandler(
         ScopeType? requestedScopeType)
     {
         if (ShouldCacheResponse(query, requestedScopeType))
-        {
             await redisService.SetAsync(cacheKey, response, CacheExpiry);
-        }
     }
 
     private static bool ShouldCacheResponse(GetConfigurationsIntegrationQuery query, ScopeType? requestedScopeType)

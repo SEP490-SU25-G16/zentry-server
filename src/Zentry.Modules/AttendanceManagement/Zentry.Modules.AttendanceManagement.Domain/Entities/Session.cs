@@ -12,7 +12,8 @@ public class Session : AggregateRoot<Guid>
     }
 
     // Constructor chính, nhận ID và các thuộc tính cơ bản
-    private Session(Guid id, Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime, SessionConfigSnapshot sessionConfigs)
+    private Session(Guid id, Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
+        SessionConfigSnapshot sessionConfigs)
         : base(id)
     {
         ScheduleId = scheduleId;
@@ -30,10 +31,11 @@ public class Session : AggregateRoot<Guid>
     public DateTime CreatedAt { get; private set; }
 
     // Thêm thuộc tính SessionConfigs kiểu Value Object
-    public SessionConfigSnapshot SessionConfigs { get; private set; } // private set để EF Core có thể hydrate
+    public SessionConfigSnapshot SessionConfigs { get; } // private set để EF Core có thể hydrate
 
     // Factory method để tạo Session, nhận thêm SessionConfigSnapshot
-    public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime, SessionConfigSnapshot sessionConfigs)
+    public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
+        SessionConfigSnapshot sessionConfigs)
     {
         return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, sessionConfigs);
     }

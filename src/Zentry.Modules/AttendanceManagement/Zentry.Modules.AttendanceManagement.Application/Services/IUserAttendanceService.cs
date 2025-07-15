@@ -1,6 +1,6 @@
 ﻿using Zentry.SharedKernel.Contracts.User;
 
-namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
+namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public interface IUserAttendanceService
 {
