@@ -2,7 +2,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
 
-public record GetConfigurationsQuery : IQuery<GetConfigurationsResponse>
+public record GetSettingsQuery : IQuery<GetSettingsResponse>
 {
     public Guid? AttributeId { get; init; }
     public string? ScopeTypeString { get; init; }

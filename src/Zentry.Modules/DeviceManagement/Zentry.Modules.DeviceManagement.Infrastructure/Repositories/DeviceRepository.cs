@@ -64,7 +64,7 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
     public async Task<Device?> GetByDeviceTokenAsync(string deviceToken, CancellationToken cancellationToken)
     {
         // Assuming DeviceToken is stored directly or as an owned type's value.
-        // Make sure your EF Core configuration for DeviceToken allows this query.
+        // Make sure your EF Core setting for DeviceToken allows this query.
         return await dbContext.Devices
             .FirstOrDefaultAsync(d => d.DeviceToken.Value == deviceToken, cancellationToken);
     }

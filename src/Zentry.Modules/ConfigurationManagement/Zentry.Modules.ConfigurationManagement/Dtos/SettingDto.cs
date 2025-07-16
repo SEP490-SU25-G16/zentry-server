@@ -1,6 +1,6 @@
 namespace Zentry.Modules.ConfigurationManagement.Dtos;
 
-public class ConfigurationDto
+public class SettingDto
 {
     public Guid Id { get; set; }
     public Guid AttributeId { get; set; }

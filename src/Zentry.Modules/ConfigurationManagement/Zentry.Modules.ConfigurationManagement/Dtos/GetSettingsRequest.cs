@@ -1,6 +1,6 @@
 ﻿namespace Zentry.Modules.ConfigurationManagement.Dtos;
 
-public class GetConfigurationsRequest
+public class GetSettingsRequest
 {
     public Guid? AttributeId { get; init; }
     public string? ScopeType { get; init; }

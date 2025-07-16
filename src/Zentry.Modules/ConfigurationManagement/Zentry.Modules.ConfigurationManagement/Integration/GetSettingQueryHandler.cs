@@ -9,14 +9,14 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ConfigurationManagement.Integration;
 
-public class GetConfigQueryHandler(
+public class GetSettingQueryHandler(
     ConfigurationDbContext dbContext,
     IRedisService redisService)
-    : IQueryHandler<GetConfigurationsIntegrationQuery, GetConfigurationsIntegrationResponse>
+    : IQueryHandler<GetSettingsIntegrationQuery, GetSettingsIntegrationResponse>
 {
     private static readonly TimeSpan CacheExpiry = TimeSpan.FromHours(1);
 
-    public async Task<GetConfigurationsIntegrationResponse> Handle(GetConfigurationsIntegrationQuery query,
+    public async Task<GetSettingsIntegrationResponse> Handle(GetSettingsIntegrationQuery query,
         CancellationToken cancellationToken)
     {
         // Validate and parse ScopeType early
@@ -26,7 +26,7 @@ public class GetConfigQueryHandler(
         var cacheKey = GenerateCacheKey(query, requestedScopeType);
 
         // Try to get from cache first
-        var cachedResponse = await redisService.GetAsync<GetConfigurationsIntegrationResponse>(cacheKey);
+        var cachedResponse = await redisService.GetAsync<GetSettingsIntegrationResponse>(cacheKey);
         if (cachedResponse != null) return cachedResponse;
 
         // Build and execute query
@@ -53,28 +53,28 @@ public class GetConfigQueryHandler(
         }
     }
 
-    private static string GenerateCacheKey(GetConfigurationsIntegrationQuery query, ScopeType? requestedScopeType)
+    private static string GenerateCacheKey(GetSettingsIntegrationQuery query, ScopeType? requestedScopeType)
     {
         var scopeTypeKey = requestedScopeType?.ToString() ?? "null";
         var scopeIdKey = query.ScopeId?.ToString() ?? "null";
         var keyParam = query.Key ?? "null";
 
-        return $"configurations:{scopeTypeKey}:{scopeIdKey}:{keyParam}:1:1";
+        return $"settings:{scopeTypeKey}:{scopeIdKey}:{keyParam}:1:1";
     }
 
-    private async Task<GetConfigurationsIntegrationResponse> ExecuteQueryAsync(
-        GetConfigurationsIntegrationQuery query,
+    private async Task<GetSettingsIntegrationResponse> ExecuteQueryAsync(
+        GetSettingsIntegrationQuery query,
         ScopeType? requestedScopeType,
         CancellationToken cancellationToken)
     {
-        var configurationsQuery = BuildQuery(query, requestedScopeType);
+        var settingsQuery = BuildQuery(query, requestedScopeType);
 
         // Execute count and data queries in parallel for better performance
-        var countTask = configurationsQuery.CountAsync(cancellationToken);
-        var dataTask = configurationsQuery
+        var countTask = settingsQuery.CountAsync(cancellationToken);
+        var dataTask = settingsQuery
             .OrderBy(c => c.CreatedAt)
             .Take(1)
-            .Select(c => new ConfigurationContract
+            .Select(c => new SettingContract
             {
                 Id = c.Id,
                 AttributeId = c.AttributeId,
@@ -91,7 +91,7 @@ public class GetConfigQueryHandler(
 
         await Task.WhenAll(countTask, dataTask);
 
-        return new GetConfigurationsIntegrationResponse
+        return new GetSettingsIntegrationResponse
         {
             Items = await dataTask,
             TotalCount = await countTask,
@@ -100,27 +100,27 @@ public class GetConfigQueryHandler(
         };
     }
 
-    private IQueryable<Configuration> BuildQuery(GetConfigurationsIntegrationQuery query, ScopeType? requestedScopeType)
+    private IQueryable<Setting> BuildQuery(GetSettingsIntegrationQuery query, ScopeType? requestedScopeType)
     {
-        var configurationsQuery = dbContext.Configurations
+        var settingsQuery = dbContext.Settings
             .Include(c => c.AttributeDefinition)
             .AsQueryable();
 
         // Apply ScopeType filter
         if (requestedScopeType != null)
-            configurationsQuery = configurationsQuery.Where(c => c.ScopeType == requestedScopeType);
+            settingsQuery = settingsQuery.Where(c => c.ScopeType == requestedScopeType);
 
         // Apply ScopeId filter
         if (query.ScopeId.HasValue)
-            configurationsQuery = configurationsQuery.Where(c => c.ScopeId == query.ScopeId.Value);
+            settingsQuery = settingsQuery.Where(c => c.ScopeId == query.ScopeId.Value);
 
         // Apply Key search filter
-        if (!string.IsNullOrWhiteSpace(query.Key)) configurationsQuery = ApplyKeyFilter(configurationsQuery, query.Key);
+        if (!string.IsNullOrWhiteSpace(query.Key)) settingsQuery = ApplyKeyFilter(settingsQuery, query.Key);
 
-        return configurationsQuery;
+        return settingsQuery;
     }
 
-    private static IQueryable<Configuration> ApplyKeyFilter(IQueryable<Configuration> query, string searchKey)
+    private static IQueryable<Setting> ApplyKeyFilter(IQueryable<Setting> query, string searchKey)
     {
         var lowerSearchTerm = searchKey.ToLower();
 
@@ -133,15 +133,15 @@ public class GetConfigQueryHandler(
 
     private async Task TryCacheResponseAsync(
         string cacheKey,
-        GetConfigurationsIntegrationResponse response,
-        GetConfigurationsIntegrationQuery query,
+        GetSettingsIntegrationResponse response,
+        GetSettingsIntegrationQuery query,
         ScopeType? requestedScopeType)
     {
         if (ShouldCacheResponse(query, requestedScopeType))
             await redisService.SetAsync(cacheKey, response, CacheExpiry);
     }
 
-    private static bool ShouldCacheResponse(GetConfigurationsIntegrationQuery query, ScopeType? requestedScopeType)
+    private static bool ShouldCacheResponse(GetSettingsIntegrationQuery query, ScopeType? requestedScopeType)
     {
         // Don't cache search queries (queries with Key parameter)
         if (!string.IsNullOrWhiteSpace(query.Key))

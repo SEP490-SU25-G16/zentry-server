@@ -17,6 +17,6 @@ public interface IAppConfigurationService
     Task<TimeSpan> GetManualAdjustmentGracePeriodAsync();
 
     // Phương thức chung để lấy cấu hình theo key và scope
-    Task<string?> GetConfigurationValueAsync(string key, string scopeType, Guid scopeId);
-    Task<string?> GetGlobalConfigurationValueAsync(string key);
+    Task<string?> GetSettingValueAsync(string key, string scopeType, Guid scopeId);
+    Task<string?> GetGlobalSettingValueAsync(string key);
 }

@@ -2,8 +2,8 @@
 
 namespace Zentry.SharedKernel.Contracts.Configuration;
 
-public record GetConfigurationsIntegrationQuery(
+public record GetSettingsIntegrationQuery(
     string? Key,
     string? ScopeType,
     Guid? ScopeId
-) : IQuery<GetConfigurationsIntegrationResponse>;
+) : IQuery<GetSettingsIntegrationResponse>;

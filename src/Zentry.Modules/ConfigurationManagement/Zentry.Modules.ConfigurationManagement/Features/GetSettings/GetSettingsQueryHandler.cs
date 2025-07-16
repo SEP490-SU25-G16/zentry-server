@@ -10,23 +10,23 @@ using Zentry.SharedKernel.Exceptions;
 namespace Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
 
 public class
-    GetConfigurationsQueryHandler(
+    GetSettingsQueryHandler(
         ConfigurationDbContext dbContext,
         IRedisService redisService)
-    : IQueryHandler<GetConfigurationsQuery, GetConfigurationsResponse>
+    : IQueryHandler<GetSettingsQuery, GetSettingsResponse>
 {
     private readonly TimeSpan _cacheExpiry = TimeSpan.FromHours(1);
 
-    public async Task<GetConfigurationsResponse> Handle(GetConfigurationsQuery query,
+    public async Task<GetSettingsResponse> Handle(GetSettingsQuery query,
         CancellationToken cancellationToken)
     {
         // Tạo cache key dựa trên các tham số query
         // Đảm bảo cache key đủ độc đáo cho mỗi loại query
         var cacheKey =
-            $"configurations:{query.AttributeId?.ToString() ?? "null"}:{query.ScopeTypeString ?? "null"}:{query.ScopeId?.ToString() ?? "null"}:{query.SearchTerm ?? "null"}:{query.PageNumber}:{query.PageSize}";
+            $"settings:{query.AttributeId?.ToString() ?? "null"}:{query.ScopeTypeString ?? "null"}:{query.ScopeId?.ToString() ?? "null"}:{query.SearchTerm ?? "null"}:{query.PageNumber}:{query.PageSize}";
 
         // 1. Thử lấy từ Redis trước
-        var cachedResponse = await redisService.GetAsync<GetConfigurationsResponse>(cacheKey);
+        var cachedResponse = await redisService.GetAsync<GetSettingsResponse>(cacheKey);
         if (cachedResponse != null)
         {
             // Log for debugging (optional)
@@ -37,11 +37,11 @@ public class
         // Log for debugging (optional)
         Console.WriteLine($"Cache miss for key: {cacheKey}. Fetching from DB...");
 
-        IQueryable<Configuration> configurationsQuery = dbContext.Configurations
+        IQueryable<Setting> settingsQuery = dbContext.Settings
             .Include(c => c.AttributeDefinition);
 
         if (query.AttributeId.HasValue)
-            configurationsQuery = configurationsQuery.Where(c => c.AttributeId == query.AttributeId.Value);
+            settingsQuery = settingsQuery.Where(c => c.AttributeId == query.AttributeId.Value);
 
         ScopeType? requestedScopeType = null;
         // Chuyển đổi string ScopeTypeString từ query sang Smart Enum
@@ -49,7 +49,7 @@ public class
             try
             {
                 requestedScopeType = ScopeType.FromName(query.ScopeTypeString);
-                configurationsQuery = configurationsQuery.Where(c => c.ScopeType == requestedScopeType);
+                settingsQuery = settingsQuery.Where(c => c.ScopeType == requestedScopeType);
             }
             catch (ArgumentException ex)
             {
@@ -57,27 +57,27 @@ public class
             }
 
         if (query.ScopeId.HasValue)
-            configurationsQuery = configurationsQuery.Where(c => c.ScopeId == query.ScopeId.Value);
+            settingsQuery = settingsQuery.Where(c => c.ScopeId == query.ScopeId.Value);
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
             var lowerSearchTerm = query.SearchTerm.ToLower();
-            configurationsQuery = configurationsQuery.Where(c =>
+            settingsQuery = settingsQuery.Where(c =>
                 (c.AttributeDefinition != null && (c.AttributeDefinition.Key.ToLower().Contains(lowerSearchTerm) ||
                                                    c.AttributeDefinition.DisplayName.ToLower()
                                                        .Contains(lowerSearchTerm))) ||
                 c.Value.ToLower().Contains(lowerSearchTerm));
         }
 
-        var totalCount = await configurationsQuery.CountAsync(cancellationToken);
+        var totalCount = await settingsQuery.CountAsync(cancellationToken);
 
-        var configurations = await configurationsQuery
+        var settings = await settingsQuery
             .OrderBy(c => c.CreatedAt)
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToListAsync(cancellationToken);
 
-        var configDtos = configurations.Select(c => new ConfigurationDto
+        var configDtos = settings.Select(c => new SettingDto
         {
             Id = c.Id,
             AttributeId = c.AttributeId,
@@ -91,7 +91,7 @@ public class
             UpdatedAt = c.UpdatedAt
         }).ToList();
 
-        var response = new GetConfigurationsResponse
+        var response = new GetSettingsResponse
         {
             Items = configDtos,
             TotalCount = totalCount,

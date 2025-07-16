@@ -3,13 +3,13 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 
-public class Configuration : AggregateRoot<Guid>
+public class Setting : AggregateRoot<Guid>
 {
-    private Configuration() : base(Guid.Empty)
+    private Setting() : base(Guid.Empty)
     {
     }
 
-    private Configuration(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
+    private Setting(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
         : base(id)
     {
         AttributeId = attributeId;
@@ -27,9 +27,9 @@ public class Configuration : AggregateRoot<Guid>
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public virtual AttributeDefinition AttributeDefinition { get; private set; }
 
-    public static Configuration Create(Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
+    public static Setting Create(Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
-        return new Configuration(Guid.NewGuid(), attributeId, scopeType, scopeId, value);
+        return new Setting(Guid.NewGuid(), attributeId, scopeType, scopeId, value);
     }
 
     public void UpdateValue(string newValue)

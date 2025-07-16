@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ConfigurationManagement.Dtos;
-using Zentry.Modules.ConfigurationManagement.Features.CreateConfiguration;
+using Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 using Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
 using Zentry.SharedKernel.Exceptions;
 
@@ -13,14 +13,14 @@ namespace Zentry.Modules.ConfigurationManagement.Controllers;
 public class ConfigurationsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(typeof(GetConfigurationsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(GetSettingsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetConfigurations([FromQuery] GetConfigurationsRequest request,
+    public async Task<IActionResult> GetSettings([FromQuery] GetSettingsRequest request,
         CancellationToken cancellationToken)
     {
         try
         {
-            var query = new GetConfigurationsQuery
+            var query = new GetSettingsQuery
             {
                 AttributeId = request.AttributeId,
                 ScopeTypeString = request.ScopeType,
@@ -40,15 +40,15 @@ public class ConfigurationsController(IMediator mediator) : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An unexpected error occurred while retrieving configurations." });
+                new { message = "An unexpected error occurred while retrieving settings." });
         }
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(CreateConfigurationResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CreateSettingResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CreateConfiguration([FromBody] CreateConfigurationRequest request,
+    public async Task<IActionResult> CreateSetting([FromBody] CreateSettingRequest request,
         CancellationToken cancellationToken)
     {
         // Validate request
@@ -69,30 +69,30 @@ public class ConfigurationsController(IMediator mediator) : ControllerBase
         if (string.IsNullOrWhiteSpace(request.AttributeDefinitionDetails.ScopeType))
             return BadRequest(new { message = "AttributeDefinitionDetails.ScopeType is required." });
 
-        if (request.Configuration == null) return BadRequest(new { message = "Configuration details are required." });
+        if (request.Setting == null) return BadRequest(new { message = "Setting details are required." });
 
-        if (string.IsNullOrWhiteSpace(request.Configuration.ScopeType))
-            return BadRequest(new { message = "Configuration.ScopeType is required." });
+        if (string.IsNullOrWhiteSpace(request.Setting.ScopeType))
+            return BadRequest(new { message = "Setting.ScopeType is required." });
 
-        if (request.Configuration.ScopeId == Guid.Empty)
-            return BadRequest(new { message = "Configuration.ScopeId is required." });
+        if (request.Setting.ScopeId == Guid.Empty)
+            return BadRequest(new { message = "Setting.ScopeId is required." });
 
-        if (string.IsNullOrWhiteSpace(request.Configuration.Value))
-            return BadRequest(new { message = "Configuration.Value is required." });
+        if (string.IsNullOrWhiteSpace(request.Setting.Value))
+            return BadRequest(new { message = "Setting.Value is required." });
 
         try
         {
-            var command = new CreateConfigurationCommand
+            var command = new CreateSettingCommand
             {
                 AttributeDefinitionDetails = request.AttributeDefinitionDetails,
-                Configuration = request.Configuration
+                Setting = request.Setting
             };
 
             var response = await mediator.Send(command, cancellationToken);
 
             return CreatedAtAction(
-                nameof(GetConfigurations),
-                new { id = response.ConfigurationId },
+                nameof(GetSettings),
+                new { id = response.SettingId },
                 response);
         }
         catch (BusinessLogicException ex)
@@ -106,7 +106,7 @@ public class ConfigurationsController(IMediator mediator) : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An unexpected error occurred while creating the configuration." });
+                new { message = "An unexpected error occurred while creating the Setting." });
         }
     }
 }

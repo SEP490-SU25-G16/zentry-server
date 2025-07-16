@@ -1,9 +1,9 @@
 ﻿namespace Zentry.Modules.ConfigurationManagement.Dtos;
 
-public class CreateConfigurationRequest
+public class CreateSettingRequest
 {
     public AttributeDefinitionCreationDto? AttributeDefinitionDetails { get; set; }
-    public ConfigurationCreationDto Configuration { get; set; } = new();
+    public SettingCreationDto Setting { get; set; } = new();
 }
 //
 // {
@@ -33,7 +33,7 @@ public class CreateConfigurationRequest
 //       }
 //     ]
 //   },
-//   "configuration": {
+//   "setting": {
 //     "scopeType": "Global",
 //     "scopeId": "12345678-1234-1234-1234-123456789012",
 //     "value": "MEDIUM"
@@ -52,7 +52,7 @@ public class CreateConfigurationRequest
 //     "unit": null,
 //     "options": null
 //   },
-//   "configuration": {
+//   "setting": {
 //     "scopeType": "Tenant",
 //     "scopeId": "87654321-4321-4321-4321-210987654321",
 //     "value": "#ffffff"
@@ -71,7 +71,7 @@ public class CreateConfigurationRequest
 //     "unit": "attempts",
 //     "options": null
 //   },
-//   "configuration": {
+//   "setting": {
 //     "scopeType": "Global",
 //     "scopeId": "12345678-1234-1234-1234-123456789012",
 //     "value": "5"
@@ -90,7 +90,7 @@ public class CreateConfigurationRequest
 //     "unit": null,
 //     "options": null
 //   },
-//   "configuration": {
+//   "setting": {
 //     "scopeType": "User",
 //     "scopeId": "11111111-1111-1111-1111-111111111111",
 //     "value": "true"
@@ -109,7 +109,7 @@ public class CreateConfigurationRequest
 //     "unit": "percentage",
 //     "options": null
 //   },
-//   "configuration": {
+//   "setting": {
 //     "scopeType": "Global",
 //     "scopeId": "12345678-1234-1234-1234-123456789012",
 //     "value": "2.5"
@@ -128,7 +128,7 @@ public class CreateConfigurationRequest
 //     "unit": null,
 //     "options": null
 //   },
-//   "configuration": {
+//   "setting": {
 //     "scopeType": "Global",
 //     "scopeId": "12345678-1234-1234-1234-123456789012",
 //     "value": "2024-01-15T02:00:00Z"
@@ -140,14 +140,14 @@ public class CreateConfigurationRequest
 //   "attributeDefinitionDetails": {
 //     "id": null,
 //     "key": "UI_THEME_CONFIG",
-//     "displayName": "UI Theme Configuration",
-//     "description": "JSON configuration for UI theme settings",
+//     "displayName": "UI Theme Setting",
+//     "description": "JSON setting for UI theme settings",
 //     "dataType": "Json",
 //     "scopeType": "Tenant",
 //     "unit": null,
 //     "options": null
 //   },
-//   "configuration": {
+//   "setting": {
 //     "scopeType": "Tenant",
 //     "scopeId": "87654321-4321-4321-4321-210987654321",
 //     "value": "{\"primaryColor\": \"#007bff\", \"secondaryColor\": \"#6c757d\", \"darkMode\": false}"

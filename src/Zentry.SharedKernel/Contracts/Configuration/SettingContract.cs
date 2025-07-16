@@ -1,6 +1,6 @@
 ﻿namespace Zentry.SharedKernel.Contracts.Configuration;
 
-public class ConfigurationContract
+public class SettingContract
 {
     public Guid Id { get; set; }
     public Guid AttributeId { get; set; }

@@ -20,7 +20,7 @@ public class AppConfigurationService(
 {
     private readonly TimeSpan _localCacheExpiry = TimeSpan.FromMinutes(30);
 
-    public async Task<string?> GetConfigurationValueAsync(string key, string scopeType, Guid scopeId)
+    public async Task<string?> GetSettingValueAsync(string key, string scopeType, Guid scopeId)
     {
         // Tạo cache key cục bộ cho Attendance Module
         var localCacheKey = $"appconfig:{key}:{scopeType}:{scopeId}";
@@ -33,10 +33,10 @@ public class AppConfigurationService(
             return cachedValue;
         }
 
-        logger.LogDebug("Local cache miss for config key: {Key}. Fetching from Configuration Module.", localCacheKey);
+        logger.LogDebug("Local cache miss for config key: {Key}. Fetching from Setting Module.", localCacheKey);
 
         // 2. Nếu không có trong cache, GỌI IConfigurationService TỪ CONFIGURATION MODULE
-        var request = new GetConfigurationsIntegrationQuery(key, scopeType, scopeId);
+        var request = new GetSettingsIntegrationQuery(key, scopeType, scopeId);
 
         try
         {
@@ -63,7 +63,7 @@ public class AppConfigurationService(
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to retrieve configuration '{Key}' (Scope: {ScopeType}, ID: {ScopeId}) from Configuration Module.",
+                "Failed to retrieve setting '{Key}' (Scope: {ScopeType}, ID: {ScopeId}) from Setting Module.",
                 key, scopeType, scopeId);
             // Có thể throw lại, hoặc trả về giá trị mặc định, tùy theo chính sách lỗi của bạn
         }
@@ -72,53 +72,53 @@ public class AppConfigurationService(
         return null;
     }
 
-    public async Task<string?> GetGlobalConfigurationValueAsync(string key)
+    public async Task<string?> GetGlobalSettingValueAsync(string key)
     {
         // Đối với cấu hình GLOBAL, ScopeId là Guid.Empty
-        return await GetConfigurationValueAsync(key, AttendanceScopeTypes.Global, Guid.Empty);
+        return await GetSettingValueAsync(key, AttendanceScopeTypes.Global, Guid.Empty);
     }
 
-    // --- Các phương thức lấy cấu hình cụ thể (giữ nguyên logic gọi GetConfigurationValueAsync) ---
+    // --- Các phương thức lấy cấu hình cụ thể (giữ nguyên logic gọi GetSettingValueAsync) ---
 
     public async Task<TimeSpan> GetAttendanceWindowAsync(Guid? scopeId = null)
     {
         string? value = null;
         if (scopeId.HasValue && scopeId.Value != Guid.Empty)
-            value = await GetConfigurationValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Session,
+            value = await GetSettingValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Session,
                         scopeId.Value)
-                    ?? await GetConfigurationValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Course,
+                    ?? await GetSettingValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Course,
                         scopeId.Value);
 
-        value ??= await GetGlobalConfigurationValueAsync("AttendanceWindowMinutes");
+        value ??= await GetGlobalSettingValueAsync("AttendanceWindowMinutes");
 
         if (int.TryParse(value, out var minutes)) return TimeSpan.FromMinutes(minutes);
-        logger.LogWarning("Invalid or missing 'AttendanceWindowMinutes' configuration. Using default: 15 minutes.");
+        logger.LogWarning("Invalid or missing 'AttendanceWindowMinutes' setting. Using default: 15 minutes.");
         return TimeSpan.FromMinutes(15);
     }
 
     public async Task<TimeSpan> GetFaceIdVerificationTimeoutAsync()
     {
-        var value = await GetGlobalConfigurationValueAsync("FaceIdVerificationTimeoutSeconds");
+        var value = await GetGlobalSettingValueAsync("FaceIdVerificationTimeoutSeconds");
         if (int.TryParse(value, out var seconds)) return TimeSpan.FromSeconds(seconds);
         logger.LogWarning(
-            "Invalid or missing 'FaceIdVerificationTimeoutSeconds' configuration. Using default: 30 seconds.");
+            "Invalid or missing 'FaceIdVerificationTimeoutSeconds' setting. Using default: 30 seconds.");
         return TimeSpan.FromSeconds(30);
     }
 
     public async Task<int> GetBluetoothRssiThresholdAsync()
     {
-        var value = await GetGlobalConfigurationValueAsync("BluetoothRssiThreshold");
+        var value = await GetGlobalSettingValueAsync("BluetoothRssiThreshold");
         if (int.TryParse(value, out var threshold)) return threshold;
-        logger.LogWarning("Invalid or missing 'BluetoothRssiThreshold' configuration. Using default: -70 dBm.");
+        logger.LogWarning("Invalid or missing 'BluetoothRssiThreshold' setting. Using default: -70 dBm.");
         return -70;
     }
 
     public async Task<TimeSpan> GetContinuousScanIntervalAsync()
     {
-        var value = await GetGlobalConfigurationValueAsync("ContinuousScanIntervalSeconds");
+        var value = await GetGlobalSettingValueAsync("ContinuousScanIntervalSeconds");
         if (int.TryParse(value, out var seconds)) return TimeSpan.FromSeconds(seconds);
         logger.LogWarning(
-            "Invalid or missing 'ContinuousScanIntervalSeconds' configuration. Using default: 30 seconds.");
+            "Invalid or missing 'ContinuousScanIntervalSeconds' setting. Using default: 30 seconds.");
         return TimeSpan.FromSeconds(30);
     }
 
@@ -126,32 +126,32 @@ public class AppConfigurationService(
     {
         string? value = null;
         if (scopeId.HasValue && scopeId.Value != Guid.Empty)
-            value = await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Session,
+            value = await GetSettingValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Session,
                         scopeId.Value)
-                    ?? await GetConfigurationValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Course,
+                    ?? await GetSettingValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Course,
                         scopeId.Value);
 
-        value ??= await GetGlobalConfigurationValueAsync("TotalAttendanceRounds");
+        value ??= await GetGlobalSettingValueAsync("TotalAttendanceRounds");
 
         if (int.TryParse(value, out var rounds)) return rounds;
-        logger.LogWarning("Invalid or missing 'TotalAttendanceRounds' configuration. Using default: 10 rounds.");
+        logger.LogWarning("Invalid or missing 'TotalAttendanceRounds' setting. Using default: 10 rounds.");
         return 10;
     }
 
     public async Task<TimeSpan> GetAbsentReportGracePeriodAsync()
     {
-        var value = await GetGlobalConfigurationValueAsync("AbsentReportGracePeriodHours");
+        var value = await GetGlobalSettingValueAsync("AbsentReportGracePeriodHours");
         if (int.TryParse(value, out var hours)) return TimeSpan.FromHours(hours);
-        logger.LogWarning("Invalid or missing 'AbsentReportGracePeriodHours' configuration. Using default: 24 hours.");
+        logger.LogWarning("Invalid or missing 'AbsentReportGracePeriodHours' setting. Using default: 24 hours.");
         return TimeSpan.FromHours(24);
     }
 
     public async Task<TimeSpan> GetManualAdjustmentGracePeriodAsync()
     {
-        var value = await GetGlobalConfigurationValueAsync("ManualAdjustmentGracePeriodHours");
+        var value = await GetGlobalSettingValueAsync("ManualAdjustmentGracePeriodHours");
         if (int.TryParse(value, out var hours)) return TimeSpan.FromHours(hours);
         logger.LogWarning(
-            "Invalid or missing 'ManualAdjustmentGracePeriodHours' configuration. Using default: 24 hours.");
+            "Invalid or missing 'ManualAdjustmentGracePeriodHours' setting. Using default: 24 hours.");
         return TimeSpan.FromHours(24);
     }
 }

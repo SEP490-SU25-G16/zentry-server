@@ -5,11 +5,11 @@ using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence.Configurations;
 
-public class ConfigurationConfiguration : IEntityTypeConfiguration<Configuration>
+public class SettingConfiguration : IEntityTypeConfiguration<Setting>
 {
-    public void Configure(EntityTypeBuilder<Configuration> builder)
+    public void Configure(EntityTypeBuilder<Setting> builder)
     {
-        builder.ToTable("Configurations");
+        builder.ToTable("Settings");
 
         builder.HasKey(c => c.Id);
 
@@ -47,14 +47,14 @@ public class ConfigurationConfiguration : IEntityTypeConfiguration<Configuration
         builder.HasIndex(c => c.ScopeId);
 
         // Add unique constraint for combination of AttributeId, ScopeType, ScopeId
-        // This ensures a specific configuration value exists only once for a given scope
+        // This ensures a specific setting value exists only once for a given scope
         builder.HasIndex(c => new { c.AttributeId, c.ScopeType, c.ScopeId })
             .IsUnique();
 
         // THÊM CẤU HÌNH MỐI QUAN HỆ VỚI ATTRIBUTEDEFINITION
-        // Mỗi Configuration có một AttributeDefinition
-        builder.HasOne(c => c.AttributeDefinition) // Configuration có một AttributeDefinition
-            .WithMany() // AttributeDefinition có thể có nhiều Configurations (nếu bạn muốn AttributeDefinition biết các Configurations của nó, bạn sẽ cần thêm collection vào AttributeDefinition)
+        // Mỗi  Setting có một AttributeDefinition
+        builder.HasOne(c => c.AttributeDefinition) //  Setting có một AttributeDefinition
+            .WithMany() // AttributeDefinition có thể có nhiều Settings (nếu bạn muốn AttributeDefinition biết các Configurations của nó, bạn sẽ cần thêm collection vào AttributeDefinition)
             .HasForeignKey(c => c.AttributeId) // Khóa ngoại là AttributeId
             .IsRequired(); // Bắt buộc phải có AttributeDefinition
     }

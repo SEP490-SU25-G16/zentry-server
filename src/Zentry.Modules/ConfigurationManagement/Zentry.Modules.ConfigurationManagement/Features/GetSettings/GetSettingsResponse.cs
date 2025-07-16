@@ -2,9 +2,9 @@
 
 namespace Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
 
-public class GetConfigurationsResponse
+public class GetSettingsResponse
 {
-    public List<ConfigurationDto> Items { get; set; } = [];
+    public List<SettingDto> Items { get; set; } = [];
     public int TotalCount { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }

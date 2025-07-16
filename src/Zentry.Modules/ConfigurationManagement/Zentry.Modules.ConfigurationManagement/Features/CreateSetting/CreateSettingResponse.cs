@@ -1,11 +1,11 @@
 ﻿using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 
-namespace Zentry.Modules.ConfigurationManagement.Features.CreateConfiguration;
+namespace Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 
-public class CreateConfigurationResponse
+public class CreateSettingResponse
 {
-    public Guid ConfigurationId { get; set; }
+    public Guid SettingId { get; set; }
 
     // Thông tin của AttributeDefinition đã được tạo/cập nhật
     public Guid AttributeId { get; set; }
@@ -18,8 +18,8 @@ public class CreateConfigurationResponse
     // Thông tin về Options (nếu có và DataType là Selection)
     public List<OptionDto>? Options { get; set; } // Cần tạo OptionDto riêng
 
-    // Thông tin của Configuration
-    public ScopeType ConfigurationScopeType { get; set; } // ScopeType từ Configuration
+    // Thông tin của Setting
+    public ScopeType SettingScopeType { get; set; } // ScopeType từ Setting
     public Guid ScopeId { get; set; }
     public string Value { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
