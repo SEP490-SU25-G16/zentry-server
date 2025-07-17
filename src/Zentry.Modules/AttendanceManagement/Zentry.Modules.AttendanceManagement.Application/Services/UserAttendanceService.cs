@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;

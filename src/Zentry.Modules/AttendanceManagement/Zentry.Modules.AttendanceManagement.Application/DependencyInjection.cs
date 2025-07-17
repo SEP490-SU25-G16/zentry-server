@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.AttendanceManagement.Application.Services;
+using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 
 namespace Zentry.Modules.AttendanceManagement.Application;
 

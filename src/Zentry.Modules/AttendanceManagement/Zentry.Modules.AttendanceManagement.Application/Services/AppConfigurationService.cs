@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
+using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.SharedKernel.Contracts.Configuration;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
@@ -20,138 +21,69 @@ public class AppConfigurationService(
 {
     private readonly TimeSpan _localCacheExpiry = TimeSpan.FromMinutes(30);
 
-    public async Task<string?> GetSettingValueAsync(string key, string scopeType, Guid scopeId)
+    public async Task<Dictionary<string, SettingContract>> GetAllSettingsForScopeAsync(
+        string scopeType,
+        Guid? scopeId = null,
+        CancellationToken cancellationToken = default)
     {
-        // Tạo cache key cục bộ cho Attendance Module
-        var localCacheKey = $"appconfig:{key}:{scopeType}:{scopeId}";
+        // Tạo cache key phức hợp để bao gồm cả ScopeType và ScopeId
+        // Điều này đảm bảo rằng mỗi tập hợp settings cho một scope cụ thể sẽ có cache key riêng
+        var cacheKey = $"appsettings:all:{scopeType.ToLower()}:{scopeId?.ToString() ?? "null"}";
 
         // 1. Thử lấy từ cache cục bộ của Attendance Module
-        var cachedValue = await redisService.GetAsync<string>(localCacheKey);
-        if (!string.IsNullOrEmpty(cachedValue))
+        var cachedSettings = await redisService.GetAsync<Dictionary<string, SettingContract>>(cacheKey);
+        if (cachedSettings != null)
         {
-            logger.LogDebug("Cache hit for local config key: {Key}", localCacheKey);
-            return cachedValue;
+            logger.LogDebug("Cache hit for all settings in scope '{ScopeType}' (ID: {ScopeId}).", scopeType, scopeId);
+            return cachedSettings;
         }
 
-        logger.LogDebug("Local cache miss for config key: {Key}. Fetching from Setting Module.", localCacheKey);
+        logger.LogDebug(
+            "Local cache miss for all settings in scope '{ScopeType}' (ID: {ScopeId}). Fetching from Setting Module.",
+            scopeType, scopeId);
 
-        // 2. Nếu không có trong cache, GỌI IConfigurationService TỪ CONFIGURATION MODULE
-        var request = new GetSettingsIntegrationQuery(key, scopeType, scopeId);
+        // 2. GỌI GetSettingsByScopeIntegrationQuery từ Setting Module
+        // SỬ DỤNG GetSettingsByScopeIntegrationQuery MỚI
+        var request = new GetSettingsByScopeIntegrationQuery(scopeType);
 
         try
         {
-            var response = await mediator.Send(request);
-            var configDto = response.Items.FirstOrDefault(c =>
-                c.AttributeKey.Equals(key,
-                    StringComparison.OrdinalIgnoreCase));
+            var response = await mediator.Send(request, cancellationToken);
 
-            if (configDto != null)
+            // Filter by ScopeId if provided and not Global scope
+            var filteredItems = response.Items.AsEnumerable();
+            if (scopeId.HasValue && scopeId.Value != Guid.Empty &&
+                !scopeType.Equals(AttendanceScopeTypes.Global, StringComparison.OrdinalIgnoreCase))
             {
-                // 3. Cache vào Redis cục bộ nếu là scope type được phép
-                // So sánh bằng chuỗi, không phụ thuộc vào Smart Enum của Config Module
-                if (!configDto.ScopeType.Equals(AttendanceScopeTypes.Global, StringComparison.OrdinalIgnoreCase) &&
-                    !configDto.ScopeType.Equals(AttendanceScopeTypes.Course, StringComparison.OrdinalIgnoreCase) &&
-                    !configDto.ScopeType.Equals(AttendanceScopeTypes.Session, StringComparison.OrdinalIgnoreCase))
-                    return configDto.Value;
-                await redisService.SetAsync(localCacheKey, configDto.Value, _localCacheExpiry);
-                logger.LogInformation("Cached config '{Key}' (Scope: {ScopeType}, ID: {ScopeId}) locally.", key,
-                    scopeType, scopeId);
-
-                return configDto.Value;
+                filteredItems = filteredItems.Where(s => s.ScopeId == scopeId.Value);
             }
+
+            var settingsDictionary = filteredItems.ToDictionary(
+                s => s.AttributeKey,
+                s => s, // Lưu toàn bộ SettingContract để có thể truy cập Value, DataType, v.v.
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            // 3. Cache vào Redis cục bộ nếu là scope type được phép và có dữ liệu
+            if (settingsDictionary.Count == 0 ||
+                (!scopeType.Equals(AttendanceScopeTypes.Global, StringComparison.OrdinalIgnoreCase) &&
+                 !scopeType.Equals(AttendanceScopeTypes.Course, StringComparison.OrdinalIgnoreCase) &&
+                 !scopeType.Equals(AttendanceScopeTypes.Session, StringComparison.OrdinalIgnoreCase)))
+                return settingsDictionary;
+            await redisService.SetAsync(cacheKey, settingsDictionary, _localCacheExpiry);
+            logger.LogInformation("Cached all settings for scope '{ScopeType}' (ID: {ScopeId}) locally.", scopeType,
+                scopeId);
+
+            return settingsDictionary;
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to retrieve setting '{Key}' (Scope: {ScopeType}, ID: {ScopeId}) from Setting Module.",
-                key, scopeType, scopeId);
-            // Có thể throw lại, hoặc trả về giá trị mặc định, tùy theo chính sách lỗi của bạn
+                "Failed to retrieve all settings for scope '{ScopeType}' (ID: {ScopeId}) from Setting Module.",
+                scopeType, scopeId);
+            // Quan trọng: Trả về một Dictionary rỗng để tránh NullReferenceException
+            // Hoặc throw lại nếu bạn muốn lỗi dừng quá trình.
+            return new Dictionary<string, SettingContract>();
         }
-
-        // 4. Trả về null nếu không tìm thấy hoặc có lỗi
-        return null;
-    }
-
-    public async Task<string?> GetGlobalSettingValueAsync(string key)
-    {
-        // Đối với cấu hình GLOBAL, ScopeId là Guid.Empty
-        return await GetSettingValueAsync(key, AttendanceScopeTypes.Global, Guid.Empty);
-    }
-
-    // --- Các phương thức lấy cấu hình cụ thể (giữ nguyên logic gọi GetSettingValueAsync) ---
-
-    public async Task<TimeSpan> GetAttendanceWindowAsync(Guid? scopeId = null)
-    {
-        string? value = null;
-        if (scopeId.HasValue && scopeId.Value != Guid.Empty)
-            value = await GetSettingValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Session,
-                        scopeId.Value)
-                    ?? await GetSettingValueAsync("AttendanceWindowMinutes", AttendanceScopeTypes.Course,
-                        scopeId.Value);
-
-        value ??= await GetGlobalSettingValueAsync("AttendanceWindowMinutes");
-
-        if (int.TryParse(value, out var minutes)) return TimeSpan.FromMinutes(minutes);
-        logger.LogWarning("Invalid or missing 'AttendanceWindowMinutes' setting. Using default: 15 minutes.");
-        return TimeSpan.FromMinutes(15);
-    }
-
-    public async Task<TimeSpan> GetFaceIdVerificationTimeoutAsync()
-    {
-        var value = await GetGlobalSettingValueAsync("FaceIdVerificationTimeoutSeconds");
-        if (int.TryParse(value, out var seconds)) return TimeSpan.FromSeconds(seconds);
-        logger.LogWarning(
-            "Invalid or missing 'FaceIdVerificationTimeoutSeconds' setting. Using default: 30 seconds.");
-        return TimeSpan.FromSeconds(30);
-    }
-
-    public async Task<int> GetBluetoothRssiThresholdAsync()
-    {
-        var value = await GetGlobalSettingValueAsync("BluetoothRssiThreshold");
-        if (int.TryParse(value, out var threshold)) return threshold;
-        logger.LogWarning("Invalid or missing 'BluetoothRssiThreshold' setting. Using default: -70 dBm.");
-        return -70;
-    }
-
-    public async Task<TimeSpan> GetContinuousScanIntervalAsync()
-    {
-        var value = await GetGlobalSettingValueAsync("ContinuousScanIntervalSeconds");
-        if (int.TryParse(value, out var seconds)) return TimeSpan.FromSeconds(seconds);
-        logger.LogWarning(
-            "Invalid or missing 'ContinuousScanIntervalSeconds' setting. Using default: 30 seconds.");
-        return TimeSpan.FromSeconds(30);
-    }
-
-    public async Task<int> GetTotalAttendanceRoundsAsync(Guid? scopeId = null)
-    {
-        string? value = null;
-        if (scopeId.HasValue && scopeId.Value != Guid.Empty)
-            value = await GetSettingValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Session,
-                        scopeId.Value)
-                    ?? await GetSettingValueAsync("TotalAttendanceRounds", AttendanceScopeTypes.Course,
-                        scopeId.Value);
-
-        value ??= await GetGlobalSettingValueAsync("TotalAttendanceRounds");
-
-        if (int.TryParse(value, out var rounds)) return rounds;
-        logger.LogWarning("Invalid or missing 'TotalAttendanceRounds' setting. Using default: 10 rounds.");
-        return 10;
-    }
-
-    public async Task<TimeSpan> GetAbsentReportGracePeriodAsync()
-    {
-        var value = await GetGlobalSettingValueAsync("AbsentReportGracePeriodHours");
-        if (int.TryParse(value, out var hours)) return TimeSpan.FromHours(hours);
-        logger.LogWarning("Invalid or missing 'AbsentReportGracePeriodHours' setting. Using default: 24 hours.");
-        return TimeSpan.FromHours(24);
-    }
-
-    public async Task<TimeSpan> GetManualAdjustmentGracePeriodAsync()
-    {
-        var value = await GetGlobalSettingValueAsync("ManualAdjustmentGracePeriodHours");
-        if (int.TryParse(value, out var hours)) return TimeSpan.FromHours(hours);
-        logger.LogWarning(
-            "Invalid or missing 'ManualAdjustmentGracePeriodHours' setting. Using default: 24 hours.");
-        return TimeSpan.FromHours(24);
     }
 }

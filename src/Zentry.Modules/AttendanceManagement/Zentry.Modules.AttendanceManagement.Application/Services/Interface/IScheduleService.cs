@@ -1,6 +1,6 @@
 ﻿using Zentry.SharedKernel.Contracts;
 
-namespace Zentry.Modules.AttendanceManagement.Application.Services;
+namespace Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 
 public interface IScheduleService
 {

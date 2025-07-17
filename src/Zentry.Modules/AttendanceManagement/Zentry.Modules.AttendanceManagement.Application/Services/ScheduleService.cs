@@ -1,4 +1,5 @@
-﻿using Zentry.SharedKernel.Contracts;
+﻿using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
+using Zentry.SharedKernel.Contracts;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
