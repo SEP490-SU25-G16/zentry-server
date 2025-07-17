@@ -1,13 +1,14 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetRoomById;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateRoom;
 
 public class UpdateRoomCommandHandler(IRoomRepository roomRepository)
-    : ICommandHandler<UpdateRoomCommand, RoomDetailDto>
+    : ICommandHandler<UpdateRoomCommand, RoomDto>
 {
-    public async Task<RoomDetailDto> Handle(UpdateRoomCommand command, CancellationToken cancellationToken)
+    public async Task<RoomDto> Handle(UpdateRoomCommand command, CancellationToken cancellationToken)
     {
         var room = await roomRepository.GetByIdAsync(command.Id, cancellationToken);
 
@@ -30,7 +31,7 @@ public class UpdateRoomCommandHandler(IRoomRepository roomRepository)
 
         await roomRepository.UpdateAsync(room, cancellationToken);
 
-        var responseDto = new RoomDetailDto
+        var responseDto = new RoomDto
         {
             Id = room.Id,
             RoomName = room.RoomName,

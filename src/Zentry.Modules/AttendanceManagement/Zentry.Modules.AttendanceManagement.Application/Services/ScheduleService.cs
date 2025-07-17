@@ -1,18 +1,24 @@
-﻿using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
-using Zentry.SharedKernel.Contracts;
+﻿using MediatR;
+using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
+using Zentry.SharedKernel.Contracts.Schedule;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
-public class ScheduleService : IScheduleService
+public class ScheduleService(IMediator mediator) : IScheduleService
 {
-    public Task<ScheduleLookupDto?> GetScheduleByIdAsync(Guid scheduleId, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> IsLecturerAssignedToScheduleAsync(Guid lecturerId, Guid scheduleId,
+    public Task<GetScheduleByIdIntegrationResponse> GetScheduleByIdAsync(Guid scheduleId,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var query = new GetScheduleByIdIntegrationQuery(scheduleId);
+            return mediator.Send(query, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            throw new BusinessRuleException("SCHEDULE_INVALID",
+                "Lịch trình buổi học không hợp lệ hoặc không hoạt động.");
+        }
     }
 }

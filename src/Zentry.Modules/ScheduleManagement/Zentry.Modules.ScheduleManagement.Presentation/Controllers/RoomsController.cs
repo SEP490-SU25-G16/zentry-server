@@ -40,7 +40,7 @@ public class RoomsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{id:guid}")] // Định tuyến để nhận ID là một GUID
-    [ProducesResponseType(typeof(RoomDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RoomDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRoomById(Guid id, CancellationToken cancellationToken)
     {
@@ -59,7 +59,7 @@ public class RoomsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")] // Định tuyến PUT với ID từ URL
-    [ProducesResponseType(typeof(RoomDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RoomDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request,

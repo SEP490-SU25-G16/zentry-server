@@ -10,8 +10,8 @@ public static class DependencyInjection
     {
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-        services.AddScoped<IUserAttendanceService, UserAttendanceService>();
-        services.AddScoped<IAppConfigurationService, AppConfigurationService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IConfigurationService, ConfigurationService>();
         services.AddScoped<IScheduleService, ScheduleService>();
 
         return services;

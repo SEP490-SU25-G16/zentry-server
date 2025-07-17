@@ -4,9 +4,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetRoomById;
 
-public class GetRoomByIdQueryHandler(IRoomRepository roomRepository) : IQueryHandler<GetRoomByIdQuery, RoomDetailDto?>
+public class GetRoomByIdQueryHandler(IRoomRepository roomRepository) : IQueryHandler<GetRoomByIdQuery, RoomDto?>
 {
-    public async Task<RoomDetailDto?> Handle(GetRoomByIdQuery query, CancellationToken cancellationToken)
+    public async Task<RoomDto?> Handle(GetRoomByIdQuery query, CancellationToken cancellationToken)
     {
         // 1. Lấy Room Entity từ Repository
         var room = await roomRepository.GetByIdAsync(query.Id, cancellationToken);
@@ -18,7 +18,7 @@ public class GetRoomByIdQueryHandler(IRoomRepository roomRepository) : IQueryHan
         // Hoặc đơn giản là trả về null và Controller sẽ xử lý thành NotFound()
         // return null;
         // 3. Ánh xạ từ Domain Entity sang DTO để trả về
-        var roomDetailDto = new RoomDetailDto
+        var roomDetailDto = new RoomDto
         {
             Id = room.Id,
             RoomName = room.RoomName,

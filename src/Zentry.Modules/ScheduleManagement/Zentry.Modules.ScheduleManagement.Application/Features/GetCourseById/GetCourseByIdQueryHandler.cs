@@ -5,9 +5,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourseById;
 
 public class GetCourseByIdQueryHandler(ICourseRepository courseRepository)
-    : IQueryHandler<GetCourseByIdQuery, CourseDetailDto?>
+    : IQueryHandler<GetCourseByIdQuery, CourseDto?>
 {
-    public async Task<CourseDetailDto?> Handle(GetCourseByIdQuery query, CancellationToken cancellationToken)
+    public async Task<CourseDto?> Handle(GetCourseByIdQuery query, CancellationToken cancellationToken)
     {
         // 1. Lấy Course Entity từ Repository
         var course = await courseRepository.GetByIdAsync(query.Id, cancellationToken);
@@ -19,7 +19,7 @@ public class GetCourseByIdQueryHandler(ICourseRepository courseRepository)
         // Hoặc đơn giản là trả về null và Controller sẽ xử lý thành NotFound()
         // return null;
         // 3. Ánh xạ từ Domain Entity sang DTO để trả về
-        var courseDetailDto = new CourseDetailDto
+        var courseDetailDto = new CourseDto
         {
             Id = course.Id,
             Code = course.Code,

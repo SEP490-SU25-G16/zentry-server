@@ -2,7 +2,7 @@
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 
-public interface IAppConfigurationService
+public interface IConfigurationService
 {
     Task<Dictionary<string, SettingContract>> GetAllSettingsForScopeAsync(
         string scopeType,

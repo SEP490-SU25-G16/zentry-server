@@ -5,9 +5,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateCourse;
 
 public class UpdateCourseCommandHandler(ICourseRepository courseRepository)
-    : ICommandHandler<UpdateCourseCommand, CourseDetailDto>
+    : ICommandHandler<UpdateCourseCommand, CourseDto>
 {
-    public async Task<CourseDetailDto> Handle(UpdateCourseCommand command, CancellationToken cancellationToken)
+    public async Task<CourseDto> Handle(UpdateCourseCommand command, CancellationToken cancellationToken)
     {
         var course = await courseRepository.GetByIdAsync(command.Id, cancellationToken);
 
@@ -21,7 +21,7 @@ public class UpdateCourseCommandHandler(ICourseRepository courseRepository)
 
         await courseRepository.UpdateAsync(course, cancellationToken);
 
-        var responseDto = new CourseDetailDto
+        var responseDto = new CourseDto
         {
             Id = course.Id,
             Code = course.Code,

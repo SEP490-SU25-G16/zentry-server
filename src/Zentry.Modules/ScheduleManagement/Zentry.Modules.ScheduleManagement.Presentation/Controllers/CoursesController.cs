@@ -41,7 +41,7 @@ public class CoursesController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{id:guid}")] // Định tuyến để nhận ID là một GUID
-    [ProducesResponseType(typeof(CourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCourseById(Guid id, CancellationToken cancellationToken)
     {
@@ -59,7 +59,7 @@ public class CoursesController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(CourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)] // Invalid input or business logic error
     [ProducesResponseType(StatusCodes.Status404NotFound)] // Course not found
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request,

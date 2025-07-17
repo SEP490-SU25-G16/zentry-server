@@ -4,7 +4,7 @@ using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
-public class UserAttendanceService(IMediator mediator) : IUserAttendanceService
+public class UserService(IMediator mediator) : IUserService
 {
     public async Task<GetUserByIdAndRoleIntegrationResponse?> GetUserByIdAndRoleAsync(string role, Guid userId,
         CancellationToken cancellationToken)

@@ -13,11 +13,11 @@ public static class AttendanceScopeTypes
     public const string Session = "SESSION";
 }
 
-public class AppConfigurationService(
+public class ConfigurationService(
     IMediator mediator,
     IRedisService redisService,
-    ILogger<AppConfigurationService> logger)
-    : IAppConfigurationService
+    ILogger<ConfigurationService> logger)
+    : IConfigurationService
 {
     private readonly TimeSpan _localCacheExpiry = TimeSpan.FromMinutes(30);
 

@@ -15,9 +15,9 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.CreateSession
 public class CreateSessionCommandHandler(
     ISessionRepository sessionRepository,
     IScheduleService scheduleService,
-    IUserAttendanceService userAttendanceService,
+    IUserService userService,
     IRedisService redisService,
-    IAppConfigurationService configService,
+    IConfigurationService configService,
     ILogger<CreateSessionCommandHandler> logger)
     : ICommandHandler<CreateSessionCommand, CreateSessionResponse>
 {
@@ -27,7 +27,7 @@ public class CreateSessionCommandHandler(
 
         // 1.1. Kiểm tra giảng viên có tồn tại và có quyền
         var lecturer =
-            await userAttendanceService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
+            await userService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
         if (lecturer == null)
         {
             logger.LogWarning("CreateSession failed: Lecturer with ID {LecturerId} not found or not authorized.",
@@ -38,7 +38,7 @@ public class CreateSessionCommandHandler(
 
         // 1.2. Kiểm tra thông tin buổi học/lịch trình
         var schedule = await scheduleService.GetScheduleByIdAsync(request.ScheduleId, cancellationToken);
-        if (schedule == null || !schedule.IsActive)
+        if (schedule is not { IsActive: true })
         {
             logger.LogWarning("CreateSession failed: Schedule with ID {ScheduleId} not found or not active.",
                 request.ScheduleId);

@@ -4,7 +4,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateCourse;
 
 public class UpdateCourseCommand(Guid courseId, UpdateCourseRequest request)
-    : ICommand<CourseDetailDto>
+    : ICommand<CourseDto>
 {
     public Guid Id { get; init; } = courseId;
     public string? Name { get; init; } = request.Name;
