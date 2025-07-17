@@ -63,11 +63,9 @@ public class CreateSessionCommandHandler(
 
         var courseSettingsTask = Task.FromResult(new Dictionary<string, SettingContract>());
         if (schedule.CourseId != Guid.Empty) // Kiểm tra nếu có CourseId hợp lệ
-        {
             courseSettingsTask =
                 configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Course, schedule.CourseId,
                     cancellationToken);
-        }
 
         var sessionSettingsTask =
             configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Session, request.ScheduleId,

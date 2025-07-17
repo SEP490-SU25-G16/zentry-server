@@ -4,8 +4,8 @@ using System.Text.Json;
 namespace Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 
 /// <summary>
-/// Value Object linh hoạt để lưu trữ config snapshot của session
-/// Sử dụng Dictionary để có thể mở rộng config mà không cần thay đổi schema
+///     Value Object linh hoạt để lưu trữ config snapshot của session
+///     Sử dụng Dictionary để có thể mở rộng config mà không cần thay đổi schema
 /// </summary>
 public record SessionConfigSnapshot
 {
@@ -32,6 +32,38 @@ public record SessionConfigSnapshot
                 _configs[key] = value;
         }
     }
+
+    // Các property shortcuts cho các config thông dụng (backward compatibility)
+    public int AttendanceWindowMinutes
+    {
+        get => GetInt("AttendanceWindowMinutes", 15);
+        set => SetInt("AttendanceWindowMinutes", value);
+    }
+
+
+    public int TotalAttendanceRounds
+    {
+        get => GetInt("TotalAttendanceRounds", 10);
+        set => SetInt("TotalAttendanceRounds", value);
+    }
+
+    public int AbsentReportGracePeriodHours
+    {
+        get => GetInt("AbsentReportGracePeriodHours", 24);
+        set => SetInt("AbsentReportGracePeriodHours", value);
+    }
+
+    public int ManualAdjustmentGracePeriodHours
+    {
+        get => GetInt("ManualAdjustmentGracePeriodHours", 24);
+        set => SetInt("ManualAdjustmentGracePeriodHours", value);
+    }
+
+    public IEnumerable<string> Keys => _configs.Keys;
+
+    public IEnumerable<string> Values => _configs.Values;
+
+    public int Count => _configs.Count;
 
     // Các helper methods để get/set config với type safety
     public int GetInt(string key, int defaultValue = 0)
@@ -92,54 +124,25 @@ public record SessionConfigSnapshot
         _configs[key] = value.ToString();
     }
 
-    // Các property shortcuts cho các config thông dụng (backward compatibility)
-    public int AttendanceWindowMinutes 
-    { 
-        get => GetInt("AttendanceWindowMinutes", 15); 
-        set => SetInt("AttendanceWindowMinutes", value); 
-    }
-
-
-    public int TotalAttendanceRounds 
-    { 
-        get => GetInt("TotalAttendanceRounds", 10); 
-        set => SetInt("TotalAttendanceRounds", value); 
-    }
-
-    public int AbsentReportGracePeriodHours 
-    { 
-        get => GetInt("AbsentReportGracePeriodHours", 24); 
-        set => SetInt("AbsentReportGracePeriodHours", value); 
-    }
-
-    public int ManualAdjustmentGracePeriodHours 
-    { 
-        get => GetInt("ManualAdjustmentGracePeriodHours", 24); 
-        set => SetInt("ManualAdjustmentGracePeriodHours", value); 
-    }
-
     // Methods để làm việc với dictionary
-    public bool ContainsKey(string key) => _configs.ContainsKey(key);
-    
-    public IEnumerable<string> Keys => _configs.Keys;
-    
-    public IEnumerable<string> Values => _configs.Values;
-    
-    public int Count => _configs.Count;
+    public bool ContainsKey(string key)
+    {
+        return _configs.ContainsKey(key);
+    }
 
     // Merge configs từ dictionary khác
     public SessionConfigSnapshot Merge(Dictionary<string, string> additionalConfigs)
     {
         var merged = new Dictionary<string, string>(_configs);
-        foreach (var kvp in additionalConfigs)
-        {
-            merged[kvp.Key] = kvp.Value;
-        }
+        foreach (var kvp in additionalConfigs) merged[kvp.Key] = kvp.Value;
         return new SessionConfigSnapshot(merged);
     }
 
     // Convert to dictionary (for serialization)
-    public Dictionary<string, string> ToDictionary() => new(_configs);
+    public Dictionary<string, string> ToDictionary()
+    {
+        return new Dictionary<string, string>(_configs);
+    }
 
     // Static factory method từ dictionary
     public static SessionConfigSnapshot FromDictionary(Dictionary<string, string> configs)
@@ -148,7 +151,10 @@ public record SessionConfigSnapshot
     }
 
     // JSON serialization support
-    public string ToJson() => JsonSerializer.Serialize(_configs);
+    public string ToJson()
+    {
+        return JsonSerializer.Serialize(_configs);
+    }
 
     public static SessionConfigSnapshot FromJson(string json)
     {
@@ -159,6 +165,7 @@ public record SessionConfigSnapshot
     // Override ToString for debugging
     public override string ToString()
     {
-        return $"SessionConfigSnapshot({_configs.Count} configs): {string.Join(", ", _configs.Select(kvp => $"{kvp.Key}={kvp.Value}"))}";
+        return
+            $"SessionConfigSnapshot({_configs.Count} configs): {string.Join(", ", _configs.Select(kvp => $"{kvp.Key}={kvp.Value}"))}";
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
@@ -30,7 +29,7 @@ public class GetScheduleByIdHandler(IScheduleRepository scheduleRepository)
             LecturerId = schedule.LecturerId,
             ScheduledStartTime = schedule.StartTime,
             ScheduledEndTime = schedule.EndTime,
-            IsActive = schedule.StartTime < DateTime.Now && schedule.EndTime > DateTime.Now,
+            IsActive = schedule.StartTime < DateTime.Now && schedule.EndTime > DateTime.Now
         };
 
         return response;

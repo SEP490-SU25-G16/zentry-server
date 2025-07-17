@@ -1,5 +1,4 @@
-﻿using Zentry.SharedKernel.Contracts;
-using Zentry.SharedKernel.Contracts.Schedule;
+﻿using Zentry.SharedKernel.Contracts.Schedule;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 

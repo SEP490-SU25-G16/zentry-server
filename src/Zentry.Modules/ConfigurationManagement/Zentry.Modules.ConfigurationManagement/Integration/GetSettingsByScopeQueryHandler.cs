@@ -48,10 +48,8 @@ public class GetSettingsByScopeQueryHandler(
     private static ScopeType ValidateAndParseScopeType(string scopeTypeString) // Không còn '?''
     {
         if (string.IsNullOrWhiteSpace(scopeTypeString))
-        {
             throw new BusinessLogicException(
                 "ScopeType cannot be null or empty for GetSettingsByScopeIntegrationQuery.");
-        }
 
         try
         {

@@ -54,9 +54,7 @@ public class ConfigurationService(
             var filteredItems = response.Items.AsEnumerable();
             if (scopeId.HasValue && scopeId.Value != Guid.Empty &&
                 !scopeType.Equals(AttendanceScopeTypes.Global, StringComparison.OrdinalIgnoreCase))
-            {
                 filteredItems = filteredItems.Where(s => s.ScopeId == scopeId.Value);
-            }
 
             var settingsDictionary = filteredItems.ToDictionary(
                 s => s.AttributeKey,

@@ -1,6 +1,5 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetRoomById;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateRoom;

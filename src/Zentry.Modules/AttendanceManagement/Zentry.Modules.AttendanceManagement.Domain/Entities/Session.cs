@@ -33,6 +33,12 @@ public class Session : AggregateRoot<Guid>
     // Thêm thuộc tính SessionConfigs kiểu Value Object
     public SessionConfigSnapshot SessionConfigs { get; private set; }
 
+    // Các property shortcuts cho config thông dụng (để dễ sử dụng)
+    public int AttendanceWindowMinutes => SessionConfigs.AttendanceWindowMinutes;
+    public int TotalAttendanceRounds => SessionConfigs.TotalAttendanceRounds;
+    public int AbsentReportGracePeriodHours => SessionConfigs.AbsentReportGracePeriodHours;
+    public int ManualAdjustmentGracePeriodHours => SessionConfigs.ManualAdjustmentGracePeriodHours;
+
     // Factory method để tạo Session từ dictionary configs
     public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
         Dictionary<string, string> configs)
@@ -119,10 +125,4 @@ public class Session : AggregateRoot<Guid>
     {
         UpdateConfig(key, value?.ToString() ?? "");
     }
-
-    // Các property shortcuts cho config thông dụng (để dễ sử dụng)
-    public int AttendanceWindowMinutes => SessionConfigs.AttendanceWindowMinutes;
-    public int TotalAttendanceRounds => SessionConfigs.TotalAttendanceRounds;
-    public int AbsentReportGracePeriodHours => SessionConfigs.AbsentReportGracePeriodHours;
-    public int ManualAdjustmentGracePeriodHours => SessionConfigs.ManualAdjustmentGracePeriodHours;
 }
