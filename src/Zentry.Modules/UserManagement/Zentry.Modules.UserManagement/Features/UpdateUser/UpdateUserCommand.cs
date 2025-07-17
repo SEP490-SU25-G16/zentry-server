@@ -13,3 +13,9 @@ public class UpdateUserCommand(Guid userId, UpdateUserRequest request)
     public string? PhoneNumber { get; init; } = request.PhoneNumber;
     public string? Role { get; init; } = request.Role;
 }
+
+public class UpdateUserResponse
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+}

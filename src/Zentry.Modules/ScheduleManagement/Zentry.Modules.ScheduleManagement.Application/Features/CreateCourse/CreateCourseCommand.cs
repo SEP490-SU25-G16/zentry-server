@@ -8,3 +8,12 @@ public record CreateCourseCommand(
     string Description,
     string Semester // Thêm Semester
 ) : ICommand<CourseCreatedResponse>;
+
+public class CourseCreatedResponse
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Semester { get; set; } = string.Empty;
+}

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
-using Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
+using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ConfigurationManagement.Controllers;

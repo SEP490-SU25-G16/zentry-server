@@ -5,9 +5,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateRoom;
 
 public class CreateRoomCommandHandler(IRoomRepository roomRepository)
-    : ICommandHandler<CreateRoomCommand, CreatedRoomResponse>
+    : ICommandHandler<CreateRoomCommand, CreateRoomResponse>
 {
-    public async Task<CreatedRoomResponse> Handle(CreateRoomCommand command, CancellationToken cancellationToken)
+    public async Task<CreateRoomResponse> Handle(CreateRoomCommand command, CancellationToken cancellationToken)
     {
         // 1. Business Rule: RoomName phải là duy nhất
         var isRoomNameUnique = await roomRepository.IsRoomNameUniqueAsync(command.RoomName, cancellationToken);
@@ -25,7 +25,7 @@ public class CreateRoomCommandHandler(IRoomRepository roomRepository)
         await roomRepository.SaveChangesAsync(cancellationToken); // Lưu thay đổi vào DB
 
         // 4. Ánh xạ từ Domain Entity sang DTO để trả về
-        var responseDto = new CreatedRoomResponse
+        var responseDto = new CreateRoomResponse
         {
             Id = room.Id,
             RoomName = room.RoomName,

@@ -17,4 +17,8 @@
         <ProjectReference Include="..\Zentry.Modules.AttendanceManagement.Domain\Zentry.Modules.AttendanceManagement.Domain.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="BackgroundServices\" />
+    </ItemGroup>
+
 </Project>

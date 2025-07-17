@@ -1,4 +1,5 @@
-﻿using Zentry.SharedKernel.Abstractions.Application;
+﻿using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.SharedKernel.Abstractions.Application;
 
 // Đảm bảo using này có mặt
 
@@ -29,4 +30,15 @@ public class GetCoursesQuery : IQuery<GetCoursesResponse>
     public string? Semester { get; init; } // Lọc theo học kỳ
     public string? SortBy { get; init; } = "CreatedAt"; // Mặc định sắp xếp theo ngày tạo
     public string? SortOrder { get; init; } = "desc"; // Mặc định giảm dần
+}
+
+public class GetCoursesResponse
+{
+    public List<CourseListItemDto> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+    public bool HasNextPage => PageNumber * PageSize < TotalCount;
+    public bool HasPreviousPage => PageNumber > 1;
 }
