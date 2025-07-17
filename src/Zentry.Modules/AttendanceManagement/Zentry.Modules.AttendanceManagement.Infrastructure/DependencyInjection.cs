@@ -1,8 +1,13 @@
+using Marten;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
@@ -13,27 +18,61 @@ public static class DependencyInjection
     public static IServiceCollection AddAttendanceInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Cấu hình PostgreSQL
         services.AddDbContext<AttendanceDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
                 b => b.MigrationsAssembly("Zentry.Modules.AttendanceManagement.Infrastructure")
             ));
 
+        var useMarten = configuration.GetValue<bool>("UseMarten", false);
+
+        if (useMarten)
+        {
+            // Cấu hình Marten
+            var connectionString = configuration.GetConnectionString("DefaultConnection") ??
+                                   throw new InvalidOperationException("DefaultConnection is not configured.");
+
+            services.AddMarten(options =>
+            {
+                options.Connection(connectionString);
+                options.Schema.For<ScanLog>().Identity(r => r.Id);
+            });
+
+            // Đăng ký repository cho Marten
+            services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
+        }
+        else
+        {
+            // Cấu hình MongoDB
+            var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
+                                        throw new InvalidOperationException(
+                                            "MongoDB_ConnectionString is not configured.");
+            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+            services.AddSingleton<IMongoClient>(s =>
+            {
+                var settings = MongoClientSettings.FromConnectionString(mongoConnectionString);
+                settings.RetryWrites = true;
+                settings.ConnectTimeout = TimeSpan.FromSeconds(30);
+                settings.ServerSelectionTimeout = TimeSpan.FromSeconds(30);
+                return new MongoClient(settings);
+            });
+
+            services.AddSingleton(s =>
+            {
+                var mongoClient = s.GetRequiredService<IMongoClient>();
+                return mongoClient.GetDatabase("zentry");
+            });
+
+            // Đăng ký repository cho MongoDB
+            services.AddScoped<IScanLogRepository, MongoScanLogRepository>();
+        }
+
+        // Đăng ký các repository
         services.AddScoped<IAttendanceRepository, AttendanceRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
 
-        var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
-                                    throw new ArgumentNullException(nameof(services));
-
-        services.AddSingleton<IMongoClient>(s => new MongoClient(mongoConnectionString));
-
-        services.AddSingleton(s =>
-        {
-            var mongoClient = s.GetRequiredService<IMongoClient>();
-            var database = mongoClient.GetDatabase("zentry");
-            return database;
-        });
-
+        // Đăng ký MediatR
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 

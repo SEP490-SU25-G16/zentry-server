@@ -1,9 +1,8 @@
 using MediatR;
-using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Common;
 
-namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotificationService;
+namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 
 public class ReceiveAttendanceNotificationServiceQueryHandler(INotificationRepository repository)
     : IRequestHandler<ReceiveAttendanceNotificationServiceQuery, List<Notification>>

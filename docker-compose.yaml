@@ -12,7 +12,9 @@
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       - Redis_ConnectionString=redis:6379
-      - MongoDB_ConnectionString=mongodb://admin:pass@mongodb:27017/zentry?authSource=admin
+#      - MongoDB_ConnectionString=mongodb://admin:pass@mongodb:27017/zentry?authSource=admin
+      - UseMarten=true
+      - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
       - RabbitMQ_ConnectionString=rabbitmq://admin:pass@rabbitmq:5672/
       # ----------------------------------------
       - Jwt__Secret=a-super-secret-key-that-is-long-enough-for-hs256-algorithm
@@ -24,8 +26,8 @@
         condition: service_healthy
       redis:
         condition: service_healthy
-      #      mongodb:
-      #        condition: service_healthy
+#      mongodb:
+#        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     healthcheck:
@@ -47,21 +49,21 @@
       timeout: 3s
       retries: 3
 
-  #  mongodb:
-  #    image: mongo:7.0
-  #    ports:
-  #      - "27017:27017"
-  #    volumes:
-  #      - mongodb-data:/data/db
-  #    environment:
-  #      - MONGO_INITDB_DATABASE=zentry
-  #      - MONGO_INITDB_ROOT_USERNAME=admin
-  #      - MONGO_INITDB_ROOT_PASSWORD=pass
-  #    healthcheck:
-  #      test: [ "CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })", "--authenticationDatabase", "admin" ]
-  #      interval: 30s
-  #      timeout: 3s
-  #      retries: 3
+#  mongodb:
+#    image: mongo:7.0
+#    ports:
+#      - "27017:27017"
+#    volumes:
+#      - mongodb-data:/data/db
+#    environment:
+#      - MONGO_INITDB_DATABASE=zentry
+#      - MONGO_INITDB_ROOT_USERNAME=admin
+#      - MONGO_INITDB_ROOT_PASSWORD=pass
+#    healthcheck:
+#      test: [ "CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })", "--authenticationDatabase", "admin" ]
+#      interval: 30s
+#      timeout: 3s
+#      retries: 3
 
   postgres:
     image: postgres:16.4-alpine
@@ -95,5 +97,5 @@
 
 volumes:
   redis-data:
-  #  mongodb-data:
+#  mongodb-data:
   postgres-data:

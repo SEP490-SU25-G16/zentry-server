@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using Zentry.Modules.AttendanceManagement.Infrastructure.Consumers;
+using Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure;
 

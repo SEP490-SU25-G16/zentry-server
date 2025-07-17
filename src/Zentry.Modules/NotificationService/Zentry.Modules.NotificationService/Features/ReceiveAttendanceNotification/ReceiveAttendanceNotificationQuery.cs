@@ -1,8 +1,7 @@
 using MediatR;
-using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 using Zentry.SharedKernel.Abstractions.Application;
 
-namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotificationService;
+namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 
 public record ReceiveAttendanceNotificationServiceQuery(
     Guid UserId,

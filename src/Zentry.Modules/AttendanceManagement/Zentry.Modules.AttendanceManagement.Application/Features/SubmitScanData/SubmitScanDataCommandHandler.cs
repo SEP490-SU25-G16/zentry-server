@@ -1,6 +1,8 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
+using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Messages;
 using Zentry.SharedKernel.Exceptions;
@@ -9,7 +11,8 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanDat
 
 public class SubmitScanDataCommandHandler(
     IRedisService redisService,
-    IBus bus, // Inject IBus
+    IBus bus,
+    IScanLogRepository scanLogRepository,
     ILogger<SubmitScanDataCommandHandler> logger)
     : ICommandHandler<SubmitScanDataCommand, SubmitScanDataResponse>
 {
@@ -23,7 +26,7 @@ public class SubmitScanDataCommandHandler(
 
         // Simulate session check with Redis
         // Replace with your actual Redis key structure and existence check
-        var sessionKey = $"attendance:session:{request.SessionId}";
+        var sessionKey = $"session:{request.SessionId}";
         var sessionExists = await redisService.KeyExistsAsync(sessionKey);
 
         if (!sessionExists)
@@ -51,6 +54,18 @@ public class SubmitScanDataCommandHandler(
             // Using Publish is suitable here as multiple consumers could potentially listen to this message type.
             await bus.Publish(message, cancellationToken);
 
+            var record = ScanLog.Create
+            (
+                request.DeviceId,
+                request.UserId,
+                request.SessionId,
+                request.RequestId,
+                request.RssiData,
+                request.NearbyDevices,
+                request.Timestamp
+            );
+
+            await scanLogRepository.AddScanDataAsync(record);
             logger.LogInformation(
                 "Scan data message for Session {SessionId}, User {UserId} published via MassTransit.",
                 request.SessionId, request.UserId);

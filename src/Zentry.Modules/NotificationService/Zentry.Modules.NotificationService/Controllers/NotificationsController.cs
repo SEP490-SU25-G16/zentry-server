@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
-using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotificationService;
 
 namespace Zentry.Modules.NotificationService.Controllers;
 

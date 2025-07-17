@@ -2,7 +2,7 @@ namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class ScanLog
 {
-    private ScanLog()
+    public ScanLog()
     {
     } // Private constructor for factory method
 
