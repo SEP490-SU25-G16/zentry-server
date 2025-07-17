@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Zentry.Infrastructure;
@@ -28,6 +29,30 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", corsPolicyBuilder =>
         corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
+builder.Services.AddAuthorization();
+
+builder.Services.AddMassTransit(x =>
+{
+    // Cấu hình các consumers của Attendance module
+    x.AddAttendanceMassTransitConsumers();
+
+    // Cấu hình MassTransit chung với RabbitMQ
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        // --- Thay đổi cách lấy RabbitMQ_ConnectionString ---
+        var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
+        // ----------------------------------------------------
+
+        if (string.IsNullOrEmpty(rabbitMqConnectionString))
+        {
+            throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured in appsettings.json or environment variables.");
+        }
+        cfg.Host(new Uri(rabbitMqConnectionString));
+
+        // Cấu hình Receive Endpoint cho Attendance module
+        cfg.ConfigureAttendanceReceiveEndpoints(context);
+    });
+});
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
@@ -40,8 +65,6 @@ builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddReportingInfrastructure(builder.Configuration);
 builder.Services.AddUserInfrastructure(builder.Configuration);
-
-builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

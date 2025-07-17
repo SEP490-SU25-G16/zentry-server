@@ -8,8 +8,6 @@
     <ItemGroup>
         <PackageReference Include="MongoDB.Driver" Version="3.4.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0"/>
-        <PackageReference Include="MediatR" Version="12.5.0"/>
-        <PackageReference Include="RabbitMQ.Client" Version="7.1.2"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>

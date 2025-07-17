@@ -11,12 +11,10 @@
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      # Other services
       - Redis_ConnectionString=redis:6379
       - MongoDB_ConnectionString=mongodb://admin:pass@mongodb:27017/zentry?authSource=admin
-      - RabbitMQ_Host=rabbitmq
-      - RabbitMQ_Username=admin
-      - RabbitMQ_Password=pass
+      - RabbitMQ_ConnectionString=rabbitmq://admin:pass@rabbitmq:5672/
+      # ----------------------------------------
       - Jwt__Secret=a-super-secret-key-that-is-long-enough-for-hs256-algorithm
       - Jwt__Issuer=https://zentry.local
       - Jwt__Audience=https://zentry.local
@@ -24,12 +22,12 @@
     depends_on:
       postgres:
         condition: service_healthy
-    #      redis:
-    #        condition: service_healthy
-    #      mongodb:
-    #        condition: service_healthy
-    #      rabbitmq:
-    #        condition: service_healthy
+      redis:
+        condition: service_healthy
+      #      mongodb:
+      #        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 30s
@@ -81,19 +79,19 @@
       timeout: 5s
       retries: 5
 
-#  rabbitmq:
-#    image: rabbitmq:4.0-management-alpine
-#    ports:
-#      - "5672:5672"
-#      - "15672:15672"
-#    environment:
-#      - RABBITMQ_DEFAULT_USER=admin
-#      - RABBITMQ_DEFAULT_PASS=pass
-#    healthcheck:
-#      test: [ "CMD", "rabbitmqctl", "status" ]
-#      interval: 10s
-#      timeout: 3s
-#      retries: 3
+  rabbitmq:
+    image: rabbitmq:4.0-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=pass
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
 volumes:
   redis-data:

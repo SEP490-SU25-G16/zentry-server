@@ -9,16 +9,12 @@
     <ItemGroup>
         <PackageReference Include="MongoDB.Driver" Version="3.4.0"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
-        <PackageReference Include="RabbitMQ.Client" Version="7.1.2"/>
+        <PackageReference Include="MassTransit.Abstractions" Version="8.5.1" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Zentry.Modules.AttendanceManagement.Application\Zentry.Modules.AttendanceManagement.Application.csproj"/>
         <ProjectReference Include="..\Zentry.Modules.AttendanceManagement.Domain\Zentry.Modules.AttendanceManagement.Domain.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="BackgroundServices\" />
     </ItemGroup>
 
 </Project>
