@@ -6,13 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="MediatR" Version="12.5.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Zentry.Modules.ScheduleManagement.Application\Zentry.Modules.ScheduleManagement.Application.csproj"/>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Requests\" />
     </ItemGroup>
 </Project>
