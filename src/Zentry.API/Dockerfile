@@ -1,5 +1,14 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
+
+# Đồng bộ UID/GID với host (được truyền từ docker-compose)
+ARG APP_UID=1000
+ARG APP_GID=1000
+
+# Tạo user non-root với UID từ host (JetBrains mount vào với UID host)
+RUN addgroup --gid $APP_GID appgroup && \
+    adduser --disabled-password --gecos "" --uid $APP_UID --gid $APP_GID appuser
+
+USER appuser
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081

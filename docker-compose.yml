@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: src/Zentry.API/Dockerfile
+      args:
+        APP_UID: ${UID:-1000}
+        APP_GID: ${GID:-1000}
     ports:
       - "8080:8080"
     environment:
@@ -21,6 +24,8 @@ services:
       - Jwt__Issuer=https://zentry.local
       - Jwt__Audience=https://zentry.local
       - Jwt__ExpirationMinutes=60
+    volumes:
+      - ./src/Zentry.API:/app:Z
     depends_on:
       postgres:
         condition: service_healthy
