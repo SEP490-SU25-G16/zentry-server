@@ -14,7 +14,11 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
         await dbContext.Courses.AddAsync(entity, cancellationToken);
     }
 
-    // Phương thức SoftDelete mới
+    public async Task AddRangeAsync(IEnumerable<Course> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Courses.AddRangeAsync(entities, cancellationToken);
+    }
+
     public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var course = await dbContext.Courses.FindAsync([id], cancellationToken);

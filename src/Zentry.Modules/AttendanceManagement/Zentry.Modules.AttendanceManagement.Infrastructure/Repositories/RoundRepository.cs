@@ -1,0 +1,45 @@
+using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
+
+namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
+
+public class RoundRepository(AttendanceDbContext dbContext) : IRoundRepository
+{
+    public async Task AddAsync(Round entity, CancellationToken cancellationToken)
+    {
+        await dbContext.Rounds.AddAsync(entity, cancellationToken);
+    }
+    public async Task AddRangeAsync(IEnumerable<Round> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Rounds.AddRangeAsync(entities, cancellationToken);
+    }
+
+    public async Task<IEnumerable<Round>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Rounds.ToListAsync(cancellationToken);
+    }
+
+    public async Task<Round?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Rounds.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    public Task UpdateAsync(Round entity, CancellationToken cancellationToken)
+    {
+        dbContext.Rounds.Update(entity);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(Round entity, CancellationToken cancellationToken)
+    {
+        dbContext.Rounds.Remove(entity);
+        return Task.CompletedTask;
+    }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+}

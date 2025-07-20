@@ -1,4 +1,8 @@
+// File: Zentry.SharedKernel.Abstractions.Data/IRepository.cs
 using Zentry.SharedKernel.Abstractions.Domain;
+using System.Collections.Generic; // Thêm namespace này
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Zentry.SharedKernel.Abstractions.Data;
 
@@ -7,10 +11,12 @@ public interface IRepository<TEntity, in TId>
     where TId : notnull
 {
     Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken);
-
-    // Các phương thức cơ bản mà mọi repository nên có
     Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken);
     Task AddAsync(TEntity entity, CancellationToken cancellationToken);
+
+    Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken);
+    // ------------------------------------
+
     Task UpdateAsync(TEntity entity, CancellationToken cancellationToken);
     Task DeleteAsync(TEntity entity, CancellationToken cancellationToken);
     Task SaveChangesAsync(CancellationToken cancellationToken);

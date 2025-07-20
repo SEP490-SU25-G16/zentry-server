@@ -25,6 +25,11 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         await dbContext.Schedules.AddAsync(entity, cancellationToken);
     }
 
+    public async Task AddRangeAsync(IEnumerable<Schedule> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Schedules.AddRangeAsync(entities, cancellationToken);
+    }
+
     public async Task UpdateAsync(Schedule entity, CancellationToken cancellationToke)
     {
         dbContext.Schedules.Update(entity);

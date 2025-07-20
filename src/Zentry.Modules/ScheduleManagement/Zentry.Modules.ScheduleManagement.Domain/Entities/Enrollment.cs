@@ -1,4 +1,5 @@
-using Zentry.Modules.ScheduleManagement.Domain.Enums;
+// File: Zentry.Modules.ScheduleManagement.Domain.Entities/Enrollment.cs
+using Zentry.Modules.ScheduleManagement.Domain.Enums; // Đảm bảo import namespace này
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
@@ -23,7 +24,6 @@ public class Enrollment : AggregateRoot<Guid>
     public DateTime EnrolledAt { get; private set; }
     public EnrollmentStatus Status { get; private set; }
 
-    // Navigation Properties
     public virtual Schedule? Schedule { get; private set; }
 
     public static Enrollment Create(Guid studentId, Guid scheduleId)
@@ -34,6 +34,5 @@ public class Enrollment : AggregateRoot<Guid>
     public void CancelEnrollment()
     {
         Status = EnrollmentStatus.Cancelled;
-        // Optionally add a CancelledAt date
     }
 }

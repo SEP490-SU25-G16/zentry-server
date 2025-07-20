@@ -5,39 +5,40 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
-public class SessionRepository(AttendanceDbContext context) : ISessionRepository
+public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
     public async Task AddAsync(Session entity, CancellationToken cancellationToken)
     {
-        await context.Sessions.AddAsync(entity, cancellationToken);
+        await dbContext.Sessions.AddAsync(entity, cancellationToken);
     }
-
+    public async Task AddRangeAsync(IEnumerable<Session> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Sessions.AddRangeAsync(entities, cancellationToken);
+    }
     public async Task<IEnumerable<Session>> GetAllAsync(CancellationToken cancellationToken)
     {
-        // Triển khai lấy tất cả, EF Core sẽ load cả SessionConfigs
-        return await context.Sessions.ToListAsync(cancellationToken);
+        return await dbContext.Sessions.ToListAsync(cancellationToken);
     }
 
     public async Task<Session?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        // Triển khai lấy theo ID, EF Core sẽ load cả SessionConfigs
-        return await context.Sessions.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        return await dbContext.Sessions.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public Task UpdateAsync(Session entity, CancellationToken cancellationToken)
     {
-        context.Sessions.Update(entity);
+        dbContext.Sessions.Update(entity);
         return Task.CompletedTask;
     }
 
     public Task DeleteAsync(Session entity, CancellationToken cancellationToken)
     {
-        context.Sessions.Remove(entity);
+        dbContext.Sessions.Remove(entity);
         return Task.CompletedTask;
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
-        await context.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

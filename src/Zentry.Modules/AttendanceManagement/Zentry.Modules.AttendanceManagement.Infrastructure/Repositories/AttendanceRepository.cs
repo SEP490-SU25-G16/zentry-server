@@ -4,7 +4,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
-public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepository
+public class AttendanceRepository(AttendanceDbContext dbContext) : IAttendanceRepository
 {
     public Task<IEnumerable<AttendanceRecord>> GetAllAsync(CancellationToken cancellationToken)
     {
@@ -19,6 +19,11 @@ public class AttendanceRepository(AttendanceDbContext context) : IAttendanceRepo
     public Task AddAsync(AttendanceRecord entity, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task AddRangeAsync(IEnumerable<AttendanceRecord> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.AttendanceRecords.AddRangeAsync(entities, cancellationToken);
     }
 
     public Task UpdateAsync(AttendanceRecord entity, CancellationToken cancellationToken)

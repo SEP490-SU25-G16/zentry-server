@@ -22,6 +22,11 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         await SaveChangesAsync(cancellationToken);
     }
 
+    public async Task AddRangeAsync(IEnumerable<User> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Users.AddRangeAsync(entities, cancellationToken);
+    }
+
     public async Task<bool> ExistsByEmail(string email)
     {
         return await dbContext.Accounts.AnyAsync(a => a.Email == email);
@@ -45,7 +50,6 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
             .FirstOrDefaultAsync();
     }
 
-    // Phương thức mới: Cập nhật Account
     public async Task UpdateAccountAsync(Account account, CancellationToken cancellationToken)
     {
         dbContext.Accounts.Update(account);

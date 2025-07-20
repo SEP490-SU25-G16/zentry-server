@@ -14,6 +14,11 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
         await dbContext.Rooms.AddAsync(entity, cancellationToken);
     }
 
+    public async Task AddRangeAsync(IEnumerable<Room> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Rooms.AddRangeAsync(entities, cancellationToken);
+    }
+
     public async Task<IEnumerable<Room>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Rooms.ToListAsync(cancellationToken);

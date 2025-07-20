@@ -23,6 +23,11 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         await dbContext.Enrollments.AddAsync(entity, cancellationToken);
     }
 
+    public async Task AddRangeAsync(IEnumerable<Enrollment> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Enrollments.AddRangeAsync(entities, cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -75,7 +80,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
             query = query.Where(e => e.ScheduleId == criteria.ScheduleId.Value);
 
         // Lọc theo Status
-        if (criteria.Status.HasValue) query = query.Where(e => e.Status == criteria.Status.Value);
+        if (criteria.Status != null) query = query.Where(e => e.Status == criteria.Status);
 
         // Lọc theo SearchTerm
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))

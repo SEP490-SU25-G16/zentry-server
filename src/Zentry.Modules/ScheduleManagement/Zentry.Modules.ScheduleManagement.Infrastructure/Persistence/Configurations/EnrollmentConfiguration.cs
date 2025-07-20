@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
+using Zentry.Modules.ScheduleManagement.Domain.Enums;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configurations;
 
@@ -26,10 +27,13 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
             .IsRequired();
 
         builder.Property(e => e.Status)
-            .HasConversion<string>()
-            .HasMaxLength(20);
+            .HasConversion(
+                s => s.ToString(),
+                s => EnrollmentStatus.FromName(s)
+            )
+            .HasMaxLength(20)
+            .IsRequired();
 
-        // Configure Relationships
         builder.HasOne(e => e.Schedule)
             .WithMany()
             .HasForeignKey(e => e.ScheduleId)

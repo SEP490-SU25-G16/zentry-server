@@ -22,6 +22,12 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
         await dbContext.Devices.AddAsync(device);
     }
 
+    public async Task AddRangeAsync(IEnumerable<Device> entities, CancellationToken cancellationToken)
+    {
+        await dbContext.Devices.AddRangeAsync(entities, cancellationToken);
+    }
+
+
     public Task DeleteAsync(Device entity, CancellationToken cancellationToken)
     {
         throw new NotSupportedException("Use Soft delete please.");
@@ -55,7 +61,7 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
 
     public async Task<IEnumerable<Device>> GetByAccountIdAsync(Guid accountId, CancellationToken cancellationToken)
     {
-        // Assuming AccountId maps to UserId for devices in this context. Adjust if separate.
+        // Assuming AccountId maps to UserId for devices in this dbContext. Adjust if separate.
         return await dbContext.Devices
             .Where(d => d.UserId == accountId)
             .ToListAsync(cancellationToken);

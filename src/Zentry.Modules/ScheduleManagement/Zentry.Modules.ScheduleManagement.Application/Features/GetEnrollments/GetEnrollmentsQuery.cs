@@ -20,8 +20,8 @@ public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
     }
 
     public Guid AdminId { get; set; }
-    public int PageNumber { get; set; } = 1;
-    public int PageSize { get; set; } = 10;
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
     public string? SearchTerm { get; set; }
     public Guid? StudentId { get; set; }
     public Guid? ScheduleId { get; set; }
@@ -32,11 +32,19 @@ public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
 
     private EnrollmentStatus? ParseEnrollmentStatus(string? statusString)
     {
-        if (string.IsNullOrWhiteSpace(statusString)) return null;
+        if (string.IsNullOrWhiteSpace(statusString))
+        {
+            return null;
+        }
 
-        if (Enum.TryParse<EnrollmentStatus>(statusString, true, out var status)) return status;
-
-        return null;
+        try
+        {
+            return EnrollmentStatus.FromName(statusString);
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
     }
 }
 
