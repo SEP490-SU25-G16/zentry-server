@@ -7,18 +7,18 @@ public static class AttendanceMassTransitExtensions
 {
     public static void AddAttendanceMassTransitConsumers(this IBusRegistrationConfigurator configurator)
     {
-        // Đăng ký Consumer cho Attendance module
         configurator.AddConsumer<ProcessScanDataMessageConsumer>();
+        configurator.AddConsumer<CreateRoundMessageConsumer>();
     }
 
-    public static void ConfigureAttendanceReceiveEndpoints(this IRabbitMqBusFactoryConfigurator cfg, IBusRegistrationContext context)
+    public static void ConfigureAttendanceReceiveEndpoints(this IRabbitMqBusFactoryConfigurator cfg,
+        IBusRegistrationContext context)
     {
-        // Cấu hình Receive Endpoint cụ thể cho Attendance module
         cfg.ReceiveEndpoint("attendance_scan_data_queue", e =>
         {
             e.ConfigureConsumer<ProcessScanDataMessageConsumer>(context);
+            e.ConfigureConsumer<CreateRoundMessageConsumer>(context);
             e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
-            // Thêm các cấu hình MassTransit khác liên quan đến Attendance module tại đây
         });
     }
 }

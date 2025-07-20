@@ -1,29 +1,34 @@
 ﻿using System.Text.Json;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Configuration;
+using Zentry.SharedKernel.Contracts.Messages;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
 
 public class CreateSessionCommandHandler(
     ISessionRepository sessionRepository,
+    IRoundRepository roundRepository,
     IScheduleService scheduleService,
     IUserService userService,
     IRedisService redisService,
     IConfigurationService configService,
+    IBus bus,
     ILogger<CreateSessionCommandHandler> logger)
     : ICommandHandler<CreateSessionCommand, CreateSessionResponse>
 {
     public async Task<CreateSessionResponse> Handle(CreateSessionCommand request, CancellationToken cancellationToken)
     {
-        // --- 1. Kiểm tra điều kiện nghiệp vụ ---
+        // --- 1. Kiểm tra điều kiện nghiệp vụ (Không thay đổi) ---
 
         // 1.1. Kiểm tra giảng viên có tồn tại và có quyền
         var lecturer =
@@ -57,12 +62,11 @@ public class CreateSessionCommandHandler(
 
         logger.LogInformation("Fetching all relevant settings for schedule {ScheduleId}.", request.ScheduleId);
 
-        // Chạy song song các tác vụ lấy settings để tối ưu hiệu suất
         var globalSettingsTask =
             configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Global, Guid.Empty, cancellationToken);
 
         var courseSettingsTask = Task.FromResult(new Dictionary<string, SettingContract>());
-        if (schedule.CourseId != Guid.Empty) // Kiểm tra nếu có CourseId hợp lệ
+        if (schedule.CourseId != Guid.Empty)
             courseSettingsTask =
                 configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Course, schedule.CourseId,
                     cancellationToken);
@@ -82,28 +86,25 @@ public class CreateSessionCommandHandler(
         allRelevantSettingsContracts.AddRange(courseSettings.Values);
         allRelevantSettingsContracts.AddRange(sessionSettings.Values);
 
-        // Chuyển đổi List<SettingContract> thành Dictionary<string, string> cho SessionConfigSnapshot
-        // và áp dụng logic ghi đè (setting cuối cùng trong danh sách sẽ ghi đè setting trước đó nếu trùng khóa)
         var finalConfigDictionary = allRelevantSettingsContracts
-            .GroupBy(s => s.AttributeKey, StringComparer.OrdinalIgnoreCase) // Nhóm theo khóa
+            .GroupBy(s => s.AttributeKey, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
                 group => group.Key,
-                group => group.Last().Value ?? string.Empty, // Lấy giá trị của setting có ưu tiên cao nhất
+                group => group.Last().Value ?? string.Empty,
                 StringComparer.OrdinalIgnoreCase
             );
 
         // --- 2. Tạo SessionConfigSnapshot Value Object từ dictionary đã hợp nhất ---
         var sessionConfigSnapshot = SessionConfigSnapshot.FromDictionary(finalConfigDictionary);
 
-        // --- Sử dụng SessionConfigSnapshot linh hoạt ---
-        // Lấy các giá trị cụ thể từ snapshot bằng các property shortcuts
+        // Lấy các giá trị cụ thể từ snapshot
         var attendanceWindowMinutes = sessionConfigSnapshot.AttendanceWindowMinutes;
-        var totalAttendanceRounds = sessionConfigSnapshot.TotalAttendanceRounds;
+        var totalAttendanceRounds = sessionConfigSnapshot.TotalAttendanceRounds; // Lấy giá trị này
         var absentReportGracePeriodHours = sessionConfigSnapshot.AbsentReportGracePeriodHours;
         var manualAdjustmentGracePeriodHours = sessionConfigSnapshot.ManualAdjustmentGracePeriodHours;
 
 
-        // 1.4. Kiểm tra khung thời gian cho phép khởi tạo phiên (SỬ DỤNG GIÁ TRỊ TỪ CONFIG SNAPSHOT)
+        // 1.4. Kiểm tra khung thời gian cho phép khởi tạo phiên
         var currentTime = DateTime.UtcNow;
         var sessionAllowedStartTime = schedule.ScheduledStartTime.AddMinutes(-attendanceWindowMinutes);
         var sessionAllowedEndTime = schedule.ScheduledEndTime.AddMinutes(attendanceWindowMinutes);
@@ -129,13 +130,12 @@ public class CreateSessionCommandHandler(
         }
 
         // --- 3. Tạo đối tượng Session (Domain Entity) với SessionConfigSnapshot ---
-        // Sử dụng factory method mới của Session để truyền Dictionary đã hợp nhất
         var session = Session.Create(
             request.ScheduleId,
             request.UserId,
             request.StartTime,
             request.EndTime,
-            finalConfigDictionary // Truyền Dictionary<string, string> đã được hợp nhất
+            finalConfigDictionary
         );
 
         // --- 4. Lưu Session vào database (lưu lâu dài) ---
@@ -143,26 +143,59 @@ public class CreateSessionCommandHandler(
         await sessionRepository.SaveChangesAsync(cancellationToken);
 
         // --- 5. Lưu dữ liệu phiên vào Redis (tạm thời, cho thời gian thực) ---
-        // TTL dựa trên thời gian còn lại của session + cửa sổ điểm danh
-        // Sử dụng attendanceWindowMinutes từ configSnapshot để tính thời gian TTL
         var totalSessionDuration = session.EndTime.Subtract(session.StartTime)
             .Add(TimeSpan.FromMinutes(sessionConfigSnapshot.AttendanceWindowMinutes * 2));
         await redisService.SetAsync(activeSessionKey, session.Id.ToString(), totalSessionDuration);
-
-        // BỔ SUNG: Lưu toàn bộ Session entity vào Redis để các service khác có thể lấy nhanh
-        // Điều này sẽ cache cả SessionConfigs JSON nhờ cấu hình ToJson() của EF Core (qua SessionConfigSnapshot.ToJson()).
         await redisService.SetAsync($"session:{session.Id}", JsonSerializer.Serialize(session),
             totalSessionDuration);
 
-        // --- 6. Ghi log hành động khởi tạo phiên ---
+        // --- 6. Xử lý tạo Round đầu tiên và publish message cho các Round còn lại ---
+        if (totalAttendanceRounds > 0)
+        {
+            var firstRound = Round.Create(
+                session.Id,
+                1,
+                DateTime.UtcNow
+            );
+            firstRound.UpdateStatus(RoundStatus.Active);
+            await roundRepository.AddAsync(firstRound, cancellationToken);
+            await roundRepository.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation(
+                "First round (Round {RoundNumber}) created for Session {SessionId}.",
+                firstRound.RoundNumber, session.Id);
+
+            if (totalAttendanceRounds > 1)
+            {
+                logger.LogInformation(
+                    "Publishing CreateRoundMessage for remaining rounds ({RemainingRounds}) in Session {SessionId}.",
+                    totalAttendanceRounds - 1, session.Id);
+
+                var createRoundMessage = new CreateRoundMessage(
+                    session.Id,
+                    totalAttendanceRounds,
+                    1,
+                    session.StartTime,
+                    session.EndTime
+                );
+                await bus.Publish(createRoundMessage, cancellationToken);
+            }
+        }
+        else
+        {
+            logger.LogWarning("totalAttendanceRounds is 0 for Session {SessionId}. No rounds will be created.",
+                session.Id);
+        }
+
+        // --- 7. Ghi log hành động khởi tạo phiên ---
         logger.LogInformation(
             "Session {SessionId} created successfully for Schedule {ScheduleId} by Lecturer {LecturerId}. Stored in Redis with key {RedisKey}.",
             session.Id, session.ScheduleId, session.UserId, activeSessionKey);
 
-        // --- 7. Gửi thông báo đến các máy trong lớp (nếu có NotificationService) ---
+        // --- 8. Gửi thông báo đến các máy trong lớp (nếu có NotificationService) ---
         logger.LogInformation("Sending session started notification for Session {SessionId}.", session.Id);
 
-        // --- 8. Trả về Response ---
+        // --- 9. Trả về Response ---
         return new CreateSessionResponse
         {
             SessionId = session.Id,

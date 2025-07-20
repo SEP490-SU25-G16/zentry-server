@@ -13,9 +13,9 @@ public class ProcessScanDataMessageConsumer(
 {
     // To resolve scoped services like DbContexts
 
-    public async Task Consume(ConsumeContext<ProcessScanDataMessage> context)
+    public async Task Consume(ConsumeContext<ProcessScanDataMessage> consumeContext)
     {
-        var message = context.Message;
+        var message = consumeContext.Message;
         logger.LogInformation("MassTransit Consumer: Received scan data for RequestId: {RequestId}, Session: {SessionId}, Student: {StudentId}",
             message.RequestId, message.SessionId, message.StudentId);
 
@@ -23,13 +23,11 @@ public class ProcessScanDataMessageConsumer(
         {
             // Create a new service scope for each message consumption.
             // This is crucial for resolving scoped services (like DbContext, etc.) correctly.
-            using (var scope = serviceScopeFactory.CreateScope())
-            {
-                var processor = scope.ServiceProvider.GetRequiredService<IAttendanceProcessorService>();
+            using var scope = serviceScopeFactory.CreateScope();
+            var processor = scope.ServiceProvider.GetRequiredService<IAttendanceProcessorService>();
 
-                // Pass the message and CancellationToken from the ConsumeContext
-                await processor.ProcessBluetoothScanData(message, context.CancellationToken);
-            }
+            // Pass the message and CancellationToken from the ConsumeContext
+            await processor.ProcessBluetoothScanData(message, consumeContext.CancellationToken);
 
             logger.LogInformation("MassTransit Consumer: Successfully processed scan data for RequestId: {RequestId}.", message.RequestId);
             // MassTransit automatically Acknowledges (ACKs) the message upon successful completion of Consume method.
