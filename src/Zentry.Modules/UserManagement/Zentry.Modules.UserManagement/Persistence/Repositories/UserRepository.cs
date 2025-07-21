@@ -4,7 +4,6 @@ using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
-using Zentry.Modules.UserManagement.Persistence.Entities;
 
 namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 

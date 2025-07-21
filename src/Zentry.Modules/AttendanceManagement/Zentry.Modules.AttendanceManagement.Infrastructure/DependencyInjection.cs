@@ -24,8 +24,8 @@ public static class DependencyInjection
                 b => b.MigrationsAssembly("Zentry.Modules.AttendanceManagement.Infrastructure")
             ));
 
-        var useMarten = configuration.GetValue<bool>("UseMarten", false);
-
+        // var useMarten = configuration.GetValue<bool>("UseMarten", true);
+        var useMarten = true;
         if (useMarten)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection") ??

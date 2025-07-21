@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Zentry.Modules.UserManagement.Persistence.Entities;
-using Zentry.Modules.UserManagement.Persistence.Enums;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 
-namespace Zentry.Modules.UserManagement.Persistence.Configurations;
+namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configurations;
 
 public class UserRequestConfiguration : IEntityTypeConfiguration<UserRequest>
 {

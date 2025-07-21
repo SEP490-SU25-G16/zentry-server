@@ -45,8 +45,10 @@ builder.Services.AddMassTransit(x =>
 
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
         {
-            throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured in appsettings.json or environment variables.");
+            throw new InvalidOperationException(
+                "RabbitMQ_ConnectionString is not configured in appsettings.json or environment variables.");
         }
+
         cfg.Host(new Uri(rabbitMqConnectionString));
 
         // Cấu hình Receive Endpoint cho Attendance module

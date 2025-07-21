@@ -8,6 +8,7 @@ public class ConfigurationDbContext(DbContextOptions<ConfigurationDbContext> opt
     public DbSet<Setting> Settings { get; set; }
     public DbSet<Option> Options { get; set; }
     public DbSet<AttributeDefinition> AttributeDefinitions { get; set; }
+    public DbSet<UserAttribute> UserAttributes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

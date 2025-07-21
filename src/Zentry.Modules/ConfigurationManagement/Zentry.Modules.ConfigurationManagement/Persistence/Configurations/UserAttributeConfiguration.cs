@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Zentry.Modules.UserManagement.Persistence.Entities;
+using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 
-namespace Zentry.Modules.UserManagement.Persistence.Configurations;
+namespace Zentry.Modules.ConfigurationManagement.Persistence.Configurations;
 
 public class UserAttributeConfiguration : IEntityTypeConfiguration<UserAttribute>
 {

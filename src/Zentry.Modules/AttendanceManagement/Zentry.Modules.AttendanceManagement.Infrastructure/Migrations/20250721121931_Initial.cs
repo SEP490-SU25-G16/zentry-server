@@ -36,11 +36,12 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     SessionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoundNumber = table.Column<int>(type: "integer", nullable: false),
                     StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ClientRequest = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -57,12 +58,32 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    SessionConfigs = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Sessions", x => x.Id);
                     table.CheckConstraint("CK_Sessions_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserRequests",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    RequestedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TargetUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RequestType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    RelatedEntityId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Reason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    ProcessedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserRequests", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
@@ -81,11 +102,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rounds_DeviceId",
-                table: "Rounds",
-                column: "DeviceId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Rounds_EndTime",
                 table: "Rounds",
                 column: "EndTime");
@@ -94,6 +110,12 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 name: "IX_Rounds_SessionId",
                 table: "Rounds",
                 column: "SessionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rounds_SessionId_RoundNumber",
+                table: "Rounds",
+                columns: new[] { "SessionId", "RoundNumber" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Rounds_StartTime",
@@ -114,6 +136,26 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 name: "IX_Sessions_UserId",
                 table: "Sessions",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRequests_RequestType",
+                table: "UserRequests",
+                column: "RequestType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRequests_RequestedByUserId",
+                table: "UserRequests",
+                column: "RequestedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRequests_Status",
+                table: "UserRequests",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRequests_TargetUserId",
+                table: "UserRequests",
+                column: "TargetUserId");
         }
 
         /// <inheritdoc />
@@ -127,6 +169,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Sessions");
+
+            migrationBuilder.DropTable(
+                name: "UserRequests");
         }
     }
 }

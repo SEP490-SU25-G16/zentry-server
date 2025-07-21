@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.UserManagement.Interfaces;
+using Zentry.Modules.UserManagement.Persistence.Data;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Persistence.Repositories;
 using Zentry.Modules.UserManagement.Services;
@@ -22,6 +23,9 @@ public static class DependencyInjection
                 b => b.MigrationsAssembly("Zentry.Modules.UserManagement")
             ));
 
+        // Đăng ký DbSeeder
+        services.AddScoped<DbSeeder>();
+
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
@@ -30,16 +34,18 @@ public static class DependencyInjection
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         // Register services (Real implementations)
-        services.AddTransient<IJwtService, JwtService>(); // Real JWT Service
-        services.AddTransient<IEmailService, SendGridEmailService>(); // NEW: Use SendGrid Email Service
-        services.AddTransient<IPasswordHasher, PasswordHasher>(); // Argon2 Password Hasher
+        services.AddTransient<IJwtService, JwtService>();
+        services.AddTransient<IEmailService, SendGridEmailService>();
+        services.AddTransient<IPasswordHasher, PasswordHasher>(); // Đảm bảo IPasswordHasher được đăng ký
 
+        // Đăng ký IHostedService để tự động chạy migration và seed
+        services.AddHostedService<UserDbMigrationService>();
 
         return services;
     }
 }
 
-// Optional: Add a validation pipeline behavior for MediatR
+// Keep ValidationBehavior as is
 public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

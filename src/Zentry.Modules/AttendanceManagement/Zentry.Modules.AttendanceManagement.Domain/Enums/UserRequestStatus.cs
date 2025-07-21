@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.UserManagement.Persistence.Enums;
+namespace Zentry.Modules.AttendanceManagement.Domain.Enums;
 
 public class UserRequestStatus : Enumeration
 {

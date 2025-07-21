@@ -9,18 +9,18 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Migrations
+namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250714111927_add field snapshot to session")]
-    partial class addfieldsnapshottosession
+    [Migration("20250721121931_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "9.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -77,20 +77,16 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Migrati
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ClientRequest")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Guid>("DeviceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("EndTime")
+                    b.Property<DateTime?>("EndTime")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RoundNumber")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("SessionId")
                         .HasColumnType("uuid");
@@ -98,15 +94,26 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Migrati
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
-                    b.HasIndex("DeviceId");
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("EndTime");
 
                     b.HasIndex("SessionId");
 
                     b.HasIndex("StartTime");
+
+                    b.HasIndex("SessionId", "RoundNumber")
+                        .IsUnique();
 
                     b.ToTable("Rounds", null, t =>
                         {
@@ -151,6 +158,56 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Migrati
                         });
                 });
 
+            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.UserRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RelatedEntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("TargetUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestType");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TargetUserId");
+
+                    b.ToTable("UserRequests", (string)null);
+                });
+
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Session", b =>
                 {
                     b.OwnsOne("Zentry.Modules.AttendanceManagement.Domain.ValueObjects.SessionConfigSnapshot", "SessionConfigs", b1 =>
@@ -162,9 +219,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Migrati
                                 .HasColumnType("integer");
 
                             b1.Property<int>("AttendanceWindowMinutes")
-                                .HasColumnType("integer");
-
-                            b1.Property<int>("FaceIdVerificationTimeoutSeconds")
                                 .HasColumnType("integer");
 
                             b1.Property<int>("ManualAdjustmentGracePeriodHours")

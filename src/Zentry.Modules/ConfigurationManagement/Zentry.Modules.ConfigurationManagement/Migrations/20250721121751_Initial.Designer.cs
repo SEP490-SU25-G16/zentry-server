@@ -9,18 +9,18 @@ using Zentry.Modules.ConfigurationManagement.Persistence;
 
 #nullable disable
 
-namespace Zentry.Modules.ConfigurationManagement.Persistence.Migrations
+namespace Zentry.Modules.ConfigurationManagement.Migrations
 {
     [DbContext(typeof(ConfigurationDbContext))]
-    [Migration("20250716115640_change name table from configuration to setting")]
-    partial class changenametablefromconfigurationtosetting
+    [Migration("20250721121751_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "9.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -169,6 +169,45 @@ namespace Zentry.Modules.ConfigurationManagement.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Settings", (string)null);
+                });
+
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.UserAttribute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttributeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AttributeValue")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "AttributeId")
+                        .IsUnique();
+
+                    b.ToTable("UserAttributes", (string)null);
                 });
 
             modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.Setting", b =>

@@ -1,6 +1,5 @@
 ﻿using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Features.GetUsers;
-using Zentry.Modules.UserManagement.Persistence.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.UserManagement.Interfaces;
