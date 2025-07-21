@@ -10,8 +10,6 @@ namespace Zentry.Modules.UserManagement.Persistence.Data;
 
 public static class UserSeedData
 {
-    // REMOVE: private static readonly IPasswordHasher PasswordHasher = new PasswordHasher();
-
     // UPDATED: Danh sách các vai trò có sẵn trong hệ thống
     private static readonly string[] SystemRoles = { "Admin", "Manager", "Lecturer", "Student" };
 
@@ -28,15 +26,26 @@ public static class UserSeedData
                 return;
             }
 
+            // --- TỐI ƯU 1: Hash mật khẩu mặc định chỉ một lần ---
+            // Mật khẩu chung cho tất cả các tài khoản fake trong môi trường dev
+            const string defaultPassword = "User@123456";
+            var (defaultHash, defaultSalt) = passwordHasher.HashPassword(defaultPassword);
+            logger?.LogInformation("Default password for fake accounts has been hashed once.");
+
             // 1. Seed Admin Accounts (Real data)
-            await SeedAdminAccounts(context, passwordHasher, logger);
+            await SeedAdminAccounts(context, passwordHasher, logger); // Admin và Manager vẫn dùng mật khẩu riêng
 
             // 2. Seed Regular Users (Lecturer and Student) với Bogus (Fake data)
-            await SeedRegularUsers(context, passwordHasher, logger);
+            // Truyền mật khẩu hash đã tạo vào đây
+            await SeedRegularUsers(context, defaultHash, defaultSalt, logger);
 
             // 3. Seed Test Accounts cho development (Nếu bạn vẫn cần)
-            await SeedTestAccounts(context, passwordHasher, logger); // Giữ lại nếu cần các tài khoản test cụ thể
+            // Test accounts cũng dùng mật khẩu hash đã tạo
+            await SeedTestAccounts(context, defaultHash, defaultSalt, logger);
 
+            // TỐI ƯU 2: Chỉ gọi SaveChangesAsync một lần ở cuối SeedAsync
+            // để batch tất cả các thao tác thêm vào database.
+            // Điều này giảm thiểu round-trip đến database.
             await context.SaveChangesAsync();
             logger?.LogInformation("User Management seed data completed successfully.");
         }
@@ -57,7 +66,7 @@ public static class UserSeedData
             "admin@zentry.com",
             adminHash,
             adminSalt,
-            "Admin" // Changed from SuperAdmin to Admin
+            "Admin"
         );
         var adminUser = User.Create(adminAccount.Id, "System Administrator", "+84901234567");
 
@@ -74,16 +83,18 @@ public static class UserSeedData
         await context.Accounts.AddRangeAsync(adminAccount, managerAccount);
         await context.Users.AddRangeAsync(adminUser, managerUser);
 
+        // Lưu ý: Không gọi SaveChangesAsync ở đây. Nó sẽ được gọi ở cuối SeedAsync
         logger?.LogInformation("Added 2 core accounts (Admin, Manager)");
     }
 
-    private static async Task SeedRegularUsers(UserDbContext context, IPasswordHasher passwordHasher, ILogger? logger)
+    // UPDATED: Thêm tham số defaultHash và defaultSalt
+    private static async Task SeedRegularUsers(UserDbContext context, string defaultHash, string defaultSalt, ILogger? logger = null)
     {
         logger?.LogInformation("Seeding Lecturer and Student users with Bogus...");
 
         try
         {
-            Randomizer.Seed = new Random(100);
+            Randomizer.Seed = new Random(100); // Vẫn giữ seed để tái tạo
 
             var vietnameseNames = new[]
             {
@@ -101,14 +112,16 @@ public static class UserSeedData
 
             var rolesForRegularUsers = new[] { "Lecturer", "Student" };
 
-            var accountsAndUsers = new List<(Account Account, User User)>(); // Dùng tuple để giữ cả account và user
+            var accountsToSeed = new List<Account>();
+            var usersToSeed = new List<User>();
 
-            var accountCount = 2;
+            var accountCount = 100; // Số lượng người dùng bạn muốn tạo
+
+            // TỐI ƯU 3: Tạo một Faker instance duy nhất
+            var faker = new Faker();
 
             for (int i = 0; i < accountCount; i++)
             {
-                var faker = new Faker(); // Tạo Faker riêng cho mỗi lần lặp để đảm bảo tính ngẫu nhiên tốt hơn nếu cần
-
                 var name = faker.PickRandom(vietnameseNames);
                 var emailName = RemoveDiacritics(name)
                     .ToLowerInvariant()
@@ -117,13 +130,15 @@ public static class UserSeedData
                     .Replace("ô", "o")
                     .Replace("ư", "u");
 
-                // Để đảm bảo email duy nhất, hãy thêm một chỉ mục hoặc GUID
-                // Ví dụ: sử dụng faker.UniqueIndex để tạo chỉ mục duy nhất
-                var email = $"{emailName}.{faker.IndexFaker}@test.com";
+                // TỐI ƯU 4: Đảm bảo email duy nhất và hiệu quả hơn
+                // Dùng GUID cho phần duy nhất, vì faker.IndexFaker có thể trùng nếu có nhiều instances của Faker được tạo.
+                // Hoặc dùng faker.UniqueIndex() nếu bạn sử dụng một Faker<T> duy nhất như cách tôi đã gợi ý trước đó.
+                var email = $"{emailName}.{Guid.NewGuid().ToString("N").Substring(0, 8)}@{faker.PickRandom(companyDomains)}";
+
                 var role = faker.PickRandom(rolesForRegularUsers);
 
-                var (hash, salt) = passwordHasher.HashPassword("User@123456");
-                var account = Account.Create(email, hash, salt, role);
+                // --- TỐI ƯU 1 Áp dụng: Sử dụng mật khẩu hash đã tạo sẵn ---
+                var account = Account.Create(email, defaultHash, defaultSalt, role);
 
                 var phoneNumber = faker.Random.Bool(0.8f) // 80% có số điện thoại
                     ? $"+849{faker.Random.Number(10000000, 99999999)}"
@@ -136,31 +151,29 @@ public static class UserSeedData
                 else if (i >= 10 && i < 15) // 5% tiếp theo là Locked
                     account.UpdateStatus(AccountStatus.Locked);
 
-                accountsAndUsers.Add((account, user));
+                accountsToSeed.Add(account);
+                usersToSeed.Add(user);
             }
 
-            // Tách danh sách accounts và users từ tuple
-            var accounts = accountsAndUsers.Select(x => x.Account).ToList();
-            var users = accountsAndUsers.Select(x => x.User).ToList();
+            await context.Accounts.AddRangeAsync(accountsToSeed);
+            await context.Users.AddRangeAsync(usersToSeed);
 
-
-            await context.Accounts.AddRangeAsync(accounts);
-            await context.Users.AddRangeAsync(users);
-            logger?.LogInformation($"Added {accounts.Count} regular users (Lecturer/Student) with Bogus data");
+            // Lưu ý: Không gọi SaveChangesAsync ở đây. Nó sẽ được gọi ở cuối SeedAsync
+            logger?.LogInformation($"Added {accountsToSeed.Count} regular users (Lecturer/Student) with Bogus data");
         }
         catch (Exception e)
         {
-            Console.WriteLine(e); // Hoặc logger.LogError(e, "Error during regular user seeding");
+            logger?.LogError(e, "Error during regular user seeding");
             throw;
         }
     }
 
-    private static async Task SeedTestAccounts(UserDbContext context, IPasswordHasher passwordHasher, ILogger? logger)
+    // UPDATED: Thêm tham số defaultHash và defaultSalt
+    private static async Task SeedTestAccounts(UserDbContext context, string defaultHash, string defaultSalt, ILogger? logger = null)
     {
         logger?.LogInformation("Seeding test accounts for development...");
 
-        // Test accounts với mật khẩu đơn giản cho development
-        var testAccounts = new[]
+        var testAccountsData = new[]
         {
             new { Email = "teststudent@test.com", Name = "Test Student", Role = "Student", Phone = "+84901111111" },
             new { Email = "testlecturer@test.com", Name = "Test Lecturer", Role = "Lecturer", Phone = "+84901111112" },
@@ -178,10 +191,10 @@ public static class UserSeedData
         var accounts = new List<Account>();
         var users = new List<User>();
 
-        foreach (var testData in testAccounts)
+        foreach (var testData in testAccountsData)
         {
-            var (hash, salt) = passwordHasher.HashPassword("Test@123456");
-            var account = Account.Create(testData.Email, hash, salt, testData.Role);
+            // --- TỐI ƯU 1 Áp dụng: Sử dụng mật khẩu hash đã tạo sẵn ---
+            var account = Account.Create(testData.Email, defaultHash, defaultSalt, testData.Role);
             var user = User.Create(account.Id, testData.Name, testData.Phone);
 
             // Thiết lập trạng thái đặc biệt
@@ -202,6 +215,7 @@ public static class UserSeedData
         await context.Accounts.AddRangeAsync(accounts);
         await context.Users.AddRangeAsync(users);
 
+        // Lưu ý: Không gọi SaveChangesAsync ở đây. Nó sẽ được gọi ở cuối SeedAsync
         logger?.LogInformation("Added 5 test accounts for development");
     }
 
