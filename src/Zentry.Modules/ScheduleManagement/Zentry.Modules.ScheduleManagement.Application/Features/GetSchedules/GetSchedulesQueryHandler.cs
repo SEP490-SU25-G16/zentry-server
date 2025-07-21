@@ -1,14 +1,13 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 
 public class GetSchedulesQueryHandler(
     IScheduleRepository scheduleRepository,
-    IRoomRepository roomRepository,
-    IUserScheduleService lecturerLookupService,
-    IClassSectionRepository classSectionRepository
+    IUserScheduleService lecturerLookupService
 ) : IQueryHandler<GetSchedulesQuery, GetSchedulesResponse>
 {
     public async Task<GetSchedulesResponse> Handle(GetSchedulesQuery query, CancellationToken cancellationToken)
@@ -56,7 +55,7 @@ public class GetSchedulesQueryHandler(
             EndTime = s.EndTime,
             StartDate = s.StartDate,
             EndDate = s.EndDate,
-            WeekDay = s.WeekDay,
+            WeekDay = s.WeekDay.ToString(),
             CreatedAt = s.CreatedAt,
             UpdatedAt = s.UpdatedAt
         }).ToList();

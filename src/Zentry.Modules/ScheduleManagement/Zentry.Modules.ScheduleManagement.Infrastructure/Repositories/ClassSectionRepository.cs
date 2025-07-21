@@ -19,6 +19,9 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
     {
         return await dbContext.ClassSections
             .Include(cs => cs.Course)
+            .Include(cs => cs.Schedules)
+            .ThenInclude(s => s.Room)
+            .Include(cs => cs.Enrollments)
             .FirstOrDefaultAsync(cs => cs.Id == id, cancellationToken);
     }
 
@@ -54,23 +57,40 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         CancellationToken cancellationToken)
     {
         var query = dbContext.ClassSections
-            .Include(cs => cs.Course)
+            .Include(cs => cs.Course) // Luôn cần Course
             .AsQueryable();
 
-        if (criteria.CourseId.HasValue)
+        // Nếu có lọc theo StudentId, cần include Enrollments
+        if (criteria.StudentId.HasValue && criteria.StudentId.Value != Guid.Empty)
+        {
+            query = query.Include(cs => cs.Enrollments);
+        }
+
+        // Lọc theo CourseId
+        if (criteria.CourseId.HasValue && criteria.CourseId.Value != Guid.Empty)
             query = query.Where(cs => cs.CourseId == criteria.CourseId.Value);
 
-        if (criteria.LecturerId.HasValue)
+        // Lọc theo LecturerId
+        if (criteria.LecturerId.HasValue && criteria.LecturerId.Value != Guid.Empty)
             query = query.Where(cs => cs.LecturerId == criteria.LecturerId.Value);
+
+        // Lọc theo StudentId
+        if (criteria.StudentId.HasValue && criteria.StudentId.Value != Guid.Empty)
+        {
+            query = query.Where(cs => cs.Enrollments.Any(e => e.StudentId == criteria.StudentId.Value));
+        }
 
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
             var lower = criteria.SearchTerm.ToLower();
             query = query.Where(cs =>
                 cs.SectionCode.ToLower().Contains(lower) ||
-                cs.Course!.Name.ToLower().Contains(lower) ||
-                cs.Course.Code.ToLower().Contains(lower));
+                (cs.Course != null && cs.Course.Name.ToLower().Contains(lower)) || // Thêm kiểm tra null
+                (cs.Course != null && cs.Course.Code.ToLower().Contains(lower))); // Thêm kiểm tra null
         }
+
+        // Cập nhật để chỉ lấy các ClassSection chưa bị xóa mềm
+        query = query.Where(cs => !cs.IsDeleted);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -82,7 +102,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
                     ? query.OrderByDescending(cs => cs.SectionCode)
                     : query.OrderBy(cs => cs.SectionCode),
                 "coursename" => criteria.SortOrder?.ToLower() == "desc"
-                    ? query.OrderByDescending(cs => cs.Course!.Name)
+                    ? query.OrderByDescending(cs => cs.Course!.Name) // Vẫn có thể null nếu Course không được Include
                     : query.OrderBy(cs => cs.Course!.Name),
                 _ => query.OrderBy(cs => cs.SectionCode)
             };
@@ -98,5 +118,28 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
+    }
+
+    public async Task<ClassSection?> GetBySectionCodeAsync(string sectionCode, string semester,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .Include(cs => cs.Course)
+            .FirstOrDefaultAsync(cs =>
+                    cs.SectionCode == sectionCode &&
+                    cs.Semester == semester,
+                cancellationToken);
+    }
+
+    public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var classSection = await dbContext.ClassSections.FindAsync([id], cancellationToken);
+
+        if (classSection is not null)
+        {
+            classSection.Delete();
+            dbContext.ClassSections.Update(classSection);
+            await SaveChangesAsync(cancellationToken);
+        }
     }
 }

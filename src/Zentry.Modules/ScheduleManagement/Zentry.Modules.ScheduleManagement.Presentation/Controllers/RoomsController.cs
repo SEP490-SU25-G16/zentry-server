@@ -27,7 +27,7 @@ public class RoomsController(IMediator mediator) : ControllerBase
         return CreatedAtAction(nameof(CreateRoom), new { id = response.Id }, response);
     }
 
-    [HttpGet] // Endpoint để lấy danh sách phòng học với phân trang
+    [HttpGet]
     [ProducesResponseType(typeof(GetRoomsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetRooms([FromQuery] GetRoomsQuery query, CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ public class RoomsController(IMediator mediator) : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}")] // Định tuyến để nhận ID là một GUID
+    [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(RoomDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRoomById(Guid id, CancellationToken cancellationToken)
@@ -49,16 +49,15 @@ public class RoomsController(IMediator mediator) : ControllerBase
         try
         {
             var response = await mediator.Send(query, cancellationToken);
-            return Ok(response); // Trả về 200 OK nếu tìm thấy
+            return Ok(response);
         }
         catch (Exception ex)
         {
-            // Bắt NotFoundException và trả về 404 Not Found
             return NotFound(new { errors = ex.Message });
         }
     }
 
-    [HttpPut("{id:guid}")] // Định tuyến PUT với ID từ URL
+    [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(RoomDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

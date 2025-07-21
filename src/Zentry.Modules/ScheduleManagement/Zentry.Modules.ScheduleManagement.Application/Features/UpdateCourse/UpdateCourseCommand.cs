@@ -9,5 +9,4 @@ public class UpdateCourseCommand(Guid courseId, UpdateCourseRequest request)
     public Guid Id { get; init; } = courseId;
     public string? Name { get; init; } = request.Name;
     public string? Description { get; init; } = request.Description;
-    public string? Semester { get; init; } = request.Semester;
 }

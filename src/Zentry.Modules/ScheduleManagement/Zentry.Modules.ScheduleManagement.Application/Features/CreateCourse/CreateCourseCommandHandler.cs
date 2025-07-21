@@ -18,8 +18,7 @@ public class CreateCourseCommandHandler(ICourseRepository courseRepository)
         var course = Course.Create(
             command.Code,
             command.Name,
-            command.Description,
-            command.Semester
+            command.Description
         );
 
         // 3. Lưu vào cơ sở dữ liệu thông qua Repository
@@ -33,7 +32,6 @@ public class CreateCourseCommandHandler(ICourseRepository courseRepository)
             Name = course.Name,
             Code = course.Code,
             Description = course.Description,
-            Semester = course.Semester // Bao gồm Semester trong DTO phản hồi
         };
 
         return responseDto;

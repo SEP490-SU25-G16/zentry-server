@@ -27,6 +27,7 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
         {
             course.Delete();
             dbContext.Courses.Update(course);
+            await SaveChangesAsync(cancellationToken);
         }
     }
 
@@ -86,8 +87,6 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
                 (c.Description != null && c.Description.Contains(criteria.SearchTerm))
             );
 
-        if (!string.IsNullOrWhiteSpace(criteria.Semester)) query = query.Where(c => c.Semester == criteria.Semester);
-
         var totalCount = await query.CountAsync(cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(criteria.SortBy))
@@ -97,7 +96,6 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
                 "code" => c => c.Code,
                 "name" => c => c.Name,
                 "createdat" => c => c.CreatedAt,
-                "semester" => c => c.Semester,
                 _ => c => c.CreatedAt
             };
 

@@ -1,6 +1,6 @@
 ﻿using Zentry.SharedKernel.Contracts.User;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
+namespace Zentry.Modules.ScheduleManagement.Application.Services;
 
 public interface IUserScheduleService
 {

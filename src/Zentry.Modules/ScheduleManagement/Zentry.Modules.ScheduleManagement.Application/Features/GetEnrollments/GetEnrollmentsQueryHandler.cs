@@ -1,5 +1,6 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
@@ -40,7 +41,7 @@ public class GetEnrollmentsQueryHandler(
         var (enrollments, totalCount) =
             await enrollmentRepository.GetPagedEnrollmentsAsync(criteria, cancellationToken);
 
-        var enrollmentItems = new List<EnrollmentListItemDto>();
+        var enrollmentItems = new List<EnrollmentDto>();
 
         // 4. Lookup student
         var studentIds = enrollments.Select(e => e.StudentId).Distinct();
@@ -70,7 +71,7 @@ public class GetEnrollmentsQueryHandler(
             students.TryGetValue(enrollment.StudentId, out var studentDto);
             lecturers.TryGetValue(enrollment.ClassSection.LecturerId, out var lecturerDto);
 
-            enrollmentItems.Add(new EnrollmentListItemDto
+            enrollmentItems.Add(new EnrollmentDto
             {
                 EnrollmentId = enrollment.Id,
                 EnrollmentDate = enrollment.EnrolledAt,

@@ -26,10 +26,6 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.Property(c => c.Description)
             .HasMaxLength(500);
 
-        builder.Property(c => c.Semester)
-            .IsRequired()
-            .HasMaxLength(20);
-
         builder.Property(c => c.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
@@ -45,8 +41,6 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         // Unique index for Code
         builder.HasIndex(c => c.Code)
             .IsUnique();
-
-        builder.HasIndex(c => c.Semester);
 
         // Global Query Filter: Đảm bảo chỉ trả về các bản ghi IsDeleted = false
         builder.HasQueryFilter(c => !c.IsDeleted);

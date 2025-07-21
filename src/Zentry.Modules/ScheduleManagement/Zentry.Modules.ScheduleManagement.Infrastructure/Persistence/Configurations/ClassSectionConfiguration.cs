@@ -47,5 +47,12 @@ public class ClassSectionConfiguration : IEntityTypeConfiguration<ClassSection>
         builder.HasIndex(cs => cs.LecturerId);
         builder.HasIndex(cs => cs.Semester);
         builder.HasIndex(cs => cs.SectionCode).IsUnique();
+        builder.HasMany(cs => cs.Schedules)
+            .WithOne(s => s.ClassSection)
+            .HasForeignKey(s => s.ClassSectionId);
+
+        builder.HasMany(cs => cs.Enrollments)
+            .WithOne(e => e.ClassSection)
+            .HasForeignKey(e => e.ClassSectionId);
     }
 }

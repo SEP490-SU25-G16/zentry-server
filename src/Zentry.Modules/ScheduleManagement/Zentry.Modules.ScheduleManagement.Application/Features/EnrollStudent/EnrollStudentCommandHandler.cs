@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Exceptions;

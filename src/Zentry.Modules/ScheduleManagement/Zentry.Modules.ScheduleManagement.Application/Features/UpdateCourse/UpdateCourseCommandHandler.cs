@@ -15,8 +15,7 @@ public class UpdateCourseCommandHandler(ICourseRepository courseRepository)
 
         course.Update(
             command.Name,
-            command.Description,
-            command.Semester
+            command.Description
         );
 
         await courseRepository.UpdateAsync(course, cancellationToken);
@@ -27,7 +26,6 @@ public class UpdateCourseCommandHandler(ICourseRepository courseRepository)
             Code = course.Code,
             Name = course.Name,
             Description = course.Description,
-            Semester = course.Semester,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt
         };

@@ -25,7 +25,6 @@ public class GetCourseByIdQueryHandler(ICourseRepository courseRepository)
             Code = course.Code,
             Name = course.Name,
             Description = course.Description,
-            Semester = course.Semester,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt
         };

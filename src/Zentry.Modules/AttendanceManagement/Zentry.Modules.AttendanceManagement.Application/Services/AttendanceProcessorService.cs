@@ -7,14 +7,10 @@ namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public class AttendanceProcessorService(
     ILogger<AttendanceProcessorService> logger,
-    // IMongoDbService mongoDbService,
     IRedisService redisService)
     : IAttendanceProcessorService
 {
-    // private readonly IMongoDbService _mongoDbService; // Example dependency
-    private readonly IRedisService _redisService = redisService; // Example dependency
-
-    // _mongoDbService = mongoDbService;
+    private readonly IRedisService _redisService = redisService;
 
     public async Task ProcessBluetoothScanData(ProcessScanDataMessage message, CancellationToken cancellationToken)
     {

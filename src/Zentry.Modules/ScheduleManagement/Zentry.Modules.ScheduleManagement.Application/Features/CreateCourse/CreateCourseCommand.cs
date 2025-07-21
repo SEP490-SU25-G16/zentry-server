@@ -5,8 +5,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateCourse;
 public record CreateCourseCommand(
     string Name,
     string Code,
-    string Description,
-    string Semester
+    string Description
 ) : ICommand<CourseCreatedResponse>;
 
 public class CourseCreatedResponse
@@ -15,5 +14,4 @@ public class CourseCreatedResponse
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public string Semester { get; set; } = string.Empty;
 }

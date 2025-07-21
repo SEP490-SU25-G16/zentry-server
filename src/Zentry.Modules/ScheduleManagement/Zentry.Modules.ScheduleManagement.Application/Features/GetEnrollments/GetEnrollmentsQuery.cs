@@ -50,7 +50,7 @@ public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
 
 public class GetEnrollmentsResponse
 {
-    public List<EnrollmentListItemDto> Items { get; set; } = [];
+    public List<EnrollmentDto> Items { get; set; } = [];
     public int TotalCount { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }
