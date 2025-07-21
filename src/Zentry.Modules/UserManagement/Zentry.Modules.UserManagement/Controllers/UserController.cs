@@ -17,10 +17,10 @@ namespace Zentry.Modules.UserManagement.Controllers;
 [Route("api/[controller]")]
 public class UserController(IMediator mediator) : ControllerBase
 {
-    [HttpGet] // HTTP GET không có ID trong URL path để lấy danh sách
+    [HttpGet]
     [ProducesResponseType(typeof(GetUsersResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetUsers([FromQuery] GetUsersQuery query) // [FromQuery] để lấy từ query string
+    public async Task<IActionResult> GetUsers([FromQuery] GetUsersQuery query)
     {
         try
         {
@@ -30,12 +30,11 @@ public class UserController(IMediator mediator) : ControllerBase
         catch (Exception ex)
         {
             // Ghi log lỗi
-            // Logger.LogError(ex, "Error getting list of users.");
             return BadRequest(new { message = "An error occurred while retrieving the list of users." });
         }
     }
 
-    [HttpGet("{id}")] // HTTP GET để lấy thông tin
+    [HttpGet("{id}")]
     [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -54,7 +53,6 @@ public class UserController(IMediator mediator) : ControllerBase
         catch (Exception ex)
         {
             // Ghi log lỗi
-            // Logger.LogError(ex, "Error getting user detail for ID: {UserId}", id);
             return BadRequest(new { message = "An error occurred while retrieving user details." });
         }
     }
@@ -65,12 +63,10 @@ public class UserController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
-        // Tạo Command từ Request
         var command = new CreateUserCommand(request);
 
         try
         {
-            // Gửi Command qua Mediator để Handler xử lý
             var response = await mediator.Send(command);
             return CreatedAtAction(nameof(CreateUser), new { id = response.UserId }, response);
         }
@@ -80,24 +76,20 @@ public class UserController(IMediator mediator) : ControllerBase
         }
         catch (Exception ex)
         {
-            // Ghi log lỗi và trả về lỗi chung
-            // Logger.LogError(ex, "Error creating user");
             return BadRequest(new { message = "An error occurred while creating the user." });
         }
     }
 
-    [HttpPut("{id}")] // PUT để cập nhật toàn bộ tài nguyên, hoặc PATCH để cập nhật một phần
+    [HttpPut("{id}")]
     [ProducesResponseType(typeof(UpdateUserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
-        // Tạo Command từ Request và thêm User ID từ URL
         var command = new UpdateUserCommand(id, request);
 
         try
         {
-            // Gửi Command qua Mediator để Handler xử lý
             var response = await mediator.Send(command);
 
             if (!response.Success)
@@ -112,13 +104,11 @@ public class UserController(IMediator mediator) : ControllerBase
         }
         catch (Exception ex)
         {
-            // Ghi log lỗi và trả về lỗi chung
-            // Logger.LogError(ex, "Error updating user with ID: {UserId}", id);
             return BadRequest(new { message = "An error occurred while updating the user." });
         }
     }
 
-    [HttpDelete("{id}")] // HTTP DELETE để xóa (soft delete)
+    [HttpDelete("{id}")]
     [ProducesResponseType(typeof(DeleteUserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -132,7 +122,7 @@ public class UserController(IMediator mediator) : ControllerBase
 
             if (!response.Success)
             {
-                if (response.Message.Contains("not found")) // Kiểm tra tin nhắn để phân biệt lỗi
+                if (response.Message.Contains("not found"))
                     return NotFound(new { message = response.Message });
                 return BadRequest(new { message = response.Message });
             }
@@ -141,8 +131,6 @@ public class UserController(IMediator mediator) : ControllerBase
         }
         catch (Exception ex)
         {
-            // Ghi log lỗi
-            // Logger.LogError(ex, "Error soft deleting user with ID: {UserId}", id);
             return BadRequest(new { message = "An unexpected error occurred during soft delete." });
         }
     }

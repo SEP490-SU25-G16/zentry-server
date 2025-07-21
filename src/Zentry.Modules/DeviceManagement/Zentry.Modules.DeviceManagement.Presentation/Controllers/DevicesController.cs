@@ -33,7 +33,7 @@ public class DevicesController(IMediator mediator) : ControllerBase
         //     // nhưng là một kiểm tra an toàn nếu JWT hợp lệ nhưng không có claim User ID.
         //     return Unauthorized("User ID claim not found or invalid in token.");
         // }
-        var userId = new Guid("3160f934-84b2-4162-aa28-b8130c48c5c5"); // <-- Dòng này chỉ dùng cho testing
+        var userId = new Guid(request.UserId); // <-- Dòng này chỉ dùng cho testing
 
         // 2. Tạo RegisterDeviceCommand và gán UserId cùng với các thông tin thiết bị bổ sung
         var command = new RegisterDeviceCommand

@@ -6,7 +6,7 @@ public record CreateCourseCommand(
     string Name,
     string Code,
     string Description,
-    string Semester // Thêm Semester
+    string Semester
 ) : ICommand<CourseCreatedResponse>;
 
 public class CourseCreatedResponse

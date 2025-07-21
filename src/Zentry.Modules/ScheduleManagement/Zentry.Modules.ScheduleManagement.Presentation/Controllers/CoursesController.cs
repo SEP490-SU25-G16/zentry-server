@@ -32,15 +32,13 @@ public class CoursesController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetCourses([FromQuery] GetCoursesQuery query, CancellationToken cancellationToken)
     {
-        // Model binding sẽ tự động điền các thuộc tính của GetCoursesQuery từ query string
-        // Bạn có thể thêm validation ở đây nếu cần (ví dụ: dùng FluentValidation)
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var response = await mediator.Send(query, cancellationToken);
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}")] // Định tuyến để nhận ID là một GUID
+    [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCourseById(Guid id, CancellationToken cancellationToken)
@@ -60,8 +58,8 @@ public class CoursesController(IMediator mediator) : ControllerBase
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)] // Invalid input or business logic error
-    [ProducesResponseType(StatusCodes.Status404NotFound)] // Course not found
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request,
         CancellationToken cancellationToken)
     {

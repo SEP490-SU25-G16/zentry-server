@@ -2,6 +2,7 @@ namespace Zentry.Modules.DeviceManagement.Presentation.Requests;
 
 public class RegisterDeviceRequest
 {
+    public string UserId { get; set; } = string.Empty;
     public string DeviceName { get; set; } = string.Empty;
     public string? Platform { get; set; } // Nền tảng (ví dụ: "iOS", "Android")
     public string? OsVersion { get; set; } // Phiên bản hệ điều hành (ví dụ: "17.5.1", "14")

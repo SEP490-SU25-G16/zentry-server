@@ -5,6 +5,5 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetCourseById;
 
-// Sử dụng record để tạo Query immutable
 public record GetCourseByIdQuery(Guid Id)
-    : IQuery<CourseDto>; // Trả về CourseDetailDto hoặc null nếu không tìm thấy
+    : IQuery<CourseDto>;

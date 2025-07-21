@@ -9,7 +9,6 @@ public class GetCoursesQuery : IQuery<GetCoursesResponse>
 {
     public GetCoursesQuery()
     {
-        // Parameterless constructor cho model binding từ query string
     }
 
     public GetCoursesQuery(int pageNumber, int pageSize, string? searchTerm = null, string? semester = null,
@@ -27,14 +26,14 @@ public class GetCoursesQuery : IQuery<GetCoursesResponse>
     public int PageSize { get; init; } = 10;
 
     public string? SearchTerm { get; init; }
-    public string? Semester { get; init; } // Lọc theo học kỳ
-    public string? SortBy { get; init; } = "CreatedAt"; // Mặc định sắp xếp theo ngày tạo
-    public string? SortOrder { get; init; } = "desc"; // Mặc định giảm dần
+    public string? Semester { get; init; }
+    public string? SortBy { get; init; } = "CreatedAt";
+    public string? SortOrder { get; init; } = "desc";
 }
 
 public class GetCoursesResponse
 {
-    public List<CourseListItemDto> Items { get; set; } = new();
+    public List<CourseListItemDto> Items { get; set; } = [];
     public int TotalCount { get; set; }
     public int PageNumber { get; set; }
     public int PageSize { get; set; }
