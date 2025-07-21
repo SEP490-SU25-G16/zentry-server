@@ -18,7 +18,6 @@ public static class DependencyInjection
     public static IServiceCollection AddAttendanceInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
-        // Cấu hình PostgreSQL
         services.AddDbContext<AttendanceDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -29,7 +28,6 @@ public static class DependencyInjection
 
         if (useMarten)
         {
-            // Cấu hình Marten
             var connectionString = configuration.GetConnectionString("DefaultConnection") ??
                                    throw new InvalidOperationException("DefaultConnection is not configured.");
 
@@ -39,12 +37,10 @@ public static class DependencyInjection
                 options.Schema.For<ScanLog>().Identity(r => r.Id);
             });
 
-            // Đăng ký repository cho Marten
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
         }
         else
         {
-            // Cấu hình MongoDB
             var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
                                         throw new InvalidOperationException(
                                             "MongoDB_ConnectionString is not configured.");
@@ -64,15 +60,13 @@ public static class DependencyInjection
                 return mongoClient.GetDatabase("zentry");
             });
 
-            // Đăng ký repository cho MongoDB
             services.AddScoped<IScanLogRepository, MongoScanLogRepository>();
         }
 
-        // Đăng ký các repository
         services.AddScoped<IAttendanceRepository, AttendanceRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<IRoundRepository, RoundRepository>();
 
-        // Đăng ký MediatR
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 

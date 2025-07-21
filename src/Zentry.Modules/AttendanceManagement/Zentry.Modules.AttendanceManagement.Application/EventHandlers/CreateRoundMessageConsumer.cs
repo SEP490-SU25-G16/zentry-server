@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Contracts.Messages;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -25,30 +28,42 @@ public class CreateRoundMessageConsumer(
 
             var totalDuration = message.ScheduledEndTime.Subtract(message.ScheduledStartTime);
 
-            if (message.TotalRoundsInSession <= message.RoundNumber) // total rounds <= current round number, no more rounds to create
+            // Kiểm tra số round cần tạo còn lại. message.RoundNumber là số round đã được tạo (ví dụ: round 1)
+            if (message.TotalRoundsInSession <= message.RoundNumber)
             {
                 logger.LogInformation("No additional rounds to create for Session {SessionId}. Total rounds configured: {TotalRounds}, Current Round Number in message: {CurrentRound}.",
                     message.SessionId, message.TotalRoundsInSession, message.RoundNumber);
                 return;
             }
 
-            double durationPerRound = 0;
-            if (message.TotalRoundsInSession > 0) // Defensive check
+            double durationPerRoundSeconds = 0;
+            if (message.TotalRoundsInSession > 0)
             {
-                durationPerRound = totalDuration.TotalSeconds / message.TotalRoundsInSession;
+                durationPerRoundSeconds = totalDuration.TotalSeconds / message.TotalRoundsInSession;
             }
-
+            
             var roundsToAdd = new List<Round>();
 
             // Bắt đầu từ round tiếp theo sau RoundNumber đã có (ví dụ: Round 2 nếu RoundNumber = 1)
             for (var i = message.RoundNumber + 1; i <= message.TotalRoundsInSession; i++)
             {
-                var roundStartTime = message.ScheduledStartTime.AddSeconds(durationPerRound * (i - 1));
+                // Tính toán StartTime và EndTime cho round hiện tại
+                // StartTime của Round i = ScheduledStartTime + (độ dài mỗi round * (i - 1))
+                var roundStartTime = message.ScheduledStartTime.AddSeconds(durationPerRoundSeconds * (i - 1));
+                // EndTime của Round i = StartTime của Round i + độ dài mỗi round
+                var roundEndTime = roundStartTime.AddSeconds(durationPerRoundSeconds);
+
+                // Đảm bảo EndTime của round cuối cùng không vượt quá ScheduledEndTime của session
+                if (i == message.TotalRoundsInSession)
+                {
+                    roundEndTime = message.ScheduledEndTime;
+                }
 
                 var newRound = Round.Create(
                     message.SessionId,
                     i,
-                    roundStartTime
+                    roundStartTime,
+                    roundEndTime // Truyền EndTime vào hàm tạo
                 );
                 roundsToAdd.Add(newRound);
             }
@@ -67,7 +82,7 @@ public class CreateRoundMessageConsumer(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "MassTransit Consumer: Error creating rounds for Session {SessionId}. Message will be retried or moved to error queue.", message.SessionId);
+            logger.LogError(ex, "MassTransit Consumer: Error creating rounds for Session {SessionId}. Message will be retried or moved to error queue.", ex.Message); // Log chi tiết hơn
             throw;
         }
     }

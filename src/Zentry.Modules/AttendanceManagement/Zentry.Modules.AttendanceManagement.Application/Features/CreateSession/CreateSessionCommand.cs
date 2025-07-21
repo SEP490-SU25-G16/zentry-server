@@ -4,9 +4,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.CreateSession
 
 public record CreateSessionCommand(
     Guid ScheduleId,
-    Guid UserId, // ID của giảng viên
-    DateTime StartTime,
-    DateTime EndTime
+    Guid UserId
 ) : ICommand<CreateSessionResponse>;
 
 public class CreateSessionResponse

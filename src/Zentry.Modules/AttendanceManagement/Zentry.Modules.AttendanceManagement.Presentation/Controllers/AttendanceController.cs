@@ -14,11 +14,10 @@ public class AttendanceController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request,
         CancellationToken cancellationToken)
     {
+        // Loại bỏ StartTime và EndTime từ Command
         var command = new CreateSessionCommand(
             request.ScheduleId,
-            request.UserId,
-            request.StartTime,
-            request.EndTime
+            request.UserId
         );
         var result = await mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(CreateSession), new { id = result.SessionId }, result);

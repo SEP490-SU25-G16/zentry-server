@@ -28,9 +28,7 @@ public class CreateSessionCommandHandler(
 {
     public async Task<CreateSessionResponse> Handle(CreateSessionCommand request, CancellationToken cancellationToken)
     {
-        // --- 1. Kiểm tra điều kiện nghiệp vụ (Không thay đổi) ---
-
-        // 1.1. Kiểm tra giảng viên có tồn tại và có quyền
+        // --- 1. Kiểm tra điều kiện nghiệp vụ ---
         var lecturer =
             await userService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
         if (lecturer == null)
@@ -41,7 +39,6 @@ public class CreateSessionCommandHandler(
                 "Giảng viên không tồn tại hoặc không có quyền.");
         }
 
-        // 1.2. Kiểm tra thông tin buổi học/lịch trình
         var schedule = await scheduleService.GetScheduleByIdAsync(request.ScheduleId, cancellationToken);
         if (schedule is not { IsActive: true })
         {
@@ -51,7 +48,6 @@ public class CreateSessionCommandHandler(
                 "Lịch trình buổi học không hợp lệ hoặc không hoạt động.");
         }
 
-        // 1.3. Kiểm tra giảng viên được phân công cho buổi học
         if (schedule.LecturerId != request.UserId)
         {
             logger.LogWarning("CreateSession failed: Lecturer {LecturerId} is not assigned to schedule {ScheduleId}.",
@@ -64,13 +60,11 @@ public class CreateSessionCommandHandler(
 
         var globalSettingsTask =
             configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Global, Guid.Empty, cancellationToken);
-
         var courseSettingsTask = Task.FromResult(new Dictionary<string, SettingContract>());
         if (schedule.CourseId != Guid.Empty)
             courseSettingsTask =
                 configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Course, schedule.CourseId,
                     cancellationToken);
-
         var sessionSettingsTask =
             configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Session, request.ScheduleId,
                 cancellationToken);
@@ -94,17 +88,13 @@ public class CreateSessionCommandHandler(
                 StringComparer.OrdinalIgnoreCase
             );
 
-        // --- 2. Tạo SessionConfigSnapshot Value Object từ dictionary đã hợp nhất ---
         var sessionConfigSnapshot = SessionConfigSnapshot.FromDictionary(finalConfigDictionary);
 
-        // Lấy các giá trị cụ thể từ snapshot
         var attendanceWindowMinutes = sessionConfigSnapshot.AttendanceWindowMinutes;
-        var totalAttendanceRounds = sessionConfigSnapshot.TotalAttendanceRounds; // Lấy giá trị này
+        var totalAttendanceRounds = sessionConfigSnapshot.TotalAttendanceRounds;
         var absentReportGracePeriodHours = sessionConfigSnapshot.AbsentReportGracePeriodHours;
         var manualAdjustmentGracePeriodHours = sessionConfigSnapshot.ManualAdjustmentGracePeriodHours;
 
-
-        // 1.4. Kiểm tra khung thời gian cho phép khởi tạo phiên
         var currentTime = DateTime.UtcNow;
         var sessionAllowedStartTime = schedule.ScheduledStartTime.AddMinutes(-attendanceWindowMinutes);
         var sessionAllowedEndTime = schedule.ScheduledEndTime.AddMinutes(attendanceWindowMinutes);
@@ -119,7 +109,6 @@ public class CreateSessionCommandHandler(
                 $"Chưa đến hoặc đã quá thời gian cho phép khởi tạo phiên. Giờ hiện tại: {currentTime:HH:mm}, Thời gian cho phép: {sessionAllowedStartTime:HH:mm} - {sessionAllowedEndTime:HH:mm}.");
         }
 
-        // 1.5. Kiểm tra chưa có phiên điểm danh nào đang hoạt động cho buổi này
         var activeSessionKey = $"active_session:{request.ScheduleId}";
         if (await redisService.KeyExistsAsync(activeSessionKey))
         {
@@ -129,12 +118,12 @@ public class CreateSessionCommandHandler(
                 "Buổi học này đã có phiên điểm danh đang hoạt động.");
         }
 
-        // --- 3. Tạo đối tượng Session (Domain Entity) với SessionConfigSnapshot ---
+        // --- 3. Tạo đối tượng Session (Domain Entity) với thời gian từ Schedule ---
         var session = Session.Create(
             request.ScheduleId,
             request.UserId,
-            request.StartTime,
-            request.EndTime,
+            schedule.ScheduledStartTime,
+            schedule.ScheduledEndTime,
             finalConfigDictionary
         );
 
@@ -146,24 +135,29 @@ public class CreateSessionCommandHandler(
         var totalSessionDuration = session.EndTime.Subtract(session.StartTime)
             .Add(TimeSpan.FromMinutes(sessionConfigSnapshot.AttendanceWindowMinutes * 2));
         await redisService.SetAsync(activeSessionKey, session.Id.ToString(), totalSessionDuration);
-        await redisService.SetAsync($"session:{session.Id}", JsonSerializer.Serialize(session),
-            totalSessionDuration);
 
         // --- 6. Xử lý tạo Round đầu tiên và publish message cho các Round còn lại ---
         if (totalAttendanceRounds > 0)
         {
+            var totalSessionTime = session.EndTime.Subtract(session.StartTime);
+            var durationPerRoundSeconds = totalSessionTime.TotalSeconds / totalAttendanceRounds;
+
+            var firstRoundStartTime = session.StartTime;
+            var firstRoundEndTime = session.StartTime.AddSeconds(durationPerRoundSeconds);
+
             var firstRound = Round.Create(
                 session.Id,
                 1,
-                DateTime.UtcNow
+                firstRoundStartTime,
+                firstRoundEndTime
             );
             firstRound.UpdateStatus(RoundStatus.Active);
             await roundRepository.AddAsync(firstRound, cancellationToken);
             await roundRepository.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation(
-                "First round (Round {RoundNumber}) created for Session {SessionId}.",
-                firstRound.RoundNumber, session.Id);
+                "First round (Round {RoundNumber}) created for Session {SessionId} with StartTime {StartTime} and EndTime {EndTime}.",
+                firstRound.RoundNumber, session.Id, firstRound.StartTime, firstRound.EndTime);
 
             if (totalAttendanceRounds > 1)
             {
@@ -173,8 +167,8 @@ public class CreateSessionCommandHandler(
 
                 var createRoundMessage = new CreateRoundMessage(
                     session.Id,
-                    totalAttendanceRounds,
                     1,
+                    totalAttendanceRounds,
                     session.StartTime,
                     session.EndTime
                 );

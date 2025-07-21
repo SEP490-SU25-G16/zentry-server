@@ -9,12 +9,13 @@ public class Round : AggregateRoot<Guid>
     {
     }
 
-    private Round(Guid id, Guid sessionId, int roundNumber, DateTime startTime, RoundStatus status)
+    private Round(Guid id, Guid sessionId, int roundNumber, DateTime startTime, DateTime endTime, RoundStatus status)
         : base(id)
     {
         SessionId = sessionId;
         RoundNumber = roundNumber;
         StartTime = startTime;
+        EndTime = endTime;
         Status = status;
         CreatedAt = DateTime.UtcNow;
     }
@@ -27,18 +28,13 @@ public class Round : AggregateRoot<Guid>
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
-    public static Round Create(Guid sessionId, int roundNumber, DateTime startTime)
+    public static Round Create(Guid sessionId, int roundNumber, DateTime startTime, DateTime endTime)
     {
-        return new Round(Guid.NewGuid(), sessionId, roundNumber, startTime, RoundStatus.Pending);
+        return new Round(Guid.NewGuid(), sessionId, roundNumber, startTime, endTime, RoundStatus.Pending);
     }
 
-    public void CompleteRound(DateTime endTime)
+    public void CompleteRound()
     {
-        if (endTime <= StartTime)
-        {
-            throw new ArgumentException("EndTime must be after StartTime.");
-        }
-        EndTime = endTime;
         Status = RoundStatus.Completed;
         UpdatedAt = DateTime.UtcNow;
     }
