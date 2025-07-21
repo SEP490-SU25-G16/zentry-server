@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="docker-compose.debug.yml" />
+    <Content Include="docker-compose.linux.yml" />
   </ItemGroup>
 </Project>
