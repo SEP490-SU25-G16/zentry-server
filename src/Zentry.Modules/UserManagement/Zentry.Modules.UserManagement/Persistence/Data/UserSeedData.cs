@@ -1,10 +1,14 @@
+using System.Globalization;
+using System.Text;
 using Bogus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
-using Zentry.Modules.UserManagement.Services; // For IPasswordHasher
+using Zentry.Modules.UserManagement.Services;
+
+// For IPasswordHasher
 
 namespace Zentry.Modules.UserManagement.Persistence.Data;
 
@@ -88,7 +92,8 @@ public static class UserSeedData
     }
 
     // UPDATED: Thêm tham số defaultHash và defaultSalt
-    private static async Task SeedRegularUsers(UserDbContext context, string defaultHash, string defaultSalt, ILogger? logger = null)
+    private static async Task SeedRegularUsers(UserDbContext context, string defaultHash, string defaultSalt,
+        ILogger? logger = null)
     {
         logger?.LogInformation("Seeding Lecturer and Student users with Bogus...");
 
@@ -120,7 +125,7 @@ public static class UserSeedData
             // TỐI ƯU 3: Tạo một Faker instance duy nhất
             var faker = new Faker();
 
-            for (int i = 0; i < accountCount; i++)
+            for (var i = 0; i < accountCount; i++)
             {
                 var name = faker.PickRandom(vietnameseNames);
                 var emailName = RemoveDiacritics(name)
@@ -133,7 +138,8 @@ public static class UserSeedData
                 // TỐI ƯU 4: Đảm bảo email duy nhất và hiệu quả hơn
                 // Dùng GUID cho phần duy nhất, vì faker.IndexFaker có thể trùng nếu có nhiều instances của Faker được tạo.
                 // Hoặc dùng faker.UniqueIndex() nếu bạn sử dụng một Faker<T> duy nhất như cách tôi đã gợi ý trước đó.
-                var email = $"{emailName}.{Guid.NewGuid().ToString("N").Substring(0, 8)}@{faker.PickRandom(companyDomains)}";
+                var email =
+                    $"{emailName}.{Guid.NewGuid().ToString("N").Substring(0, 8)}@{faker.PickRandom(companyDomains)}";
 
                 var role = faker.PickRandom(rolesForRegularUsers);
 
@@ -169,7 +175,8 @@ public static class UserSeedData
     }
 
     // UPDATED: Thêm tham số defaultHash và defaultSalt
-    private static async Task SeedTestAccounts(UserDbContext context, string defaultHash, string defaultSalt, ILogger? logger = null)
+    private static async Task SeedTestAccounts(UserDbContext context, string defaultHash, string defaultSalt,
+        ILogger? logger = null)
     {
         logger?.LogInformation("Seeding test accounts for development...");
 
@@ -203,10 +210,8 @@ public static class UserSeedData
             else if (testData.Email.Contains("lockeduser"))
                 account.UpdateStatus(AccountStatus.Locked);
             else if (testData.Email.Contains("expiredreset"))
-            {
                 // Tạo reset token đã hết hạn
                 account.SetResetToken(Guid.NewGuid().ToString(), DateTime.UtcNow.AddDays(-1));
-            }
 
             accounts.Add(account);
             users.Add(user);
@@ -221,19 +226,16 @@ public static class UserSeedData
 
     private static string RemoveDiacritics(string text)
     {
-        var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
-        var stringBuilder = new System.Text.StringBuilder();
+        var normalizedString = text.Normalize(NormalizationForm.FormD);
+        var stringBuilder = new StringBuilder();
 
         foreach (var c in normalizedString)
         {
-            var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
-            if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
-            {
-                stringBuilder.Append(c);
-            }
+            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != UnicodeCategory.NonSpacingMark) stringBuilder.Append(c);
         }
 
-        return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC);
+        return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
     }
 
     public static async Task ClearAllData(UserDbContext context, ILogger? logger = null)

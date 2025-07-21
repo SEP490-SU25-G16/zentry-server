@@ -44,11 +44,14 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
     public Guid RoomId { get; set; }
     public DateOnly StartDate { get; private set; }
     public DateOnly EndDate { get; private set; }
-    public TimeOnly StartTime { get; private set; }
-    public TimeOnly EndTime { get; private set; }
+    public TimeOnly StartTime { get; }
+    public TimeOnly EndTime { get; }
     public WeekDayEnum WeekDay { get; set; }
 
-    public bool IsValidTimeRange() => StartTime < EndTime;
+    public bool IsValidTimeRange()
+    {
+        return StartTime < EndTime;
+    }
 }
 
 public class CreatedScheduleResponse

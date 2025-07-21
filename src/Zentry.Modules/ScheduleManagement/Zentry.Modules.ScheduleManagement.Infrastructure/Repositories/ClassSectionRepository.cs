@@ -62,9 +62,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
 
         // Nếu có lọc theo StudentId, cần include Enrollments
         if (criteria.StudentId.HasValue && criteria.StudentId.Value != Guid.Empty)
-        {
             query = query.Include(cs => cs.Enrollments);
-        }
 
         // Lọc theo CourseId
         if (criteria.CourseId.HasValue && criteria.CourseId.Value != Guid.Empty)
@@ -76,9 +74,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
 
         // Lọc theo StudentId
         if (criteria.StudentId.HasValue && criteria.StudentId.Value != Guid.Empty)
-        {
             query = query.Where(cs => cs.Enrollments.Any(e => e.StudentId == criteria.StudentId.Value));
-        }
 
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
@@ -95,7 +91,6 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         var totalCount = await query.CountAsync(cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(criteria.SortBy))
-        {
             query = criteria.SortBy.ToLower() switch
             {
                 "sectioncode" => criteria.SortOrder?.ToLower() == "desc"
@@ -106,11 +101,8 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
                     : query.OrderBy(cs => cs.Course!.Name),
                 _ => query.OrderBy(cs => cs.SectionCode)
             };
-        }
         else
-        {
             query = query.OrderBy(cs => cs.SectionCode);
-        }
 
         var items = await query
             .Skip((criteria.PageNumber - 1) * criteria.PageSize)

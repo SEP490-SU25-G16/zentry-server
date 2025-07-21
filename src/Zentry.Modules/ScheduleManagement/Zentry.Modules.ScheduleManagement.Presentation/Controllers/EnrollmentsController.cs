@@ -5,6 +5,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
+
 [ApiController]
 [Route("api/enrollments")]
 public class EnrollmentsController(IMediator mediator) : ControllerBase

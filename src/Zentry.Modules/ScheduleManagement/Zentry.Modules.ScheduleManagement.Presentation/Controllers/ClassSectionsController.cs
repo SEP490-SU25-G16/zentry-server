@@ -5,9 +5,11 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.DeleteClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections; // Thêm using này
+using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
-using System.Threading.Tasks; // Thêm using này
+// Thêm using này
+
+// Thêm using này
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 

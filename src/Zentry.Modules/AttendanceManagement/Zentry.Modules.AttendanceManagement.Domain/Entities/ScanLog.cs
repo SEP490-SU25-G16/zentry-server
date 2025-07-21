@@ -2,9 +2,7 @@ namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class ScanLog
 {
-    public ScanLog()
-    {
-    } // Private constructor for factory method
+    // Private constructor for factory method
 
     public Guid Id { get; private set; }
     public Guid DeviceId { get; private set; }

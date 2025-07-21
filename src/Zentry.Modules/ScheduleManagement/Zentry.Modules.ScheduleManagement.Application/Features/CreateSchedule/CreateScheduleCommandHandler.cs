@@ -35,22 +35,18 @@ public class CreateScheduleCommandHandler(
         // Check if lecturer is free
         if (!await scheduleRepository.IsLecturerAvailableAsync(command.LecturerId, command.WeekDay, command.StartTime,
                 command.EndTime, cancellationToken))
-        {
             throw new Exception(
                 $"Lecturer {lecturer.FullName} is busy on {command.WeekDay} from {command.StartTime} to {command.EndTime}.");
-        }
 
         // Check if room is free
         if (!await scheduleRepository.IsRoomAvailableAsync(command.RoomId, command.WeekDay, command.StartTime,
                 command.EndTime, cancellationToken))
-        {
             throw new Exception(
                 $"Room is booked on {command.WeekDay} from {command.StartTime} to {command.EndTime}.");
-        }
 
         var schedule = Schedule.Create(
-            classSectionId: section.Id,
-            roomId: command.RoomId,
+            section.Id,
+            command.RoomId,
             weekDay: command.WeekDay,
             startTime: command.StartTime,
             endTime: command.EndTime,

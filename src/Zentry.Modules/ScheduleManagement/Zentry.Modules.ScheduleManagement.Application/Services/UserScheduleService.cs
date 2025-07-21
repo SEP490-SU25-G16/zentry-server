@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Services;

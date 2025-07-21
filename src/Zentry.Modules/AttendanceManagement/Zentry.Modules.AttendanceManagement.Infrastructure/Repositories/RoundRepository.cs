@@ -11,6 +11,7 @@ public class RoundRepository(AttendanceDbContext dbContext) : IRoundRepository
     {
         await dbContext.Rounds.AddAsync(entity, cancellationToken);
     }
+
     public async Task AddRangeAsync(IEnumerable<Round> entities, CancellationToken cancellationToken)
     {
         await dbContext.Rounds.AddRangeAsync(entities, cancellationToken);

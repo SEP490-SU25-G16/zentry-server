@@ -32,10 +32,7 @@ public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
 
     private static EnrollmentStatus? ParseEnrollmentStatus(string? statusString)
     {
-        if (string.IsNullOrWhiteSpace(statusString))
-        {
-            return null;
-        }
+        if (string.IsNullOrWhiteSpace(statusString)) return null;
 
         try
         {

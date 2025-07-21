@@ -159,7 +159,6 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         var totalCount = await query.CountAsync(cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(criteria.SortBy))
-        {
             query = criteria.SortBy.ToLower() switch
             {
                 "coursename" => criteria.SortOrder?.ToLower() == "desc"
@@ -179,11 +178,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
                     : query.OrderBy(s => s.WeekDay),
                 _ => query.OrderBy(s => s.WeekDay).ThenBy(s => s.StartTime)
             };
-        }
         else
-        {
             query = query.OrderBy(s => s.WeekDay).ThenBy(s => s.StartTime);
-        }
 
         var schedules = await query
             .Skip((criteria.PageNumber - 1) * criteria.PageSize)

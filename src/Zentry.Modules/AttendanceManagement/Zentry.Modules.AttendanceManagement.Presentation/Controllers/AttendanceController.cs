@@ -22,6 +22,7 @@ public class AttendanceController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(CreateSession), new { id = result.SessionId }, result);
     }
+
     [HttpPost("sessions/scan")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
@@ -40,10 +41,7 @@ public class AttendanceController(IMediator mediator) : ControllerBase
 
         var response = await mediator.Send(command);
 
-        if (response.Success)
-        {
-            return Ok(response);
-        }
+        if (response.Success) return Ok(response);
 
         return BadRequest(response);
     }

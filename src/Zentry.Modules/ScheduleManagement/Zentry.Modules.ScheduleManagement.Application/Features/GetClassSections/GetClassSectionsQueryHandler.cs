@@ -1,8 +1,8 @@
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.Modules.ScheduleManagement.Application.Services;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 

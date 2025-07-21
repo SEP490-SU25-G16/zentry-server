@@ -1,9 +1,4 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using Zentry.Modules.NotificationService.Enums;
-using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 
 namespace Zentry.Modules.NotificationService.Persistence.Data;
 

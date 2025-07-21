@@ -9,10 +9,11 @@ public record GetClassSectionsQuery(
     string? SearchTerm = null,
     Guid? CourseId = null,
     Guid? LecturerId = null, // Lọc theo giảng viên
-    Guid? StudentId = null,  // Lọc theo sinh viên
+    Guid? StudentId = null, // Lọc theo sinh viên
     string? SortBy = null,
     string? SortOrder = null
 ) : IQuery<GetClassSectionsResponse>;
+
 public class GetClassSectionsResponse
 {
     public List<ClassSectionListItemDto> Items { get; set; } = new(); // Dùng DTO mới

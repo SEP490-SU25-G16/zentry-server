@@ -31,7 +31,7 @@ public class CreateCourseCommandHandler(ICourseRepository courseRepository)
             Id = course.Id,
             Name = course.Name,
             Code = course.Code,
-            Description = course.Description,
+            Description = course.Description
         };
 
         return responseDto;

@@ -5,7 +5,9 @@ namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
 public class Enrollment : AggregateRoot<Guid>
 {
-    private Enrollment() : base(Guid.Empty) {}
+    private Enrollment() : base(Guid.Empty)
+    {
+    }
 
     private Enrollment(Guid id, Guid studentId, Guid classSectionId)
         : base(id)

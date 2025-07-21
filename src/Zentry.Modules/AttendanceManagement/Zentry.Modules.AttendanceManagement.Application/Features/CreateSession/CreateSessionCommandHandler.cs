@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;

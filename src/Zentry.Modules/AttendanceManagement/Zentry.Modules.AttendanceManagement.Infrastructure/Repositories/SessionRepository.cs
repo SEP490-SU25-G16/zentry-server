@@ -11,10 +11,12 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
     {
         await dbContext.Sessions.AddAsync(entity, cancellationToken);
     }
+
     public async Task AddRangeAsync(IEnumerable<Session> entities, CancellationToken cancellationToken)
     {
         await dbContext.Sessions.AddRangeAsync(entities, cancellationToken);
     }
+
     public async Task<IEnumerable<Session>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await dbContext.Sessions.ToListAsync(cancellationToken);

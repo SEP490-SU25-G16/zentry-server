@@ -39,7 +39,7 @@ public class UserDbMigrationService(
                     using var scope = serviceProvider.CreateScope();
                     var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>(); // Lấy DbSeeder từ scope
 
-                    await seeder.SeedAllAsync(recreateDatabase: false); // Gọi SeedAllAsync
+                    await seeder.SeedAllAsync(false); // Gọi SeedAllAsync
                 });
                 logger.LogInformation("User Management database migration and seeding completed successfully.");
             }
@@ -58,5 +58,8 @@ public class UserDbMigrationService(
         }
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 }

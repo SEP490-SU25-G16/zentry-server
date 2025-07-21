@@ -5,7 +5,9 @@ namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
 public class Schedule : AggregateRoot<Guid>
 {
-    private Schedule() : base(Guid.Empty) {}
+    private Schedule() : base(Guid.Empty)
+    {
+    }
 
     private Schedule(
         Guid id,

@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting; // Not directly used here, but in DbSeederExtensions
 using Microsoft.Extensions.Logging;
-using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
-using Zentry.Modules.UserManagement.Services; // For IPasswordHasher
+using Zentry.Modules.UserManagement.Services;
+// Not directly used here, but in DbSeederExtensions
+
+// For IPasswordHasher
 
 namespace Zentry.Modules.UserManagement.Persistence.Data;
 

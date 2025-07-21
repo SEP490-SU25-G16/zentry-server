@@ -1,5 +1,4 @@
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Exceptions;
@@ -17,9 +16,7 @@ public class CreateClassSectionCommandHandler(IClassSectionRepository repository
             await repository.GetBySectionCodeAsync(request.SectionCode, request.Semester, cancellationToken);
 
         if (existingSections is not null)
-        {
             throw new BusinessRuleException("SECTION_CODE_DUPLICATE", "Section code đã tồn tại trong học kỳ này.");
-        }
 
         var newSection = ClassSection.Create(
             request.CourseId,

@@ -16,7 +16,8 @@ public class ProcessScanDataMessageConsumer(
     public async Task Consume(ConsumeContext<ProcessScanDataMessage> consumeContext)
     {
         var message = consumeContext.Message;
-        logger.LogInformation("MassTransit Consumer: Received scan data for RequestId: {RequestId}, Session: {SessionId}, Student: {StudentId}",
+        logger.LogInformation(
+            "MassTransit Consumer: Received scan data for RequestId: {RequestId}, Session: {SessionId}, Student: {StudentId}",
             message.RequestId, message.SessionId, message.StudentId);
 
         try
@@ -29,12 +30,15 @@ public class ProcessScanDataMessageConsumer(
             // Pass the message and CancellationToken from the ConsumeContext
             await processor.ProcessBluetoothScanData(message, consumeContext.CancellationToken);
 
-            logger.LogInformation("MassTransit Consumer: Successfully processed scan data for RequestId: {RequestId}.", message.RequestId);
+            logger.LogInformation("MassTransit Consumer: Successfully processed scan data for RequestId: {RequestId}.",
+                message.RequestId);
             // MassTransit automatically Acknowledges (ACKs) the message upon successful completion of Consume method.
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "MassTransit Consumer: Error processing scan data for RequestId {RequestId}. Message will be retried or moved to error queue.", message.RequestId);
+            logger.LogError(ex,
+                "MassTransit Consumer: Error processing scan data for RequestId {RequestId}. Message will be retried or moved to error queue.",
+                message.RequestId);
             // Throwing the exception allows MassTransit's retry/dead-lettering policies to take effect.
             throw;
         }

@@ -1,8 +1,7 @@
 // File: Zentry.SharedKernel.Abstractions.Data/IRepository.cs
+
 using Zentry.SharedKernel.Abstractions.Domain;
-using System.Collections.Generic; // Thêm namespace này
-using System.Threading;
-using System.Threading.Tasks;
+// Thêm namespace này
 
 namespace Zentry.SharedKernel.Abstractions.Data;
 
