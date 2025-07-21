@@ -96,8 +96,12 @@ public class CreateSessionCommandHandler(
         var manualAdjustmentGracePeriodHours = sessionConfigSnapshot.ManualAdjustmentGracePeriodHours;
 
         var currentTime = DateTime.UtcNow;
-        var sessionAllowedStartTime = schedule.ScheduledStartTime.AddMinutes(-attendanceWindowMinutes);
-        var sessionAllowedEndTime = schedule.ScheduledEndTime.AddMinutes(attendanceWindowMinutes);
+
+        var scheduledStart = schedule.ScheduledStartDate.ToDateTime(schedule.ScheduledStartTime);
+        var scheduledEnd = schedule.ScheduledEndDate.ToDateTime(schedule.ScheduledEndTime);
+
+        var sessionAllowedStartTime = scheduledStart.AddMinutes(-attendanceWindowMinutes);
+        var sessionAllowedEndTime = scheduledEnd.AddMinutes(attendanceWindowMinutes);
 
         if (currentTime < sessionAllowedStartTime || currentTime > sessionAllowedEndTime)
         {
@@ -122,8 +126,8 @@ public class CreateSessionCommandHandler(
         var session = Session.Create(
             request.ScheduleId,
             request.UserId,
-            schedule.ScheduledStartTime,
-            schedule.ScheduledEndTime,
+            scheduledStart,
+            scheduledEnd,
             finalConfigDictionary
         );
 
@@ -139,38 +143,30 @@ public class CreateSessionCommandHandler(
         // --- 6. Xử lý tạo Round đầu tiên và publish message cho các Round còn lại ---
         if (totalAttendanceRounds > 0)
         {
-            var totalSessionTime = session.EndTime.Subtract(session.StartTime);
+            var totalSessionTime = scheduledEnd - scheduledStart;
             var durationPerRoundSeconds = totalSessionTime.TotalSeconds / totalAttendanceRounds;
 
-            var firstRoundStartTime = session.StartTime;
-            var firstRoundEndTime = session.StartTime.AddSeconds(durationPerRoundSeconds);
+            var firstRoundEndTime = scheduledStart.AddSeconds(durationPerRoundSeconds);
 
             var firstRound = Round.Create(
                 session.Id,
                 1,
-                firstRoundStartTime,
+                scheduledStart,
                 firstRoundEndTime
             );
             firstRound.UpdateStatus(RoundStatus.Active);
             await roundRepository.AddAsync(firstRound, cancellationToken);
             await roundRepository.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation(
-                "First round (Round {RoundNumber}) created for Session {SessionId} with StartTime {StartTime} and EndTime {EndTime}.",
-                firstRound.RoundNumber, session.Id, firstRound.StartTime, firstRound.EndTime);
-
+            // Publish message for other rounds
             if (totalAttendanceRounds > 1)
             {
-                logger.LogInformation(
-                    "Publishing CreateRoundMessage for remaining rounds ({RemainingRounds}) in Session {SessionId}.",
-                    totalAttendanceRounds - 1, session.Id);
-
                 var createRoundMessage = new CreateRoundMessage(
                     session.Id,
                     1,
                     totalAttendanceRounds,
-                    session.StartTime,
-                    session.EndTime
+                    scheduledStart,
+                    scheduledEnd
                 );
                 await bus.Publish(createRoundMessage, cancellationToken);
             }
