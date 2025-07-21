@@ -33,9 +33,7 @@ public class ClassSection : AggregateRoot<Guid>
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public bool IsDeleted { get; private set; }
-
     public virtual ICollection<Schedule> Schedules { get; private set; }
-
     public virtual ICollection<Enrollment> Enrollments { get; private set; }
     // --------------------------------------------------------------------------------
 

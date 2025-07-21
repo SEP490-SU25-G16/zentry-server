@@ -53,18 +53,17 @@ builder.Services.AddMassTransit(x =>
         cfg.ConfigureAttendanceReceiveEndpoints(context);
     });
 });
-
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddAttendanceInfrastructure(builder.Configuration);
-builder.Services.AddAttendanceApplication();
+builder.Services.AddUserInfrastructure(builder.Configuration);
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
 builder.Services.AddScheduleApplication();
+builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddDeviceInfrastructure(builder.Configuration);
 builder.Services.AddDeviceApplication();
-builder.Services.AddConfigurationInfrastructure(builder.Configuration);
+builder.Services.AddAttendanceInfrastructure(builder.Configuration);
+builder.Services.AddAttendanceApplication();
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddReportingInfrastructure(builder.Configuration);
-builder.Services.AddUserInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 

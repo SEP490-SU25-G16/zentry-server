@@ -18,7 +18,7 @@ public abstract class Enumeration(int id, string name) : IComparable
         return Name;
     }
 
-    protected static IEnumerable<T> GetAll<T>() where T : Enumeration
+    public static IEnumerable<T> GetAll<T>() where T : Enumeration
     {
         return typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Select(f => f.GetValue(null))

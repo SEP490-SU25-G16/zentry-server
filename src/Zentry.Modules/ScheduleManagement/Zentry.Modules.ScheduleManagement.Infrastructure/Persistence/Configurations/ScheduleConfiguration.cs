@@ -57,7 +57,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 
         // Relationships
         builder.HasOne(s => s.ClassSection)
-            .WithMany()
+            .WithMany(cs => cs.Schedules)
             .HasForeignKey(s => s.ClassSectionId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -77,5 +77,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 
         builder.HasCheckConstraint("CK_Schedules_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");
+
+        builder.HasIndex(s => new { s.RoomId, s.StartDate, s.StartTime, s.EndTime });
     }
 }

@@ -15,7 +15,7 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(r => r.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(r => r.RoomName) // Changed from Name to RoomName
+        builder.Property(r => r.RoomName)
             .IsRequired()
             .HasMaxLength(50);
 
@@ -26,16 +26,16 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(r => r.Capacity)
             .IsRequired();
 
-        builder.Property(r => r.CreatedAt) // Thêm CreatedAt
+        builder.Property(r => r.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        builder.Property(r => r.UpdatedAt) // Thêm UpdatedAt
+        builder.Property(r => r.UpdatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
 
         builder.HasIndex(r => r.RoomName)
-            .IsUnique(); // RoomName should be unique
+            .IsUnique();
 
         builder.HasIndex(r => r.Building);
     }

@@ -8,7 +8,4 @@
     <ItemGroup>
         <ProjectReference Include="..\Zentry.Modules.ScheduleManagement.Application\Zentry.Modules.ScheduleManagement.Application.csproj"/>
     </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="Bogus" Version="35.6.3"/>
-    </ItemGroup>
 </Project>
