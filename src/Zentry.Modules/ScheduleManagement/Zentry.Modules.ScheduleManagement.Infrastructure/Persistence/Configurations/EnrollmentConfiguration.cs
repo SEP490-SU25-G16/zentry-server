@@ -19,7 +19,7 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
         builder.Property(e => e.StudentId)
             .IsRequired();
 
-        builder.Property(e => e.ScheduleId)
+        builder.Property(e => e.ClassSectionId)
             .IsRequired();
 
         builder.Property(e => e.EnrolledAt)
@@ -34,16 +34,16 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.HasOne(e => e.Schedule)
+        builder.HasOne(e => e.ClassSection)
             .WithMany()
-            .HasForeignKey(e => e.ScheduleId)
+            .HasForeignKey(e => e.ClassSectionId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(e => new { e.StudentId, e.ScheduleId })
+        builder.HasIndex(e => new { e.StudentId, e.ClassSectionId })
             .IsUnique()
-            .HasDatabaseName("IX_Enrollments_StudentId_ScheduleId");
+            .HasDatabaseName("IX_Enrollments_StudentId_ClassSectionId");
 
         builder.HasIndex(e => e.StudentId);
-        builder.HasIndex(e => e.ScheduleId);
+        builder.HasIndex(e => e.ClassSectionId);
     }
 }

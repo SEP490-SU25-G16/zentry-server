@@ -2,19 +2,18 @@
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
-
 public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
 {
     public CreateScheduleCommand(
         Guid lecturerId,
-        Guid courseId,
+        Guid classSectionId,
         Guid roomId,
         DateTime startTime,
         DateTime endTime,
         string dayOfWeekString)
     {
         LecturerId = lecturerId;
-        CourseId = courseId;
+        ClassSectionId = classSectionId;
         RoomId = roomId;
         StartTime = startTime;
         EndTime = endTime;
@@ -22,26 +21,10 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
     }
 
     public CreateScheduleCommand(
-        Guid lecturerId,
-        Guid courseId,
-        Guid roomId,
-        DateTime startTime,
-        DateTime endTime,
-        DayOfWeekEnum dayOfWeek)
-    {
-        LecturerId = lecturerId;
-        CourseId = courseId;
-        RoomId = roomId;
-        StartTime = startTime;
-        EndTime = endTime;
-        DayOfWeek = dayOfWeek;
-    }
-
-    public CreateScheduleCommand(
         CreateScheduleRequest request)
     {
         LecturerId = request.LecturerId;
-        CourseId = request.CourseId;
+        ClassSectionId = request.ClassSectionId;
         RoomId = request.RoomId;
         StartTime = request.StartTime;
         EndTime = request.EndTime;
@@ -49,23 +32,20 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
     }
 
     public Guid LecturerId { get; set; }
-    public Guid CourseId { get; set; }
+    public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public DayOfWeekEnum DayOfWeek { get; set; }
 
-    public bool IsValidTimeRange()
-    {
-        return StartTime < EndTime;
-    }
+    public bool IsValidTimeRange() => StartTime < EndTime;
 }
 
 public class CreatedScheduleResponse
 {
     public Guid Id { get; set; }
     public Guid LecturerId { get; set; }
-    public Guid CourseId { get; set; }
+    public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }

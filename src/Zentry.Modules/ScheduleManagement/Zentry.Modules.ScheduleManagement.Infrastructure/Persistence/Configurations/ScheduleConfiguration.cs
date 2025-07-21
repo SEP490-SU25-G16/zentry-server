@@ -7,6 +7,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configura
 
 public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
 {
+    [Obsolete("Obsolete")]
     public void Configure(EntityTypeBuilder<Schedule> builder)
     {
         builder.ToTable("Schedules");
@@ -16,10 +17,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(s => s.LecturerId)
-            .IsRequired();
-
-        builder.Property(s => s.CourseId)
+        builder.Property(s => s.ClassSectionId)
             .IsRequired();
 
         builder.Property(s => s.RoomId)
@@ -47,10 +45,10 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
 
-        // Configure Relationships
-        builder.HasOne(s => s.Course)
+        // Relationships
+        builder.HasOne(s => s.ClassSection)
             .WithMany()
-            .HasForeignKey(s => s.CourseId)
+            .HasForeignKey(s => s.ClassSectionId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(s => s.Room)
@@ -59,8 +57,7 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             .OnDelete(DeleteBehavior.Restrict);
 
         // Indices
-        builder.HasIndex(s => s.LecturerId);
-        builder.HasIndex(s => s.CourseId);
+        builder.HasIndex(s => s.ClassSectionId);
         builder.HasIndex(s => s.RoomId);
         builder.HasIndex(s => s.StartTime);
         builder.HasIndex(s => s.EndTime);

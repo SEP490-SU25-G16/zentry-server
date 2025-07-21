@@ -8,7 +8,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
 
 public class EnrollStudentCommandHandler(
     IEnrollmentRepository enrollmentRepository,
-    IScheduleRepository scheduleRepository,
+    IClassSectionRepository classSectionRepository,
     IUserScheduleService userLookupService,
     IMediator mediator)
     : ICommandHandler<EnrollStudentCommand, EnrollmentResponse>
@@ -20,26 +20,26 @@ public class EnrollStudentCommandHandler(
         var studentUser =
             await userLookupService.GetUserByIdAndRoleAsync("student", command.StudentId, cancellationToken);
         if (studentUser == null)
-            throw new NotFoundException("Student", command.StudentId); // Lỗi 404
+            throw new NotFoundException("Student", command.StudentId);
+
+        var classSection = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
+        if (classSection is null)
+            throw new NotFoundException("ClassSection", command.ClassSectionId);
 
         var alreadyEnrolled =
-            await enrollmentRepository.ExistsAsync(command.StudentId, command.ScheduleId, cancellationToken);
-        if (alreadyEnrolled) throw new BusinessLogicException("Student already enrolled in this schedule."); // Lỗi 400
+            await enrollmentRepository.ExistsAsync(command.StudentId, command.ClassSectionId, cancellationToken);
+        if (alreadyEnrolled)
+            throw new BusinessLogicException("Student already enrolled in this class section.");
 
-        var enrollment = Enrollment.Create(command.StudentId, command.ScheduleId);
+        var enrollment = Enrollment.Create(command.StudentId, command.ClassSectionId);
 
         await enrollmentRepository.AddAsync(enrollment, cancellationToken);
-
         await enrollmentRepository.SaveChangesAsync(cancellationToken);
-
-        // await _mediator.Publish(new StudentEnrolledEvent(enrollment.Id, enrollment.StudentId, enrollment.ScheduleId), cancellationToken);
-        // Logger.LogInformation($"Student {command.StudentId} enrolled in Schedule {command.ScheduleId} by Admin {command.AdminId}");
-
 
         return new EnrollmentResponse
         {
             EnrollmentId = enrollment.Id,
-            ScheduleId = enrollment.ScheduleId,
+            ClassSectionId = enrollment.ClassSectionId,
             StudentId = enrollment.StudentId,
             StudentName = studentUser.FullName ?? "Unknown Student",
             EnrollmentDate = enrollment.EnrolledAt,

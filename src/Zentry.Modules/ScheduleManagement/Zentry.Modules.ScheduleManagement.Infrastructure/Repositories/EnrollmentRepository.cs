@@ -9,13 +9,13 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepository
 {
-    public async Task<bool> ExistsAsync(Guid studentId, Guid scheduleId, CancellationToken cancellationToken)
+    public async Task<bool> ExistsAsync(Guid studentId, Guid classSectionId, CancellationToken cancellationToken)
     {
         return await dbContext.Enrollments
             .AsNoTracking()
-            .AnyAsync(
-                e => e.StudentId == studentId && e.ScheduleId == scheduleId && e.Status == EnrollmentStatus.Active,
-                cancellationToken);
+            .AnyAsync(e => e.StudentId == studentId &&
+                           e.ClassSectionId == classSectionId &&
+                           e.Status == EnrollmentStatus.Active, cancellationToken);
     }
 
     public async Task AddAsync(Enrollment entity, CancellationToken cancellationToken)
@@ -60,40 +60,38 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         CancellationToken cancellationToken)
     {
         var query = dbContext.Enrollments
-            .Include(e => e.Schedule!)
-            .ThenInclude(s => s.Course)
-            .Include(e => e.Schedule!)
-            .ThenInclude(s => s.Room)
-            .Include(e => e.Schedule!)
+            .Include(e => e.ClassSection!)
+            .ThenInclude(cs => cs.Course)
             .AsNoTracking();
 
-        // Lọc theo CourseId (qua Schedule)
+        // Filter by CourseId via ClassSection
         if (criteria.CourseId.HasValue && criteria.CourseId.Value != Guid.Empty)
-            query = query.Where(e => e.Schedule != null && e.Schedule.CourseId == criteria.CourseId.Value);
+            query = query.Where(e => e.ClassSection != null && e.ClassSection.CourseId == criteria.CourseId.Value);
 
-        // Lọc theo StudentId
+        // Filter by StudentId
         if (criteria.StudentId.HasValue && criteria.StudentId.Value != Guid.Empty)
             query = query.Where(e => e.StudentId == criteria.StudentId.Value);
 
-        // Lọc theo ScheduleId
-        if (criteria.ScheduleId.HasValue && criteria.ScheduleId.Value != Guid.Empty)
-            query = query.Where(e => e.ScheduleId == criteria.ScheduleId.Value);
+        // Filter by ClassSectionId
+        if (criteria.ClassSectionId.HasValue && criteria.ClassSectionId.Value != Guid.Empty)
+            query = query.Where(e => e.ClassSectionId == criteria.ClassSectionId.Value);
 
-        // Lọc theo Status
-        if (criteria.Status != null) query = query.Where(e => e.Status == criteria.Status);
+        // Filter by Status
+        if (criteria.Status != null)
+            query = query.Where(e => e.Status == criteria.Status);
 
-        // Lọc theo SearchTerm
+        // SearchTerm by Course Name
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
             var searchTermLower = criteria.SearchTerm.ToLower();
-            query = query.Where(e => e.Schedule != null &&
-                                     e.Schedule.Course != null &&
-                                     e.Schedule.Course.Name.ToLower().Contains(searchTermLower));
+            query = query.Where(e => e.ClassSection != null &&
+                                     e.ClassSection.Course != null &&
+                                     e.ClassSection.Course.Name.ToLower().Contains(searchTermLower));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Sắp xếp
+        // Sorting
         if (!string.IsNullOrEmpty(criteria.SortBy))
             query = criteria.SortBy.ToLower() switch
             {
@@ -104,14 +102,14 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
                     ? query.OrderByDescending(e => e.StudentId)
                     : query.OrderBy(e => e.StudentId),
                 "coursename" => criteria.SortOrder?.ToLower() == "desc"
-                    ? query.OrderByDescending(e => e.Schedule!.Course!.Name)
-                    : query.OrderBy(e => e.Schedule!.Course!.Name),
+                    ? query.OrderByDescending(e => e.ClassSection!.Course!.Name)
+                    : query.OrderBy(e => e.ClassSection!.Course!.Name),
                 _ => query.OrderBy(e => e.Id)
             };
         else
             query = query.OrderBy(e => e.EnrolledAt);
 
-        // Phân trang
+        // Pagination
         var enrollments = await query
             .Skip((criteria.PageNumber - 1) * criteria.PageSize)
             .Take(criteria.PageSize)

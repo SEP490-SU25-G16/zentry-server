@@ -9,6 +9,7 @@ public class ScheduleDbContext(DbContextOptions<ScheduleDbContext> options) : Db
     public DbSet<Course> Courses { get; set; }
     public DbSet<Room> Rooms { get; set; }
     public DbSet<Enrollment> Enrollments { get; set; }
+    public DbSet<ClassSection> ClassSections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

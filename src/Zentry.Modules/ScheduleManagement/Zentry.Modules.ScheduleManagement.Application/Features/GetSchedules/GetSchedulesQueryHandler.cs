@@ -6,10 +6,10 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 
 public class GetSchedulesQueryHandler(
     IScheduleRepository scheduleRepository,
-    ICourseRepository courseRepository,
     IRoomRepository roomRepository,
-    IUserScheduleService lecturerLookupService)
-    : IQueryHandler<GetSchedulesQuery, GetSchedulesResponse>
+    IUserScheduleService lecturerLookupService,
+    IClassSectionRepository classSectionRepository
+) : IQueryHandler<GetSchedulesQuery, GetSchedulesResponse>
 {
     public async Task<GetSchedulesResponse> Handle(GetSchedulesQuery query, CancellationToken cancellationToken)
     {
@@ -18,7 +18,7 @@ public class GetSchedulesQueryHandler(
             PageNumber = query.PageNumber,
             PageSize = query.PageSize,
             LecturerId = query.LecturerId,
-            CourseId = query.CourseId,
+            ClassSectionId = query.ClassSectionId,
             RoomId = query.RoomId,
             DayOfWeek = query.DayOfWeek,
             SortBy = query.SortBy,
@@ -26,12 +26,11 @@ public class GetSchedulesQueryHandler(
             SearchTerm = query.SearchTerm
         };
 
-        // Sử dụng method với Include
-        var (schedules, totalCount) = await scheduleRepository
-            .GetPagedSchedulesWithIncludesAsync(criteria, cancellationToken);
+        var (schedules, totalCount) =
+            await scheduleRepository.GetPagedSchedulesWithIncludesAsync(criteria, cancellationToken);
 
-        // Chỉ cần lookup Lecturer vì Course và Room đã được Include
-        var lecturerIds = schedules.Select(s => s.LecturerId).Distinct().ToList();
+        var lecturerIds = schedules.Select(s => s.ClassSection?.LecturerId ?? Guid.Empty).Distinct()
+            .Where(id => id != Guid.Empty).ToList();
         var lecturerNames = new Dictionary<Guid, string>();
 
         foreach (var lecturerId in lecturerIds)
@@ -45,10 +44,12 @@ public class GetSchedulesQueryHandler(
         var scheduleDtos = schedules.Select(s => new ScheduleDto
         {
             Id = s.Id,
-            LecturerId = s.LecturerId,
-            LecturerName = lecturerNames.GetValueOrDefault(s.LecturerId, "Unknown Lecturer"),
-            CourseId = s.CourseId,
-            CourseName = s.Course?.Name ?? "Unknown Course",
+            LecturerId = s.ClassSection?.LecturerId ?? Guid.Empty,
+            LecturerName =
+                lecturerNames.GetValueOrDefault(s.ClassSection?.LecturerId ?? Guid.Empty, "Unknown Lecturer"),
+            CourseId = s.ClassSection?.CourseId ?? Guid.Empty,
+            CourseName = s.ClassSection?.Course?.Name ?? "Unknown Course",
+            ClassSectionId = s.ClassSectionId,
             RoomId = s.RoomId,
             RoomName = s.Room?.RoomName ?? "Unknown Room",
             StartTime = s.StartTime,

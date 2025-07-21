@@ -12,11 +12,11 @@ public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
         PageSize = request.PageSize;
         SearchTerm = request.SearchTerm;
         StudentId = request.StudentId;
-        ScheduleId = request.ScheduleId;
         CourseId = request.CourseId;
         SortBy = request.SortBy;
         SortOrder = request.SortOrder;
         Status = ParseEnrollmentStatus(request.Status);
+        ClassSectionId = request.ClassSectionId;
     }
 
     public Guid AdminId { get; set; }
@@ -24,13 +24,13 @@ public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
     public int PageSize { get; set; }
     public string? SearchTerm { get; set; }
     public Guid? StudentId { get; set; }
-    public Guid? ScheduleId { get; set; }
+    public Guid? ClassSectionId { get; set; }
     public Guid? CourseId { get; set; }
     public EnrollmentStatus? Status { get; set; }
     public string? SortBy { get; set; }
     public string? SortOrder { get; set; }
 
-    private EnrollmentStatus? ParseEnrollmentStatus(string? statusString)
+    private static EnrollmentStatus? ParseEnrollmentStatus(string? statusString)
     {
         if (string.IsNullOrWhiteSpace(statusString))
         {

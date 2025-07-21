@@ -5,7 +5,6 @@ using Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
-
 [ApiController]
 [Route("api/enrollments")]
 public class EnrollmentsController(IMediator mediator) : ControllerBase
@@ -18,7 +17,7 @@ public class EnrollmentsController(IMediator mediator) : ControllerBase
     {
         var command = new EnrollStudentCommand
         {
-            ScheduleId = request.ScheduleId,
+            ClassSectionId = request.ClassSectionId,
             StudentId = request.StudentId
         };
 

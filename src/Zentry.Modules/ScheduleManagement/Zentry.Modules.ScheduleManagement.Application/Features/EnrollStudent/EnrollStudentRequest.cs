@@ -2,6 +2,6 @@
 
 public class EnrollStudentRequest
 {
-    public Guid ScheduleId { get; set; }
+    public Guid ClassSectionId { get; set; }
     public Guid StudentId { get; set; }
 }

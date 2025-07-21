@@ -6,11 +6,12 @@ public class ScheduleDto
 {
     public Guid Id { get; set; }
     public Guid LecturerId { get; set; }
-    public string LecturerName { get; set; } = string.Empty; // Tên giảng viên
+    public string LecturerName { get; set; } = string.Empty;
     public Guid CourseId { get; set; }
-    public string CourseName { get; set; } = string.Empty; // Tên khóa học
+    public string CourseName { get; set; } = string.Empty;
+    public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
-    public string RoomName { get; set; } = string.Empty; // Tên phòng
+    public string RoomName { get; set; } = string.Empty;
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public DayOfWeekEnum DayOfWeek { get; set; }

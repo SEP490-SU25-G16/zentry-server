@@ -6,7 +6,7 @@ public class GetEnrollmentsRequest
     public int PageSize { get; set; } = 10;
     public string? SearchTerm { get; set; }
     public Guid? StudentId { get; set; }
-    public Guid? ScheduleId { get; set; }
+    public Guid? ClassSectionId { get; set; }
     public Guid? CourseId { get; set; }
     public string? Status { get; set; }
     public string? SortBy { get; set; }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ScheduleDbContext))]
-    partial class ScheduleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250721031105_AddEntityClassSectionAndUpdateOtherEntitiesRelated")]
+    partial class AddEntityClassSectionAndUpdateOtherEntitiesRelated
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

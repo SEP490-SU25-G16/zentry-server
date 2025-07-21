@@ -30,10 +30,10 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         await dbContext.Schedules.AddRangeAsync(entities, cancellationToken);
     }
 
-    public async Task UpdateAsync(Schedule entity, CancellationToken cancellationToke)
+    public async Task UpdateAsync(Schedule entity, CancellationToken cancellationToken)
     {
         dbContext.Schedules.Update(entity);
-        await SaveChangesAsync(cancellationToke);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(Schedule entity, CancellationToken cancellationToken)
@@ -47,96 +47,84 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    // Triển khai IsLecturerAvailableAsync
+    // Check lecturer availability via ClassSection
     public async Task<bool> IsLecturerAvailableAsync(Guid lecturerId, DayOfWeekEnum dayOfWeek, DateTime startTime,
         DateTime endTime, CancellationToken cancellationToken)
     {
-        // Kiểm tra xem có lịch nào của giảng viên này trùng thời gian và ngày không
-        // Logic trùng lặp: (StartA < EndB) AND (EndA > StartB)
-        // Chúng ta cần lấy phần giờ (TimeOfDay) để so sánh, vì ngày có thể khác nhau nhưng cùng một ngày trong tuần.
-        // Hướng dẫn: Chỉ lấy phần TimeOfDay cho StartTime và EndTime.
-        var newStartTimeOfDay = startTime.TimeOfDay;
-        var newEndTimeOfDay = endTime.TimeOfDay;
+        var newStart = startTime.TimeOfDay;
+        var newEnd = endTime.TimeOfDay;
 
-        var overlappingSchedules = await dbContext.Schedules
-            .AnyAsync(s =>
-                    s.LecturerId == lecturerId &&
-                    s.DayOfWeek == dayOfWeek &&
-                    // Kiểm tra chồng chéo thời gian
-                    // (s.StartTime < endTime) && (s.EndTime > startTime)
-                    // Hoặc chính xác hơn với TimeOfDay
-                    s.StartTime.TimeOfDay < newEndTimeOfDay && s.EndTime.TimeOfDay > newStartTimeOfDay,
+        var overlap = await dbContext.Schedules
+            .Include(s => s.ClassSection)
+            .AnyAsync(s => s.ClassSection!.LecturerId == lecturerId &&
+                           s.DayOfWeek == dayOfWeek &&
+                           s.StartTime.TimeOfDay < newEnd &&
+                           s.EndTime.TimeOfDay > newStart,
                 cancellationToken);
 
-        return !overlappingSchedules;
+        return !overlap;
     }
 
-    // Triển khai IsRoomAvailableAsync
+    // Check room availability
     public async Task<bool> IsRoomAvailableAsync(Guid roomId, DayOfWeekEnum dayOfWeek, DateTime startTime,
         DateTime endTime, CancellationToken cancellationToken)
     {
-        // Kiểm tra xem có lịch nào của phòng này trùng thời gian và ngày không
-        var newStartTimeOfDay = startTime.TimeOfDay;
-        var newEndTimeOfDay = endTime.TimeOfDay;
+        var newStart = startTime.TimeOfDay;
+        var newEnd = endTime.TimeOfDay;
 
-        var overlappingSchedules = await dbContext.Schedules
-            .AnyAsync(s =>
-                    s.RoomId == roomId &&
-                    s.DayOfWeek == dayOfWeek &&
-                    s.StartTime.TimeOfDay < newEndTimeOfDay && s.EndTime.TimeOfDay > newStartTimeOfDay,
+        var overlap = await dbContext.Schedules
+            .AnyAsync(s => s.RoomId == roomId &&
+                           s.DayOfWeek == dayOfWeek &&
+                           s.StartTime.TimeOfDay < newEnd &&
+                           s.EndTime.TimeOfDay > newStart,
                 cancellationToken);
 
-        return !overlappingSchedules;
+        return !overlap;
     }
 
     public async Task<Tuple<List<Schedule>, int>> GetPagedSchedulesAsync(ScheduleListCriteria criteria,
         CancellationToken cancellationToken)
     {
-        var query = dbContext.Schedules.AsQueryable();
+        var query = dbContext.Schedules
+            .Include(s => s.ClassSection)
+            .ThenInclude(cs => cs.Course)
+            .AsQueryable();
 
-        // Filtering
-        if (criteria.LecturerId.HasValue) query = query.Where(s => s.LecturerId == criteria.LecturerId.Value);
-        if (criteria.CourseId.HasValue) query = query.Where(s => s.CourseId == criteria.CourseId.Value);
-        if (criteria.RoomId.HasValue) query = query.Where(s => s.RoomId == criteria.RoomId.Value);
-        if (criteria.DayOfWeek != null) query = query.Where(s => s.DayOfWeek.Id == criteria.DayOfWeek.Id);
+        if (criteria.LecturerId.HasValue)
+            query = query.Where(s => s.ClassSection!.LecturerId == criteria.LecturerId.Value);
 
-        // Search Term (this will search in related entities later if needed, but for now just on Schedule's own properties)
-        // Note: For searching by LecturerName, CourseName, RoomName, you'd typically need to JOIN or do client-side filtering after loading data.
-        // For now, let's assume SearchTerm only applies to Schedule's direct properties if applicable, or we remove it here.
-        // Given Schedule only has IDs and times, SearchTerm is less relevant directly on Schedule entity.
-        // We'll handle this in the handler by filtering *after* lookups if SearchTerm is meant for names.
-        // For now, let's omit direct SearchTerm filtering on the Schedule entity unless there's a specific field.
-        // If you want to search names at DB level, you'd need direct DB access to Course/Room/User or views/materialized views.
+        if (criteria.ClassSectionId.HasValue)
+            query = query.Where(s => s.ClassSectionId == criteria.ClassSectionId.Value);
 
+        if (criteria.RoomId.HasValue)
+            query = query.Where(s => s.RoomId == criteria.RoomId.Value);
 
-        // Get total count before pagination
+        if (criteria.DayOfWeek != null)
+            query = query.Where(s => s.DayOfWeek.Id == criteria.DayOfWeek.Id);
+
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Sorting
         if (!string.IsNullOrWhiteSpace(criteria.SortBy))
         {
-            Expression<Func<Schedule, object>> orderByExpression = criteria.SortBy.ToLower() switch
+            Expression<Func<Schedule, object>> orderExpr = criteria.SortBy.ToLower() switch
             {
+                "coursename" => s => s.ClassSection!.Course!.Name,
+                "roomname" => s => s.Room!.RoomName,
                 "starttime" => s => s.StartTime,
                 "endtime" => s => s.EndTime,
                 "dayofweek" => s => s.DayOfWeek,
-                "createdat" => s => s.CreatedAt,
-                // Sorting by LecturerName, CourseName, RoomName cannot be done directly here
-                // without joining or pre-loading related entities.
-                // For simplicity, we'll sort by Schedule's own properties.
-                _ => s => s.CreatedAt // Default sort
+                _ => s => s.StartTime
             };
 
             query = criteria.SortOrder?.ToLower() == "desc"
-                ? query.OrderByDescending(orderByExpression)
-                : query.OrderBy(orderByExpression);
+                ? query.OrderByDescending(orderExpr)
+                : query.OrderBy(orderExpr);
         }
         else
         {
-            query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime); // Default sort
+            query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime);
         }
 
-        // Pagination
         var schedules = await query
             .Skip((criteria.PageNumber - 1) * criteria.PageSize)
             .Take(criteria.PageSize)
@@ -145,46 +133,46 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         return Tuple.Create(schedules, totalCount);
     }
 
-    public async Task<Tuple<List<Schedule>, int>> GetPagedSchedulesWithIncludesAsync(
-        ScheduleListCriteria criteria,
+    public async Task<Tuple<List<Schedule>, int>> GetPagedSchedulesWithIncludesAsync(ScheduleListCriteria criteria,
         CancellationToken cancellationToken)
     {
         var query = dbContext.Schedules
-            .Include(s => s.Course) // Include Course
-            .Include(s => s.Room) // Include Room
+            .Include(s => s.ClassSection)
+            .ThenInclude(cs => cs.Course)
+            .Include(s => s.Room)
             .AsQueryable();
 
-        // Apply filtering
         if (criteria.LecturerId.HasValue)
-            query = query.Where(s => s.LecturerId == criteria.LecturerId.Value);
-        if (criteria.CourseId.HasValue)
-            query = query.Where(s => s.CourseId == criteria.CourseId.Value);
+            query = query.Where(s => s.ClassSection!.LecturerId == criteria.LecturerId.Value);
+
+        if (criteria.ClassSectionId.HasValue)
+            query = query.Where(s => s.ClassSectionId == criteria.ClassSectionId.Value);
+
         if (criteria.RoomId.HasValue)
             query = query.Where(s => s.RoomId == criteria.RoomId.Value);
+
         if (criteria.DayOfWeek != null)
             query = query.Where(s => s.DayOfWeek.Id == criteria.DayOfWeek.Id);
 
-        // Search trong related entities
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
-            var searchTerm = criteria.SearchTerm.ToLower();
+            var st = criteria.SearchTerm.ToLower();
             query = query.Where(s =>
-                s.Course!.Name.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
-                s.Course!.Code.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
-                s.Room!.RoomName.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase) ||
-                s.Room!.Building.Contains(searchTerm, StringComparison.CurrentCultureIgnoreCase)
-            );
+                s.ClassSection!.Course!.Name.ToLower().Contains(st) ||
+                s.ClassSection!.Course!.Code.ToLower().Contains(st) ||
+                s.Room!.RoomName.ToLower().Contains(st) ||
+                s.Room!.Building.ToLower().Contains(st));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Sorting with related entities
         if (!string.IsNullOrWhiteSpace(criteria.SortBy))
+        {
             query = criteria.SortBy.ToLower() switch
             {
                 "coursename" => criteria.SortOrder?.ToLower() == "desc"
-                    ? query.OrderByDescending(s => s.Course!.Name)
-                    : query.OrderBy(s => s.Course!.Name),
+                    ? query.OrderByDescending(s => s.ClassSection!.Course!.Name)
+                    : query.OrderBy(s => s.ClassSection!.Course!.Name),
                 "roomname" => criteria.SortOrder?.ToLower() == "desc"
                     ? query.OrderByDescending(s => s.Room!.RoomName)
                     : query.OrderBy(s => s.Room!.RoomName),
@@ -199,15 +187,24 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
                     : query.OrderBy(s => s.DayOfWeek),
                 _ => query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
             };
+        }
         else
+        {
             query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime);
+        }
 
-        // Pagination
         var schedules = await query
             .Skip((criteria.PageNumber - 1) * criteria.PageSize)
             .Take(criteria.PageSize)
             .ToListAsync(cancellationToken);
 
         return Tuple.Create(schedules, totalCount);
+    }
+
+    public async Task<Schedule?> GetByIdWithClassSectionAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .Include(s => s.ClassSection)
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 }
