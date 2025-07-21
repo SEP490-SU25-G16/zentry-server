@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
-using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.Messages;
 using Zentry.SharedKernel.Exceptions;
 
@@ -21,8 +21,8 @@ public class SubmitScanDataCommandHandler(
     public async Task<SubmitScanDataResponse> Handle(SubmitScanDataCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Received SubmitScanDataCommand for Session {SessionId}, User {UserId}, Device {DeviceId}",
-            request.SessionId, request.UserId, request.DeviceId);
+            "Received SubmitScanDataCommand for Session {SessionId}, Device {DeviceId}, SubmitterUser {SubmitterUserId}",
+            request.SessionId, request.DeviceId, request.SubmitterUserId);
 
         // Simulate session check with Redis
         // Replace with your actual Redis key structure and existence check
@@ -37,14 +37,12 @@ public class SubmitScanDataCommandHandler(
                 "Phiên điểm danh không còn hoạt động hoặc không tồn tại.");
         }
 
-        // Create the MassTransit message
+        // Tạo MassTransit message
         var message = new ProcessScanDataMessage(
-            request.SessionId,
-            request.UserId,
             request.DeviceId,
-            request.RequestId,
-            request.RssiData,
-            request.NearbyDevices,
+            request.SubmitterUserId,
+            request.SessionId,
+            request.ScannedDevices.Select(sd => new ScannedDeviceContract(sd.DeviceId, sd.Rssi)).ToList(),
             request.Timestamp
         );
 
@@ -54,21 +52,20 @@ public class SubmitScanDataCommandHandler(
             // Using Publish is suitable here as multiple consumers could potentially listen to this message type.
             await bus.Publish(message, cancellationToken);
 
-            var record = ScanLog.Create
-            (
+            // Ghi ScanLog. ScanLog entity cần được cập nhật
+            var record = ScanLog.Create(
+                Guid.NewGuid(),
                 request.DeviceId,
-                request.UserId,
+                request.SubmitterUserId,
                 request.SessionId,
-                request.RequestId,
-                request.RssiData,
-                request.NearbyDevices,
-                request.Timestamp
+                request.Timestamp,
+                request.ScannedDevices.Select(sd => new ScannedDevice(sd.DeviceId, sd.Rssi)).ToList()
             );
 
             await scanLogRepository.AddScanDataAsync(record);
             logger.LogInformation(
                 "Scan data message for Session {SessionId}, User {UserId} published via MassTransit.",
-                request.SessionId, request.UserId);
+                request.SessionId, request.SubmitterUserId);
 
             return new SubmitScanDataResponse(true, "Dữ liệu quét đã được tiếp nhận và đưa vào hàng đợi xử lý.");
         }
@@ -76,7 +73,7 @@ public class SubmitScanDataCommandHandler(
         {
             logger.LogError(ex,
                 "Failed to publish scan data message via MassTransit for Session {SessionId}, User {UserId}.",
-                request.SessionId, request.UserId);
+                request.SessionId, request.SubmitterUserId);
             // Re-throw or wrap in a custom exception if you want to distinguish messaging failures
             throw new ApplicationException("An error occurred while queueing scan data for processing.", ex);
         }

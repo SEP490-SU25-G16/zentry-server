@@ -1,11 +1,11 @@
-﻿namespace Zentry.SharedKernel.Contracts.Messages;
+﻿using Zentry.SharedKernel.Contracts.Attendance;
+
+namespace Zentry.SharedKernel.Contracts.Messages;
 
 public record ProcessScanDataMessage(
-    Guid SessionId,
-    Guid StudentId,
     Guid DeviceId,
-    string RequestId,
-    string RssiData,
-    List<string> NearbyDevices,
+    Guid SubmitterUserId,
+    Guid SessionId,
+    List<ScannedDeviceContract> ScannedDevices,
     DateTime Timestamp
 );

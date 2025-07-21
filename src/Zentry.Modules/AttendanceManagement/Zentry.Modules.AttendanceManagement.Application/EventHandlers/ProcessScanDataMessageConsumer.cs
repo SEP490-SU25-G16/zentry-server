@@ -17,29 +17,24 @@ public class ProcessScanDataMessageConsumer(
     {
         var message = consumeContext.Message;
         logger.LogInformation(
-            "MassTransit Consumer: Received scan data for RequestId: {RequestId}, Session: {SessionId}, Student: {StudentId}",
-            message.RequestId, message.SessionId, message.StudentId);
+            "MassTransit Consumer: Received scan data for SessionId: {SessionId}, Device: {DeviceId}, Submitter: {SubmitterUserId}",
+            message.SessionId, message.DeviceId, message.SubmitterUserId);
 
         try
         {
-            // Create a new service scope for each message consumption.
-            // This is crucial for resolving scoped services (like DbContext, etc.) correctly.
             using var scope = serviceScopeFactory.CreateScope();
             var processor = scope.ServiceProvider.GetRequiredService<IAttendanceProcessorService>();
 
-            // Pass the message and CancellationToken from the ConsumeContext
             await processor.ProcessBluetoothScanData(message, consumeContext.CancellationToken);
 
-            logger.LogInformation("MassTransit Consumer: Successfully processed scan data for RequestId: {RequestId}.",
-                message.RequestId);
-            // MassTransit automatically Acknowledges (ACKs) the message upon successful completion of Consume method.
+            logger.LogInformation("MassTransit Consumer: Successfully processed scan data for SessionId: {SessionId}.",
+                message.SessionId);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "MassTransit Consumer: Error processing scan data for RequestId {RequestId}. Message will be retried or moved to error queue.",
-                message.RequestId);
-            // Throwing the exception allows MassTransit's retry/dead-lettering policies to take effect.
+                "MassTransit Consumer: Error processing scan data for SessionId {SessionId}. Message will be retried or moved to error queue.",
+                message.SessionId);
             throw;
         }
     }

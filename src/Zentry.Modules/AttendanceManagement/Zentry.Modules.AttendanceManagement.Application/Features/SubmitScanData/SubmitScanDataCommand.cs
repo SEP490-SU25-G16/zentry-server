@@ -4,11 +4,9 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanDat
 
 public record SubmitScanDataCommand(
     Guid DeviceId,
-    Guid UserId,
+    Guid SubmitterUserId,
     Guid SessionId,
-    string RequestId,
-    string RssiData,
-    List<string> NearbyDevices,
+    List<ScannedDevice> ScannedDevices,
     DateTime Timestamp
 ) : ICommand<SubmitScanDataResponse>;
 

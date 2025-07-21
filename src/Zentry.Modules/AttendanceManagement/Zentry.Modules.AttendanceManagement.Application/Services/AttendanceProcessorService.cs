@@ -14,8 +14,9 @@ public class AttendanceProcessorService(
 
     public async Task ProcessBluetoothScanData(ProcessScanDataMessage message, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Processing scan data for RequestId: {RequestId} within AttendanceProcessorService.",
-            message.RequestId);
+        logger.LogInformation(
+            "Processing scan data for SessionId: {SessionId}, Device: {DeviceId}, Submitter: {SubmitterUserId} within AttendanceProcessorService.",
+            message.SessionId, message.DeviceId, message.SubmitterUserId);
 
         // --- Your heavy business logic goes here ---
         // Example:
@@ -27,6 +28,6 @@ public class AttendanceProcessorService(
         // Example: Simulate heavy work
         await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken); // Simulate IO/CPU bound work
 
-        logger.LogInformation("Finished processing scan data for RequestId: {RequestId}.", message.RequestId);
+        logger.LogInformation("Finished processing scan data for SessionId: {SessionId}.", message.SessionId);
     }
 }

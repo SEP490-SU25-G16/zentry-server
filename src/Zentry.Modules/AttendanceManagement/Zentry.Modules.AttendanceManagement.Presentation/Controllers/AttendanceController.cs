@@ -27,16 +27,14 @@ public class AttendanceController(IMediator mediator) : ControllerBase
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> SubmitScanData([FromBody] SubmitScanDataRequestDto requestDto)
+    public async Task<IActionResult> SubmitScanData([FromBody] SubmitScanRequest request)
     {
         var command = new SubmitScanDataCommand(
-            requestDto.DeviceId,
-            requestDto.UserId,
-            requestDto.SessionId,
-            requestDto.RequestId,
-            requestDto.RssiData,
-            requestDto.NearbyDevices,
-            requestDto.Timestamp
+            request.DeviceId,
+            request.SubmitterUserId,
+            request.SessionId,
+            request.ScannedDevices,
+            request.Timestamp
         );
 
         var response = await mediator.Send(command);

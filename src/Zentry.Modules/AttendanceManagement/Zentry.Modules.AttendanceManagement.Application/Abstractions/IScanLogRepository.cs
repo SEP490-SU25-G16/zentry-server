@@ -1,4 +1,5 @@
-﻿using Zentry.Modules.AttendanceManagement.Domain.Entities;
+﻿using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
