@@ -6,6 +6,7 @@ public class Course : AggregateRoot<Guid>
 {
     private Course() : base(Guid.Empty)
     {
+        ClassSections = new List<ClassSection>();
     }
 
     private Course(Guid id, string code, string name, string description)
@@ -15,13 +16,17 @@ public class Course : AggregateRoot<Guid>
         Name = name;
         Description = description;
         CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        IsDeleted = false;
+        ClassSections = new List<ClassSection>();
     }
 
     public string Code { get; private set; }
     public string Name { get; private set; }
     public string Description { get; private set; }
+    public ICollection<ClassSection> ClassSections { get; set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; private set; }
     public bool IsDeleted { get; private set; }
 
     public static Course Create(string code, string name, string description)
@@ -31,13 +36,20 @@ public class Course : AggregateRoot<Guid>
 
     public void Update(string? name = null, string? description = null)
     {
-        if (!string.IsNullOrWhiteSpace(name)) Name = name;
-        if (!string.IsNullOrWhiteSpace(description)) Description = description;
+        if (!string.IsNullOrWhiteSpace(name) && Name != name)
+        {
+            Name = name;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        if (string.IsNullOrWhiteSpace(description) || Description == description) return;
+        Description = description;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void Delete()
     {
+        if (IsDeleted) return;
         IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
     }

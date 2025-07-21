@@ -4,7 +4,6 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
 
 public class EnrollStudentCommand : ICommand<EnrollmentResponse>
 {
-    public Guid AdminId { get; set; }
     public Guid ClassSectionId { get; set; }
     public Guid StudentId { get; set; }
 }

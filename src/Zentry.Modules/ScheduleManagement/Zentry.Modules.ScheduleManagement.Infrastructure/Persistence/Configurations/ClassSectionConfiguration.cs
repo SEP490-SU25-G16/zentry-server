@@ -54,5 +54,9 @@ public class ClassSectionConfiguration : IEntityTypeConfiguration<ClassSection>
         builder.HasMany(cs => cs.Enrollments)
             .WithOne(e => e.ClassSection)
             .HasForeignKey(e => e.ClassSectionId);
+        builder.HasOne(cs => cs.Course)
+            .WithMany(c => c.ClassSections)
+            .HasForeignKey(cs => cs.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

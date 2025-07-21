@@ -26,23 +26,24 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.Property(c => c.Description)
             .HasMaxLength(500);
 
+        builder.HasMany(c => c.ClassSections)
+            .WithOne(cs => cs.Course)
+            .HasForeignKey(cs => cs.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(c => c.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
         builder.Property(c => c.UpdatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP")
-            .ValueGeneratedOnAddOrUpdate();
+            .IsRequired();
 
-        builder.Property(c => c.IsDeleted) // Cấu hình IsDeleted
+        builder.Property(c => c.IsDeleted)
             .IsRequired()
-            .HasDefaultValue(false); // Mặc định là false
+            .HasDefaultValue(false);
 
-        // Unique index for Code
         builder.HasIndex(c => c.Code)
             .IsUnique();
 
-        // Global Query Filter: Đảm bảo chỉ trả về các bản ghi IsDeleted = false
         builder.HasQueryFilter(c => !c.IsDeleted);
     }
 }

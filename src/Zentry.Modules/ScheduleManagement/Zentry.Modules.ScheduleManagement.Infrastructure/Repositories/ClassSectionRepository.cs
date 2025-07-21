@@ -57,7 +57,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         CancellationToken cancellationToken)
     {
         var query = dbContext.ClassSections
-            .Include(cs => cs.Course) // Luôn cần Course
+            .Include(cs => cs.Course)
             .AsQueryable();
 
         // Nếu có lọc theo StudentId, cần include Enrollments
