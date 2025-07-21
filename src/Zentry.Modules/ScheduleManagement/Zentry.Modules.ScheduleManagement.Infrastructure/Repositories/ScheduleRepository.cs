@@ -47,36 +47,28 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    // Check lecturer availability via ClassSection
-    public async Task<bool> IsLecturerAvailableAsync(Guid lecturerId, DayOfWeekEnum dayOfWeek, DateTime startTime,
-        DateTime endTime, CancellationToken cancellationToken)
+    public async Task<bool> IsLecturerAvailableAsync(Guid lecturerId, WeekDayEnum weekDay, TimeOnly startTime,
+        TimeOnly endTime, CancellationToken cancellationToken)
     {
-        var newStart = startTime.TimeOfDay;
-        var newEnd = endTime.TimeOfDay;
-
         var overlap = await dbContext.Schedules
             .Include(s => s.ClassSection)
             .AnyAsync(s => s.ClassSection!.LecturerId == lecturerId &&
-                           s.DayOfWeek == dayOfWeek &&
-                           s.StartTime.TimeOfDay < newEnd &&
-                           s.EndTime.TimeOfDay > newStart,
+                           s.WeekDay == weekDay &&
+                           s.StartTime < endTime &&
+                           s.EndTime > startTime,
                 cancellationToken);
 
         return !overlap;
     }
 
-    // Check room availability
-    public async Task<bool> IsRoomAvailableAsync(Guid roomId, DayOfWeekEnum dayOfWeek, DateTime startTime,
-        DateTime endTime, CancellationToken cancellationToken)
+    public async Task<bool> IsRoomAvailableAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime,
+        TimeOnly endTime, CancellationToken cancellationToken)
     {
-        var newStart = startTime.TimeOfDay;
-        var newEnd = endTime.TimeOfDay;
-
         var overlap = await dbContext.Schedules
             .AnyAsync(s => s.RoomId == roomId &&
-                           s.DayOfWeek == dayOfWeek &&
-                           s.StartTime.TimeOfDay < newEnd &&
-                           s.EndTime.TimeOfDay > newStart,
+                           s.WeekDay == weekDay &&
+                           s.StartTime < endTime &&
+                           s.EndTime > startTime,
                 cancellationToken);
 
         return !overlap;
@@ -99,8 +91,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         if (criteria.RoomId.HasValue)
             query = query.Where(s => s.RoomId == criteria.RoomId.Value);
 
-        if (criteria.DayOfWeek != null)
-            query = query.Where(s => s.DayOfWeek.Id == criteria.DayOfWeek.Id);
+        if (criteria.WeekDay != null)
+            query = query.Where(s => s.WeekDay.Id == criteria.WeekDay.Id);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -112,7 +104,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
                 "roomname" => s => s.Room!.RoomName,
                 "starttime" => s => s.StartTime,
                 "endtime" => s => s.EndTime,
-                "dayofweek" => s => s.DayOfWeek,
+                "weekday" => s => s.WeekDay,
                 _ => s => s.StartTime
             };
 
@@ -122,7 +114,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         }
         else
         {
-            query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime);
+            query = query.OrderBy(s => s.WeekDay).ThenBy(s => s.StartTime);
         }
 
         var schedules = await query
@@ -151,8 +143,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         if (criteria.RoomId.HasValue)
             query = query.Where(s => s.RoomId == criteria.RoomId.Value);
 
-        if (criteria.DayOfWeek != null)
-            query = query.Where(s => s.DayOfWeek.Id == criteria.DayOfWeek.Id);
+        if (criteria.WeekDay != null)
+            query = query.Where(s => s.WeekDay.Id == criteria.WeekDay.Id);
 
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
@@ -182,15 +174,15 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
                 "endtime" => criteria.SortOrder?.ToLower() == "desc"
                     ? query.OrderByDescending(s => s.EndTime)
                     : query.OrderBy(s => s.EndTime),
-                "dayofweek" => criteria.SortOrder?.ToLower() == "desc"
-                    ? query.OrderByDescending(s => s.DayOfWeek)
-                    : query.OrderBy(s => s.DayOfWeek),
-                _ => query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
+                "weekday" => criteria.SortOrder?.ToLower() == "desc"
+                    ? query.OrderByDescending(s => s.WeekDay)
+                    : query.OrderBy(s => s.WeekDay),
+                _ => query.OrderBy(s => s.WeekDay).ThenBy(s => s.StartTime)
             };
         }
         else
         {
-            query = query.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime);
+            query = query.OrderBy(s => s.WeekDay).ThenBy(s => s.StartTime);
         }
 
         var schedules = await query

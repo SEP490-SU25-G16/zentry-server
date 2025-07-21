@@ -20,7 +20,7 @@ public class GetSchedulesQueryHandler(
             LecturerId = query.LecturerId,
             ClassSectionId = query.ClassSectionId,
             RoomId = query.RoomId,
-            DayOfWeek = query.DayOfWeek,
+            WeekDay = query.WeekDay,
             SortBy = query.SortBy,
             SortOrder = query.SortOrder,
             SearchTerm = query.SearchTerm
@@ -54,7 +54,9 @@ public class GetSchedulesQueryHandler(
             RoomName = s.Room?.RoomName ?? "Unknown Room",
             StartTime = s.StartTime,
             EndTime = s.EndTime,
-            DayOfWeek = s.DayOfWeek,
+            StartDate = s.StartDate,
+            EndDate = s.EndDate,
+            WeekDay = s.WeekDay,
             CreatedAt = s.CreatedAt,
             UpdatedAt = s.UpdatedAt
         }).ToList();

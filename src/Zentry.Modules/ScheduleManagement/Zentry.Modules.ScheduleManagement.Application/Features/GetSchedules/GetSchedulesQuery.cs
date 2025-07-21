@@ -3,7 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Domain.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
 
-// Đảm bảo import DayOfWeekEnum
+// Đảm bảo import WeekDayEnum
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 
@@ -13,7 +13,7 @@ public record GetSchedulesQuery(
     Guid? LecturerId = null,
     Guid? ClassSectionId = null,
     Guid? RoomId = null,
-    DayOfWeekEnum? DayOfWeek = null,
+    WeekDayEnum? WeekDay = null,
     string? SearchTerm = null,
     string? SortBy = null,
     string? SortOrder = "asc"

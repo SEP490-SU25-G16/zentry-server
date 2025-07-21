@@ -2,27 +2,27 @@ using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Enums;
 
-public class DayOfWeekEnum : Enumeration
+public class WeekDayEnum : Enumeration
 {
-    public static readonly DayOfWeekEnum Monday = new(1, nameof(Monday));
-    public static readonly DayOfWeekEnum Tuesday = new(2, nameof(Tuesday));
-    public static readonly DayOfWeekEnum Wednesday = new(3, nameof(Wednesday));
-    public static readonly DayOfWeekEnum Thursday = new(4, nameof(Thursday));
-    public static readonly DayOfWeekEnum Friday = new(5, nameof(Friday));
-    public static readonly DayOfWeekEnum Saturday = new(6, nameof(Saturday));
-    public static readonly DayOfWeekEnum Sunday = new(7, nameof(Sunday));
+    public static readonly WeekDayEnum Monday = new(1, nameof(Monday));
+    public static readonly WeekDayEnum Tuesday = new(2, nameof(Tuesday));
+    public static readonly WeekDayEnum Wednesday = new(3, nameof(Wednesday));
+    public static readonly WeekDayEnum Thursday = new(4, nameof(Thursday));
+    public static readonly WeekDayEnum Friday = new(5, nameof(Friday));
+    public static readonly WeekDayEnum Saturday = new(6, nameof(Saturday));
+    public static readonly WeekDayEnum Sunday = new(7, nameof(Sunday));
 
-    private DayOfWeekEnum(int id, string name) : base(id, name)
+    private WeekDayEnum(int id, string name) : base(id, name)
     {
     }
 
-    public static DayOfWeekEnum FromName(string name)
+    public static WeekDayEnum FromName(string name)
     {
-        return FromName<DayOfWeekEnum>(name);
+        return FromName<WeekDayEnum>(name);
     }
 
-    public static DayOfWeekEnum FromId(int id)
+    public static WeekDayEnum FromId(int id)
     {
-        return FromId<DayOfWeekEnum>(id);
+        return FromId<WeekDayEnum>(id);
     }
 }

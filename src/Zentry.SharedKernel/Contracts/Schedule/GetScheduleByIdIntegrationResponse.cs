@@ -6,7 +6,9 @@ public class GetScheduleByIdIntegrationResponse
     public Guid CourseId { get; set; }
     public Guid RoomId { get; set; }
     public Guid LecturerId { get; set; }
-    public DateTime ScheduledStartTime { get; set; }
-    public DateTime ScheduledEndTime { get; set; }
+    public DateOnly ScheduledStartDate { get; set; }
+    public DateOnly ScheduledEndDate { get; set; }
+    public TimeOnly ScheduledStartTime { get; set; }
+    public TimeOnly ScheduledEndTime { get; set; }
     public bool IsActive { get; set; }
 }

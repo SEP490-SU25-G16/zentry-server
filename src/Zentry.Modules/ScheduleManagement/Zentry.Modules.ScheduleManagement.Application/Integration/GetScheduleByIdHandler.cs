@@ -20,15 +20,27 @@ public class GetScheduleByIdHandler(IScheduleRepository scheduleRepository) :
             throw new NotFoundException(nameof(GetScheduleByIdHandler),
                 $"ClassSection for Schedule '{query.Id}' is missing.");
 
+        // Tính thời điểm hiện tại để so với lịch
+        var now = DateTime.UtcNow;
+        var nowDate = DateOnly.FromDateTime(now);
+        var nowTime = TimeOnly.FromDateTime(now);
+
+        var isActive = schedule.StartDate <= nowDate && schedule.EndDate >= nowDate &&
+                       schedule.StartTime <= nowTime && schedule.EndTime >= nowTime;
+
         var response = new GetScheduleByIdIntegrationResponse
         {
             Id = schedule.Id,
             CourseId = schedule.ClassSection.CourseId,
             RoomId = schedule.RoomId,
             LecturerId = schedule.ClassSection.LecturerId,
+
+            ScheduledStartDate = schedule.StartDate,
+            ScheduledEndDate = schedule.EndDate,
             ScheduledStartTime = schedule.StartTime,
             ScheduledEndTime = schedule.EndTime,
-            IsActive = schedule.StartTime < DateTime.Now && schedule.EndTime > DateTime.Now
+
+            IsActive = isActive
         };
 
         return response;

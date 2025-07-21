@@ -23,16 +23,26 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         builder.Property(s => s.RoomId)
             .IsRequired();
 
+        builder.Property(s => s.StartDate)
+            .HasColumnType("date")
+            .IsRequired();
+
+        builder.Property(s => s.EndDate)
+            .HasColumnType("date")
+            .IsRequired();
+
         builder.Property(s => s.StartTime)
+            .HasColumnType("time without time zone")
             .IsRequired();
 
         builder.Property(s => s.EndTime)
+            .HasColumnType("time without time zone")
             .IsRequired();
 
-        builder.Property(s => s.DayOfWeek)
+        builder.Property(s => s.WeekDay)
             .HasConversion(
                 dw => dw.ToString(),
-                dw => DayOfWeekEnum.FromName(dw)
+                dw => WeekDayEnum.FromName(dw)
             )
             .IsRequired()
             .HasMaxLength(20);
@@ -59,9 +69,11 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
         // Indices
         builder.HasIndex(s => s.ClassSectionId);
         builder.HasIndex(s => s.RoomId);
+        builder.HasIndex(s => s.StartDate);
+        builder.HasIndex(s => s.EndDate);
         builder.HasIndex(s => s.StartTime);
         builder.HasIndex(s => s.EndTime);
-        builder.HasIndex(s => s.DayOfWeek);
+        builder.HasIndex(s => s.WeekDay);
 
         builder.HasCheckConstraint("CK_Schedules_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");

@@ -6,7 +6,9 @@ public record CreateScheduleRequest(
     [Required] Guid LecturerId,
     [Required] Guid ClassSectionId,
     [Required] Guid RoomId,
-    [Required] DateTime StartTime,
-    [Required] DateTime EndTime,
-    [Required] string DayOfWeek
+    [Required] DateOnly StartDate,
+    [Required] DateOnly EndDate,
+    [Required] TimeOnly StartTime,
+    [Required] TimeOnly EndTime,
+    [Required] string WeekDay
 );

@@ -12,9 +12,11 @@ public class ScheduleDto
     public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
     public string RoomName { get; set; } = string.Empty;
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public DayOfWeekEnum DayOfWeek { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
+    public WeekDayEnum WeekDay { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

@@ -2,22 +2,27 @@
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
+
 public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
 {
     public CreateScheduleCommand(
         Guid lecturerId,
         Guid classSectionId,
         Guid roomId,
-        DateTime startTime,
-        DateTime endTime,
-        string dayOfWeekString)
+        DateOnly startDate,
+        DateOnly endDate,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        string weekDayString)
     {
         LecturerId = lecturerId;
         ClassSectionId = classSectionId;
         RoomId = roomId;
+        StartDate = startDate;
+        EndDate = endDate;
         StartTime = startTime;
         EndTime = endTime;
-        DayOfWeek = DayOfWeekEnum.FromName(dayOfWeekString);
+        WeekDay = WeekDayEnum.FromName(weekDayString);
     }
 
     public CreateScheduleCommand(
@@ -26,17 +31,22 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
         LecturerId = request.LecturerId;
         ClassSectionId = request.ClassSectionId;
         RoomId = request.RoomId;
+
+        StartDate = request.StartDate;
+        EndDate = request.EndDate;
         StartTime = request.StartTime;
         EndTime = request.EndTime;
-        DayOfWeek = DayOfWeekEnum.FromName(request.DayOfWeek);
+        WeekDay = WeekDayEnum.FromName(request.WeekDay);
     }
 
     public Guid LecturerId { get; set; }
     public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public DayOfWeekEnum DayOfWeek { get; set; }
+    public DateOnly StartDate { get; private set; }
+    public DateOnly EndDate { get; private set; }
+    public TimeOnly StartTime { get; private set; }
+    public TimeOnly EndTime { get; private set; }
+    public WeekDayEnum WeekDay { get; set; }
 
     public bool IsValidTimeRange() => StartTime < EndTime;
 }
@@ -47,8 +57,10 @@ public class CreatedScheduleResponse
     public Guid LecturerId { get; set; }
     public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public DayOfWeekEnum DayOfWeek { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
+    public WeekDayEnum? WeekDay { get; set; }
     public DateTime CreatedAt { get; set; }
 }

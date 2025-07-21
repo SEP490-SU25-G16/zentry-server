@@ -31,22 +31,31 @@ public class CreateScheduleCommandHandler(
         if (lecturer is null)
             throw new NotFoundException("Lecturer", $"ID '{command.LecturerId}' not found or invalid.");
 
-        if (!await scheduleRepository.IsLecturerAvailableAsync(command.LecturerId, command.DayOfWeek, command.StartTime,
+        // Check if lecturer is free
+        if (!await scheduleRepository.IsLecturerAvailableAsync(command.LecturerId, command.WeekDay, command.StartTime,
                 command.EndTime, cancellationToken))
+        {
             throw new Exception(
-                $"Lecturer {lecturer.FullName} is busy on {command.DayOfWeek} from {command.StartTime:t} to {command.EndTime:t}.");
+                $"Lecturer {lecturer.FullName} is busy on {command.WeekDay} from {command.StartTime} to {command.EndTime}.");
+        }
 
-        if (!await scheduleRepository.IsRoomAvailableAsync(command.RoomId, command.DayOfWeek, command.StartTime,
+        // Check if room is free
+        if (!await scheduleRepository.IsRoomAvailableAsync(command.RoomId, command.WeekDay, command.StartTime,
                 command.EndTime, cancellationToken))
+        {
             throw new Exception(
-                $"Room is booked on {command.DayOfWeek} from {command.StartTime:t} to {command.EndTime:t}.");
+                $"Room is booked on {command.WeekDay} from {command.StartTime} to {command.EndTime}.");
+        }
 
         var schedule = Schedule.Create(
-            section.Id,
-            command.RoomId,
-            command.StartTime,
-            command.EndTime,
-            command.DayOfWeek);
+            classSectionId: section.Id,
+            roomId: command.RoomId,
+            weekDay: command.WeekDay,
+            startTime: command.StartTime,
+            endTime: command.EndTime,
+            startDate: command.StartDate,
+            endDate: command.EndDate
+        );
 
         await scheduleRepository.AddAsync(schedule, cancellationToken);
         await scheduleRepository.SaveChangesAsync(cancellationToken);
@@ -59,7 +68,9 @@ public class CreateScheduleCommandHandler(
             RoomId = schedule.RoomId,
             StartTime = schedule.StartTime,
             EndTime = schedule.EndTime,
-            DayOfWeek = schedule.DayOfWeek,
+            WeekDay = schedule.WeekDay,
+            StartDate = schedule.StartDate,
+            EndDate = schedule.EndDate,
             CreatedAt = schedule.CreatedAt
         };
     }
