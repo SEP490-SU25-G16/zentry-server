@@ -40,6 +40,7 @@ public class ClassSectionConfiguration : IEntityTypeConfiguration<ClassSection>
         builder.HasOne(cs => cs.Course)
             .WithMany()
             .HasForeignKey(cs => cs.CourseId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(cs => cs.CourseId);

@@ -207,36 +207,46 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<string>("DayOfWeek")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<string>("WeekDay")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClassSectionId");
 
-                    b.HasIndex("DayOfWeek");
+                    b.HasIndex("EndDate");
 
                     b.HasIndex("EndTime");
 
                     b.HasIndex("RoomId");
 
+                    b.HasIndex("StartDate");
+
                     b.HasIndex("StartTime");
+
+                    b.HasIndex("WeekDay");
 
                     b.ToTable("Schedules", null, t =>
                         {
@@ -249,8 +259,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.Course", "Course")
                         .WithMany()
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Course");
                 });
