@@ -1,12 +1,15 @@
-﻿using MassTransit;
+﻿// File: Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData/SubmitScanDataCommandHandler.cs
+
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
-using Zentry.SharedKernel.Contracts.Messages;
 using Zentry.SharedKernel.Exceptions;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
+using Zentry.SharedKernel.Contracts.Events; // Để truy cập RoundStatus
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 
@@ -14,19 +17,16 @@ public class SubmitScanDataCommandHandler(
     IRedisService redisService,
     IBus bus,
     IScanLogRepository scanLogRepository,
+    IRoundRepository roundRepository, // <-- Vẫn cần để tìm round
     ILogger<SubmitScanDataCommandHandler> logger)
     : ICommandHandler<SubmitScanDataCommand, SubmitScanDataResponse>
 {
-    // MassTransit's bus for publishing messages
-
     public async Task<SubmitScanDataResponse> Handle(SubmitScanDataCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "Received SubmitScanDataCommand for Session {SessionId}, Device {DeviceId}, SubmitterUser {SubmitterUserId}",
             request.SessionId, request.DeviceId, request.SubmitterUserId);
 
-        // Simulate session check with Redis
-        // Replace with your actual Redis key structure and existence check
         var sessionKey = $"session:{request.SessionId}";
         var sessionExists = await redisService.KeyExistsAsync(sessionKey);
 
@@ -38,45 +38,79 @@ public class SubmitScanDataCommandHandler(
                 "Phiên điểm danh không còn hoạt động hoặc không tồn tại.");
         }
 
-        // Tạo MassTransit message
+        Guid currentRoundId;
+        try
+        {
+            var allRoundsInSession = await roundRepository.GetRoundsBySessionIdAsync(request.SessionId, cancellationToken);
+
+            var currentRound = allRoundsInSession
+                .Where(r => request.Timestamp >= r.StartTime &&
+                            (r.EndTime == null || request.Timestamp <= r.EndTime) &&
+                            r.Status != RoundStatus.Completed &&
+                            r.Status != RoundStatus.Cancelled &&
+                            r.Status != RoundStatus.Finalized)
+                .OrderByDescending(r => r.StartTime)
+                .FirstOrDefault();
+
+            if (currentRound == null)
+            {
+                logger.LogWarning(
+                    "No active or pending round found for Session {SessionId} at timestamp {Timestamp}. Scan data will be logged without a specific round.",
+                    request.SessionId, request.Timestamp);
+                currentRoundId = Guid.Empty; // Hoặc xử lý lỗi nếu RoundId là bắt buộc
+            }
+            else
+            {
+                currentRoundId = currentRound.Id;
+                logger.LogInformation("Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
+                    request.SessionId, currentRound.Id, currentRound.RoundNumber);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error determining current round for Session {SessionId} at timestamp {Timestamp}.",
+                request.SessionId, request.Timestamp);
+            throw new ApplicationException("An error occurred while determining the active round.", ex);
+        }
+
+        // Tạo MassTransit message với RoundId đã xác định
         var message = new ProcessScanDataMessage(
             request.DeviceId,
             request.SubmitterUserId,
             request.SessionId,
+            currentRoundId, // <-- TRUYỀN ROUNDID VÀO EVENT
             request.ScannedDevices.Select(sd => new ScannedDeviceContract(sd.DeviceId, sd.Rssi)).ToList(),
             request.Timestamp
         );
 
         try
         {
-            // Publish the message. MassTransit will handle routing to RabbitMQ.
-            // Using Publish is suitable here as multiple consumers could potentially listen to this message type.
             await bus.Publish(message, cancellationToken);
 
-            // Ghi ScanLog. ScanLog entity cần được cập nhật
+            // Ghi ScanLog với RoundId đã xác định
             var record = ScanLog.Create(
                 Guid.NewGuid(),
                 request.DeviceId,
                 request.SubmitterUserId,
                 request.SessionId,
+                currentRoundId,
                 request.Timestamp,
                 request.ScannedDevices.Select(sd => new ScannedDevice(sd.DeviceId, sd.Rssi)).ToList()
             );
 
             await scanLogRepository.AddScanDataAsync(record);
             logger.LogInformation(
-                "Scan data message for Session {SessionId}, User {UserId} published via MassTransit.",
-                request.SessionId, request.SubmitterUserId);
+                "Scan data message for Session {SessionId}, User {UserId} published and ScanLog saved with RoundId {RoundId}.",
+                request.SessionId, request.SubmitterUserId, currentRoundId);
 
             return new SubmitScanDataResponse(true, "Dữ liệu quét đã được tiếp nhận và đưa vào hàng đợi xử lý.");
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to publish scan data message via MassTransit for Session {SessionId}, User {UserId}.",
+                "Failed to publish scan data message via MassTransit or save ScanLog for Session {SessionId}, User {UserId}.",
                 request.SessionId, request.SubmitterUserId);
-            // Re-throw or wrap in a custom exception if you want to distinguish messaging failures
-            throw new ApplicationException("An error occurred while queueing scan data for processing.", ex);
+            throw new ApplicationException("An error occurred while queuing or saving scan data.", ex);
         }
     }
 }

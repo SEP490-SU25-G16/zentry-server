@@ -1,0 +1,88 @@
+using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.SharedKernel.Contracts.Events;
+
+namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
+
+public class CreateRoundsConsumer(
+    ILogger<CreateRoundsConsumer> logger,
+    IServiceScopeFactory serviceScopeFactory)
+    : IConsumer<CreateRoundsMessage>
+{
+    public async Task Consume(ConsumeContext<CreateRoundsMessage> consumeContext)
+    {
+        var message = consumeContext.Message;
+        logger.LogInformation(
+            "MassTransit Consumer: Received request to create rounds for Session: {SessionId}. Total rounds: {TotalRounds}.",
+            message.SessionId, message.TotalAttendanceRounds);
+
+        try
+        {
+            using var scope = serviceScopeFactory.CreateScope();
+            var roundRepository = scope.ServiceProvider.GetRequiredService<IRoundRepository>();
+            var sessionRepository = scope.ServiceProvider.GetRequiredService<ISessionRepository>();
+            var session = await sessionRepository.GetByIdAsync(message.SessionId, consumeContext.CancellationToken);
+            if (session is null)
+            {
+                logger.LogWarning("CreateSessionRounds failed: Session with ID {SessionId} not found. Skipping round creation.", message.SessionId);
+                return;
+            }
+
+            var totalDuration = session.EndTime.Subtract(session.StartTime);
+
+            if (session.TotalAttendanceRounds <= 0)
+            {
+                logger.LogInformation("No rounds to create for Session {SessionId}. TotalAttendanceRounds is {TotalRounds}.", session.Id, session.TotalAttendanceRounds);
+                return;
+            }
+
+            var durationPerRoundSeconds = totalDuration.TotalSeconds / session.TotalAttendanceRounds;
+
+            var roundsToAdd = new List<Round>();
+
+            // Tạo tất cả các round từ 1 đến TotalAttendanceRounds
+            for (var i = 1; i <= session.TotalAttendanceRounds; i++)
+            {
+                var roundStartTime = session.StartTime.AddSeconds(durationPerRoundSeconds * (i - 1));
+                var roundEndTime = roundStartTime.AddSeconds(durationPerRoundSeconds);
+
+                // Đảm bảo EndTime của round cuối cùng không vượt quá EndTime của session
+                if (i == session.TotalAttendanceRounds) roundEndTime = session.EndTime;
+
+                var newRound = Round.Create(
+                    session.Id,
+                    i,
+                    roundStartTime,
+                    roundEndTime
+                );
+                // Tất cả các round được tạo ở đây sẽ ở trạng thái Pending
+                // Round.Create() đã set mặc định RoundStatus.Pending
+                roundsToAdd.Add(newRound);
+            }
+
+            if (roundsToAdd.Count > 0)
+            {
+                await roundRepository.AddRangeAsync(roundsToAdd, consumeContext.CancellationToken);
+                await roundRepository.SaveChangesAsync(consumeContext.CancellationToken);
+                logger.LogInformation(
+                    "MassTransit Consumer: Successfully created and saved {NumRounds} rounds for Session {SessionId}.",
+                    roundsToAdd.Count, message.SessionId);
+            }
+            else
+            {
+                logger.LogInformation("No rounds generated to add for Session {SessionId}.",
+                    message.SessionId);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex,
+                "MassTransit Consumer: Error creating rounds for Session {SessionId}. Message will be retried or moved to error queue.",
+                message.SessionId);
+            throw;
+        }
+    }
+}

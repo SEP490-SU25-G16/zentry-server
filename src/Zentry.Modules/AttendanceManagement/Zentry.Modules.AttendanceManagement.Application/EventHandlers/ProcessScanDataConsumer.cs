@@ -2,12 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
-using Zentry.SharedKernel.Contracts.Messages;
+using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
-public class ProcessScanDataMessageConsumer(
-    ILogger<ProcessScanDataMessageConsumer> logger,
+public class ProcessScanDataConsumer(
+    ILogger<ProcessScanDataConsumer> logger,
     IServiceScopeFactory serviceScopeFactory)
     : IConsumer<ProcessScanDataMessage>
 {
