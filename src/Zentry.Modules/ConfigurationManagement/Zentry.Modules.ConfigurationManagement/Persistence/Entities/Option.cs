@@ -4,8 +4,13 @@ namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 
 public class Option : AggregateRoot<Guid>
 {
-    private Option() : base(Guid.Empty)
+    public Option() : base(Guid.Empty)
     {
+        Value = string.Empty;
+        DisplayLabel = string.Empty;
+        SortOrder = 0; // Default
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private Option(Guid id, Guid attributeId, string value, string displayLabel, int sortOrder)
@@ -23,11 +28,17 @@ public class Option : AggregateRoot<Guid>
     public string DisplayLabel { get; private set; }
     public int SortOrder { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 
     public static Option Create(Guid attributeId, string value, string displayLabel, int sortOrder)
     {
         return new Option(Guid.NewGuid(), attributeId, value, displayLabel, sortOrder);
+    }
+
+    // Thêm phương thức FromSeedingData
+    public static Option FromSeedingData(Guid id, Guid attributeId, string value, string displayLabel, int sortOrder)
+    {
+        return new Option(id, attributeId, value, displayLabel, sortOrder);
     }
 
     public void Update(string? value = null, string? displayLabel = null, int? sortOrder = null)

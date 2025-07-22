@@ -5,8 +5,14 @@ namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 
 public class AttributeDefinition : AggregateRoot<Guid>
 {
-    private AttributeDefinition() : base(Guid.Empty)
+    public AttributeDefinition() : base(Guid.Empty)
     {
+        Key = string.Empty;
+        DisplayName = string.Empty;
+        DataType = DataType.Int;
+        ScopeType = ScopeType.GLOBAL;
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private AttributeDefinition(Guid id, string key, string displayName, string? description, DataType dataType,
@@ -29,12 +35,18 @@ public class AttributeDefinition : AggregateRoot<Guid>
     public ScopeType ScopeType { get; private set; }
     public string? Unit { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 
     public static AttributeDefinition Create(string key, string displayName, string? description, DataType dataType,
         ScopeType scopeType, string? unit)
     {
         return new AttributeDefinition(Guid.NewGuid(), key, displayName, description, dataType, scopeType, unit);
+    }
+
+    public static AttributeDefinition FromSeedingData(Guid id, string key, string displayName, string? description, DataType dataType,
+        ScopeType scopeType, string? unit)
+    {
+        return new AttributeDefinition(id, key, displayName, description, dataType, scopeType, unit);
     }
 
     public void Update(string? displayName = null, string? description = null, DataType? dataType = null,

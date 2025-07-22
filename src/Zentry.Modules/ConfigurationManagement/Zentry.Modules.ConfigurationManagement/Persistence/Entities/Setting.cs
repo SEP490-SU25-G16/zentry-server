@@ -5,8 +5,12 @@ namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 
 public class Setting : AggregateRoot<Guid>
 {
-    private Setting() : base(Guid.Empty)
+    public Setting() : base(Guid.Empty)
     {
+        Value = string.Empty;
+        ScopeType = ScopeType.GLOBAL; // Default
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private Setting(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
@@ -24,12 +28,18 @@ public class Setting : AggregateRoot<Guid>
     public Guid ScopeId { get; private set; }
     public string Value { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
     public virtual AttributeDefinition AttributeDefinition { get; private set; }
 
     public static Setting Create(Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
         return new Setting(Guid.NewGuid(), attributeId, scopeType, scopeId, value);
+    }
+
+    // Thêm phương thức FromSeedingData
+    public static Setting FromSeedingData(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
+    {
+        return new Setting(id, attributeId, scopeType, scopeId, value);
     }
 
     public void UpdateValue(string newValue)
