@@ -5,7 +5,7 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Integration;
 
-public class GetScheduleByIdHandler(IScheduleRepository scheduleRepository) :
+public class GetScheduleByIdQueryHandler(IScheduleRepository scheduleRepository) :
     IQueryHandler<GetScheduleByIdIntegrationQuery, GetScheduleByIdIntegrationResponse>
 {
     public async Task<GetScheduleByIdIntegrationResponse> Handle(GetScheduleByIdIntegrationQuery query,
@@ -14,10 +14,10 @@ public class GetScheduleByIdHandler(IScheduleRepository scheduleRepository) :
         var schedule = await scheduleRepository.GetByIdWithClassSectionAsync(query.Id, cancellationToken);
 
         if (schedule is null)
-            throw new NotFoundException(nameof(GetScheduleByIdHandler), $"Schedule with ID '{query.Id}' not found.");
+            throw new NotFoundException(nameof(GetScheduleByIdQueryHandler), $"Schedule with ID '{query.Id}' not found.");
 
         if (schedule.ClassSection is null)
-            throw new NotFoundException(nameof(GetScheduleByIdHandler),
+            throw new NotFoundException(nameof(GetScheduleByIdQueryHandler),
                 $"ClassSection for Schedule '{query.Id}' is missing.");
 
         // Tính thời điểm hiện tại để so với lịch
