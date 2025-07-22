@@ -39,6 +39,7 @@ public static class DependencyInjection
             });
 
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
+            services.AddScoped<IScanLogWhitelistRepository, MartenSessionWhitelistRepository>();
         }
         else
         {
@@ -62,6 +63,7 @@ public static class DependencyInjection
             });
 
             services.AddScoped<IScanLogRepository, MongoScanLogRepository>();
+            services.AddScoped<IScanLogWhitelistRepository, MongoSessionWhitelistRepository>();
         }
 
         services.AddScoped<IAttendanceRepository, AttendanceRepository>();

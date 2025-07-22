@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
@@ -42,5 +43,18 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Session>> GetSessionsByScheduleIdAndStatusAsync(Guid scheduleId, SessionStatus status, CancellationToken cancellationToken)
+    {
+        return await dbContext.Sessions
+            .Where(s => s.ScheduleId == scheduleId && s.Status == status)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Session?> GetActiveSessionByScheduleId(Guid scheduleId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Sessions
+            .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Status == SessionStatus.Active, cancellationToken);
     }
 }

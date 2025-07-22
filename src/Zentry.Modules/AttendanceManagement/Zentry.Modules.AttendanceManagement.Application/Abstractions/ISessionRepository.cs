@@ -1,8 +1,11 @@
 ﻿using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
 public interface ISessionRepository : IRepository<Session, Guid>
 {
+    Task<IEnumerable<Session>> GetSessionsByScheduleIdAndStatusAsync(Guid scheduleId, SessionStatus status, CancellationToken cancellationToken);
+    Task<Session?> GetActiveSessionByScheduleId(Guid scheduleId, CancellationToken cancellationToken);
 }

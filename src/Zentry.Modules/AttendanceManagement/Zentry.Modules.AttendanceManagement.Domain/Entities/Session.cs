@@ -1,5 +1,7 @@
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Domain;
+using Zentry.SharedKernel.Exceptions; // Thêm using này cho BusinessRuleException
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
@@ -11,8 +13,7 @@ public class Session : AggregateRoot<Guid>
         SessionConfigs = new SessionConfigSnapshot();
     }
 
-    // Constructor chính, nhận ID và các thuộc tính cơ bản
-    private Session(Guid id, Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
+    private Session(Guid id, Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime, SessionStatus status,
         SessionConfigSnapshot sessionConfigs)
         : base(id)
     {
@@ -20,15 +21,18 @@ public class Session : AggregateRoot<Guid>
         UserId = userId;
         StartTime = startTime;
         EndTime = endTime;
+        Status = status;
         CreatedAt = DateTime.UtcNow;
-        SessionConfigs = sessionConfigs ?? new SessionConfigSnapshot();
+        SessionConfigs = sessionConfigs;
     }
 
     public Guid ScheduleId { get; private set; }
     public Guid UserId { get; private set; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
+    public SessionStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
 
     // Thêm thuộc tính SessionConfigs kiểu Value Object
     public SessionConfigSnapshot SessionConfigs { get; private set; }
@@ -44,20 +48,34 @@ public class Session : AggregateRoot<Guid>
         Dictionary<string, string> configs)
     {
         var sessionConfigs = SessionConfigSnapshot.FromDictionary(configs);
-        return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, sessionConfigs);
+        // Mặc định tạo là Pending
+        return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, SessionStatus.Pending,
+            sessionConfigs);
     }
 
     // Factory method để tạo Session từ SessionConfigSnapshot (backward compatibility)
     public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
         SessionConfigSnapshot sessionConfigs)
     {
-        return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, sessionConfigs);
+        // Mặc định tạo là Pending
+        return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, SessionStatus.Pending,
+            sessionConfigs);
     }
 
+    // Đã có hàm Update cho StartTime/EndTime
     public void Update(DateTime? startTime = null, DateTime? endTime = null)
     {
-        if (startTime.HasValue) StartTime = startTime.Value;
-        if (endTime.HasValue) EndTime = endTime.Value;
+        if (startTime.HasValue && startTime.Value != StartTime)
+        {
+            StartTime = startTime.Value;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        if (endTime.HasValue && endTime.Value != EndTime)
+        {
+            EndTime = endTime.Value;
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 
     // Update config method - cho phép cập nhật config sau khi tạo session
@@ -66,12 +84,53 @@ public class Session : AggregateRoot<Guid>
         var newConfigs = SessionConfigs.ToDictionary();
         newConfigs[key] = value;
         SessionConfigs = SessionConfigSnapshot.FromDictionary(newConfigs);
+        UpdatedAt = DateTime.UtcNow; // Cập nhật UpdatedAt khi config thay đổi
     }
 
     // Update multiple configs
     public void UpdateConfigs(Dictionary<string, string> configs)
     {
         SessionConfigs = SessionConfigs.Merge(configs);
+        UpdatedAt = DateTime.UtcNow; // Cập nhật UpdatedAt khi config thay đổi
+    }
+
+    // --- Các hành vi nghiệp vụ thay đổi trạng thái ---
+    public void ActivateSession()
+    {
+        if (Status != SessionStatus.Pending)
+        {
+            throw new BusinessRuleException("SESSION_NOT_PENDING",
+                "Không thể kích hoạt phiên khi trạng thái không phải Pending.");
+        }
+
+        Status = SessionStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void CompleteSession()
+    {
+        if (Status != SessionStatus.Active)
+        {
+            throw new BusinessRuleException("SESSION_NOT_ACTIVE",
+                "Không thể hoàn thành phiên khi trạng thái không phải Active.");
+        }
+
+        Status = SessionStatus.Completed;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void CancelSession()
+    {
+        // Có thể thêm logic kiểm tra nếu session đã Active thì cần xác nhận đặc biệt
+        // Hoặc có thể hủy bỏ một phiên Active nếu cần
+        Status = SessionStatus.Cancelled;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ArchiveSession()
+    {
+        Status = SessionStatus.Archived;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     // --- Các hành vi nghiệp vụ sử dụng SessionConfigs ---
@@ -83,7 +142,6 @@ public class Session : AggregateRoot<Guid>
         var sessionEndTimeLimit = EndTime.Add(TimeSpan.FromMinutes(windowMinutes));
         return currentTime >= sessionStartTimeLimit && currentTime <= sessionEndTimeLimit;
     }
-
 
     public int GetRemainingRounds(int currentRound)
     {

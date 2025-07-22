@@ -28,24 +28,28 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.Property(s => s.EndTime)
             .IsRequired();
 
+        builder.Property(s => s.Status)
+            .HasConversion<string>()
+            .IsRequired();
+
         builder.Property(s => s.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
+        builder.Property(s => s.UpdatedAt)
+            .IsRequired(false); // Có thể null
+
         builder.HasIndex(s => s.ScheduleId);
         builder.HasIndex(s => s.UserId);
         builder.HasIndex(s => s.StartTime);
+        builder.HasIndex(s => s.Status);
 
         builder.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");
 
-        // --- CẤU HÌNH CHO SESSIONCONFIGS (Value Object) ---
-        // Sử dụng OwnsOne và ToJson để lưu Value Object vào một cột JSON duy nhất
         builder.OwnsOne(s => s.SessionConfigs, ownedBuilder =>
         {
-            // Mặc định tên cột sẽ là "SessionConfigs", bạn có thể đổi thành "SessionConfigData" nếu muốn:
-            // ownedBuilder.ToJson("SessionConfigData");
-            ownedBuilder.ToJson(); // EF Core sẽ tự chọn tên cột và kiểu JSON phù hợp với DB
+            ownedBuilder.ToJson();
         });
     }
 }

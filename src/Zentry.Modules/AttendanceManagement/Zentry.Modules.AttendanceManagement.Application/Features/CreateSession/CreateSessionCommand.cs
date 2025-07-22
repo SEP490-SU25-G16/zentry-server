@@ -1,4 +1,5 @@
-﻿using Zentry.SharedKernel.Abstractions.Application;
+﻿using Zentry.Modules.AttendanceManagement.Domain.Enums;
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
 
@@ -15,4 +16,5 @@ public class CreateSessionResponse
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public DateTime CreatedAt { get; set; }
+    public SessionStatus Status { get; set; }
 }
