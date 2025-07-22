@@ -25,6 +25,15 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Device>> GetUserIdsByDeviceIdsAsync(List<Guid> deviceIds,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .AsNoTracking() // Tối ưu hóa cho các query chỉ đọc
+            .Where(d => deviceIds.Contains(d.Id) && d.Status == DeviceStatus.Active)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Device device)
     {
         await dbContext.Devices.AddAsync(device);
