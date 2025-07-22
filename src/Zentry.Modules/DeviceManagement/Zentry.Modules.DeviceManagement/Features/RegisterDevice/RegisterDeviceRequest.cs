@@ -1,4 +1,4 @@
-namespace Zentry.Modules.DeviceManagement.Requests;
+namespace Zentry.Modules.DeviceManagement.Features.RegisterDevice;
 
 public class RegisterDeviceRequest
 {

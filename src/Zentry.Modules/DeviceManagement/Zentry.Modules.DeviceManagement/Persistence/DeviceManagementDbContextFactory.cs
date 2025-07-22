@@ -23,7 +23,7 @@ public class DeviceManagementDbContextFactory : IDesignTimeDbContextFactory<Devi
             connectionString = "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres";
 
         optionsBuilder.UseNpgsql(connectionString,
-            b => b.MigrationsAssembly("Zentry.Modules.DeviceManagement.Infrastructure"));
+            b => b.MigrationsAssembly("Zentry.Modules.DeviceManagement"));
 
         return new DeviceDbContext(optionsBuilder.Options);
     }

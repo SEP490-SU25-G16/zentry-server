@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.DeviceManagement.Features.RegisterDevice;
-using Zentry.Modules.DeviceManagement.Requests;
 using Zentry.SharedKernel.Exceptions;
 
 // Assuming RegisterDeviceRequest is here

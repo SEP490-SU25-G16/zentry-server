@@ -12,4 +12,7 @@
         <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Integration\" />
+    </ItemGroup>
 </Project>

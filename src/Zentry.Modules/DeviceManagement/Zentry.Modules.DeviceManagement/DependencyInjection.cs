@@ -16,7 +16,7 @@ public static class DependencyInjection
         services.AddDbContext<DeviceDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly("Zentry.Modules.DeviceManagement.Infrastructure")
+                b => b.MigrationsAssembly("Zentry.Modules.DeviceManagement")
             ));
 
         services.AddScoped<IDeviceRepository, DeviceRepository>();
