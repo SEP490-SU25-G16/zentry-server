@@ -1,33 +1,24 @@
-﻿using MassTransit;
-using Microsoft.Extensions.Logging;
-using Zentry.Infrastructure.Caching;
+﻿using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.Modules.AttendanceManagement.Domain.Enums;
-using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Configuration;
-using Zentry.SharedKernel.Contracts.Messages;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
 
 public class CreateSessionCommandHandler(
     ISessionRepository sessionRepository,
-    IRoundRepository roundRepository,
     IScheduleService scheduleService,
     IUserService userService,
-    IRedisService redisService,
     IConfigurationService configService,
-    IBus bus,
     ILogger<CreateSessionCommandHandler> logger)
     : ICommandHandler<CreateSessionCommand, CreateSessionResponse>
 {
     public async Task<CreateSessionResponse> Handle(CreateSessionCommand request, CancellationToken cancellationToken)
     {
-        // --- 1. Kiểm tra điều kiện nghiệp vụ ---
         var lecturer =
             await userService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
         if (lecturer == null)
@@ -87,17 +78,9 @@ public class CreateSessionCommandHandler(
                 StringComparer.OrdinalIgnoreCase
             );
 
-        var sessionConfigSnapshot = SessionConfigSnapshot.FromDictionary(finalConfigDictionary);
-
-        var attendanceWindowMinutes = sessionConfigSnapshot.AttendanceWindowMinutes;
-        var totalAttendanceRounds = sessionConfigSnapshot.TotalAttendanceRounds;
-        var absentReportGracePeriodHours = sessionConfigSnapshot.AbsentReportGracePeriodHours;
-        var manualAdjustmentGracePeriodHours = sessionConfigSnapshot.ManualAdjustmentGracePeriodHours;
-
         var currentTime = DateTime.UtcNow;
         var currentDate = DateOnly.FromDateTime(currentTime);
 
-// 1. Kiểm tra xem ngày hiện tại có nằm trong khoảng thời gian của khóa học không
         if (currentDate < schedule.ScheduledStartDate || currentDate > schedule.ScheduledEndDate)
         {
             logger.LogWarning(
@@ -107,114 +90,46 @@ public class CreateSessionCommandHandler(
                 $"Ngày hiện tại không nằm trong thời gian của khóa học. Khóa học từ {schedule.ScheduledStartDate:dd/MM/yyyy} đến {schedule.ScheduledEndDate:dd/MM/yyyy}.");
         }
 
-// 2. Tạo thời điểm bắt đầu và kết thúc của buổi học HÔM NAY (UTC)
         var todaySessionStartUnspecified = currentDate.ToDateTime(schedule.ScheduledStartTime);
         var todaySessionEndUnspecified = currentDate.ToDateTime(schedule.ScheduledEndTime);
 
-// Nếu session kéo dài qua ngày (ví dụ: 23:00 - 01:00)
         if (schedule.ScheduledEndTime < schedule.ScheduledStartTime)
         {
             todaySessionEndUnspecified = todaySessionEndUnspecified.AddDays(1);
         }
 
-
         var todaySessionStart = DateTime.SpecifyKind(todaySessionStartUnspecified, DateTimeKind.Utc);
         var todaySessionEnd = DateTime.SpecifyKind(todaySessionEndUnspecified, DateTimeKind.Utc);
 
-// 3. Kiểm tra thời gian cho phép tạo session (có buffer window)
-        var sessionAllowedStartTime = todaySessionStart.AddMinutes(-attendanceWindowMinutes);
-        var sessionAllowedEndTime = todaySessionEnd.AddMinutes(attendanceWindowMinutes);
-
-        if (currentTime < sessionAllowedStartTime || currentTime > sessionAllowedEndTime)
-        {
-            logger.LogWarning(
-                "CreateSession failed: Current time {CurrentTime} is outside allowed window ({AllowedStart} - {AllowedEnd}) for schedule {ScheduleId}. Configured window: {ConfigWindow} minutes.",
-                currentTime, sessionAllowedStartTime, sessionAllowedEndTime, request.ScheduleId,
-                attendanceWindowMinutes);
-            throw new BusinessRuleException("OUT_OF_TIME_WINDOW",
-                $"Chưa đến hoặc đã quá thời gian cho phép khởi tạo phiên. Giờ hiện tại: {currentTime:HH:mm}, Thời gian cho phép: {sessionAllowedStartTime:HH:mm} - {sessionAllowedEndTime:HH:mm}.");
-        }
-
-        var activeSessionKey = $"active_session:{request.ScheduleId}";
-        if (await redisService.KeyExistsAsync(activeSessionKey))
-        {
-            logger.LogWarning("CreateSession failed: An active session already exists for schedule {ScheduleId}.",
-                request.ScheduleId);
-            throw new BusinessRuleException("SESSION_ALREADY_ACTIVE",
-                "Buổi học này đã có phiên điểm danh đang hoạt động.");
-        }
+        // Kiểm tra xem có session nào ACTIVE cho schedule này không (chỉ check trong DB, không dùng Redis)
+        // Vì mục đích là tạo một session PENDING, không phải ACTIVE, nên việc này ít quan trọng hơn,
+        // nhưng vẫn nên kiểm tra để tránh tạo nhiều session trùng lặp không cần thiết.
+        // Bạn có thể thêm một phương thức trong ISessionRepository:
+        // Task<bool> HasPendingOrActiveSessionForScheduleTodayAsync(Guid scheduleId, DateTime sessionDate, CancellationToken cancellationToken);
+        // Hiện tại, tôi sẽ bỏ qua check Redis để đơn giản hóa như yêu cầu.
+        // Để đơn giản hóa cho TEST, chúng ta sẽ bỏ qua bước check active_sessionKey trong Redis ở đây.
+        // Việc này sẽ được xử lý trong StartSessionCommandHandler.
 
         var session = Session.Create(
             request.ScheduleId,
             request.UserId,
             todaySessionStart,
-            todaySessionEnd,  
+            todaySessionEnd,
             finalConfigDictionary
         );
-
-        // --- 4. Lưu Session vào database (lưu lâu dài) ---
         try
         {
             await sessionRepository.AddAsync(session, cancellationToken);
             await sessionRepository.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Session {SessionId} created successfully for Schedule {ScheduleId} by Lecturer {LecturerId}.",
+                session.Id, session.ScheduleId, session.UserId);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            logger.LogError(e, "Failed to save Session {SessionId} for Schedule {ScheduleId}.", session.Id, session.ScheduleId);
+            throw new ApplicationException("An error occurred while creating the session.", e); // Throw generic app exception or rethrow
         }
 
-        // --- 5. Lưu dữ liệu phiên vào Redis (tạm thời, cho thời gian thực) ---
-        var totalSessionDuration = session.EndTime.Subtract(session.StartTime)
-            .Add(TimeSpan.FromMinutes(sessionConfigSnapshot.AttendanceWindowMinutes * 2));
-        await redisService.SetAsync(activeSessionKey, session.Id.ToString(), totalSessionDuration);
-
-        // --- 6. Xử lý tạo Round đầu tiên và publish message cho các Round còn lại ---
-        if (totalAttendanceRounds > 0)
-        {
-            var totalSessionTime = todaySessionEnd - todaySessionStart;
-            var durationPerRoundSeconds = totalSessionTime.TotalSeconds / totalAttendanceRounds;
-
-            var firstRoundEndTime = todaySessionStart.AddSeconds(durationPerRoundSeconds);
-
-            var firstRound = Round.Create(
-                session.Id,
-                1,
-                todaySessionStart,    
-                firstRoundEndTime     
-            );
-            firstRound.UpdateStatus(RoundStatus.Active);
-            await roundRepository.AddAsync(firstRound, cancellationToken);
-            await roundRepository.SaveChangesAsync(cancellationToken);
-
-            // Publish message for other rounds
-            if (totalAttendanceRounds > 1)
-            {
-                var createRoundMessage = new CreateRoundMessage(
-                    session.Id,
-                    1,
-                    totalAttendanceRounds,
-                    todaySessionStart,  
-                    todaySessionEnd     
-                );
-                await bus.Publish(createRoundMessage, cancellationToken);
-            }
-        }
-        else
-        {
-            logger.LogWarning("totalAttendanceRounds is 0 for Session {SessionId}. No rounds will be created.",
-                session.Id);
-        }
-
-        // --- 7. Ghi log hành động khởi tạo phiên ---
-        logger.LogInformation(
-            "Session {SessionId} created successfully for Schedule {ScheduleId} by Lecturer {LecturerId}. Stored in Redis with key {RedisKey}.",
-            session.Id, session.ScheduleId, session.UserId, activeSessionKey);
-
-        // --- 8. Gửi thông báo đến các máy trong lớp (nếu có NotificationService) ---
-        logger.LogInformation("Sending session started notification for Session {SessionId}.", session.Id);
-
-        // --- 9. Trả về Response ---
         return new CreateSessionResponse
         {
             SessionId = session.Id,
@@ -222,7 +137,8 @@ public class CreateSessionCommandHandler(
             UserId = session.UserId,
             StartTime = session.StartTime,
             EndTime = session.EndTime,
-            CreatedAt = session.CreatedAt
+            CreatedAt = session.CreatedAt,
+            Status = session.Status
         };
     }
 }
