@@ -9,7 +9,7 @@ public interface IUserRepository : IRepository<User, Guid>
     Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken);
     Task AddAsync(Account account, User user, CancellationToken cancellationToken);
     Task<bool> ExistsByEmail(string email);
-
+    Task<string?> GetUserRoleByUserIdAsync(Guid userId, CancellationToken cancellationToken);
     Task<Account?> GetAccountById(Guid accountId);
     Task<Account?> GetAccountByUserId(Guid userId);
     Task UpdateAccountAsync(Account account, CancellationToken cancellationToken);
