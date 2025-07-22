@@ -36,10 +36,13 @@ public static class DependencyInjection
             {
                 options.Connection(connectionString);
                 options.Schema.For<ScanLog>().Identity(r => r.Id);
+                options.Schema.For<SessionWhitelist>().Identity(r => r.Id);
             });
 
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
             services.AddScoped<IScanLogWhitelistRepository, MartenSessionWhitelistRepository>();
+            services.AddScoped<IStudentTrackRepository, MartenStudentTrackRepository>();
+            services.AddScoped<IRoundTrackRepository, MartenRoundTrackRepository>();
         }
         else
         {

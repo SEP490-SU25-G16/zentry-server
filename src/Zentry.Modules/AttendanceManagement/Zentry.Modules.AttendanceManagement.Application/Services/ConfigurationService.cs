@@ -20,7 +20,13 @@ public class ConfigurationService(
     : IConfigurationService
 {
     private readonly TimeSpan _localCacheExpiry = TimeSpan.FromMinutes(30);
-
+    public async Task<GetMultipleSettingsIntegrationResponse> GetMultipleSettingsInBatchAsync(
+        List<ScopeQueryRequest> requests,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetMultipleSettingsIntegrationQuery(requests);
+        return await mediator.Send(query, cancellationToken);
+    }
     public async Task<Dictionary<string, SettingContract>> GetAllSettingsForScopeAsync(
         string scopeType,
         Guid? scopeId = null,

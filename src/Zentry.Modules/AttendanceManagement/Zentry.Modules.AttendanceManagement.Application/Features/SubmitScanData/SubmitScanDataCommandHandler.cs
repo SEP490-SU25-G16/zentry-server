@@ -1,6 +1,4 @@
-﻿// File: Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData/SubmitScanDataCommandHandler.cs
-
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
@@ -9,7 +7,8 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Exceptions;
 using Zentry.Modules.AttendanceManagement.Domain.Enums;
-using Zentry.SharedKernel.Contracts.Events; // Để truy cập RoundStatus
+using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
+using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 
@@ -41,7 +40,8 @@ public class SubmitScanDataCommandHandler(
         Guid currentRoundId;
         try
         {
-            var allRoundsInSession = await roundRepository.GetRoundsBySessionIdAsync(request.SessionId, cancellationToken);
+            var allRoundsInSession =
+                await roundRepository.GetRoundsBySessionIdAsync(request.SessionId, cancellationToken);
 
             var currentRound = allRoundsInSession
                 .Where(r => request.Timestamp >= r.StartTime &&
@@ -52,17 +52,19 @@ public class SubmitScanDataCommandHandler(
                 .OrderByDescending(r => r.StartTime)
                 .FirstOrDefault();
 
-            if (currentRound == null)
+            if (currentRound is null)
             {
                 logger.LogWarning(
                     "No active or pending round found for Session {SessionId} at timestamp {Timestamp}. Scan data will be logged without a specific round.",
                     request.SessionId, request.Timestamp);
-                currentRoundId = Guid.Empty; // Hoặc xử lý lỗi nếu RoundId là bắt buộc
+
+                throw new ApplicationException("An error occurred while determining the round   .");
             }
             else
             {
                 currentRoundId = currentRound.Id;
-                logger.LogInformation("Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
+                logger.LogInformation(
+                    "Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
                     request.SessionId, currentRound.Id, currentRound.RoundNumber);
             }
         }
@@ -73,12 +75,25 @@ public class SubmitScanDataCommandHandler(
             throw new ApplicationException("An error occurred while determining the active round.", ex);
         }
 
+        // Ghi ScanLog với RoundId đã xác định
+        var record = ScanLog.Create(
+            Guid.NewGuid(),
+            request.DeviceId,
+            request.SubmitterUserId,
+            request.SessionId,
+            currentRoundId,
+            request.Timestamp,
+            request.ScannedDevices.Select(sd => new ScannedDevice(sd.DeviceId, sd.Rssi)).ToList()
+        );
+
+        await scanLogRepository.AddScanDataAsync(record);
+
         // Tạo MassTransit message với RoundId đã xác định
         var message = new ProcessScanDataMessage(
             request.DeviceId,
             request.SubmitterUserId,
             request.SessionId,
-            currentRoundId, // <-- TRUYỀN ROUNDID VÀO EVENT
+            currentRoundId,
             request.ScannedDevices.Select(sd => new ScannedDeviceContract(sd.DeviceId, sd.Rssi)).ToList(),
             request.Timestamp
         );
@@ -86,19 +101,6 @@ public class SubmitScanDataCommandHandler(
         try
         {
             await bus.Publish(message, cancellationToken);
-
-            // Ghi ScanLog với RoundId đã xác định
-            var record = ScanLog.Create(
-                Guid.NewGuid(),
-                request.DeviceId,
-                request.SubmitterUserId,
-                request.SessionId,
-                currentRoundId,
-                request.Timestamp,
-                request.ScannedDevices.Select(sd => new ScannedDevice(sd.DeviceId, sd.Rssi)).ToList()
-            );
-
-            await scanLogRepository.AddScanDataAsync(record);
             logger.LogInformation(
                 "Scan data message for Session {SessionId}, User {UserId} published and ScanLog saved with RoundId {RoundId}.",
                 request.SessionId, request.SubmitterUserId, currentRoundId);

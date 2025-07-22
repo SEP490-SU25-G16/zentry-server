@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 
 namespace Zentry.Modules.AttendanceManagement.Presentation.Requests;
 

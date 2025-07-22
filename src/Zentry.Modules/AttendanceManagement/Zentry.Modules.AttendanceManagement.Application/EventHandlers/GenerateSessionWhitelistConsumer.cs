@@ -73,7 +73,7 @@ public class GenerateSessionWhitelistConsumer(
             var studentIdsResponse = await mediator.Send(getStudentIdsQuery, consumeContext.CancellationToken);
             var enrolledStudentIds = studentIdsResponse.StudentIds;
 
-            if (enrolledStudentIds.Any())
+            if (enrolledStudentIds.Count != 0)
             {
                 // Lấy tất cả active devices cho danh sách sinh viên đã đăng ký
                 var getStudentDevicesQuery = new GetDevicesByUsersIntegrationQuery(enrolledStudentIds);

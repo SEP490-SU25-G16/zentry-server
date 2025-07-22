@@ -1,8 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
+using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
+using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
@@ -10,7 +16,12 @@ public class AttendanceProcessorService(
     ILogger<AttendanceProcessorService> logger,
     IRoundRepository roundRepository,
     IScanLogWhitelistRepository scanLogWhitelistRepository,
-    IScanLogRepository scanLogRepository)
+    IScanLogRepository scanLogRepository,
+    IRedisService redisService,
+    IMediator mediator,
+    ISessionRepository sessionRepository,
+    IRoundTrackRepository roundTrackRepository,
+    IStudentTrackRepository studentTrackRepository)
     : IAttendanceProcessorService
 {
     public async Task ProcessBluetoothScanData(ProcessScanDataMessage message, CancellationToken cancellationToken)
@@ -41,19 +52,16 @@ public class AttendanceProcessorService(
             "Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
             message.SessionId, currentRound.Id, currentRound.RoundNumber);
 
-        // Cập nhật trạng thái của Round thành Active nếu nó đang Pending
-        // Logic này vẫn cần ở đây vì đây là nơi Round thực sự được "kích hoạt" để tính toán điểm danh.
-        if (currentRound.Status == Domain.Enums.RoundStatus.Pending)
+        if (Equals(currentRound.Status, Domain.Enums.RoundStatus.Pending))
         {
             currentRound.UpdateStatus(Domain.Enums.RoundStatus.Active);
             await roundRepository.UpdateAsync(currentRound, cancellationToken);
             logger.LogInformation("Updated Round {RoundId} status to Active.", currentRound.Id);
         }
 
-        // Gọi CalculateAndPersistRoundAttendance với RoundId từ event
         await CalculateAndPersistRoundAttendance(
             message.SessionId,
-            currentRoundId, // <-- Sử dụng RoundId từ event
+            currentRoundId,
             cancellationToken);
 
         logger.LogInformation("Finished processing scan data for SessionId: {SessionId}.", message.SessionId);
@@ -76,10 +84,13 @@ public class AttendanceProcessorService(
             var scanLogs = await GetRoundScanLogs(roundId, cancellationToken);
 
             // 3. Áp dụng thuật toán BFS multi-hop
-            var attendedDeviceIds = CalculateAttendance(whitelist, scanLogs);
+            var attendedDeviceIds = await CalculateAttendance(whitelist, scanLogs);
 
             // 4. Lưu kết quả điểm danh
-            await PersistAttendanceResult(sessionId, roundId, attendedDeviceIds, cancellationToken);
+            await PersistAttendanceResult(
+                currentRound: await roundRepository.GetByIdAsync(roundId, cancellationToken) ??
+                              throw new NotFoundException(nameof(AttendanceProcessorService), "Round not found!"),
+                attendedDeviceIds, cancellationToken);
 
             logger.LogInformation(
                 "Successfully calculated and persisted attendance for Round {RoundId}: {Count} devices attended",
@@ -94,11 +105,36 @@ public class AttendanceProcessorService(
 
     private async Task<HashSet<string>> GetSessionWhitelist(Guid sessionId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Retrieving whitelist for Session {SessionId} using IScanLogWhitelistRepository.",
-            sessionId);
-
+        var cacheKey = $"session_whitelist:{sessionId}";
+        logger.LogInformation(
+            "Attempting to retrieve whitelist for Session {SessionId} from Redis cache (key: {CacheKey}).",
+            sessionId, cacheKey);
         try
         {
+            var cachedWhitelist = await redisService.GetAsync<List<string>>(cacheKey);
+
+            if (cachedWhitelist != null)
+            {
+                if (cachedWhitelist.Count > 0)
+                {
+                    logger.LogInformation(
+                        "Whitelist for Session {SessionId} found in Redis cache. Total devices: {Count}.",
+                        sessionId, cachedWhitelist.Count);
+                    return [..cachedWhitelist];
+                }
+                else
+                {
+                    logger.LogWarning(
+                        "Whitelist for Session {SessionId} found in Redis cache but is empty. Proceeding to DB or returning empty set.",
+                        sessionId);
+                    return [];
+                }
+            }
+
+            logger.LogInformation(
+                "Whitelist for Session {SessionId} not found in Redis cache or deserialization failed. Fetching from database.",
+                sessionId);
+
             var whitelist = await scanLogWhitelistRepository.GetBySessionIdAsync(sessionId, cancellationToken);
 
             if (whitelist != null && whitelist.WhitelistedDeviceIds.Count != 0)
@@ -140,7 +176,7 @@ public class AttendanceProcessorService(
         }
     }
 
-    private List<string> CalculateAttendance(HashSet<string> whitelist, List<ScanLog> scanLogs)
+    private async Task<List<string>> CalculateAttendance(HashSet<string> whitelist, List<ScanLog> scanLogs)
     {
         logger.LogInformation("Applying BFS multi-hop attendance algorithm with whitelist of {Count} devices",
             whitelist.Count);
@@ -151,13 +187,13 @@ public class AttendanceProcessorService(
         var filteredScanLogs = FilterWhitelistSubmissions(scanLogs, whitelist);
 
         // 2. Build neighbor records cho mỗi device
-        var deviceRecords = BuildDeviceRecords(filteredScanLogs, whitelist);
+        var deviceRecords = await BuildDeviceRecords(filteredScanLogs, whitelist);
 
         // 3. Find lecturer làm BFS root
         var lecturerId = FindLecturerRoot(deviceRecords);
 
         // 4. Apply BFS algorithm (với whitelist parameter)
-        var attendedDevices = ApplyBFSAlgorithm(deviceRecords, lecturerId, whitelist);
+        var attendedDevices = ApplyBfsAlgorithm(deviceRecords, lecturerId, whitelist);
 
         // 5. Apply fill-in phase
         var finalAttendance = ApplyFillInPhase(deviceRecords, attendedDevices, whitelist);
@@ -202,46 +238,54 @@ public class AttendanceProcessorService(
     /// <param name="scanLogs">Danh sách ScanLog đã được filter (chỉ từ registered devices)</param>
     /// <param name="whitelist">HashSet chứa các DeviceId đã đăng ký để filter neighbors</param>
     /// <returns>Danh sách DeviceRecord với adjacency list tối ưu cho BFS</returns>
-    private List<DeviceRecord> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist)
+    private async Task<List<DeviceRecord>> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist)
     {
         logger.LogInformation("Building device records with neighbor scan lists");
 
-        var records = scanLogs
-            // Group theo DeviceId: gộp tất cả submissions của cùng 1 device
+        // Nhóm các scan logs theo DeviceId của submitter
+        var groupedScanLogs = scanLogs
             .GroupBy(s => s.DeviceId.ToString())
-            .Select(g => new DeviceRecord
-            {
-                // Device ID của submitter
-                DeviceId = g.Key,
-
-                // Vai trò của device (Student/Lecturer) - dùng để tìm BFS root
-                Role = GetDeviceRole(g.Key),
-
-                // Xây dựng optimized neighbor list cho device này
-                ScanList = g
-                    // Flatten tất cả ScannedDevices từ multiple submissions của device này
-                    .SelectMany(s => s.ScannedDevices)
-
-                    // FILTER 1: Chỉ giữ neighbors có trong whitelist (registered devices only)
-                    .Where(d => whitelist.Contains(d.DeviceId))
-
-                    // Group theo DeviceId để merge multiple scans của cùng 1 neighbor
-                    .GroupBy(d => d.DeviceId)
-
-                    // Với mỗi neighbor, lấy RSSI mạnh nhất từ multiple scans
-                    .Select(gr => new { Id = gr.Key, Rssi = gr.Max(x => x.Rssi) })
-
-                    // OPTIMIZATION 1: Sắp xếp theo signal strength (mạnh nhất trước)
-                    .OrderByDescending(x => x.Rssi)
-
-                    // OPTIMIZATION 2: Chỉ lấy top 7 neighbors mạnh nhất
-                    // .Take(7) // Giới hạn để tăng performance và độ chính xác
-
-                    // Chỉ lấy DeviceId, bỏ RSSI (không cần cho BFS)
-                    .Select(x => x.Id)
-                    .ToList()
-            })
             .ToList();
+
+        var deviceRecordTasks = groupedScanLogs.Select(g =>
+                Task.Run(async () => // Sử dụng Task.Run để chạy bất đồng bộ trong vòng lặp Select
+                {
+                    // Device ID của submitter
+                    var deviceId = g.Key;
+
+                    // Vai trò của device (Student/Lecturer) - dùng để tìm BFS root
+                    // Giữ lại việc lấy Role ở đây vì FindLecturerRoot cần nó.
+                    var role = await GetDeviceRole(deviceId);
+
+                    // Xây dựng optimized neighbor list cho device này
+                    var scanList = g
+                        // Flatten tất cả ScannedDevices từ multiple submissions của device này
+                        .SelectMany(s => s.ScannedDevices)
+
+                        // FILTER 1: Chỉ giữ neighbors có trong whitelist (registered devices only)
+                        .Where(d => whitelist.Contains(d.DeviceId))
+
+                        // Group theo DeviceId để merge multiple scans của cùng 1 neighbor
+                        .GroupBy(d => d.DeviceId)
+
+                        // Với mỗi neighbor, lấy RSSI mạnh nhất từ multiple scans
+                        .Select(gr => new { Id = gr.Key, Rssi = gr.Max(x => x.Rssi) })
+
+                        // OPTIMIZATION 1: Sắp xếp theo signal strength (mạnh nhất trước)
+                        .OrderByDescending(x => x.Rssi)
+
+                        // OPTIMIZATION 2: Chỉ lấy top 7 neighbors mạnh nhất
+                        // TODO: Consider adding .Take(7) here for performance optimization if needed.
+
+                        // Chỉ lấy DeviceId, bỏ RSSI (không cần cho BFS)
+                        .Select(x => x.Id)
+                        .ToList();
+
+                    return new DeviceRecord { DeviceId = deviceId, Role = role, ScanList = scanList };
+                }))
+            .ToList();
+
+        var records = await Task.WhenAll(deviceRecordTasks); // <-- AWAIT TẤT CẢ CÁC TÁC VỤ
 
         // Log chi tiết adjacency list của từng device để debug
         foreach (var record in records)
@@ -250,7 +294,7 @@ public class AttendanceProcessorService(
                 record.DeviceId, record.Role, string.Join(", ", record.ScanList));
         }
 
-        return records;
+        return records.ToList();
     }
 
     private string FindLecturerRoot(List<DeviceRecord> deviceRecords)
@@ -267,7 +311,7 @@ public class AttendanceProcessorService(
         return lecturerRecord.DeviceId;
     }
 
-    private HashSet<string> ApplyBFSAlgorithm(List<DeviceRecord> deviceRecords, string lecturerId,
+    private HashSet<string> ApplyBfsAlgorithm(List<DeviceRecord> deviceRecords, string lecturerId,
         HashSet<string> whitelist)
     {
         logger.LogInformation("Starting BFS traversal from lecturer {LecturerId}", lecturerId);
@@ -341,34 +385,180 @@ public class AttendanceProcessorService(
     /// <summary>
     /// Điểm danh dựa trên các device đã được phát hiện
     /// </summary>
-    /// <param name="sessionId">ID của class session đang diễn ra điểm danh</param>
-    /// <param name="roundId">ID của round cần lưu kết quả attendance</param>
+    /// <param name="currentRound">Đối tượng Round hiện tại</param>
     /// <param name="attendedDeviceIds">Danh sách DeviceId (string format) đã được BFS algorithm phát hiện có mặt</param>
     /// <param name="cancellationToken">Token để cancel operation</param>
-    /// <exception cref="NotImplementedException"></exception>
-    private async Task PersistAttendanceResult(Guid sessionId, Guid roundId, List<string> attendedDeviceIds,
+    private async Task PersistAttendanceResult(
+        Round currentRound,
+        List<string> attendedDeviceIds,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Persisting attendance result for Round {RoundId}: {Count} devices",
+        Guid sessionId = currentRound.SessionId;
+        Guid roundId = currentRound.Id;
+
+        logger.LogInformation("Persisting attendance result for Round {RoundId}: {Count} devices from BFS results.",
             roundId, attendedDeviceIds.Count);
 
-        // TODO: Implement saving attendance result to database
-        // Create RoundAttendance entity and save via repository
-        throw new NotImplementedException("PersistAttendanceResult not implemented");
+        var attendedDeviceGuids = attendedDeviceIds
+            .Where(id => Guid.TryParse(id, out _))
+            .Select(Guid.Parse)
+            .ToList();
+
+        if (!attendedDeviceGuids.Any())
+        {
+            logger.LogWarning(
+                "No valid attended device GUIDs to process for Round {RoundId}. Skipping persistence of attended users.",
+                roundId);
+            // Vẫn có thể tạo RoundTrack với danh sách sinh viên rỗng hoặc chỉ có giảng viên nếu cần.
+            // Để logic tiếp tục, usersAttendedByDevice sẽ là danh sách rỗng.
+            await CreateEmptyRoundTrackAndSave(currentRound, cancellationToken);
+            return;
+        }
+
+        // BƯỚC 1: Lấy ánh xạ UserId từ DeviceId (sử dụng Integration Query từ DeviceManagement)
+        var getUserIdsByDevicesQuery = new GetUserIdsByDevicesIntegrationQuery(attendedDeviceGuids);
+        var getUserIdsByDevicesResponse = await mediator.Send(getUserIdsByDevicesQuery, cancellationToken);
+        var deviceToUserMap = getUserIdsByDevicesResponse.UserDeviceMap; // Đây là Dictionary<DeviceId, UserId>
+
+        var userIdsToFetchInfo = deviceToUserMap.Values.ToList();
+
+        if (!userIdsToFetchInfo.Any())
+        {
+            logger.LogWarning(
+                "No UserIds found for the detected devices in Round {RoundId}. RoundTrack will contain no student/lecturer attendance.",
+                roundId);
+            await CreateEmptyRoundTrackAndSave(currentRound, cancellationToken);
+            return;
+        }
+
+        var studentsInRoundTrack = new List<StudentAttendanceInRound>();
+        var studentTracksToUpdate = new List<StudentTrack>();
+
+        foreach (var entry in deviceToUserMap)
+        {
+            var deviceId = entry.Key;
+            var userId = entry.Value;
+
+            // Mặc định là đã có mặt vì deviceId này nằm trong danh sách attendedDeviceGuids
+            const bool isAttended = true;
+            var attendedTime = DateTime.UtcNow;
+            var usedDeviceIdString = deviceId.ToString();
+
+            // Sử dụng UserId làm StudentId trong StudentAttendanceInRound và StudentTrack
+            var studentIdToUse = userId;
+
+            studentsInRoundTrack.Add(new StudentAttendanceInRound
+            {
+                StudentId = studentIdToUse,
+                DeviceId = usedDeviceIdString,
+                IsAttended = isAttended,
+                AttendedTime = attendedTime,
+            });
+
+            var studentTrack = await studentTrackRepository.GetByIdAsync(studentIdToUse, cancellationToken);
+            if (studentTrack == null)
+            {
+                studentTrack = new StudentTrack(studentIdToUse, usedDeviceIdString);
+            }
+            else
+            {
+                studentTrack.DeviceId = usedDeviceIdString;
+            }
+
+            var existingRoundParticipation = studentTrack.Rounds.FirstOrDefault(rp => rp.RoundId == roundId);
+            if (existingRoundParticipation != null)
+            {
+                existingRoundParticipation.IsAttended = isAttended;
+                existingRoundParticipation.AttendedTime = attendedTime;
+                existingRoundParticipation.RoundNumber = currentRound.RoundNumber;
+            }
+            else
+            {
+                studentTrack.Rounds.Add(new RoundParticipation
+                {
+                    RoundId = roundId,
+                    SessionId = currentRound.SessionId,
+                    RoundNumber = currentRound.RoundNumber,
+                    IsAttended = isAttended,
+                    AttendedTime = attendedTime
+                });
+            }
+
+            studentTracksToUpdate.Add(studentTrack);
+        }
+
+        var roundTrack = new RoundTrack(currentRound.Id, currentRound.SessionId, currentRound.RoundNumber,
+            currentRound.StartTime)
+        {
+            ProcessedAt = DateTime.UtcNow,
+            Students = studentsInRoundTrack // Chỉ chứa những người được điểm danh qua Bluetooth
+        };
+        await roundTrackRepository.AddOrUpdateAsync(roundTrack, cancellationToken);
+        logger.LogInformation("RoundTrack for Round {RoundId} saved with {AttendedCount} detected students.", roundId,
+            studentsInRoundTrack.Count);
+
+        // Lưu tất cả StudentTrack đã cập nhật
+        foreach (var st in studentTracksToUpdate)
+        {
+            await studentTrackRepository.AddOrUpdateAsync(st, cancellationToken);
+            logger.LogDebug("StudentTrack for Student {StudentId} updated.", st.Id);
+        }
+
+        logger.LogInformation("Finished persisting attendance results for Round {RoundId}.", roundId);
     }
 
-    private string GetDeviceRole(string deviceId)
+    // Hàm phụ trợ để tạo RoundTrack rỗng nếu không có thiết bị nào được phát hiện
+    private async Task CreateEmptyRoundTrackAndSave(Round currentRound, CancellationToken cancellationToken)
     {
-        // TODO: Implement getting device role from user/device mapping
-        // Should return string like "Student", "Lecturer", "Teacher", etc.
-        throw new NotImplementedException("GetDeviceRole not implemented");
+        var roundTrack = new RoundTrack(currentRound.Id, currentRound.SessionId, currentRound.RoundNumber,
+            currentRound.StartTime)
+        {
+            ProcessedAt = DateTime.UtcNow,
+            Students = new List<StudentAttendanceInRound>() // Danh sách rỗng
+        };
+        await roundTrackRepository.AddOrUpdateAsync(roundTrack, cancellationToken);
+        logger.LogInformation("Empty RoundTrack for Round {RoundId} saved.", currentRound.Id);
     }
+
+
+    private async Task<string> GetDeviceRole(string deviceIdString)
+    {
+        if (!Guid.TryParse(deviceIdString, out Guid deviceIdGuid))
+        {
+            logger.LogWarning(
+                "Invalid DeviceId string format: {DeviceIdString} when getting role. Returning 'Unknown'.",
+                deviceIdString);
+            return "Unknown";
+        }
+
+        try
+        {
+            var query = new GetDeviceRoleByDeviceIntegrationQuery(deviceIdGuid);
+            var response = await mediator.Send(query);
+
+            logger.LogDebug("Device {DeviceId} role retrieved: {Role}", deviceIdString, response.Role);
+            return response.Role;
+        }
+        catch (NotFoundException ex)
+        {
+            logger.LogWarning(ex, "Device {DeviceId} not found when getting role. Returning 'Unknown'.",
+                deviceIdString);
+            return "Unknown";
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting device role for DeviceId {DeviceId}. Returning 'Error'.",
+                deviceIdString);
+            return "Error";
+        }
+    }
+
 
     // Internal DTO for algorithm processing
     private class DeviceRecord
     {
         public string DeviceId { get; set; }
-        public string Role { get; set; }
+        public string Role { get; set; } // Vẫn cần Role ở đây cho FindLecturerRoot
         public List<string> ScanList { get; set; }
     }
 }

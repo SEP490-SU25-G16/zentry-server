@@ -29,42 +29,56 @@ public class CreateSessionConsumer(
         {
             using var scope = serviceScopeFactory.CreateScope();
             var sessionRepository = scope.ServiceProvider.GetRequiredService<ISessionRepository>();
-            var configService = scope.ServiceProvider.GetRequiredService<IConfigurationService>();
-            // --- 1. Lấy tất cả các cấu hình liên quan đến Attendance ---
+            var configService =
+                scope.ServiceProvider.GetRequiredService<IConfigurationService>(); // Đây là ConfigurationService mới
+
             logger.LogInformation("Fetching all relevant settings for schedule {ScheduleId}.", message.ScheduleId);
 
-            var globalSettingsTask =
-                configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Global, Guid.Empty,
-                    context.CancellationToken);
-            var courseSettingsTask = Task.FromResult(new Dictionary<string, SettingContract>());
+            // ***** THAY ĐỔI LỚN NHẤT Ở ĐÂY: GỌI HÀM BATCH MỚI *****
+            var requests = new List<ScopeQueryRequest>
+            {
+                new(AttendanceScopeTypes.Global, Guid.Empty),
+                new(AttendanceScopeTypes.Session, message.ScheduleId)
+            };
             if (message.CourseId != Guid.Empty)
-                courseSettingsTask =
-                    configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Course, message.CourseId,
-                        context.CancellationToken);
-            var sessionSettingsTask =
-                configService.GetAllSettingsForScopeAsync(AttendanceScopeTypes.Session, message.ScheduleId,
-                    context.CancellationToken);
+            {
+                requests.Add(new ScopeQueryRequest(AttendanceScopeTypes.Course, message.CourseId));
+            }
 
-            await Task.WhenAll(globalSettingsTask, courseSettingsTask, sessionSettingsTask);
+            var allSettingsResponse =
+                await configService.GetMultipleSettingsInBatchAsync(requests, context.CancellationToken);
 
-            var globalSettings = await globalSettingsTask;
-            var courseSettings = await courseSettingsTask;
-            var sessionSettings = await sessionSettingsTask;
+            var globalSettings = allSettingsResponse.SettingsByScopeType
+                .GetValueOrDefault(AttendanceScopeTypes.Global, new List<SettingContract>())
+                .ToDictionary(s => s.AttributeKey, s => s.Value ?? string.Empty, StringComparer.OrdinalIgnoreCase);
 
-            var allRelevantSettingsContracts = new List<SettingContract>();
-            allRelevantSettingsContracts.AddRange(globalSettings.Values);
-            allRelevantSettingsContracts.AddRange(courseSettings.Values);
-            allRelevantSettingsContracts.AddRange(sessionSettings.Values);
+            var courseSettings = allSettingsResponse.SettingsByScopeType
+                .GetValueOrDefault(AttendanceScopeTypes.Course, new List<SettingContract>())
+                .ToDictionary(s => s.AttributeKey, s => s.Value ?? string.Empty, StringComparer.OrdinalIgnoreCase);
 
-            var finalConfigDictionary = allRelevantSettingsContracts
-                .GroupBy(s => s.AttributeKey, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.Last().Value ?? string.Empty,
-                    StringComparer.OrdinalIgnoreCase
-                );
+            var sessionSettings = allSettingsResponse.SettingsByScopeType
+                .GetValueOrDefault(AttendanceScopeTypes.Session, new List<SettingContract>())
+                .ToDictionary(s => s.AttributeKey, s => s.Value ?? string.Empty, StringComparer.OrdinalIgnoreCase);
 
-            // Tạo SessionConfigSnapshot từ finalConfigDictionary
+            var finalConfigDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var setting in globalSettings)
+            {
+                finalConfigDictionary[setting.Key] = setting.Value;
+            }
+
+            // Thêm Course settings (ghi đè Global)
+            foreach (var setting in courseSettings)
+            {
+                finalConfigDictionary[setting.Key] = setting.Value;
+            }
+
+            // Thêm Session settings (ghi đè Global và Course)
+            foreach (var setting in sessionSettings)
+            {
+                finalConfigDictionary[setting.Key] = setting.Value;
+            }
+
             var sessionConfigSnapshot = SessionConfigSnapshot.FromDictionary(finalConfigDictionary);
 
             // Các giá trị cấu hình liên quan đến thời gian và rounds
@@ -72,7 +86,7 @@ public class CreateSessionConsumer(
             var totalAttendanceRounds =
                 sessionConfigSnapshot.TotalAttendanceRounds; // Giữ lại để publish message tạo round
 
-            var currentTime = DateTime.UtcNow; // Lấy thời gian hiện tại
+            var currentTime = DateTime.UtcNow;
             var currentDate = DateOnly.FromDateTime(currentTime);
 
             // Chuyển đổi message.WeekDay (string) sang DayOfWeek của System để so sánh

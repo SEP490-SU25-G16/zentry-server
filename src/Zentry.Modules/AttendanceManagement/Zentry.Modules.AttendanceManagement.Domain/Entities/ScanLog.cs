@@ -2,11 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class ScanLog
 {
+    public ScanLog() { } 
+
     private ScanLog(
         Guid id,
         Guid deviceId,
@@ -25,14 +28,14 @@ public class ScanLog
         Timestamp = timestamp;
         ScannedDevices = scannedDevices;
     }
-
-    public Guid Id { get; private set; }
-    public Guid DeviceId { get; private set; }
-    public Guid SubmitterUserId { get; private set; }
-    public Guid SessionId { get; private set; }
-    public Guid RoundId { get; private set; }
-    public DateTime Timestamp { get; private set; }
-    public List<ScannedDevice> ScannedDevices { get; private set; }
+    
+    public Guid Id { get; set; }
+    public Guid DeviceId { get; set; }
+    public Guid SubmitterUserId { get; set; } 
+    public Guid SessionId { get; set; } 
+    public Guid RoundId { get; set; } 
+    public DateTime Timestamp { get; set; } 
+    public List<ScannedDevice> ScannedDevices { get; set; } 
 
     public static ScanLog Create(
         Guid id,

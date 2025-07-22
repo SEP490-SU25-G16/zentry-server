@@ -13,18 +13,15 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 public class StartSessionCommandHandler(
     ISessionRepository sessionRepository,
     IRoundRepository roundRepository,
-    IScheduleService scheduleService,
-    IUserService userService,
     IRedisService redisService,
-    IConfigurationService configService,
-    IBus bus,
     IScanLogWhitelistRepository scanLogWhitelistRepository,
     ILogger<StartSessionCommandHandler> logger)
     : ICommandHandler<StartSessionCommand, StartSessionResponse>
 {
     public async Task<StartSessionResponse> Handle(StartSessionCommand request, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Attempting to start session {SessionId} by user {UserId}.", request.SessionId, request.UserId);
+        logger.LogInformation("Attempting to start session {SessionId} by user {UserId}.", request.SessionId,
+            request.UserId);
 
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
         if (session is null)
@@ -44,7 +41,8 @@ public class StartSessionCommandHandler(
         // Kiểm tra trạng thái session
         if (session.Status != SessionStatus.Pending)
         {
-            logger.LogWarning("StartSession failed: Session {SessionId} is not in Pending status. Current status: {Status}.",
+            logger.LogWarning(
+                "StartSession failed: Session {SessionId} is not in Pending status. Current status: {Status}.",
                 session.Id, session.Status);
             throw new BusinessRuleException("SESSION_NOT_PENDING", "Phiên điểm danh chưa ở trạng thái chờ kích hoạt.");
         }
@@ -69,9 +67,9 @@ public class StartSessionCommandHandler(
                 $"Chưa đến hoặc đã quá thời gian cho phép khởi tạo phiên. Giờ hiện tại: {currentTime:HH:mm}, Thời gian cho phép: {sessionAllowedStartTime:HH:mm} - {sessionAllowedEndTime:HH:mm}.");
         }
 
-        // Kiểm tra xem đã có session active cho schedule này chưa (từ Redis)
-        var activeSessionKey = $"active_session:{session.ScheduleId}";
-        if (await redisService.KeyExistsAsync(activeSessionKey))
+        // Kiểm tra xem đã có SCHEDULE active chưa
+        var activeScheduleKey = $"active_schedule:{session.ScheduleId}";
+        if (await redisService.KeyExistsAsync(activeScheduleKey))
         {
             logger.LogWarning("StartSession failed: An active session already exists for schedule {ScheduleId}.",
                 session.ScheduleId);
@@ -88,12 +86,13 @@ public class StartSessionCommandHandler(
         // --- 2. Kích hoạt Round đầu tiên ---
         var firstRound = (await roundRepository.GetRoundsBySessionIdAsync(session.Id, cancellationToken))
             .FirstOrDefault(r => r.RoundNumber == 1);
-        if (firstRound != null)
+        if (firstRound is not null)
         {
             firstRound.UpdateStatus(RoundStatus.Active);
             await roundRepository.UpdateAsync(firstRound, cancellationToken);
             await roundRepository.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("First round ({RoundId}) for Session {SessionId} status updated to Active.", firstRound.Id, session.Id);
+            logger.LogInformation("First round ({RoundId}) for Session {SessionId} status updated to Active.",
+                firstRound.Id, session.Id);
         }
         else
         {
@@ -110,22 +109,32 @@ public class StartSessionCommandHandler(
 
             // Cache whitelist vào Redis
             await redisService.SetAsync($"session_whitelist:{session.Id}", whitelistJson, totalSessionDuration);
-            logger.LogInformation("Whitelist for Session {SessionId} loaded from DocumentDB and cached in Redis. Total devices: {DeviceCount}.", session.Id, sessionWhitelist.WhitelistedDeviceIds.Count);
+            logger.LogInformation(
+                "Whitelist for Session {SessionId} loaded from DocumentDB and cached in Redis. Total devices: {DeviceCount}.",
+                session.Id, sessionWhitelist.WhitelistedDeviceIds.Count);
         }
         else
         {
-            logger.LogWarning("No whitelist found in DocumentDB for Session {SessionId}. An empty whitelist will be cached to prevent errors.", session.Id);
+            logger.LogWarning(
+                "No whitelist found in DocumentDB for Session {SessionId}. An empty whitelist will be cached to prevent errors.",
+                session.Id);
             // Cache một whitelist rỗng để đảm bảo GetSessionWhitelist không lỗi
-            await redisService.SetAsync($"session_whitelist:{session.Id}", "[]", TimeSpan.FromMinutes(5)); // Cache rỗng trong 5 phút
+            await redisService.SetAsync($"session_whitelist:{session.Id}", "[]",
+                TimeSpan.FromMinutes(5)); // Cache rỗng trong 5 phút
         }
 
         // --- 4. Cập nhật cờ active_session trong Redis ---
         // TTL sẽ là tổng thời gian còn lại của session
         var totalRemainingDuration = session.EndTime.Subtract(currentTime)
             .Add(TimeSpan.FromMinutes(sessionConfigSnapshot.AttendanceWindowMinutes * 2));
-        await redisService.SetAsync(activeSessionKey, session.Id.ToString(), totalRemainingDuration);
-        logger.LogInformation("Active session key {RedisKey} for schedule {ScheduleId} set in Redis with TTL {TTL}.", activeSessionKey, session.ScheduleId, totalRemainingDuration);
 
+        // --- 4. Cập nhật các cờ trạng thái trong Redis ---
+        // ĐIỀU CHỈNH: Chỉ sử dụng SetAsync cho từng key
+
+        // Key: Xác nhận rằng session này đang active (dùng cho SubmitScanDataCommandHandler)
+        await redisService.SetAsync($"session:{session.Id}", "active", totalRemainingDuration);
+        // Key: Đảm bảo chỉ có một session active cho ScheduleId cụ thể
+        await redisService.SetAsync(activeScheduleKey, session.Id.ToString(), totalRemainingDuration);
 
         // --- 5. (Optional) Gửi thông báo đến các máy trong lớp ---
         logger.LogInformation("Sending session started notification for Session {SessionId}.", session.Id);

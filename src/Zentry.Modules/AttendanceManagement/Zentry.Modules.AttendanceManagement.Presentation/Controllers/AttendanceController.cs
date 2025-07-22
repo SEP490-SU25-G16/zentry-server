@@ -1,8 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
+using Zentry.Modules.AttendanceManagement.Application.Features.StartSession; // Thêm using này
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
-using Zentry.Modules.AttendanceManagement.Presentation.Requests;
+using Zentry.Modules.AttendanceManagement.Presentation.Requests; // Cần tạo StartSessionRequest
 
 namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 
@@ -11,17 +12,46 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 public class AttendanceController(IMediator mediator) : ControllerBase
 {
     [HttpPost("sessions")]
+    [ProducesResponseType(201)] // Thêm các kiểu response
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)] // Giảng viên/Lịch trình không tìm thấy
+    [ProducesResponseType(409)] // Lỗi BusinessRuleException (e.g. LECTURER_NOT_ASSIGNED, OUT_OF_COURSE_PERIOD)
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request,
         CancellationToken cancellationToken)
     {
-        // Loại bỏ StartTime và EndTime từ Command
-        var command = new CreateSessionCommand(
-            request.ScheduleId,
-            request.UserId
-        );
+        var command = new CreateSessionCommand(request.ScheduleId, request.UserId);
         var result = await mediator.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(CreateSession), new { id = result.SessionId }, result);
+        // CreatedAtAction cần tên action và route values để tạo URL cho tài nguyên mới.
+        // Nếu bạn muốn URL trỏ đến session đã tạo, bạn cần một action GetSessionById.
+        // Tạm thời, dùng Created (201) với kết quả.
+        return Created("", result);
     }
+
+    // --- API MỚI: StartSession ---
+    [HttpPost("sessions/{sessionId}/start")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(403)]
+    public async Task<IActionResult> StartSession(Guid sessionId, [FromBody] StartSessionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.UserId == Guid.Empty)
+        {
+            return BadRequest(new { Message = "User ID is required to start a session." });
+        }
+
+        var command = new StartSessionCommand
+        {
+            SessionId = sessionId,
+            UserId = request.UserId
+        };
+
+        var result = await mediator.Send(command, cancellationToken);
+
+        return Ok(result);
+    }
+
 
     [HttpPost("sessions/scan")]
     [ProducesResponseType(200)]

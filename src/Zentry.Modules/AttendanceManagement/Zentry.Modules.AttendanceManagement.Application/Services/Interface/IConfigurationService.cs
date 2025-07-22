@@ -8,4 +8,8 @@ public interface IConfigurationService
         string scopeType,
         Guid? scopeId = null,
         CancellationToken cancellationToken = default);
+
+    Task<GetMultipleSettingsIntegrationResponse> GetMultipleSettingsInBatchAsync(
+        List<ScopeQueryRequest> requests,
+        CancellationToken cancellationToken = default);
 }
