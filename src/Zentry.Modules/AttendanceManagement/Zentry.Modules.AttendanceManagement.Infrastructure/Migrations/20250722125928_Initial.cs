@@ -58,7 +58,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     SessionConfigs = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>
@@ -131,6 +133,11 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 name: "IX_Sessions_StartTime",
                 table: "Sessions",
                 column: "StartTime");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_Status",
+                table: "Sessions",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sessions_UserId",

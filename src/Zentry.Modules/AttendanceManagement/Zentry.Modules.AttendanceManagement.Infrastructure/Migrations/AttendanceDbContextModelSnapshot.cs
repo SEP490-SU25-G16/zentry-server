@@ -138,6 +138,13 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
@@ -146,6 +153,8 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StartTime");
+
+                    b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 
