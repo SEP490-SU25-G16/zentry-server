@@ -2,19 +2,27 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.Modules.DeviceManagement.Entities;
 using Zentry.Modules.DeviceManagement.Enums;
-using Zentry.Modules.DeviceManagement.Persistence;
 
-namespace Zentry.Modules.DeviceManagement.Repositories;
+namespace Zentry.Modules.DeviceManagement.Persistence.Repositories;
 
 public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
 {
-    public async Task<Device?> GetActiveDeviceByUserIdAsync(Guid userId)
+    public async Task<Guid?> GetActiveDeviceByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        // This method is crucial for the "Register Device" use case to check for existing active devices.
-        // It fetches a device that belongs to the given userId AND has a status of 'Active'.
         return await dbContext.Devices
-            .AsNoTracking() // Use AsNoTracking for read-only operations to improve performance
-            .FirstOrDefaultAsync(d => d.UserId == userId && d.Status == DeviceStatus.Active); //
+            .AsNoTracking()
+            .Where(d => d.UserId == userId && d.Status == DeviceStatus.Active)
+            .Select(d => (Guid?)d.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<List<Device>> GetActiveDevicesByUserIdsAsync(List<Guid> userIds,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .AsNoTracking()
+            .Where(d => userIds.Contains(d.UserId) && d.Status == DeviceStatus.Active)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task AddAsync(Device device)

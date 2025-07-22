@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.Modules.DeviceManagement.Persistence;
-using Zentry.Modules.DeviceManagement.Repositories;
+using Zentry.Modules.DeviceManagement.Persistence.Repositories;
 using Zentry.Modules.DeviceManagement.Services;
 
 namespace Zentry.Modules.DeviceManagement;

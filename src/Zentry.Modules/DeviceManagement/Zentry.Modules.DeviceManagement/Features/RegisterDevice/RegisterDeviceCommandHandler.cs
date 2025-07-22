@@ -25,7 +25,7 @@ public class RegisterDeviceCommandHandler(
             throw new BusinessLogicException("User not found."); // Or custom NotFoundException
 
         // 2. Check if user already has an active device
-        var existingDevice = await deviceRepository.GetActiveDeviceByUserIdAsync(command.UserId);
+        var existingDevice = await deviceRepository.GetActiveDeviceByUserIdAsync(command.UserId, cancellationToken);
         if (existingDevice != null)
             // As per business rule: "Chỉ có 1 thiết bị cho 1 user"
             throw new BusinessLogicException("User already has a primary device registered.");

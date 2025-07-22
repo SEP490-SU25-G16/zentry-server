@@ -7,6 +7,7 @@ public interface IDeviceRepository : IRepository<Device, Guid>
 {
     Task<IEnumerable<Device>> GetByAccountIdAsync(Guid accountId, CancellationToken cancellationToken);
     Task<Device?> GetByDeviceTokenAsync(string deviceToken, CancellationToken cancellationToken);
-    Task<Device?> GetActiveDeviceByUserIdAsync(Guid userId);
+    Task<Guid?> GetActiveDeviceByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task<List<Device>> GetActiveDevicesByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken);
     Task AddAsync(Device device);
 }
