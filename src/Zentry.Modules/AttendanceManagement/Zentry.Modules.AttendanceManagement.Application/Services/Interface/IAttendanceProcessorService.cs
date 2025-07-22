@@ -1,4 +1,4 @@
-﻿using Zentry.SharedKernel.Contracts.Messages;
+﻿using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 

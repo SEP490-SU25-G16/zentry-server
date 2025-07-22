@@ -1,78 +1,64 @@
 ﻿using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
-using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.SharedKernel.Contracts.Messages;
+using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public class AttendanceProcessorService(
     ILogger<AttendanceProcessorService> logger,
-    IRoundRepository roundRepository)
+    IRoundRepository roundRepository,
+    IScanLogWhitelistRepository scanLogWhitelistRepository,
+    IScanLogRepository scanLogRepository)
     : IAttendanceProcessorService
 {
     public async Task ProcessBluetoothScanData(ProcessScanDataMessage message, CancellationToken cancellationToken)
     {
+        var currentRoundId = message.RoundId;
+
         Round? currentRound = null;
-        try
+        if (currentRoundId != Guid.Empty)
         {
-            // Lấy tất cả các Round của Session này từ DB
-            var allRoundsInSession =
-                await roundRepository.GetRoundsBySessionIdAsync(message.SessionId, cancellationToken);
-
-            // Tìm Round mà Timestamp của message nằm trong khoảng StartTime và EndTime của Round
-            // Nếu EndTime là null, coi như Round đó vẫn đang Active.
-            // Loại bỏ RoundStatus.Expired vì nó không có trong Enum của bạn.
-            currentRound = allRoundsInSession
-                .Where(r => message.Timestamp >= r.StartTime &&
-                            (r.EndTime == null || message.Timestamp <= r.EndTime) &&
-                            r.Status != Domain.Enums.RoundStatus.Completed &&
-                            r.Status != Domain.Enums.RoundStatus.Cancelled &&
-                            r.Status != Domain.Enums.RoundStatus.Finalized)
-                .OrderByDescending(r => r.StartTime)
-                .FirstOrDefault();
-
-            if (currentRound == null)
+            currentRound = await roundRepository.GetByIdAsync(currentRoundId, cancellationToken);
+            if (currentRound is null)
             {
                 logger.LogWarning(
-                    "No active round found for Session {SessionId} at timestamp {Timestamp}. Scan data logged but not used for attendance calculation in a specific round.",
-                    message.SessionId, message.Timestamp);
-                // Dừng xử lý attendance cho round nếu không tìm thấy round phù hợp
+                    "ProcessBluetoothScanData: Round {RoundId} (from event) not found for Session {SessionId}. Scan data logged but no round-specific processing.",
+                    currentRoundId, message.SessionId);
                 return;
             }
-
-            logger.LogInformation(
-                "Scan data for Session {SessionSessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
-                message.SessionId, currentRound.Id, currentRound.RoundNumber);
-
-            // Cập nhật trạng thái của Round thành Active nếu nó đang Pending
-            // Dựa trên RoundStatus Enum của bạn, 'Active' là trạng thái phù hợp khi Round bắt đầu nhận dữ liệu.
-            if (currentRound.Status == Domain.Enums.RoundStatus.Pending)
-            {
-                currentRound.UpdateStatus(Domain.Enums.RoundStatus.Active); // Sử dụng RoundStatus.Active
-                await roundRepository.UpdateAsync(currentRound, cancellationToken); // Sử dụng UpdateAsync
-                logger.LogInformation("Updated Round {RoundId} status to Active.", currentRound.Id);
-            }
         }
-        catch (Exception ex)
+        else
         {
-            logger.LogError(ex, "Error finding active round for Session {SessionId} at timestamp {Timestamp}.",
-                message.SessionId, message.Timestamp);
-            // Log lỗi và có thể re-throw hoặc xử lý tùy vào nghiệp vụ
-            throw new ApplicationException("Error determining active round for scan data.", ex);
+            logger.LogWarning(
+                "ProcessBluetoothScanData: Event for Session {SessionId} received with empty RoundId. Scan data logged but no round-specific processing.",
+                message.SessionId);
+            return;
         }
 
-        if (currentRound != null)
+        logger.LogInformation(
+            "Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
+            message.SessionId, currentRound.Id, currentRound.RoundNumber);
+
+        // Cập nhật trạng thái của Round thành Active nếu nó đang Pending
+        // Logic này vẫn cần ở đây vì đây là nơi Round thực sự được "kích hoạt" để tính toán điểm danh.
+        if (currentRound.Status == Domain.Enums.RoundStatus.Pending)
         {
-            await CalculateAndPersistRoundAttendance(
-                message.SessionId,
-                currentRound.Id,
-                cancellationToken);
+            currentRound.UpdateStatus(Domain.Enums.RoundStatus.Active);
+            await roundRepository.UpdateAsync(currentRound, cancellationToken);
+            logger.LogInformation("Updated Round {RoundId} status to Active.", currentRound.Id);
         }
+
+        // Gọi CalculateAndPersistRoundAttendance với RoundId từ event
+        await CalculateAndPersistRoundAttendance(
+            message.SessionId,
+            currentRoundId, // <-- Sử dụng RoundId từ event
+            cancellationToken);
 
         logger.LogInformation("Finished processing scan data for SessionId: {SessionId}.", message.SessionId);
     }
+
 
     private async Task CalculateAndPersistRoundAttendance(
         Guid sessionId,
@@ -108,20 +94,50 @@ public class AttendanceProcessorService(
 
     private async Task<HashSet<string>> GetSessionWhitelist(Guid sessionId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Retrieving whitelist for Session {SessionId}", sessionId);
+        logger.LogInformation("Retrieving whitelist for Session {SessionId} using IScanLogWhitelistRepository.",
+            sessionId);
 
-        // TODO: Implement getting registered device IDs for session
-        // Should return HashSet<string> of device IDs that are registered in this session
-        throw new NotImplementedException("GetSessionWhitelist not implemented");
+        try
+        {
+            var whitelist = await scanLogWhitelistRepository.GetBySessionIdAsync(sessionId, cancellationToken);
+
+            if (whitelist != null && whitelist.WhitelistedDeviceIds.Count != 0)
+            {
+                return [..whitelist.WhitelistedDeviceIds.Select(id => id.ToString())];
+            }
+
+            logger.LogWarning("No whitelist found or whitelist is empty for Session {SessionId}.", sessionId);
+            return [];
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching whitelist for Session {SessionId}.", sessionId);
+            throw;
+        }
     }
 
     private async Task<List<ScanLog>> GetRoundScanLogs(Guid roundId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Querying scan logs for Round {RoundId}", roundId);
+        logger.LogInformation("Querying scan logs for Round {RoundId} using IScanLogRepository.", roundId);
 
-        // TODO: Implement getting scan logs for round time range
-        // Should get Round entity, then query ScanLogs between StartTime and EndTime
-        throw new NotImplementedException("GetRoundScanLogs not implemented");
+        try
+        {
+            var scanLogs = await scanLogRepository.GetScanLogsByRoundIdAsync(roundId, cancellationToken);
+
+            if (scanLogs.Count == 0)
+            {
+                logger.LogWarning("No scan logs found for Round {RoundId}.", roundId);
+                return [];
+            }
+
+            logger.LogInformation("Found {Count} scan logs for Round {RoundId}.", scanLogs.Count, roundId);
+            return scanLogs;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error fetching scan logs for Round {RoundId}.", roundId);
+            throw;
+        }
     }
 
     private List<string> CalculateAttendance(HashSet<string> whitelist, List<ScanLog> scanLogs)

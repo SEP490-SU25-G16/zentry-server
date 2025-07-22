@@ -4,7 +4,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Messages;
+using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
@@ -60,7 +60,7 @@ public class CreateScheduleCommandHandler(
         await scheduleRepository.AddAsync(schedule, cancellationToken);
         await scheduleRepository.SaveChangesAsync(cancellationToken);
 
-        var scheduleCreatedEvent = new ScheduleCreatedEvent(
+        var scheduleCreatedEvent = new CreateSesssionMessage(
             schedule.Id,
             command.LecturerId,
             schedule.ClassSectionId,
