@@ -95,12 +95,35 @@ public class CreateSessionCommandHandler(
         var manualAdjustmentGracePeriodHours = sessionConfigSnapshot.ManualAdjustmentGracePeriodHours;
 
         var currentTime = DateTime.UtcNow;
+        var currentDate = DateOnly.FromDateTime(currentTime);
 
-        var scheduledStart = schedule.ScheduledStartDate.ToDateTime(schedule.ScheduledStartTime);
-        var scheduledEnd = schedule.ScheduledEndDate.ToDateTime(schedule.ScheduledEndTime);
+// 1. Kiểm tra xem ngày hiện tại có nằm trong khoảng thời gian của khóa học không
+        if (currentDate < schedule.ScheduledStartDate || currentDate > schedule.ScheduledEndDate)
+        {
+            logger.LogWarning(
+                "CreateSession failed: Current date {CurrentDate} is outside the course period ({StartDate} - {EndDate}) for schedule {ScheduleId}.",
+                currentDate, schedule.ScheduledStartDate, schedule.ScheduledEndDate, request.ScheduleId);
+            throw new BusinessRuleException("OUT_OF_COURSE_PERIOD",
+                $"Ngày hiện tại không nằm trong thời gian của khóa học. Khóa học từ {schedule.ScheduledStartDate:dd/MM/yyyy} đến {schedule.ScheduledEndDate:dd/MM/yyyy}.");
+        }
 
-        var sessionAllowedStartTime = scheduledStart.AddMinutes(-attendanceWindowMinutes);
-        var sessionAllowedEndTime = scheduledEnd.AddMinutes(attendanceWindowMinutes);
+// 2. Tạo thời điểm bắt đầu và kết thúc của buổi học HÔM NAY (UTC)
+        var todaySessionStartUnspecified = currentDate.ToDateTime(schedule.ScheduledStartTime);
+        var todaySessionEndUnspecified = currentDate.ToDateTime(schedule.ScheduledEndTime);
+
+// Nếu session kéo dài qua ngày (ví dụ: 23:00 - 01:00)
+        if (schedule.ScheduledEndTime < schedule.ScheduledStartTime)
+        {
+            todaySessionEndUnspecified = todaySessionEndUnspecified.AddDays(1);
+        }
+
+
+        var todaySessionStart = DateTime.SpecifyKind(todaySessionStartUnspecified, DateTimeKind.Utc);
+        var todaySessionEnd = DateTime.SpecifyKind(todaySessionEndUnspecified, DateTimeKind.Utc);
+
+// 3. Kiểm tra thời gian cho phép tạo session (có buffer window)
+        var sessionAllowedStartTime = todaySessionStart.AddMinutes(-attendanceWindowMinutes);
+        var sessionAllowedEndTime = todaySessionEnd.AddMinutes(attendanceWindowMinutes);
 
         if (currentTime < sessionAllowedStartTime || currentTime > sessionAllowedEndTime)
         {
@@ -121,18 +144,25 @@ public class CreateSessionCommandHandler(
                 "Buổi học này đã có phiên điểm danh đang hoạt động.");
         }
 
-        // --- 3. Tạo đối tượng Session (Domain Entity) với thời gian từ Schedule ---
         var session = Session.Create(
             request.ScheduleId,
             request.UserId,
-            scheduledStart,
-            scheduledEnd,
+            todaySessionStart,
+            todaySessionEnd,  
             finalConfigDictionary
         );
 
         // --- 4. Lưu Session vào database (lưu lâu dài) ---
-        await sessionRepository.AddAsync(session, cancellationToken);
-        await sessionRepository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await sessionRepository.AddAsync(session, cancellationToken);
+            await sessionRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
 
         // --- 5. Lưu dữ liệu phiên vào Redis (tạm thời, cho thời gian thực) ---
         var totalSessionDuration = session.EndTime.Subtract(session.StartTime)
@@ -142,16 +172,16 @@ public class CreateSessionCommandHandler(
         // --- 6. Xử lý tạo Round đầu tiên và publish message cho các Round còn lại ---
         if (totalAttendanceRounds > 0)
         {
-            var totalSessionTime = scheduledEnd - scheduledStart;
+            var totalSessionTime = todaySessionEnd - todaySessionStart;
             var durationPerRoundSeconds = totalSessionTime.TotalSeconds / totalAttendanceRounds;
 
-            var firstRoundEndTime = scheduledStart.AddSeconds(durationPerRoundSeconds);
+            var firstRoundEndTime = todaySessionStart.AddSeconds(durationPerRoundSeconds);
 
             var firstRound = Round.Create(
                 session.Id,
                 1,
-                scheduledStart,
-                firstRoundEndTime
+                todaySessionStart,    
+                firstRoundEndTime     
             );
             firstRound.UpdateStatus(RoundStatus.Active);
             await roundRepository.AddAsync(firstRound, cancellationToken);
@@ -164,8 +194,8 @@ public class CreateSessionCommandHandler(
                     session.Id,
                     1,
                     totalAttendanceRounds,
-                    scheduledStart,
-                    scheduledEnd
+                    todaySessionStart,  
+                    todaySessionEnd     
                 );
                 await bus.Publish(createRoundMessage, cancellationToken);
             }
