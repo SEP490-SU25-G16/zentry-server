@@ -11,4 +11,6 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
     Task<(List<Enrollment> Enrollments, int TotalCount)> GetPagedEnrollmentsAsync(
         EnrollmentListCriteria criteria,
         CancellationToken cancellationToken);
+
+    Task<List<Guid>> GetActiveStudentIdsByClassSectionIdAsync(Guid classSectionId, CancellationToken cancellationToken);
 }

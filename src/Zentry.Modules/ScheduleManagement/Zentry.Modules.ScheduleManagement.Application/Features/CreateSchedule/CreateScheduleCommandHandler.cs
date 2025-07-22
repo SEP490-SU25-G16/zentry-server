@@ -1,7 +1,10 @@
-﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+﻿using MassTransit;
+using Microsoft.Extensions.Logging;
+using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Contracts.Messages;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
@@ -10,14 +13,16 @@ public class CreateScheduleCommandHandler(
     IScheduleRepository scheduleRepository,
     IClassSectionRepository classSectionRepository,
     IRoomRepository roomRepository,
-    IUserScheduleService lecturerScheduleService)
+    IUserScheduleService lecturerScheduleService,
+    IBus bus,
+    ILogger<CreateScheduleCommandHandler> logger)
     : ICommandHandler<CreateScheduleCommand, CreatedScheduleResponse>
 {
     public async Task<CreatedScheduleResponse> Handle(CreateScheduleCommand command,
         CancellationToken cancellationToken)
     {
         if (!command.IsValidTimeRange())
-            throw new Exception("StartTime must be before EndTime.");
+            throw new BusinessRuleException("INVALID_TIME_RANGE", "Thời gian bắt đầu phải trước thời gian kết thúc.");
 
         var section = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
         if (section is null)
@@ -32,17 +37,15 @@ public class CreateScheduleCommandHandler(
         if (lecturer is null)
             throw new NotFoundException("Lecturer", $"ID '{command.LecturerId}' not found or invalid.");
 
-        // Check if lecturer is free
         if (!await scheduleRepository.IsLecturerAvailableAsync(command.LecturerId, command.WeekDay, command.StartTime,
                 command.EndTime, cancellationToken))
-            throw new Exception(
-                $"Lecturer {lecturer.FullName} is busy on {command.WeekDay} from {command.StartTime} to {command.EndTime}.");
+            throw new BusinessRuleException("LECTURER_BUSY",
+                $"Giảng viên {lecturer.FullName} đã bận vào {command.WeekDay} từ {command.StartTime} đến {command.EndTime}.");
 
-        // Check if room is free
         if (!await scheduleRepository.IsRoomAvailableAsync(command.RoomId, command.WeekDay, command.StartTime,
                 command.EndTime, cancellationToken))
-            throw new Exception(
-                $"Room is booked on {command.WeekDay} from {command.StartTime} to {command.EndTime}.");
+            throw new BusinessRuleException("ROOM_BOOKED",
+                $"Phòng đã được đặt vào {command.WeekDay} từ {command.StartTime} đến {command.EndTime}.");
 
         var schedule = Schedule.Create(
             section.Id,
@@ -56,6 +59,23 @@ public class CreateScheduleCommandHandler(
 
         await scheduleRepository.AddAsync(schedule, cancellationToken);
         await scheduleRepository.SaveChangesAsync(cancellationToken);
+
+        var scheduleCreatedEvent = new ScheduleCreatedEvent(
+            schedule.Id,
+            command.LecturerId,
+            schedule.ClassSectionId,
+            schedule.RoomId,
+            schedule.WeekDay.ToString(),
+            schedule.StartTime,
+            schedule.EndTime,
+            schedule.StartDate,
+            schedule.EndDate,
+            section.CourseId,
+            schedule.CreatedAt
+        );
+
+        await bus.Publish(scheduleCreatedEvent, cancellationToken);
+        logger.LogInformation("ScheduleCreatedEvent published for ScheduleId: {ScheduleId}.", schedule.Id);
 
         return new CreatedScheduleResponse
         {
