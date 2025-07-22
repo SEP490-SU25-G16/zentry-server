@@ -1,12 +1,18 @@
+// File: Zentry.Modules.AttendanceManagement.Domain.Entities/ScanLog.cs
+
+using System;
+using System.Collections.Generic;
+
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class ScanLog
 {
     private ScanLog(
         Guid id,
-        Guid deviceId, // DeviceId của người gửi scan
+        Guid deviceId,
         Guid submitterUserId,
-        Guid sessionId, // SessionId của scan
+        Guid sessionId,
+        Guid roundId,
         DateTime timestamp,
         List<ScannedDevice> scannedDevices
     )
@@ -15,6 +21,7 @@ public class ScanLog
         DeviceId = deviceId;
         SubmitterUserId = submitterUserId;
         SessionId = sessionId;
+        RoundId = roundId;
         Timestamp = timestamp;
         ScannedDevices = scannedDevices;
     }
@@ -23,6 +30,7 @@ public class ScanLog
     public Guid DeviceId { get; private set; }
     public Guid SubmitterUserId { get; private set; }
     public Guid SessionId { get; private set; }
+    public Guid RoundId { get; private set; }
     public DateTime Timestamp { get; private set; }
     public List<ScannedDevice> ScannedDevices { get; private set; }
 
@@ -31,9 +39,10 @@ public class ScanLog
         Guid deviceId,
         Guid submitterUserId,
         Guid sessionId,
+        Guid roundId,
         DateTime timestamp,
         List<ScannedDevice> scannedDevices)
     {
-        return new ScanLog(id, deviceId, submitterUserId, sessionId, timestamp, scannedDevices);
+        return new ScanLog(id, deviceId, submitterUserId, sessionId, roundId, timestamp, scannedDevices);
     }
 }

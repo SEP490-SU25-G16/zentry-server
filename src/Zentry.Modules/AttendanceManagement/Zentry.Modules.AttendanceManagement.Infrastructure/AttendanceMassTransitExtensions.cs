@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using Zentry.Modules.AttendanceManagement.Application.EventHandlers;
+using Zentry.Modules.AttendanceManagement.Application.Consumers;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure;
 
@@ -7,8 +7,8 @@ public static class AttendanceMassTransitExtensions
 {
     public static void AddAttendanceMassTransitConsumers(this IBusRegistrationConfigurator configurator)
     {
-        configurator.AddConsumer<ProcessScanDataMessageConsumer>();
-        configurator.AddConsumer<CreateRoundMessageConsumer>();
+        configurator.AddConsumer<ProcessScanDataEventHandler>();
+        configurator.AddConsumer<SessionCreatedEventHandler>();
     }
 
     public static void ConfigureAttendanceReceiveEndpoints(this IRabbitMqBusFactoryConfigurator cfg,
@@ -16,8 +16,8 @@ public static class AttendanceMassTransitExtensions
     {
         cfg.ReceiveEndpoint("attendance_scan_data_queue", e =>
         {
-            e.ConfigureConsumer<ProcessScanDataMessageConsumer>(context);
-            e.ConfigureConsumer<CreateRoundMessageConsumer>(context);
+            e.ConfigureConsumer<ProcessScanDataEventHandler>(context);
+            e.ConfigureConsumer<SessionCreatedEventHandler>(context);
             e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
         });
     }

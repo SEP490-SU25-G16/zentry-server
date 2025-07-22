@@ -14,6 +14,11 @@ public class MongoScanLogRepository(IMongoDatabase database) : IScanLogRepositor
         await _collection.InsertOneAsync(record);
     }
 
+    public async Task<List<ScanLog>> GetScanLogsByRoundIdAsync(Guid roundId, CancellationToken cancellationToken)
+    {
+        return await _collection.Find(s => s.RoundId == roundId).ToListAsync(cancellationToken);
+    }
+
     public async Task<ScanLog> GetScanDataByIdAsync(Guid id)
     {
         return await _collection.Find(r => r.Id == id).FirstOrDefaultAsync();

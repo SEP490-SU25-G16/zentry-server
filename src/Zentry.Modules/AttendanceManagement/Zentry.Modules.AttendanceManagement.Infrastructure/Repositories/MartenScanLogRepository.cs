@@ -1,6 +1,5 @@
 ﻿using Marten;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
-using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Exceptions;
 
@@ -12,6 +11,13 @@ public class MartenScanLogRepository(IDocumentSession session) : IScanLogReposit
     {
         session.Store(record);
         await session.SaveChangesAsync();
+    }
+
+    public async Task<List<ScanLog>> GetScanLogsByRoundIdAsync(Guid roundId, CancellationToken cancellationToken)
+    {
+        return (List<ScanLog>)await session.Query<ScanLog>()
+            .Where(s => s.RoundId == roundId)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<ScanLog> GetScanDataByIdAsync(Guid id)
