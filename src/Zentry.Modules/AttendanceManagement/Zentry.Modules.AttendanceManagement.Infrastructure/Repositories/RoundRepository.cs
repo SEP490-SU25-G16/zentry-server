@@ -27,20 +27,28 @@ public class RoundRepository(AttendanceDbContext dbContext) : IRoundRepository
         return await dbContext.Rounds.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
-    public Task UpdateAsync(Round entity, CancellationToken cancellationToken)
+    public async Task UpdateAsync(Round entity, CancellationToken cancellationToken)
     {
         dbContext.Rounds.Update(entity);
-        return Task.CompletedTask;
+        await SaveChangesAsync(cancellationToken);
     }
 
-    public Task DeleteAsync(Round entity, CancellationToken cancellationToken)
+    public async Task DeleteAsync(Round entity, CancellationToken cancellationToken)
     {
         dbContext.Rounds.Remove(entity);
-        return Task.CompletedTask;
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Round>> GetRoundsBySessionIdAsync(Guid sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Rounds
+            .Where(r => r.SessionId == sessionId)
+            .ToListAsync(cancellationToken);
     }
 }
