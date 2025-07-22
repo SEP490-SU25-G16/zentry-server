@@ -25,8 +25,10 @@ public class GetScheduleByIdHandler(IScheduleRepository scheduleRepository) :
         var nowDate = DateOnly.FromDateTime(now);
         var nowTime = TimeOnly.FromDateTime(now);
 
-        var isActive = schedule.StartDate <= nowDate && schedule.EndDate >= nowDate &&
-                       schedule.StartTime <= nowTime && schedule.EndTime >= nowTime;
+        // TODO: Replace with actual schedule active check based on provided logic
+        // var isActive = schedule.StartDate <= nowDate && schedule.EndDate >= nowDate &&
+        //                schedule.StartTime <= nowTime && schedule.EndTime >= nowTime;
+        var isActive = true; // MOCK TEMPORARY FOR DEVELOPMENT
 
         var response = new GetScheduleByIdIntegrationResponse
         {
@@ -39,7 +41,6 @@ public class GetScheduleByIdHandler(IScheduleRepository scheduleRepository) :
             ScheduledEndDate = schedule.EndDate,
             ScheduledStartTime = schedule.StartTime,
             ScheduledEndTime = schedule.EndTime,
-
             IsActive = isActive
         };
 
