@@ -157,7 +157,7 @@ public static class UserSeedData
 
             var companyDomains = new[]
             {
-                "student.fpt.edu.vn", "sinhvien.edu.vn", "mail.student.com"
+                "fpt.edu.vn"
             };
 
             var accountsToSeed = new List<Account>();
