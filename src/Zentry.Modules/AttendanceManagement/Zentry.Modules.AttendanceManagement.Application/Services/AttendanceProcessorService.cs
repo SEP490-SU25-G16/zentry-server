@@ -228,68 +228,86 @@ public class AttendanceProcessorService(
         return filtered;
     }
 
-    /// <summary>
-    ///     Xây dựng DeviceRecord cho từng thiết bị, chứa danh sách neighbors đã được tối ưu hóa cho thuật toán BFS
-    /// </summary>
-    /// <param name="scanLogs">Danh sách ScanLog đã được filter (chỉ từ registered devices)</param>
-    /// <param name="whitelist">HashSet chứa các DeviceId đã đăng ký để filter neighbors</param>
-    /// <returns>Danh sách DeviceRecord với adjacency list tối ưu cho BFS</returns>
-    private async Task<List<DeviceRecord>> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist)
+        /// <summary>
+        ///     Xây dựng DeviceRecord cho từng thiết bị, chứa danh sách neighbors đã được tối ưu hóa cho thuật toán BFS
+        /// </summary>
+        /// <param name="scanLogs">Danh sách ScanLog đã được filter (chỉ từ registered devices)</param>
+        /// <param name="whitelist">HashSet chứa các DeviceId đã đăng ký để filter neighbors</param>
+        /// <returns>Danh sách DeviceRecord với adjacency list tối ưu cho BFS</returns>
+      private async Task<List<DeviceRecord>> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist)
+{
+    logger.LogInformation("Building device records with neighbor scan lists");
+
+    // Nhóm các scan logs theo DeviceId của submitter
+    var groupedScanLogs = scanLogs
+        .GroupBy(s => s.DeviceId.ToString())
+        .ToList();
+
+    logger.LogInformation("Processing {DeviceCount} devices sequentially to avoid concurrency issues", 
+        groupedScanLogs.Count);
+
+    var records = new List<DeviceRecord>();
+
+    // Xử lý tuần tự từng device để tránh concurrency issues
+    foreach (var g in groupedScanLogs)
     {
-        logger.LogInformation("Building device records with neighbor scan lists");
+        var deviceId = g.Key;
+        
+        logger.LogDebug("Processing device {DeviceId} for role and scan list", deviceId);
 
-        // Nhóm các scan logs theo DeviceId của submitter
-        var groupedScanLogs = scanLogs
-            .GroupBy(s => s.DeviceId.ToString())
+        // Lấy vai trò của device (Student/Lecturer) - xử lý tuần tự
+        var role = await GetDeviceRole(deviceId);
+
+        // Xây dựng optimized neighbor list cho device này
+        var scanList = g
+            // Flatten tất cả ScannedDevices từ multiple submissions của device này
+            .SelectMany(s => s.ScannedDevices)
+            
+            // FILTER 1: Chỉ giữ neighbors có trong whitelist (registered devices only)
+            .Where(d => whitelist.Contains(d.DeviceId))
+            
+            // Group theo DeviceId để merge multiple scans của cùng 1 neighbor
+            .GroupBy(d => d.DeviceId)
+            
+            // Với mỗi neighbor, lấy RSSI mạnh nhất từ multiple scans
+            .Select(gr => new { Id = gr.Key, Rssi = gr.Max(x => x.Rssi) })
+            
+            // OPTIMIZATION 1: Sắp xếp theo signal strength (mạnh nhất trước)
+            .OrderByDescending(x => x.Rssi)
+            
+            // OPTIMIZATION 2: Có thể giới hạn số lượng neighbors để tối ưu BFS
+            // .Take(10) // Uncomment nếu muốn giới hạn top 10 neighbors mạnh nhất
+            
+            // Chỉ lấy DeviceId, bỏ RSSI (không cần cho BFS algorithm)
+            .Select(x => x.Id)
             .ToList();
 
-        var deviceRecordTasks = groupedScanLogs.Select(g =>
-                Task.Run(async () => // Sử dụng Task.Run để chạy bất đồng bộ trong vòng lặp Select
-                {
-                    // Device ID của submitter
-                    var deviceId = g.Key;
+        logger.LogDebug("Device {DeviceId} ({Role}) has {NeighborCount} neighbors after filtering", 
+            deviceId, role, scanList.Count);
 
-                    // Vai trò của device (Student/Lecturer) - dùng để tìm BFS root
-                    // Giữ lại việc lấy Role ở đây vì FindLecturerRoot cần nó.
-                    var role = await GetDeviceRole(deviceId);
-
-                    // Xây dựng optimized neighbor list cho device này
-                    var scanList = g
-                        // Flatten tất cả ScannedDevices từ multiple submissions của device này
-                        .SelectMany(s => s.ScannedDevices)
-
-                        // FILTER 1: Chỉ giữ neighbors có trong whitelist (registered devices only)
-                        .Where(d => whitelist.Contains(d.DeviceId))
-
-                        // Group theo DeviceId để merge multiple scans của cùng 1 neighbor
-                        .GroupBy(d => d.DeviceId)
-
-                        // Với mỗi neighbor, lấy RSSI mạnh nhất từ multiple scans
-                        .Select(gr => new { Id = gr.Key, Rssi = gr.Max(x => x.Rssi) })
-
-                        // OPTIMIZATION 1: Sắp xếp theo signal strength (mạnh nhất trước)
-                        .OrderByDescending(x => x.Rssi)
-
-                        // OPTIMIZATION 2: Chỉ lấy top 7 neighbors mạnh nhất
-                        // TODO: Consider adding .Take(7) here for performance optimization if needed.
-
-                        // Chỉ lấy DeviceId, bỏ RSSI (không cần cho BFS)
-                        .Select(x => x.Id)
-                        .ToList();
-
-                    return new DeviceRecord { DeviceId = deviceId, Role = role, ScanList = scanList };
-                }))
-            .ToList();
-
-        var records = await Task.WhenAll(deviceRecordTasks); // <-- AWAIT TẤT CẢ CÁC TÁC VỤ
-
-        // Log chi tiết adjacency list của từng device để debug
-        foreach (var record in records)
-            logger.LogInformation("Device {DeviceId} ({Role}) scanned: {Neighbors}",
-                record.DeviceId, record.Role, string.Join(", ", record.ScanList));
-
-        return records.ToList();
+        records.Add(new DeviceRecord 
+        { 
+            DeviceId = deviceId, 
+            Role = role, 
+            ScanList = scanList 
+        });
     }
+
+    logger.LogInformation("Successfully built {RecordCount} device records", records.Count);
+
+    // Log chi tiết adjacency list của từng device để debug BFS algorithm
+    foreach (var record in records)
+    {
+        logger.LogInformation("Device {DeviceId} ({Role}) → Neighbors: [{Neighbors}]",
+            record.DeviceId, 
+            record.Role, 
+            record.ScanList.Any() ? string.Join(", ", record.ScanList) : "No neighbors");
+    }
+
+    return records;
+}
+
+
 
     private string FindLecturerRoot(List<DeviceRecord> deviceRecords)
     {
