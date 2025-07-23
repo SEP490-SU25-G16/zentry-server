@@ -45,7 +45,8 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Session>> GetSessionsByScheduleIdAndStatusAsync(Guid scheduleId, SessionStatus status, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Session>> GetSessionsByScheduleIdAndStatusAsync(Guid scheduleId, SessionStatus status,
+        CancellationToken cancellationToken)
     {
         return await dbContext.Sessions
             .Where(s => s.ScheduleId == scheduleId && s.Status == status)
@@ -55,6 +56,7 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
     public async Task<Session?> GetActiveSessionByScheduleId(Guid scheduleId, CancellationToken cancellationToken)
     {
         return await dbContext.Sessions
-            .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Status == SessionStatus.Active, cancellationToken);
+            .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Status == SessionStatus.Active,
+                cancellationToken);
     }
 }

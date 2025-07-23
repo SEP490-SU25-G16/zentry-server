@@ -94,9 +94,7 @@ public class CreateSessionCommandHandler(
         var todaySessionEndUnspecified = currentDate.ToDateTime(schedule.ScheduledEndTime);
 
         if (schedule.ScheduledEndTime < schedule.ScheduledStartTime)
-        {
             todaySessionEndUnspecified = todaySessionEndUnspecified.AddDays(1);
-        }
 
         var todaySessionStart = DateTime.SpecifyKind(todaySessionStartUnspecified, DateTimeKind.Utc);
         var todaySessionEnd = DateTime.SpecifyKind(todaySessionEndUnspecified, DateTimeKind.Utc);
@@ -121,13 +119,16 @@ public class CreateSessionCommandHandler(
         {
             await sessionRepository.AddAsync(session, cancellationToken);
             await sessionRepository.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Session {SessionId} created successfully for Schedule {ScheduleId} by Lecturer {LecturerId}.",
+            logger.LogInformation(
+                "Session {SessionId} created successfully for Schedule {ScheduleId} by Lecturer {LecturerId}.",
                 session.Id, session.ScheduleId, session.UserId);
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Failed to save Session {SessionId} for Schedule {ScheduleId}.", session.Id, session.ScheduleId);
-            throw new ApplicationException("An error occurred while creating the session.", e); // Throw generic app exception or rethrow
+            logger.LogError(e, "Failed to save Session {SessionId} for Schedule {ScheduleId}.", session.Id,
+                session.ScheduleId);
+            throw new ApplicationException("An error occurred while creating the session.",
+                e); // Throw generic app exception or rethrow
         }
 
         return new CreateSessionResponse

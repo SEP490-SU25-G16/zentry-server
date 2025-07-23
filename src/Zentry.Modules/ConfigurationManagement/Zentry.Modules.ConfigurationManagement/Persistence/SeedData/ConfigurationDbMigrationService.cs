@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 
-
 namespace Zentry.Modules.ConfigurationManagement.Persistence.SeedData;
 
 public class ConfigurationDbMigrationService(
@@ -37,9 +36,10 @@ public class ConfigurationDbMigrationService(
                     using var scope = serviceProvider.CreateScope();
                     var seeder = scope.ServiceProvider.GetRequiredService<ConfigurationDbSeeder>();
 
-                    await seeder.SeedAllAsync(false); // Không recreate database
+                    await seeder.SeedAllAsync(); // Không recreate database
                 });
-                logger.LogInformation("Configuration Management database migration and seeding completed successfully.");
+                logger.LogInformation(
+                    "Configuration Management database migration and seeding completed successfully.");
             }
             catch (Exception ex)
             {

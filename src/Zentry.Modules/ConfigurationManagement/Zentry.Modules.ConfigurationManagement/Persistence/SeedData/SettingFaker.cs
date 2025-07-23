@@ -20,7 +20,7 @@ public class SettingFaker : Faker<Setting>
         RuleFor(s => s.ScopeType, f => f.PickRandom<ScopeType>());
         RuleFor(s => s.ScopeId, f => Guid.NewGuid());
         RuleFor(s => s.Value, f => f.Random.Int(0, 100).ToString());
-        RuleFor(s => s.CreatedAt, f => f.Date.Past(1));
-        RuleFor(s => s.UpdatedAt, f => f.Date.Recent(1));
+        RuleFor(s => s.CreatedAt, f => f.Date.Past());
+        RuleFor(s => s.UpdatedAt, f => f.Date.Recent());
     }
 }

@@ -31,24 +31,25 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
             await ScheduleSeedData.SeedRoomsAsync(scheduleContext, logger, cancellationToken);
 
             // Lấy danh sách Lecturer IDs (là User IDs) thông qua Integration Query
-            var lecturerResponse = await mediator.Send(new GetUsersByRoleIntegrationQuery("Lecturer"), cancellationToken);
+            var lecturerResponse =
+                await mediator.Send(new GetUsersByRoleIntegrationQuery("Lecturer"), cancellationToken);
             var lecturerUserIds = lecturerResponse.UserIds;
 
             if (lecturerUserIds.Count == 0)
-            {
-                logger.LogWarning("No active Lecturers (User IDs) found via User Management Integration Query. Skipping ClassSection seeding.");
-            }
+                logger.LogWarning(
+                    "No active Lecturers (User IDs) found via User Management Integration Query. Skipping ClassSection seeding.");
             else
-            {
                 // Seed ClassSections (Cần Course và Lecturer User IDs)
-                await ScheduleSeedData.SeedClassSectionsAsync(scheduleContext, lecturerUserIds, logger, cancellationToken);
-            }
+                await ScheduleSeedData.SeedClassSectionsAsync(scheduleContext, lecturerUserIds, logger,
+                    cancellationToken);
 
             // Seed Schedules (phụ thuộc ClassSections và Rooms)
             await ScheduleSeedData.SeedSchedulesAsync(scheduleContext, logger, cancellationToken); // Thêm dòng này
 
-            var studentIdsResponse = await mediator.Send(new GetUsersByRoleIntegrationQuery("Student"), cancellationToken);
-            await ScheduleSeedData.SeedEnrollmentsAsync(scheduleContext, studentIdsResponse.UserIds, logger, cancellationToken);
+            var studentIdsResponse =
+                await mediator.Send(new GetUsersByRoleIntegrationQuery("Student"), cancellationToken);
+            await ScheduleSeedData.SeedEnrollmentsAsync(scheduleContext, studentIdsResponse.UserIds, logger,
+                cancellationToken);
             await scheduleContext.SaveChangesAsync(cancellationToken); // Save changes sau khi seed Enrollments
 
             await scheduleContext.SaveChangesAsync(cancellationToken);

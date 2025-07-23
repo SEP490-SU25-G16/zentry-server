@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using Bogus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -7,7 +8,8 @@ using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
-using System.Text.RegularExpressions; // Thêm namespace này cho Regex
+
+// Thêm namespace này cho Regex
 
 namespace Zentry.Modules.UserManagement.Persistence.SeedData;
 
@@ -111,10 +113,7 @@ public static class UserSeedData
                 var phoneNumber = $"+849{faker.Random.Number(10000000, 99999999)}";
                 var user = User.Create(account.Id, name, phoneNumber);
 
-                if (i < 5)
-                {
-                    account.UpdateStatus(AccountStatus.Inactive);
-                }
+                if (i < 5) account.UpdateStatus(AccountStatus.Inactive);
 
                 accountsToSeed.Add(account);
                 usersToSeed.Add(user);
@@ -184,10 +183,7 @@ public static class UserSeedData
                     : null;
                 var user = User.Create(account.Id, name, phoneNumber);
 
-                if (i % 10 == 0)
-                {
-                    account.UpdateStatus(AccountStatus.Locked);
-                }
+                if (i % 10 == 0) account.UpdateStatus(AccountStatus.Locked);
 
                 accountsToSeed.Add(account);
                 usersToSeed.Add(user);
@@ -237,9 +233,7 @@ public static class UserSeedData
                  let unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
                  where unicodeCategory != UnicodeCategory.NonSpacingMark
                  select c)
-        {
             stringBuilder.Append(c);
-        }
 
         var result = stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         result = result.Replace("đ", "d").Replace("Đ", "D");

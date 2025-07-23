@@ -1,7 +1,9 @@
 using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Domain;
-using Zentry.SharedKernel.Exceptions; // Thêm using này cho BusinessRuleException
+using Zentry.SharedKernel.Exceptions;
+
+// Thêm using này cho BusinessRuleException
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
@@ -98,10 +100,8 @@ public class Session : AggregateRoot<Guid>
     public void ActivateSession()
     {
         if (Status != SessionStatus.Pending)
-        {
             throw new BusinessRuleException("SESSION_NOT_PENDING",
                 "Không thể kích hoạt phiên khi trạng thái không phải Pending.");
-        }
 
         Status = SessionStatus.Active;
         UpdatedAt = DateTime.UtcNow;
@@ -110,10 +110,8 @@ public class Session : AggregateRoot<Guid>
     public void CompleteSession()
     {
         if (Status != SessionStatus.Active)
-        {
             throw new BusinessRuleException("SESSION_NOT_ACTIVE",
                 "Không thể hoàn thành phiên khi trạng thái không phải Active.");
-        }
 
         Status = SessionStatus.Completed;
         UpdatedAt = DateTime.UtcNow;

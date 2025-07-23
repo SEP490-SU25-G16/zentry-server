@@ -24,6 +24,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
 
         return role;
     }
+
     public async Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await dbContext.Users.AnyAsync(a => a.Id == userId, cancellationToken);

@@ -51,7 +51,7 @@ public class GetEnrollmentsQueryHandler(
             foreach (var studentId in studentIds)
             {
                 var studentDto =
-                    await userScheduleService.GetUserByIdAndRoleAsync("student", studentId, cancellationToken);
+                    await userScheduleService.GetUserByIdAndRoleAsync("Student", studentId, cancellationToken);
                 if (studentDto != null)
                     students[studentId] = studentDto;
             }

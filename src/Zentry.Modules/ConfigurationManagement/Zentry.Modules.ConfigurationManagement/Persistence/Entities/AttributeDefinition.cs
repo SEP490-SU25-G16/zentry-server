@@ -43,7 +43,8 @@ public class AttributeDefinition : AggregateRoot<Guid>
         return new AttributeDefinition(Guid.NewGuid(), key, displayName, description, dataType, scopeType, unit);
     }
 
-    public static AttributeDefinition FromSeedingData(Guid id, string key, string displayName, string? description, DataType dataType,
+    public static AttributeDefinition FromSeedingData(Guid id, string key, string displayName, string? description,
+        DataType dataType,
         ScopeType scopeType, string? unit)
     {
         return new AttributeDefinition(id, key, displayName, description, dataType, scopeType, unit);

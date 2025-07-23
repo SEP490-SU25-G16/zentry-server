@@ -27,7 +27,9 @@ public class CreateRoundsConsumer(
             var session = await sessionRepository.GetByIdAsync(message.SessionId, consumeContext.CancellationToken);
             if (session is null)
             {
-                logger.LogWarning("CreateSessionRounds failed: Session with ID {SessionId} not found. Skipping round creation.", message.SessionId);
+                logger.LogWarning(
+                    "CreateSessionRounds failed: Session with ID {SessionId} not found. Skipping round creation.",
+                    message.SessionId);
                 return;
             }
 
@@ -35,7 +37,9 @@ public class CreateRoundsConsumer(
 
             if (session.TotalAttendanceRounds <= 0)
             {
-                logger.LogInformation("No rounds to create for Session {SessionId}. TotalAttendanceRounds is {TotalRounds}.", session.Id, session.TotalAttendanceRounds);
+                logger.LogInformation(
+                    "No rounds to create for Session {SessionId}. TotalAttendanceRounds is {TotalRounds}.", session.Id,
+                    session.TotalAttendanceRounds);
                 return;
             }
 

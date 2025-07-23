@@ -2,12 +2,6 @@ namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class SessionWhitelist
 {
-    public Guid Id { get; set; }
-    public Guid SessionId { get; set; }
-    public List<Guid> WhitelistedDeviceIds { get; set; }
-    public DateTime GeneratedAt { get; set; }
-    public DateTime? LastUpdatedAt { get; set; }
-
     public SessionWhitelist()
     {
         WhitelistedDeviceIds = new List<Guid>();
@@ -21,6 +15,12 @@ public class SessionWhitelist
         GeneratedAt = DateTime.UtcNow;
         LastUpdatedAt = DateTime.UtcNow;
     }
+
+    public Guid Id { get; set; }
+    public Guid SessionId { get; set; }
+    public List<Guid> WhitelistedDeviceIds { get; set; }
+    public DateTime GeneratedAt { get; set; }
+    public DateTime? LastUpdatedAt { get; set; }
 
     public static SessionWhitelist Create(Guid sessionId, List<Guid> whitelistedDeviceIds)
     {

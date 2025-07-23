@@ -34,10 +34,8 @@ public class GenerateSessionWhitelistConsumer(
                 await scanLogWhitelistRepository.GetBySessionIdAsync(message.SessionId,
                     consumeContext.CancellationToken);
             if (existingWhitelist != null)
-            {
                 logger.LogInformation("Whitelist already exists for Session {SessionId}. Updating existing whitelist.",
                     message.SessionId);
-            }
 
             // --- 1. Lấy danh sách các thiết bị được phép (giảng viên + sinh viên) ---
             var whitelistedDeviceIds =
@@ -82,9 +80,7 @@ public class GenerateSessionWhitelistConsumer(
 
                 // Thêm tất cả DeviceId từ Dictionary của sinh viên vào HashSet
                 foreach (var deviceId in studentDevicesResponse.UserDeviceMap.Values)
-                {
                     whitelistedDeviceIds.Add(deviceId);
-                }
 
                 logger.LogInformation(
                     "Added {Count} active devices from {StudentCount} enrolled students to whitelist.",

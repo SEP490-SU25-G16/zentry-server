@@ -1,9 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
-using Zentry.Modules.AttendanceManagement.Application.Features.StartSession; // Thêm using này
+using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
-using Zentry.Modules.AttendanceManagement.Presentation.Requests; // Cần tạo StartSessionRequest
+using Zentry.Modules.AttendanceManagement.Presentation.Requests;
+// Thêm using này
+
+// Cần tạo StartSessionRequest
 
 namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 
@@ -37,9 +40,7 @@ public class AttendanceController(IMediator mediator) : ControllerBase
         CancellationToken cancellationToken)
     {
         if (request.UserId == Guid.Empty)
-        {
             return BadRequest(new { Message = "User ID is required to start a session." });
-        }
 
         var command = new StartSessionCommand
         {

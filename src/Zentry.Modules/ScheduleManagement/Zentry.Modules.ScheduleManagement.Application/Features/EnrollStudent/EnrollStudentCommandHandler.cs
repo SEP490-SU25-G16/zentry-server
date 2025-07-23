@@ -19,7 +19,7 @@ public class EnrollStudentCommandHandler(
     public async Task<EnrollmentResponse> Handle(EnrollStudentCommand command, CancellationToken cancellationToken)
     {
         var studentUser =
-            await userLookupService.GetUserByIdAndRoleAsync("student", command.StudentId, cancellationToken);
+            await userLookupService.GetUserByIdAndRoleAsync("Student", command.StudentId, cancellationToken);
         if (studentUser == null)
             throw new NotFoundException("Student", command.StudentId);
 

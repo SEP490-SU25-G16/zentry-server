@@ -3,12 +3,12 @@ using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Attendance;
-using Zentry.SharedKernel.Exceptions;
 using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
+using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 
@@ -60,13 +60,11 @@ public class SubmitScanDataCommandHandler(
 
                 throw new ApplicationException("An error occurred while determining the round   .");
             }
-            else
-            {
-                currentRoundId = currentRound.Id;
-                logger.LogInformation(
-                    "Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
-                    request.SessionId, currentRound.Id, currentRound.RoundNumber);
-            }
+
+            currentRoundId = currentRound.Id;
+            logger.LogInformation(
+                "Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
+                request.SessionId, currentRound.Id, currentRound.RoundNumber);
         }
         catch (Exception ex)
         {

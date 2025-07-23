@@ -19,7 +19,7 @@ public class OptionFaker : Faker<Option>
         RuleFor(o => o.Value, f => f.Random.Word());
         RuleFor(o => o.DisplayLabel, f => f.Commerce.ProductAdjective());
         RuleFor(o => o.SortOrder, f => f.Random.Int(1, 100));
-        RuleFor(o => o.CreatedAt, f => f.Date.Past(1));
-        RuleFor(o => o.UpdatedAt, f => f.Date.Recent(1));
+        RuleFor(o => o.CreatedAt, f => f.Date.Past());
+        RuleFor(o => o.UpdatedAt, f => f.Date.Recent());
     }
 }

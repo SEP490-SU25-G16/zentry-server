@@ -47,9 +47,6 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");
 
-        builder.OwnsOne(s => s.SessionConfigs, ownedBuilder =>
-        {
-            ownedBuilder.ToJson();
-        });
+        builder.OwnsOne(s => s.SessionConfigs, ownedBuilder => { ownedBuilder.ToJson(); });
     }
 }

@@ -34,16 +34,13 @@ public class CreateSessionConsumer(
 
             logger.LogInformation("Fetching all relevant settings for schedule {ScheduleId}.", message.ScheduleId);
 
-            // ***** THAY ĐỔI LỚN NHẤT Ở ĐÂY: GỌI HÀM BATCH MỚI *****
             var requests = new List<ScopeQueryRequest>
             {
                 new(AttendanceScopeTypes.Global, Guid.Empty),
                 new(AttendanceScopeTypes.Session, message.ScheduleId)
             };
             if (message.CourseId != Guid.Empty)
-            {
                 requests.Add(new ScopeQueryRequest(AttendanceScopeTypes.Course, message.CourseId));
-            }
 
             var allSettingsResponse =
                 await configService.GetMultipleSettingsInBatchAsync(requests, context.CancellationToken);
@@ -62,22 +59,13 @@ public class CreateSessionConsumer(
 
             var finalConfigDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var setting in globalSettings)
-            {
-                finalConfigDictionary[setting.Key] = setting.Value;
-            }
+            foreach (var setting in globalSettings) finalConfigDictionary[setting.Key] = setting.Value;
 
             // Thêm Course settings (ghi đè Global)
-            foreach (var setting in courseSettings)
-            {
-                finalConfigDictionary[setting.Key] = setting.Value;
-            }
+            foreach (var setting in courseSettings) finalConfigDictionary[setting.Key] = setting.Value;
 
             // Thêm Session settings (ghi đè Global và Course)
-            foreach (var setting in sessionSettings)
-            {
-                finalConfigDictionary[setting.Key] = setting.Value;
-            }
+            foreach (var setting in sessionSettings) finalConfigDictionary[setting.Key] = setting.Value;
 
             var sessionConfigSnapshot = SessionConfigSnapshot.FromDictionary(finalConfigDictionary);
 
@@ -89,7 +77,6 @@ public class CreateSessionConsumer(
             var currentTime = DateTime.UtcNow;
             var currentDate = DateOnly.FromDateTime(currentTime);
 
-            // Chuyển đổi message.WeekDay (string) sang DayOfWeek của System để so sánh
             DayOfWeek systemDayOfWeek;
             try
             {
@@ -108,7 +95,6 @@ public class CreateSessionConsumer(
             // --- 2. Duyệt qua các ngày trong khoảng Schedule để tạo Session (PENDING) ---
             // Áp dụng logic kiểm tra ngày và giờ tương tự CreateSessionCommandHandler
             for (var date = message.ScheduledStartDate; date <= message.ScheduledEndDate; date = date.AddDays(1))
-            {
                 if (date.DayOfWeek == systemDayOfWeek)
                 {
                     // Kiểm tra xem ngày hiện tại có nằm trong khoảng thời gian của khóa học không (đã làm ở trên, nhưng giữ lại logic)
@@ -128,9 +114,7 @@ public class CreateSessionConsumer(
 
                     // Nếu session kéo dài qua ngày (ví dụ: 23:00 - 01:00)
                     if (message.ScheduledEndTime < message.ScheduledStartTime)
-                    {
                         todaySessionEndUnspecified = todaySessionEndUnspecified.AddDays(1);
-                    }
 
                     var todaySessionStart = DateTime.SpecifyKind(todaySessionStartUnspecified, DateTimeKind.Utc);
                     var todaySessionEnd = DateTime.SpecifyKind(todaySessionEndUnspecified, DateTimeKind.Utc);
@@ -148,7 +132,6 @@ public class CreateSessionConsumer(
                     logger.LogInformation("Prepared Session {SessionId} for Schedule {ScheduleId} on {SessionDate}.",
                         session.Id, message.ScheduleId, date.ToShortDateString());
                 }
-            }
 
             // --- 3. LƯU TẤT CẢ SESSIONS VÀO DATABASE ---
             if (sessionsToPersist.Count > 0)

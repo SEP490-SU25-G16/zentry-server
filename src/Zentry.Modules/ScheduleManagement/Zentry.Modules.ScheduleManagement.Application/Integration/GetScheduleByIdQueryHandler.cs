@@ -14,7 +14,8 @@ public class GetScheduleByIdQueryHandler(IScheduleRepository scheduleRepository)
         var schedule = await scheduleRepository.GetByIdWithClassSectionAsync(query.Id, cancellationToken);
 
         if (schedule is null)
-            throw new NotFoundException(nameof(GetScheduleByIdQueryHandler), $"Schedule with ID '{query.Id}' not found.");
+            throw new NotFoundException(nameof(GetScheduleByIdQueryHandler),
+                $"Schedule with ID '{query.Id}' not found.");
 
         if (schedule.ClassSection is null)
             throw new NotFoundException(nameof(GetScheduleByIdQueryHandler),

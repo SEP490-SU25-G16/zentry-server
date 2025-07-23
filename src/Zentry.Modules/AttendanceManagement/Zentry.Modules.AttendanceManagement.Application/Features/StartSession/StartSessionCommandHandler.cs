@@ -1,8 +1,7 @@
-using MassTransit;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
-using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
@@ -47,13 +46,11 @@ public class StartSessionCommandHandler(
             throw new BusinessRuleException("SESSION_NOT_PENDING", "Phiên điểm danh chưa ở trạng thái chờ kích hoạt.");
         }
 
-        // Lấy lại config snapshot để kiểm tra thời gian (nếu cần thiết, hoặc dựa vào session.SessionConfigs đã lưu)
         var sessionConfigSnapshot = session.SessionConfigs; // Sử dụng SessionConfigs đã lưu trong Session entity
 
         var attendanceWindowMinutes = sessionConfigSnapshot.AttendanceWindowMinutes;
 
         var currentTime = DateTime.UtcNow;
-        // Các kiểm tra thời gian (từ code cũ) vẫn cần
         var sessionAllowedStartTime = session.StartTime.AddMinutes(-attendanceWindowMinutes);
         var sessionAllowedEndTime = session.EndTime.AddMinutes(attendanceWindowMinutes);
 
@@ -103,7 +100,7 @@ public class StartSessionCommandHandler(
         var sessionWhitelist = await scanLogWhitelistRepository.GetBySessionIdAsync(session.Id, cancellationToken);
         if (sessionWhitelist != null)
         {
-            var whitelistJson = System.Text.Json.JsonSerializer.Serialize(sessionWhitelist.WhitelistedDeviceIds);
+            var whitelistJson = JsonSerializer.Serialize(sessionWhitelist.WhitelistedDeviceIds);
             var totalSessionDuration = session.EndTime.Subtract(currentTime) // Thời gian còn lại của session
                 .Add(TimeSpan.FromMinutes(session.AttendanceWindowMinutes * 2)); // Cộng thêm buffer
 

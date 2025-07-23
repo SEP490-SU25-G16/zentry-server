@@ -14,7 +14,8 @@ public class GetUserIdsByDevicesQueryHandler(
         GetUserIdsByDevicesIntegrationQuery request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Handling GetUserIdsByDevicesIntegrationQuery for {Count} device IDs.", request.DeviceIds.Count);
+        logger.LogInformation("Handling GetUserIdsByDevicesIntegrationQuery for {Count} device IDs.",
+            request.DeviceIds.Count);
 
         if (request.DeviceIds.Count == 0)
         {

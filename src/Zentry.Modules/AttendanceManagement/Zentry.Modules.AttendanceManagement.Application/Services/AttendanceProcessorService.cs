@@ -4,10 +4,10 @@ using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
-using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
@@ -52,9 +52,9 @@ public class AttendanceProcessorService(
             "Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber}).",
             message.SessionId, currentRound.Id, currentRound.RoundNumber);
 
-        if (Equals(currentRound.Status, Domain.Enums.RoundStatus.Pending))
+        if (Equals(currentRound.Status, RoundStatus.Pending))
         {
-            currentRound.UpdateStatus(Domain.Enums.RoundStatus.Active);
+            currentRound.UpdateStatus(RoundStatus.Active);
             await roundRepository.UpdateAsync(currentRound, cancellationToken);
             logger.LogInformation("Updated Round {RoundId} status to Active.", currentRound.Id);
         }
@@ -88,8 +88,8 @@ public class AttendanceProcessorService(
 
             // 4. Lưu kết quả điểm danh
             await PersistAttendanceResult(
-                currentRound: await roundRepository.GetByIdAsync(roundId, cancellationToken) ??
-                              throw new NotFoundException(nameof(AttendanceProcessorService), "Round not found!"),
+                await roundRepository.GetByIdAsync(roundId, cancellationToken) ??
+                throw new NotFoundException(nameof(AttendanceProcessorService), "Round not found!"),
                 attendedDeviceIds, cancellationToken);
 
             logger.LogInformation(
@@ -122,13 +122,11 @@ public class AttendanceProcessorService(
                         sessionId, cachedWhitelist.Count);
                     return [..cachedWhitelist];
                 }
-                else
-                {
-                    logger.LogWarning(
-                        "Whitelist for Session {SessionId} found in Redis cache but is empty. Proceeding to DB or returning empty set.",
-                        sessionId);
-                    return [];
-                }
+
+                logger.LogWarning(
+                    "Whitelist for Session {SessionId} found in Redis cache but is empty. Proceeding to DB or returning empty set.",
+                    sessionId);
+                return [];
             }
 
             logger.LogInformation(
@@ -138,9 +136,7 @@ public class AttendanceProcessorService(
             var whitelist = await scanLogWhitelistRepository.GetBySessionIdAsync(sessionId, cancellationToken);
 
             if (whitelist != null && whitelist.WhitelistedDeviceIds.Count != 0)
-            {
                 return [..whitelist.WhitelistedDeviceIds.Select(id => id.ToString())];
-            }
 
             logger.LogWarning("No whitelist found or whitelist is empty for Session {SessionId}.", sessionId);
             return [];
@@ -202,8 +198,8 @@ public class AttendanceProcessorService(
     }
 
     /// <summary>
-    /// Lọc các ScanLog chỉ từ những thiết bị đã được đăng ký (trong whitelist), về cơ bản thì khi mà phát ra
-    /// thì chỉ những thằng cùng room, cùng session mới nhận ra nhau thôi. Nên bước cần là một thức cẩn thận hơn
+    ///     Lọc các ScanLog chỉ từ những thiết bị đã được đăng ký (trong whitelist), về cơ bản thì khi mà phát ra
+    ///     thì chỉ những thằng cùng room, cùng session mới nhận ra nhau thôi. Nên bước cần là một thức cẩn thận hơn
     /// </summary>
     /// <param name="scanLogs">Danh sách tất cả ScanLog trong round</param>
     /// <param name="whitelist">HashSet chứa các DeviceId đã đăng ký trong session</param>
@@ -233,7 +229,7 @@ public class AttendanceProcessorService(
     }
 
     /// <summary>
-    /// Xây dựng DeviceRecord cho từng thiết bị, chứa danh sách neighbors đã được tối ưu hóa cho thuật toán BFS
+    ///     Xây dựng DeviceRecord cho từng thiết bị, chứa danh sách neighbors đã được tối ưu hóa cho thuật toán BFS
     /// </summary>
     /// <param name="scanLogs">Danh sách ScanLog đã được filter (chỉ từ registered devices)</param>
     /// <param name="whitelist">HashSet chứa các DeviceId đã đăng ký để filter neighbors</param>
@@ -289,10 +285,8 @@ public class AttendanceProcessorService(
 
         // Log chi tiết adjacency list của từng device để debug
         foreach (var record in records)
-        {
             logger.LogInformation("Device {DeviceId} ({Role}) scanned: {Neighbors}",
                 record.DeviceId, record.Role, string.Join(", ", record.ScanList));
-        }
 
         return records.ToList();
     }
@@ -303,9 +297,7 @@ public class AttendanceProcessorService(
             r.Role.Equals("Lecturer", StringComparison.OrdinalIgnoreCase));
 
         if (lecturerRecord == null)
-        {
             throw new InvalidOperationException("No lecturer found in device records for BFS root");
-        }
 
         logger.LogInformation("Found lecturer {LecturerId} as BFS root", lecturerRecord.DeviceId);
         return lecturerRecord.DeviceId;
@@ -327,12 +319,8 @@ public class AttendanceProcessorService(
             var neighbors = scanMap.GetValueOrDefault(currentDevice, new List<string>());
 
             foreach (var neighbor in neighbors)
-            {
                 if (whitelist.Contains(neighbor) && attendance.Add(neighbor))
-                {
                     queue.Enqueue(neighbor);
-                }
-            }
         }
 
         logger.LogInformation("BFS phase completed: {Count} devices reached", attendance.Count);
@@ -340,15 +328,13 @@ public class AttendanceProcessorService(
     }
 
     /// <summary>
-    /// Fill-In Phase: Bổ sung những thiết bị bị "miss" bởi BFS nhưng thực tế đã có mặt
-    ///
-    /// Ý nghĩa: BFS có thể miss một số thiết bị do:
-    /// - Network topology không hoàn hảo (A thấy B, nhưng B không thấy A)
-    /// - Signal interference tạm thời
-    /// - Timing issues (scan không đồng bộ)
-    ///
-    /// Fill-in logic: Nếu device X không được BFS detect, nhưng X có scan được
-    /// những device đã attended → X cũng có khả năng cao đã có mặt
+    ///     Fill-In Phase: Bổ sung những thiết bị bị "miss" bởi BFS nhưng thực tế đã có mặt
+    ///     Ý nghĩa: BFS có thể miss một số thiết bị do:
+    ///     - Network topology không hoàn hảo (A thấy B, nhưng B không thấy A)
+    ///     - Signal interference tạm thời
+    ///     - Timing issues (scan không đồng bộ)
+    ///     Fill-in logic: Nếu device X không được BFS detect, nhưng X có scan được
+    ///     những device đã attended → X cũng có khả năng cao đã có mặt
     /// </summary>
     /// <param name="deviceRecords">Danh sách device records với neighbor lists</param>
     /// <param name="attendance">Kết quả attendance từ BFS phase</param>
@@ -383,7 +369,7 @@ public class AttendanceProcessorService(
     }
 
     /// <summary>
-    /// Điểm danh dựa trên các device đã được phát hiện
+    ///     Điểm danh dựa trên các device đã được phát hiện
     /// </summary>
     /// <param name="currentRound">Đối tượng Round hiện tại</param>
     /// <param name="attendedDeviceIds">Danh sách DeviceId (string format) đã được BFS algorithm phát hiện có mặt</param>
@@ -393,8 +379,8 @@ public class AttendanceProcessorService(
         List<string> attendedDeviceIds,
         CancellationToken cancellationToken)
     {
-        Guid sessionId = currentRound.SessionId;
-        Guid roundId = currentRound.Id;
+        var sessionId = currentRound.SessionId;
+        var roundId = currentRound.Id;
 
         logger.LogInformation("Persisting attendance result for Round {RoundId}: {Count} devices from BFS results.",
             roundId, attendedDeviceIds.Count);
@@ -452,18 +438,14 @@ public class AttendanceProcessorService(
                 StudentId = studentIdToUse,
                 DeviceId = usedDeviceIdString,
                 IsAttended = isAttended,
-                AttendedTime = attendedTime,
+                AttendedTime = attendedTime
             });
 
             var studentTrack = await studentTrackRepository.GetByIdAsync(studentIdToUse, cancellationToken);
             if (studentTrack == null)
-            {
                 studentTrack = new StudentTrack(studentIdToUse, usedDeviceIdString);
-            }
             else
-            {
                 studentTrack.DeviceId = usedDeviceIdString;
-            }
 
             var existingRoundParticipation = studentTrack.Rounds.FirstOrDefault(rp => rp.RoundId == roundId);
             if (existingRoundParticipation != null)
@@ -523,7 +505,7 @@ public class AttendanceProcessorService(
 
     private async Task<string> GetDeviceRole(string deviceIdString)
     {
-        if (!Guid.TryParse(deviceIdString, out Guid deviceIdGuid))
+        if (!Guid.TryParse(deviceIdString, out var deviceIdGuid))
         {
             logger.LogWarning(
                 "Invalid DeviceId string format: {DeviceIdString} when getting role. Returning 'Unknown'.",
