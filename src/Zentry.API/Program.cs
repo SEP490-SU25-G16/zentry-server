@@ -17,6 +17,8 @@ using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 using Zentry.Modules.UserManagement;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
+using Zentry.Modules.FaceId;
+using Zentry.Modules.FaceId.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +31,9 @@ builder.Services.AddCors(options =>
         corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 builder.Services.AddAuthorization();
+
+// Add health checks
+builder.Services.AddHealthChecks();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -63,6 +68,9 @@ builder.Services.AddAttendanceApplication();
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddReportingInfrastructure(builder.Configuration);
 
+// Add FaceId module
+builder.Services.AddFaceIdInfrastructure(builder.Configuration);
+
 var app = builder.Build();
 
 app.UseCors("AllowAll");
@@ -70,6 +78,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -137,6 +146,22 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Applying migrations for UserDbContext...");
         userDbContext.Database.Migrate();
         logger.LogInformation("User migrations applied successfully.");
+    });
+
+    // Migrate FaceId
+    retryPolicy.Execute(() =>
+    {
+        try
+        {
+            var faceIdContext = serviceProvider.GetRequiredService<FaceIdDbContext>();
+            logger.LogInformation("Applying migrations for FaceIdDbContext...");
+            faceIdContext.Database.Migrate();
+            logger.LogInformation("FaceId migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error applying FaceId migrations");
+        }
     });
 }
 

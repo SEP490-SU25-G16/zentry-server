@@ -55,6 +55,10 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.DeviceManagement", "src\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement\Zentry.Modules.DeviceManagement.csproj", "{A306972B-1EA0-4310-934D-F037C5DDA998}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FaceId", "FaceId", "{F5B6A320-4F7A-4498-ACBA-11923E1614E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.FaceId", "src\Zentry.Modules\FaceId\Zentry.Modules.FaceId.csproj", "{B306972B-1EA0-4310-934D-F037C5DDA999}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +133,14 @@ Global
 		{A306972B-1EA0-4310-934D-F037C5DDA998}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A306972B-1EA0-4310-934D-F037C5DDA998}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A306972B-1EA0-4310-934D-F037C5DDA998}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5B6A320-4F7A-4498-ACBA-11923E1614E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5B6A320-4F7A-4498-ACBA-11923E1614E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5B6A320-4F7A-4498-ACBA-11923E1614E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5B6A320-4F7A-4498-ACBA-11923E1614E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B306972B-1EA0-4310-934D-F037C5DDA999}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B306972B-1EA0-4310-934D-F037C5DDA999}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B306972B-1EA0-4310-934D-F037C5DDA999}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B306972B-1EA0-4310-934D-F037C5DDA999}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -154,6 +166,8 @@ Global
 		{662279C9-2E3B-4289-87E4-05949F74D6FA} = {674F5320-4F7A-4498-ACBA-11923E1614EF}
 		{3058E3FE-748B-40EA-A5D9-0DD8F8D01E5A} = {31645492-FCCB-412F-AEB1-09558B953F02}
 		{A306972B-1EA0-4310-934D-F037C5DDA998} = {E24108BB-981E-4040-A043-DA2055EE50B9}
+		{F5B6A320-4F7A-4498-ACBA-11923E1614E5} = {E5978E3B-C456-4EFF-8869-BE94283AE234}
+		{B306972B-1EA0-4310-934D-F037C5DDA999} = {F5B6A320-4F7A-4498-ACBA-11923E1614E5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4EB49780-9AAE-4B6F-BBC8-F71D278C1B92}
