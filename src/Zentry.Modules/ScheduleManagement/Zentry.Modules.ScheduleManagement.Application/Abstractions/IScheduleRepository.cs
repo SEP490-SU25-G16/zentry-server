@@ -21,4 +21,10 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
         CancellationToken cancellationToken);
 
     Task<Schedule?> GetByIdWithClassSectionAsync(Guid id, CancellationToken cancellationToken);
+
+    public Task<List<Schedule>> GetLecturerSchedulesForDateAsync(
+        Guid lecturerId,
+        DateTime date,
+        WeekDayEnum weekDay,
+        CancellationToken cancellationToken);
 }

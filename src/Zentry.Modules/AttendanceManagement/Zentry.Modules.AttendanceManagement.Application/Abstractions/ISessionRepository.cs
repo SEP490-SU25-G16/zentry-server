@@ -10,4 +10,5 @@ public interface ISessionRepository : IRepository<Session, Guid>
         CancellationToken cancellationToken);
 
     Task<Session?> GetActiveSessionByScheduleId(Guid scheduleId, CancellationToken cancellationToken);
+    Task<List<Session>> GetSessionsByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken);
 }

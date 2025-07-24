@@ -7,10 +7,8 @@ using Zentry.Modules.ScheduleManagement.Application.Features.DeleteClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
-
-// Thêm using này
-
-// Thêm using này
+// Thêm using cho query mới
+using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
@@ -43,7 +41,22 @@ public class ClassSectionsController(IMediator mediator) : ControllerBase
         return Ok(dto);
     }
 
-    // --- Thêm endpoint để lấy danh sách ClassSections ---
+    // --- Endpoint để lấy danh sách các lớp học trong ngày của giảng viên ---
+    [HttpGet("daily-schedule")]
+    [ProducesResponseType(typeof(List<LecturerDailyClassDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLecturerDailyClasses([FromQuery] Guid lecturerId, [FromQuery] DateTime? date = null)
+    {
+        var queryDate = date ?? DateTime.Today;
+
+        var query = new GetLecturerDailyClassesQuery(lecturerId, queryDate);
+
+        var response = await mediator.Send(query);
+
+        return Ok(response);
+    }
+    // ----------------------------------------------------------------------
+
     [HttpGet]
     [ProducesResponseType(typeof(GetClassSectionsResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetClassSections([FromQuery] GetClassSectionsQuery query)

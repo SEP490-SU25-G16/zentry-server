@@ -8,6 +8,13 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
+    public async Task<List<Session>> GetSessionsByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Sessions
+            .Where(s => s.ScheduleId == scheduleId)
+            .OrderBy(s => s.StartTime)
+            .ToListAsync(cancellationToken);
+    }
     public async Task AddAsync(Session entity, CancellationToken cancellationToken)
     {
         await dbContext.Sessions.AddAsync(entity, cancellationToken);
