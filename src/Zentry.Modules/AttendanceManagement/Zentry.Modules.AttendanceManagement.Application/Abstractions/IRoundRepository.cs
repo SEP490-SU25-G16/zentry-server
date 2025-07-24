@@ -5,5 +5,5 @@ namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
 public interface IRoundRepository : IRepository<Round, Guid>
 {
-    Task<IEnumerable<Round>> GetRoundsBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
+    Task<List<Round>> GetRoundsBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
 }

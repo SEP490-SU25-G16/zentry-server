@@ -44,11 +44,12 @@ public class RoundRepository(AttendanceDbContext dbContext) : IRoundRepository
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Round>> GetRoundsBySessionIdAsync(Guid sessionId,
+    public async Task<List<Round>> GetRoundsBySessionIdAsync(Guid sessionId,
         CancellationToken cancellationToken = default)
     {
         return await dbContext.Rounds
             .Where(r => r.SessionId == sessionId)
+            .OrderBy(r => r.RoundNumber)
             .ToListAsync(cancellationToken);
     }
 }

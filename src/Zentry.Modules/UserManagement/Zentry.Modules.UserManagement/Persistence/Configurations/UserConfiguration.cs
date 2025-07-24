@@ -18,6 +18,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.AccountId)
             .IsRequired();
 
+        builder.HasOne(u => u.Account)
+            .WithOne()
+            .HasForeignKey<User>(u => u.AccountId)
+            .IsRequired();
+
         builder.Property(u => u.FullName)
             .IsRequired()
             .HasMaxLength(255);
@@ -34,7 +39,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .ValueGeneratedOnAddOrUpdate();
 
         builder.HasIndex(u => u.AccountId)
-            .IsUnique(); // One-to-one relationship with Account
+            .IsUnique();
 
         builder.HasIndex(u => u.FullName);
         builder.HasIndex(u => u.PhoneNumber);

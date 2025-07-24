@@ -18,6 +18,20 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/class-sections")]
 public class ClassSectionsController(IMediator mediator) : ControllerBase
 {
+    [HttpGet("daily-schedule")]
+    [ProducesResponseType(typeof(List<LecturerDailyClassDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLecturerDailyClasses([FromQuery] Guid lecturerId,
+        [FromQuery] DateTime? date = null)
+    {
+        var queryDate = date ?? DateTime.Today;
+
+        var query = new GetLecturerDailyClassesQuery(lecturerId, queryDate);
+
+        var response = await mediator.Send(query);
+
+        return Ok(response);
+    }
     [HttpGet("{lecturerId:guid}/report/daily")]
     [ProducesResponseType(typeof(List<LecturerDailyReportDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLecturerDailyReport(
@@ -63,22 +77,6 @@ public class ClassSectionsController(IMediator mediator) : ControllerBase
     {
         var dto = await mediator.Send(new GetClassSectionByIdQuery(id));
         return Ok(dto);
-    }
-
-    // --- Endpoint để lấy danh sách các lớp học trong ngày của giảng viên ---
-    [HttpGet("daily-schedule")]
-    [ProducesResponseType(typeof(List<LecturerDailyClassDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetLecturerDailyClasses([FromQuery] Guid lecturerId,
-        [FromQuery] DateTime? date = null)
-    {
-        var queryDate = date ?? DateTime.Today;
-
-        var query = new GetLecturerDailyClassesQuery(lecturerId, queryDate);
-
-        var response = await mediator.Send(query);
-
-        return Ok(response);
     }
     // ----------------------------------------------------------------------
 

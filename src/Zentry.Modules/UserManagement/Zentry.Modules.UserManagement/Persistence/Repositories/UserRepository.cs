@@ -9,6 +9,16 @@ namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
+    public async Task<List<Zentry.Modules.UserManagement.Entities.User>> GetUsersByIdsAsync(List<Guid> userIds,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Users
+            .AsNoTracking()
+            .Include(u => u.Account) // Cần include Account để lấy Email nếu Email không có trong User
+            .Where(u => userIds.Contains(u.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<string?> GetUserRoleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         // Tái sử dụng logic từ GetAccountByUserId nhưng chỉ lấy Role

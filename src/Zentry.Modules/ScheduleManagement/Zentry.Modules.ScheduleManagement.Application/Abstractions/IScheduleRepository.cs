@@ -27,4 +27,5 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
         DateTime date,
         WeekDayEnum weekDay,
         CancellationToken cancellationToken);
+
 }

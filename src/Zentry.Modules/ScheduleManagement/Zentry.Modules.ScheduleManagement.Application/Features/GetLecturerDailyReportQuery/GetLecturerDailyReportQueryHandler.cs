@@ -47,7 +47,7 @@ public class GetLecturerDailyReportQueryHandler(
             result.Add(new LecturerDailyReportDto
             {
                 // Lấy tên giảng viên từ kết quả của mediator.Send
-                LecturerName = lecturerInfo?.FullName,
+                LecturerName = lecturerInfo?.FullName!,
                 CourseCode = schedule.ClassSection?.Course?.Code!,
                 CourseName = schedule.ClassSection?.Course?.Name!,
                 SectionCode = schedule.ClassSection?.SectionCode!,

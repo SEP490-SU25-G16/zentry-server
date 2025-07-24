@@ -22,4 +22,5 @@ public interface IUserRepository : IRepository<User, Guid>
         string? status);
 
     Task SoftDeleteUserAsync(Guid userId, CancellationToken cancellationToken);
+    Task<List<User>> GetUsersByIdsAsync(List<Guid> userIds, CancellationToken cancellationToken);
 }

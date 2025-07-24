@@ -18,6 +18,7 @@ public class User : AggregateRoot<Guid>
     }
 
     public Guid AccountId { get; private set; }
+    public virtual Account? Account { get; set; }
     public string FullName { get; private set; }
     public string? PhoneNumber { get; private set; }
     public DateTime CreatedAt { get; private set; }

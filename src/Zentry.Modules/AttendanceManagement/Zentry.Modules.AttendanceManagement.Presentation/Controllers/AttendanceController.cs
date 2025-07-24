@@ -1,9 +1,14 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
+using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
+using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Presentation.Requests;
+
 // Thêm using này
 
 // Cần tạo StartSessionRequest
@@ -14,23 +19,26 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 [Route("api/attendance")]
 public class AttendanceController(IMediator mediator) : ControllerBase
 {
-    [HttpPost("sessions")]
-    [ProducesResponseType(201)] // Thêm các kiểu response
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)] // Giảng viên/Lịch trình không tìm thấy
-    [ProducesResponseType(409)] // Lỗi BusinessRuleException (e.g. LECTURER_NOT_ASSIGNED, OUT_OF_COURSE_PERIOD)
-    public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request,
-        CancellationToken cancellationToken)
+    [HttpGet("{sessionId:guid}/rounds")]
+    [ProducesResponseType(typeof(List<RoundAttendanceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSessionRounds(Guid sessionId, CancellationToken cancellationToken)
     {
-        var command = new CreateSessionCommand(request.ScheduleId, request.UserId);
-        var result = await mediator.Send(command, cancellationToken);
-        // CreatedAtAction cần tên action và route values để tạo URL cho tài nguyên mới.
-        // Nếu bạn muốn URL trỏ đến session đã tạo, bạn cần một action GetSessionById.
-        // Tạm thời, dùng Created (201) với kết quả.
-        return Created("", result);
+        var query = new GetSessionRoundsQuery(sessionId);
+        var result = await mediator.Send(query, cancellationToken);
+        return Ok(result);
     }
 
-    // --- API MỚI: StartSession ---
+    [HttpGet("{sessionId:guid}/attendance/final")]
+    [ProducesResponseType(typeof(List<FinalAttendanceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSessionFinalAttendance(Guid sessionId, CancellationToken cancellationToken)
+    {
+        var query = new GetSessionFinalAttendanceQuery(sessionId);
+        var result = await mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+
     [HttpPost("sessions/{sessionId}/start")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
