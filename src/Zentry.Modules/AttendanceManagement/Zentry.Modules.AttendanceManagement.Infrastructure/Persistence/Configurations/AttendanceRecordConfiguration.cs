@@ -32,9 +32,6 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
         builder.Property(ar => ar.IsManual)
             .IsRequired();
 
-        builder.Property(ar => ar.IsAbsent)
-            .IsRequired();
-
         builder.Property(ar => ar.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();

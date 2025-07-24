@@ -16,7 +16,6 @@ public class AttendanceRecord : AggregateRoot<Guid>
         SessionId = sessionId;
         Status = status;
         IsManual = isManual;
-        IsAbsent = status == AttendanceStatus.Absent;
         CreatedAt = DateTime.UtcNow;
         ExpiredAt = DateTime.UtcNow;
     }
@@ -25,7 +24,6 @@ public class AttendanceRecord : AggregateRoot<Guid>
     public Guid SessionId { get; private set; }
     public AttendanceStatus Status { get; private set; }
     public bool IsManual { get; private set; }
-    public bool IsAbsent { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime ExpiredAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -40,7 +38,6 @@ public class AttendanceRecord : AggregateRoot<Guid>
         if (status != null)
         {
             Status = status;
-            IsAbsent = Status == AttendanceStatus.Absent;
         }
 
         if (isManual.HasValue) IsManual = isManual.Value;

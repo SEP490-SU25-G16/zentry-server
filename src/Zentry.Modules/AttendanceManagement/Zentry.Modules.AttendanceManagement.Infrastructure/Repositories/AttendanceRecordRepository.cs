@@ -1,11 +1,18 @@
+using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
-public class AttendanceRepository(AttendanceDbContext dbContext) : IAttendanceRepository
+public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttendanceRecordRepository
 {
+    public async Task<List<AttendanceRecord>> GetAttendanceRecordsBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        return await dbContext.AttendanceRecords
+            .Where(ar => ar.SessionId == sessionId)
+            .ToListAsync(cancellationToken);
+    }
     public Task<IEnumerable<AttendanceRecord>> GetAllAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();

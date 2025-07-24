@@ -10,7 +10,4 @@
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
         <ProjectReference Include="..\Zentry.Modules.ScheduleManagement.Domain\Zentry.Modules.ScheduleManagement.Domain.csproj"/>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Features\GetLecturerDailyReportQuery\" />
-    </ItemGroup>
 </Project>

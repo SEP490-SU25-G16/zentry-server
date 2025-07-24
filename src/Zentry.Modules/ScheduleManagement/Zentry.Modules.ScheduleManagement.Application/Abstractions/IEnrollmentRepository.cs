@@ -13,4 +13,5 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
         CancellationToken cancellationToken);
 
     Task<List<Guid>> GetActiveStudentIdsByClassSectionIdAsync(Guid classSectionId, CancellationToken cancellationToken);
+    Task<int> CountActiveStudentsByClassSectionIdAsync(Guid classSectionId, CancellationToken cancellationToken);
 }

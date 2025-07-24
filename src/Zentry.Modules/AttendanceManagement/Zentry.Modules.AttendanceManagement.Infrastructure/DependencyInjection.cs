@@ -68,7 +68,7 @@ public static class DependencyInjection
             services.AddScoped<IScanLogWhitelistRepository, MongoSessionWhitelistRepository>();
         }
 
-        services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+        services.AddScoped<IAttendanceRecordRepository, AttendanceRecordRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<IRoundRepository, RoundRepository>();
 
