@@ -12,4 +12,5 @@ public interface IClassSectionRepository : IRepository<ClassSection, Guid>
 
     Task<ClassSection?> GetBySectionCodeAsync(string sectionCode, string semester, CancellationToken cancellationToken);
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken);
+    public Task<List<ClassSection>> GetLecturerClassSectionsAsync(Guid lecturerId, CancellationToken cancellationToken);
 }

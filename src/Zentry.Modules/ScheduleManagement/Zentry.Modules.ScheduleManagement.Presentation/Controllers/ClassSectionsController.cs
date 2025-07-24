@@ -9,6 +9,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
 // Thêm using cho query mới
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerHome;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
@@ -16,6 +17,15 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/class-sections")]
 public class ClassSectionsController(IMediator mediator) : ControllerBase
 {
+    [HttpGet("{lecturerId:guid}/home")]
+    [ProducesResponseType(typeof(List<LecturerHomeDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetLecturerHome(Guid lecturerId)
+    {
+        var query = new GetLecturerHomeQuery(lecturerId);
+        var response = await mediator.Send(query);
+        return Ok(response);
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(CreateClassSectionResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -45,7 +55,8 @@ public class ClassSectionsController(IMediator mediator) : ControllerBase
     [HttpGet("daily-schedule")]
     [ProducesResponseType(typeof(List<LecturerDailyClassDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetLecturerDailyClasses([FromQuery] Guid lecturerId, [FromQuery] DateTime? date = null)
+    public async Task<IActionResult> GetLecturerDailyClasses([FromQuery] Guid lecturerId,
+        [FromQuery] DateTime? date = null)
     {
         var queryDate = date ?? DateTime.Today;
 
