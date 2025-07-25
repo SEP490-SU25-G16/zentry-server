@@ -5,6 +5,7 @@ using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
+using Zentry.Modules.AttendanceManagement.Application.Features.StartRound;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Presentation.Requests;
@@ -54,6 +55,30 @@ public class AttendanceController(IMediator mediator) : ControllerBase
         {
             SessionId = sessionId,
             UserId = request.UserId
+        };
+
+        var result = await mediator.Send(command, cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpPost("sessions/{sessionId}/rounds/{roundId}/start")]
+    [ProducesResponseType(typeof(StartRoundResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> StartRound(Guid sessionId, Guid roundId, [FromBody] StartRoundRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.LecturerId == Guid.Empty)
+            return BadRequest(new { Message = "Lecturer ID is required to start a round." });
+
+        var command = new StartRoundCommand
+        {
+            SessionId = sessionId,
+            RoundId = roundId,
+            LecturerId = request.LecturerId,
+            RequireFaceVerification = request.RequireFaceVerification
         };
 
         var result = await mediator.Send(command, cancellationToken);
