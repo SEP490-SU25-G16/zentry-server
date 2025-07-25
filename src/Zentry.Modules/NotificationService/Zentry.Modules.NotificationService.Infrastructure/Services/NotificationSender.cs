@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.NotificationService.Application.Services;
 using Zentry.Modules.NotificationService.Domain.Entities;
+using Zentry.Modules.NotificationService.Infrastructure.Hubs;
 using Zentry.Modules.NotificationService.Infrastructure.Persistence;
 using Zentry.Modules.NotificationService.Infrastructure.Push;
 using Zentry.SharedKernel.Contracts.Events;
@@ -13,6 +15,7 @@ namespace Zentry.Modules.NotificationService.Infrastructure.Services;
 public class NotificationSender(
     IFcmSender fcmSender,
     INotificationRepository notificationRepository,
+    IHubContext<NotificationHub> hubContext,
     ILogger<NotificationSender> logger) : INotificationSender
 {
     public async Task SendNotificationAsync(NotificationCreatedEvent notificationEvent, CancellationToken cancellationToken)
@@ -53,11 +56,43 @@ public class NotificationSender(
             await notificationRepository.SaveChangesAsync(cancellationToken);
             
             logger.LogInformation("In-app notification for user {UserId} saved to database.", notificationEvent.RecipientUserId);
+
+            // Send real-time notification via SignalR
+            await SendRealTimeNotification(notification, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to save in-app notification for user {UserId}", notificationEvent.RecipientUserId);
             // Không re-throw để không ảnh hưởng đến việc gửi push notification nếu có
+        }
+    }
+
+    private async Task SendRealTimeNotification(Notification notification, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var userGroupName = $"user_{notification.RecipientUserId}";
+            
+            var realTimeNotification = new
+            {
+                id = notification.Id,
+                title = notification.Title,
+                body = notification.Body,
+                recipientUserId = notification.RecipientUserId,
+                createdAt = notification.CreatedAt,
+                isRead = notification.IsRead,
+                data = notification.Data
+            };
+
+            await hubContext.Clients.Group(userGroupName)
+                .SendAsync("NewNotification", realTimeNotification, cancellationToken);
+
+            logger.LogInformation("Real-time notification sent to user {UserId} via SignalR.", notification.RecipientUserId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send real-time notification for user {UserId}", notification.RecipientUserId);
+            // Don't throw - real-time notification failure shouldn't break the main flow
         }
     }
 } 

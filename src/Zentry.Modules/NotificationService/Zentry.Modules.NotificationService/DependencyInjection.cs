@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.NotificationService.Application.EventHandlers;
 using Zentry.Modules.NotificationService.Application.Services;
+using Zentry.Modules.NotificationService.Infrastructure.Hubs;
 using Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
 using Zentry.Modules.NotificationService.Infrastructure.Persistence;
 using Zentry.Modules.NotificationService.Infrastructure.Push;
@@ -29,7 +30,10 @@ public static class DependencyInjection
         services.AddMediatR(cfg => 
             cfg.RegisterServicesFromAssembly(Application.AssemblyReference.Assembly));
 
-        // 4. Note: MassTransit is configured centrally in Program.cs
+        // 4. Configure SignalR for real-time notifications
+        services.AddSignalR();
+
+        // 5. Note: MassTransit is configured centrally in Program.cs
         // The NotificationCreatedEventHandler will be automatically discovered
 
         return services;

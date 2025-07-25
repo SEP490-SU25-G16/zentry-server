@@ -19,6 +19,7 @@ using Zentry.Modules.UserManagement;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.FaceId;
 using Zentry.Modules.FaceId.Persistence;
+using Zentry.Modules.NotificationService.Infrastructure.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,6 +85,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub"); // SignalR Hub cho real-time notifications
 app.MapHealthChecks("/health"); // expose health check endpoint
 
 
