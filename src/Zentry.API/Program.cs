@@ -17,6 +17,8 @@ using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 using Zentry.Modules.UserManagement;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
+using Zentry.Modules.FaceId;
+using Zentry.Modules.FaceId.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +30,12 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", corsPolicyBuilder =>
         corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
+
 builder.Services.AddAuthorization();
+
+// --- Thêm health check ---
+builder.Services.AddHealthChecks();
+
 
 // --- Cấu hình MassTransit chung ---
 builder.Services.AddMassTransit(x =>
@@ -47,9 +54,12 @@ builder.Services.AddMassTransit(x =>
             throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured.");
 
         cfg.Host(new Uri(rabbitMqConnectionString));
-        
-        // Tự động cấu hình các receive endpoint cho tất cả consumer đã đăng ký
+
+        // Cấu hình receive endpoints cho tất cả consumer được đăng ký
         cfg.ConfigureEndpoints(context);
+
+        // Nếu Attendance có cấu hình endpoint riêng thì giữ lại
+        cfg.ConfigureAttendanceReceiveEndpoints(context);
     });
 });
 
@@ -64,6 +74,9 @@ builder.Services.AddReportingServiceModule(builder.Configuration);
 builder.Services.AddConfigurationManagementModule(builder.Configuration);
 builder.Services.AddAttendanceManagementModule(builder.Configuration);
 
+// --- Đăng ký FaceId ---
+builder.Services.AddFaceIdInfrastructure(builder.Configuration);
+
 
 var app = builder.Build();
 
@@ -72,6 +85,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health"); // expose health check endpoint
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -139,6 +154,22 @@ using (var scope = app.Services.CreateScope())
         logger.LogInformation("Applying migrations for UserDbContext...");
         userDbContext.Database.Migrate();
         logger.LogInformation("User migrations applied successfully.");
+    });
+
+    // Migrate FaceId (với try-catch riêng)
+    retryPolicy.Execute(() =>
+    {
+        try
+        {
+            var faceIdContext = serviceProvider.GetRequiredService<FaceIdDbContext>();
+            logger.LogInformation("Applying migrations for FaceIdDbContext...");
+            faceIdContext.Database.Migrate();
+            logger.LogInformation("FaceId migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error applying FaceId migrations");
+        }
     });
 }
 
