@@ -1,0 +1,63 @@
+using Microsoft.Extensions.Logging;
+using Zentry.Modules.NotificationService.Application.Services;
+using Zentry.Modules.NotificationService.Domain.Entities;
+using Zentry.Modules.NotificationService.Infrastructure.Persistence;
+using Zentry.Modules.NotificationService.Infrastructure.Push;
+using Zentry.SharedKernel.Contracts.Events;
+
+namespace Zentry.Modules.NotificationService.Infrastructure.Services;
+
+/// <summary>
+/// Triển khai dịch vụ gửi thông báo, điều phối giữa việc lưu và đẩy.
+/// </summary>
+public class NotificationSender(
+    IFcmSender fcmSender,
+    INotificationRepository notificationRepository,
+    ILogger<NotificationSender> logger) : INotificationSender
+{
+    public async Task SendNotificationAsync(NotificationCreatedEvent notificationEvent, CancellationToken cancellationToken)
+    {
+        var tasks = new List<Task>();
+
+        // 1. Gửi In-App Notification (lưu vào CSDL)
+        if (notificationEvent.Type is NotificationType.InApp or NotificationType.All)
+        {
+            tasks.Add(SaveInAppNotification(notificationEvent, cancellationToken));
+        }
+
+        // 2. Gửi Push Notification qua FCM
+        if (notificationEvent.Type is NotificationType.Push or NotificationType.All)
+        {
+            tasks.Add(fcmSender.SendPushNotificationAsync(
+                notificationEvent.RecipientUserId,
+                notificationEvent.Title,
+                notificationEvent.Body,
+                notificationEvent.Data,
+                cancellationToken));
+        }
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task SaveInAppNotification(NotificationCreatedEvent notificationEvent, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var notification = Notification.Create(
+                notificationEvent.RecipientUserId,
+                notificationEvent.Title,
+                notificationEvent.Body,
+                notificationEvent.Data);
+
+            await notificationRepository.AddAsync(notification, cancellationToken);
+            await notificationRepository.SaveChangesAsync(cancellationToken);
+            
+            logger.LogInformation("In-app notification for user {UserId} saved to database.", notificationEvent.RecipientUserId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to save in-app notification for user {UserId}", notificationEvent.RecipientUserId);
+            // Không re-throw để không ảnh hưởng đến việc gửi push notification nếu có
+        }
+    }
+} 

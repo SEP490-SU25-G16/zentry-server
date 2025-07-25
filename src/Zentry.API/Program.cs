@@ -30,38 +30,40 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddAuthorization();
 
+// --- Cấu hình MassTransit chung ---
 builder.Services.AddMassTransit(x =>
 {
-    // Cấu hình các consumers của Attendance module
-    x.AddAttendanceMassTransitConsumers();
+    // Tự động tìm và đăng ký tất cả consumer từ các assembly của module
+    // Điều này yêu cầu các module phải đăng ký consumer của mình,
+    // ví dụ: x.AddConsumer<NotificationCreatedEventHandler>(); bên trong AddNotificationModule
+    x.AddConsumers(typeof(Program).Assembly); // Thêm assembly của API và các module khác
+    // Nếu có các module khác có consumer, thêm assembly của chúng vào đây
+    // x.AddConsumers(typeof(SomeModule.AssemblyReference).Assembly);
 
-    // Cấu hình MassTransit chung với RabbitMQ
     x.UsingRabbitMq((context, cfg) =>
     {
-        // --- Thay đổi cách lấy RabbitMQ_ConnectionString ---
         var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
-        // ----------------------------------------------------
-
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
-            throw new InvalidOperationException(
-                "RabbitMQ_ConnectionString is not configured in appsettings.json or environment variables.");
+            throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured.");
 
         cfg.Host(new Uri(rabbitMqConnectionString));
-
-        // Cấu hình Receive Endpoint cho Attendance module
-        cfg.ConfigureAttendanceReceiveEndpoints(context);
+        
+        // Tự động cấu hình các receive endpoint cho tất cả consumer đã đăng ký
+        cfg.ConfigureEndpoints(context);
     });
 });
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddUserInfrastructure(builder.Configuration);
-builder.Services.AddScheduleInfrastructure(builder.Configuration);
-builder.Services.AddScheduleApplication();
-builder.Services.AddConfigurationInfrastructure(builder.Configuration);
-builder.Services.AddDeviceInfrastructure(builder.Configuration);
-builder.Services.AddAttendanceInfrastructure(builder.Configuration);
-builder.Services.AddAttendanceApplication();
-builder.Services.AddNotificationInfrastructure(builder.Configuration);
-builder.Services.AddReportingInfrastructure(builder.Configuration);
+
+
+// --- Đăng ký các module ---
+builder.Services.AddInfrastructure(builder.Configuration); // Infrastructure chung
+builder.Services.AddScheduleManagementModule(builder.Configuration);
+builder.Services.AddUserManagementModule(builder.Configuration);
+builder.Services.AddDeviceManagementModule(builder.Configuration);
+builder.Services.AddNotificationModule(builder.Configuration); // Đăng ký module Notification
+builder.Services.AddReportingServiceModule(builder.Configuration);
+builder.Services.AddConfigurationManagementModule(builder.Configuration);
+builder.Services.AddAttendanceManagementModule(builder.Configuration);
+
 
 var app = builder.Build();
 
