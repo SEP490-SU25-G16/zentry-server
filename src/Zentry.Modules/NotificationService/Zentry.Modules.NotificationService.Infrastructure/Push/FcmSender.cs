@@ -2,6 +2,7 @@ using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
+using Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
 using Zentry.Modules.NotificationService.Infrastructure.Persistence;
 
 namespace Zentry.Modules.NotificationService.Infrastructure.Push;
@@ -89,31 +90,5 @@ public class FcmSender : IFcmSender
 }
 
 // Interface và class giả để biên dịch được.
-// Bạn cần tạo một entity DeviceToken và repository tương ứng.
-public interface IDeviceTokenRepository
-{
-    Task<IReadOnlyList<string>> GetTokensByUserIdAsync(Guid userId, CancellationToken cancellationToken);
-    Task RemoveTokensAsync(List<string> tokens, CancellationToken cancellationToken);
-}
-
-public class DeviceTokenRepository : IDeviceTokenRepository
-{
-    public Task<IReadOnlyList<string>> GetTokensByUserIdAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        // Giả lập: trả về một danh sách token để test
-        _logger.LogWarning("Using mock device tokens for user {UserId}", userId);
-        return Task.FromResult<IReadOnlyList<string>>(new List<string> { "mock_fcm_token_for_testing" });
-    }
-
-    public Task RemoveTokensAsync(List<string> tokens, CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Simulating removal of invalid tokens: {Tokens}", string.Join(", ", tokens));
-        return Task.CompletedTask;
-    }
-
-    private readonly ILogger<DeviceTokenRepository> _logger;
-    public DeviceTokenRepository(ILogger<DeviceTokenRepository> logger)
-    {
-        _logger = logger;
-    }
-} 
+// Interface moved to separate file: Infrastructure/DeviceTokens/DeviceTokenRepository.cs
+// Implementation also moved to integrate with DeviceManagement module 

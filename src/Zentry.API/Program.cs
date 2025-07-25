@@ -41,11 +41,9 @@ builder.Services.AddHealthChecks();
 builder.Services.AddMassTransit(x =>
 {
     // Tự động tìm và đăng ký tất cả consumer từ các assembly của module
-    // Điều này yêu cầu các module phải đăng ký consumer của mình,
-    // ví dụ: x.AddConsumer<NotificationCreatedEventHandler>(); bên trong AddNotificationModule
-    x.AddConsumers(typeof(Program).Assembly); // Thêm assembly của API và các module khác
-    // Nếu có các module khác có consumer, thêm assembly của chúng vào đây
-    // x.AddConsumers(typeof(SomeModule.AssemblyReference).Assembly);
+    x.AddConsumers(typeof(Program).Assembly); // API assembly
+    x.AddConsumers(typeof(Zentry.Modules.NotificationService.Application.AssemblyReference).Assembly); // NotificationService assembly
+    x.AddConsumers(typeof(Zentry.Modules.AttendanceManagement.Application.AssemblyReference).Assembly); // AttendanceManagement assembly
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -66,16 +64,17 @@ builder.Services.AddMassTransit(x =>
 
 // --- Đăng ký các module ---
 builder.Services.AddInfrastructure(builder.Configuration); // Infrastructure chung
-builder.Services.AddScheduleManagementModule(builder.Configuration);
-builder.Services.AddUserManagementModule(builder.Configuration);
-builder.Services.AddDeviceManagementModule(builder.Configuration);
-builder.Services.AddNotificationModule(builder.Configuration); // Đăng ký module Notification
-builder.Services.AddReportingServiceModule(builder.Configuration);
-builder.Services.AddConfigurationManagementModule(builder.Configuration);
-builder.Services.AddAttendanceManagementModule(builder.Configuration);
+builder.Services.AddUserInfrastructure(builder.Configuration);
+builder.Services.AddScheduleInfrastructure(builder.Configuration);
+builder.Services.AddScheduleApplication();
+builder.Services.AddConfigurationInfrastructure(builder.Configuration);
+builder.Services.AddDeviceInfrastructure(builder.Configuration);
+builder.Services.AddAttendanceInfrastructure(builder.Configuration);
+builder.Services.AddAttendanceApplication();
+builder.Services.AddReportingInfrastructure(builder.Configuration);
 
-// --- Đăng ký FaceId ---
-builder.Services.AddFaceIdInfrastructure(builder.Configuration);
+builder.Services.AddNotificationModule(builder.Configuration); // Đăng ký module Notification
+builder.Services.AddFaceIdInfrastructure(builder.Configuration); // --- Đăng ký FaceId ---
 
 
 var app = builder.Build();
