@@ -9,7 +9,8 @@ namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
 public class CreateRoundsConsumer(
     ILogger<CreateRoundsConsumer> logger,
-    IServiceScopeFactory serviceScopeFactory)
+    IRoundRepository roundRepository,
+    ISessionRepository sessionRepository)
     : IConsumer<CreateRoundsMessage>
 {
     public async Task Consume(ConsumeContext<CreateRoundsMessage> consumeContext)
@@ -21,9 +22,6 @@ public class CreateRoundsConsumer(
 
         try
         {
-            using var scope = serviceScopeFactory.CreateScope();
-            var roundRepository = scope.ServiceProvider.GetRequiredService<IRoundRepository>();
-            var sessionRepository = scope.ServiceProvider.GetRequiredService<ISessionRepository>();
             var session = await sessionRepository.GetByIdAsync(message.SessionId, consumeContext.CancellationToken);
             if (session is null)
             {
@@ -62,8 +60,6 @@ public class CreateRoundsConsumer(
                     roundStartTime,
                     roundEndTime
                 );
-                // Tất cả các round được tạo ở đây sẽ ở trạng thái Pending
-                // Round.Create() đã set mặc định RoundStatus.Pending
                 roundsToAdd.Add(newRound);
             }
 

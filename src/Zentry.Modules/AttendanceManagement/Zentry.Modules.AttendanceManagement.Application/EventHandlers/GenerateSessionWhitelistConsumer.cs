@@ -13,7 +13,8 @@ namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
 public class GenerateSessionWhitelistConsumer(
     ILogger<GenerateSessionWhitelistConsumer> logger,
-    IServiceScopeFactory serviceScopeFactory)
+    IScanLogWhitelistRepository scanLogWhitelistRepository,
+    IMediator mediator)
     : IConsumer<GenerateSessionWhitelistMessage>
 {
     public async Task Consume(ConsumeContext<GenerateSessionWhitelistMessage> consumeContext)
@@ -25,11 +26,6 @@ public class GenerateSessionWhitelistConsumer(
 
         try
         {
-            using var scope = serviceScopeFactory.CreateScope();
-            var scanLogWhitelistRepository = scope.ServiceProvider.GetRequiredService<IScanLogWhitelistRepository>();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-
-            // Kiểm tra xem whitelist đã tồn tại chưa (trong trường hợp retry)
             var existingWhitelist =
                 await scanLogWhitelistRepository.GetBySessionIdAsync(message.SessionId,
                     consumeContext.CancellationToken);

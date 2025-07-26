@@ -9,12 +9,13 @@ using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 
-// Thêm namespace này cho Regex
-
 namespace Zentry.Modules.UserManagement.Persistence.SeedData;
 
 public static class UserSeedData
 {
+    private const int StudentCount = 100;
+    private const int LecturerCount = 10;
+
     private static readonly string[] SystemRoles = ["Admin", "Manager", "Lecturer", "Student"];
 
     public static async Task SeedAsync(UserDbContext context, IPasswordHasher passwordHasher, ILogger? logger = null)
@@ -95,10 +96,9 @@ public static class UserSeedData
             var accountsToSeed = new List<Account>();
             var usersToSeed = new List<User>();
 
-            const int lecturerCount = 30;
             var faker = new Faker();
 
-            for (var i = 0; i < lecturerCount; i++)
+            for (var i = 0; i < LecturerCount; i++)
             {
                 var name = faker.PickRandom(vietnameseNames);
                 // --- THAY ĐỔI Ở ĐÂY ---
@@ -163,10 +163,9 @@ public static class UserSeedData
             var accountsToSeed = new List<Account>();
             var usersToSeed = new List<User>();
 
-            const int studentCount = 500;
             var faker = new Faker();
 
-            for (var i = 0; i < studentCount; i++)
+            for (var i = 0; i < StudentCount; i++)
             {
                 var name = faker.PickRandom(vietnameseNames);
                 // --- THAY ĐỔI Ở ĐÂY ---

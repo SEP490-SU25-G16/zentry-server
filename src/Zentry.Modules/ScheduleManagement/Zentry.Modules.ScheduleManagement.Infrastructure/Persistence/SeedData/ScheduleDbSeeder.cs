@@ -12,7 +12,7 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
     {
         using var scope = serviceProvider.CreateScope();
         var scheduleContext = scope.ServiceProvider.GetRequiredService<ScheduleDbContext>();
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); // Vẫn cần để lấy Lecturer/Student IDs
 
         try
         {
@@ -30,7 +30,7 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
             await ScheduleSeedData.SeedCoursesAsync(scheduleContext, logger, cancellationToken);
             await ScheduleSeedData.SeedRoomsAsync(scheduleContext, logger, cancellationToken);
 
-            // Lấy danh sách Lecturer IDs (là User IDs) thông qua Integration Query
+            // Get Lecturer IDs (User IDs) via Integration Query
             var lecturerResponse =
                 await mediator.Send(new GetUsersByRoleIntegrationQuery("Lecturer"), cancellationToken);
             var lecturerUserIds = lecturerResponse.UserIds;
@@ -39,21 +39,25 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
                 logger.LogWarning(
                     "No active Lecturers (User IDs) found via User Management Integration Query. Skipping ClassSection seeding.");
             else
-                // Seed ClassSections (Cần Course và Lecturer User IDs)
+                // Seed ClassSections (Needs Course and Lecturer User IDs)
                 await ScheduleSeedData.SeedClassSectionsAsync(scheduleContext, lecturerUserIds, logger,
                     cancellationToken);
 
-            // Seed Schedules (phụ thuộc ClassSections và Rooms)
-            await ScheduleSeedData.SeedSchedulesAsync(scheduleContext, logger, cancellationToken); // Thêm dòng này
+            // Seed Schedules (depends on ClassSections and Rooms)
+            await ScheduleSeedData.SeedSchedulesAsync(scheduleContext, logger, cancellationToken);
 
+            // Get Student IDs (User IDs) via Integration Query
             var studentIdsResponse =
                 await mediator.Send(new GetUsersByRoleIntegrationQuery("Student"), cancellationToken);
             await ScheduleSeedData.SeedEnrollmentsAsync(scheduleContext, studentIdsResponse.UserIds, logger,
                 cancellationToken);
-            await scheduleContext.SaveChangesAsync(cancellationToken); // Save changes sau khi seed Enrollments
 
+            // Save all changes for ScheduleDbContext
             await scheduleContext.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Schedule Management module data seeding completed successfully.");
+
+            // **KHÔNG GỌI Attendance module từ đây nữa.**
+            // Attendance module sẽ tự khởi tạo yêu cầu dữ liệu khi nó seed.
         }
         catch (Exception ex)
         {
@@ -68,12 +72,11 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
         var context = scope.ServiceProvider.GetRequiredService<ScheduleDbContext>();
 
         logger.LogInformation("Clearing all Schedule Management data...");
-
         context.Enrollments.RemoveRange(context.Enrollments);
         context.Schedules.RemoveRange(context.Schedules);
         context.ClassSections.RemoveRange(context.ClassSections);
-        context.Courses.RemoveRange(context.Courses);
         context.Rooms.RemoveRange(context.Rooms);
+        context.Courses.RemoveRange(context.Courses);
 
         await context.SaveChangesAsync(cancellationToken);
         logger.LogInformation("All Schedule Management data cleared.");

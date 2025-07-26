@@ -9,6 +9,7 @@ using MongoDB.Driver;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
+using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.SeedData;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure;
@@ -71,7 +72,8 @@ public static class DependencyInjection
         services.AddScoped<IAttendanceRecordRepository, AttendanceRecordRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<IRoundRepository, RoundRepository>();
-
+        services.AddScoped<AttendanceDbSeeder>();
+        services.AddHostedService<AttendanceDbMigrationService>();
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 

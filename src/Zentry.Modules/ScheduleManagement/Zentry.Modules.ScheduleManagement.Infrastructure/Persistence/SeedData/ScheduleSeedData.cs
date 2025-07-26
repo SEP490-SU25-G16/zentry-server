@@ -10,20 +10,20 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.SeedData;
 
 public static class ScheduleSeedData
 {
-    private const int NumCoursesToGenerate = 40;
-    private const int NumRoomsToGenerate = 80;
-    private const int NumClassSectionsToGenerate = 300;
-    private const int MinSchedulesPerClassSection = 2;
-    private const int MaxSchedulesPerClassSection = 5;
+    private const int NumCoursesToGenerate = 35;
+    private const int NumRoomsToGenerate = 20;
+    private const int NumClassSectionsToGenerate = 45;
+    private const int MinSchedulesPerClassSection = 4;
+    private const int MaxSchedulesPerClassSection = 6;
     private const int MaxAttemptsForUniqueSchedule = 10;
-    private const int NumEnrollmentsToGenerate = 1500;
-    private const int MaxClassSectionsPerStudent = 5;
-    private const int MinClassSectionsPerStudent = 1;
+    private const int NumEnrollmentsToGenerate = 500;
     private static List<Course> SeededCourses { get; set; } = [];
     private static List<Room> SeededRooms { get; set; } = [];
     private static List<ClassSection> SeededClassSections { get; set; } = [];
     private static List<Schedule> SeededSchedules { get; set; } = [];
     private static List<Enrollment> SeededEnrollments { get; set; } = [];
+
+    // **LOẠI BỎ CÁC PHƯƠNG THỨC GetSeededScheduleDtos() và GetSeededClassSectionDtos() Ở ĐÂY**
 
     public static async Task SeedCoursesAsync(ScheduleDbContext context, ILogger? logger = null,
         CancellationToken cancellationToken = default)
@@ -61,7 +61,7 @@ public static class ScheduleSeedData
                     );
                 });
 
-            SeededCourses = courseFaker.Generate(NumCoursesToGenerate); // Dùng constant
+            SeededCourses = courseFaker.Generate(NumCoursesToGenerate);
             await context.Courses.AddRangeAsync(SeededCourses, cancellationToken);
             logger?.LogInformation($"Added {SeededCourses.Count} Courses.");
         }
@@ -89,10 +89,7 @@ public static class ScheduleSeedData
             Randomizer.Seed = new Random(201);
 
             var uniqueRoomNames = new HashSet<string>();
-
-
             var faker = new Faker();
-
             var roomPrefixes = new[] { "A", "B", "C", "D", "E", "F", "G", "H" };
             var roomNumbers = Enumerable.Range(101, 500).ToList();
 
@@ -100,7 +97,7 @@ public static class ScheduleSeedData
 
             var currentRoomNumberIndex = 0;
 
-            while (SeededRooms.Count < NumRoomsToGenerate) // Dùng constant
+            while (SeededRooms.Count < NumRoomsToGenerate)
             {
                 if (currentRoomNumberIndex >= roomNumbers.Count)
                 {
@@ -174,39 +171,22 @@ public static class ScheduleSeedData
             var semesters = new[] { "SP25", "SU25", "FA25", "SP26", "SU26" };
             var classSectionsToAdd = new List<ClassSection>();
 
-            // --- Tối ưu hóa việc tạo ClassSection ---
-            // Bước 1: Tạo một pool các SectionCode duy nhất
             var uniqueSectionCodePool = new HashSet<string>();
-            var maxSectionSuffix = 20; // Tăng lên để có nhiều khả năng hơn nếu cần
+            var maxSectionSuffix = 20;
 
-            // Tạo đủ SectionCode duy nhất để đáp ứng NumClassSectionsToGenerate
-            // Lặp qua các khóa học và tạo mã dựa trên Course.Code
             foreach (var course in SeededCourses)
                 for (var suffix = 1; suffix <= maxSectionSuffix; suffix++)
                     uniqueSectionCodePool.Add($"{course.Code}-{suffix:D2}");
 
-            // Nếu số lượng uniqueSectionCodePool không đủ, bạn có thể bổ sung thêm mã ngẫu nhiên
-            // Hoặc tăng maxSectionSuffix, hoặc NumCoursesToGenerate.
-            // Với 40 Courses * 20 Suffixes = 800 SectionCodes khả dụng.
-            // Nếu bạn cần 300, 800 là thừa đủ.
-
-            // Bước 2: Chuyển pool thành List và xáo trộn
             var shuffledUniqueSectionCodes = uniqueSectionCodePool.ToList();
             faker.Random.Shuffle(shuffledUniqueSectionCodes);
 
-            // Bước 3: Lấy ra các SectionCode cần thiết
-            // Đảm bảo không lấy nhiều hơn số lượng SectionCode duy nhất có sẵn
             var actualNumClassSectionsToGenerate =
                 Math.Min(NumClassSectionsToGenerate, shuffledUniqueSectionCodes.Count);
 
-            // Bước 4: Tạo ClassSection từ các SectionCode đã chọn
             for (var i = 0; i < actualNumClassSectionsToGenerate; i++)
             {
                 var sectionCode = shuffledUniqueSectionCodes[i];
-
-                // Tìm một Course ngẫu nhiên và một Lecturer ngẫu nhiên cho ClassSection này
-                // Đảm bảo rằng randomCourse.Code khớp với phần đầu của sectionCode
-                // để ClassSection có ý nghĩa
                 var matchingCourses = SeededCourses.Where(c => sectionCode.StartsWith($"{c.Code}-")).ToList();
                 var randomCourse = matchingCourses.Any()
                     ? faker.PickRandom(matchingCourses)
@@ -218,13 +198,11 @@ public static class ScheduleSeedData
                 var classSection = ClassSection.Create(
                     randomCourse.Id,
                     randomLecturerId,
-                    sectionCode, // Đã đảm bảo duy nhất
+                    sectionCode,
                     randomSemester
                 );
                 classSectionsToAdd.Add(classSection);
             }
-            // --- Kết thúc tối ưu hóa ---
-
 
             SeededClassSections = classSectionsToAdd;
             await context.ClassSections.AddRangeAsync(SeededClassSections, cancellationToken);
@@ -271,8 +249,6 @@ public static class ScheduleSeedData
             var lecturerOccupiedSlots =
                 new HashSet<(Guid lecturerId, DateOnly date, TimeOnly startTime, TimeOnly endTime)>();
 
-
-            // Các khung giờ phổ biến trong một ngày
             var commonTimeSlots = new List<(TimeOnly Start, TimeOnly End)>
             {
                 (new TimeOnly(8, 0), new TimeOnly(9, 30)),
@@ -282,10 +258,8 @@ public static class ScheduleSeedData
                 (new TimeOnly(16, 30), new TimeOnly(18, 0))
             };
 
-            // SỬA DÒNG NÀY:
             var weekdays = Enumeration.GetAll<WeekDayEnum>().ToList();
 
-            // Định nghĩa các kỳ học (ví dụ cho 2-3 kỳ)
             var currentYear = DateTime.Now.Year;
             var semesters = new Dictionary<string, (DateOnly Start, DateOnly End)>
             {
@@ -310,13 +284,12 @@ public static class ScheduleSeedData
                         var randomRoom = faker.PickRandom(SeededRooms);
                         var randomTimeSlot = faker.PickRandom(commonTimeSlots);
                         var randomWeekDay =
-                            faker.PickRandom(weekdays); // randomWeekDay bây giờ là một WeekDayEnum object
+                            faker.PickRandom(weekdays);
 
                         var scheduleDate =
                             faker.Date.BetweenDateOnly(sectionSemesterDates.Start, sectionSemesterDates.End);
 
-                        // Ensure the generated date actually falls on the randomWeekDay
-                        while (scheduleDate.DayOfWeek != (DayOfWeek)randomWeekDay.Id) // So sánh với randomWeekDay.Id
+                        while (scheduleDate.DayOfWeek != (DayOfWeek)randomWeekDay.Id)
                         {
                             scheduleDate = scheduleDate.AddDays(1);
                             if (scheduleDate > sectionSemesterDates.End) break;
@@ -324,13 +297,11 @@ public static class ScheduleSeedData
 
                         if (scheduleDate > sectionSemesterDates.End) continue;
 
-                        // Check for room conflict for the entire duration of the schedule
                         var roomConflict = occupiedSlots.Any(slot =>
                             slot.roomId == randomRoom.Id &&
                             slot.date == scheduleDate &&
                             randomTimeSlot.Start < slot.endTime && randomTimeSlot.End > slot.startTime);
 
-                        // Check for lecturer conflict
                         var lecturerConflict = lecturerOccupiedSlots.Any(slot =>
                             slot.lecturerId == classSection.LecturerId &&
                             slot.date == scheduleDate &&
@@ -342,10 +313,10 @@ public static class ScheduleSeedData
                                 classSection.Id,
                                 randomRoom.Id,
                                 scheduleDate,
-                                scheduleDate,
+                                scheduleDate, // Assuming single-day schedules for simplicity in seed
                                 randomTimeSlot.Start,
                                 randomTimeSlot.End,
-                                randomWeekDay // randomWeekDay đã là một WeekDayEnum object
+                                randomWeekDay
                             );
                             schedulesToAdd.Add(newSchedule);
 
@@ -402,26 +373,20 @@ public static class ScheduleSeedData
                 return;
             }
 
-            Randomizer.Seed = new Random(204); // Seed khác cho Bogus
+            Randomizer.Seed = new Random(204);
             var faker = new Faker();
 
             var enrollmentsToAdd = new List<Enrollment>();
-            // HashSet để đảm bảo tính duy nhất của cặp (StudentId, ClassSectionId)
             var uniqueEnrollments = new HashSet<(Guid StudentId, Guid ClassSectionId)>();
 
-            // Tính toán số lượng Enrollment tối đa có thể tạo ra
-            // Ví dụ: 500 sinh viên * 300 lớp = 150.000 khả năng.
-            // Số lượng NumEnrollmentsToGenerate là 1000 là nhỏ hơn nhiều, nên việc tìm kiếm sẽ hiệu quả.
-
             var attempts = 0;
-            const int maxTotalAttempts = 5000; // Giới hạn tổng số lần thử để tránh vòng lặp vô hạn
+            const int maxTotalAttempts = 5000;
 
             while (enrollmentsToAdd.Count < NumEnrollmentsToGenerate && attempts < maxTotalAttempts)
             {
                 var randomStudentId = faker.PickRandom(studentIds);
                 var randomClassSection = faker.PickRandom(SeededClassSections);
 
-                // Kiểm tra xem cặp (StudentId, ClassSectionId) đã tồn tại chưa
                 if (uniqueEnrollments.Add((randomStudentId, randomClassSection.Id)))
                 {
                     var enrollment = Enrollment.Create(randomStudentId, randomClassSection.Id);

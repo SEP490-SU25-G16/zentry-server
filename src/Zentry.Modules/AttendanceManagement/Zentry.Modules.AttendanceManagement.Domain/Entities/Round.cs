@@ -27,6 +27,7 @@ public class Round : AggregateRoot<Guid>
     public RoundStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public virtual Session Session { get; set; }
 
     public static Round Create(Guid sessionId, int roundNumber, DateTime startTime, DateTime endTime)
     {

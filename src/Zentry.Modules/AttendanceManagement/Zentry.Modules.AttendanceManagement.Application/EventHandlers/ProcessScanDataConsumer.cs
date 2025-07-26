@@ -8,7 +8,8 @@ namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
 public class ProcessScanDataConsumer(
     ILogger<ProcessScanDataConsumer> logger,
-    IServiceScopeFactory serviceScopeFactory)
+    IServiceScopeFactory serviceScopeFactory,
+    IAttendanceProcessorService processor)
     : IConsumer<ProcessScanDataMessage>
 {
     // To resolve scoped services like DbContexts
@@ -22,9 +23,6 @@ public class ProcessScanDataConsumer(
 
         try
         {
-            using var scope = serviceScopeFactory.CreateScope();
-            var processor = scope.ServiceProvider.GetRequiredService<IAttendanceProcessorService>();
-
             await processor.ProcessBluetoothScanData(message, consumeContext.CancellationToken);
 
             logger.LogInformation("MassTransit Consumer: Successfully processed scan data for SessionId: {SessionId}.",
