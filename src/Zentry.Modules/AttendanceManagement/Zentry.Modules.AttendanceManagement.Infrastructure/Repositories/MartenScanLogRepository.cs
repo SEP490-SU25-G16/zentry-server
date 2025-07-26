@@ -24,4 +24,10 @@ public class MartenScanLogRepository(IDocumentSession session) : IScanLogReposit
     {
         return await session.LoadAsync<ScanLog>(id) ?? throw new NotFoundException(nameof(ScanLog), id);
     }
+
+    public async Task<bool> HasLecturerScanLogInRoundAsync(Guid roundId, Guid lecturerUserId, CancellationToken cancellationToken)
+    {
+        return await session.Query<ScanLog>()
+            .AnyAsync(s => s.RoundId == roundId && s.SubmitterUserId == lecturerUserId, cancellationToken);
+    }
 }

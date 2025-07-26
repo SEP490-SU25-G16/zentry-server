@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Zentry.Modules.ScheduleManagement.Application.Features.EnrollMultipleStudents;
 using Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 
@@ -10,6 +11,23 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/enrollments")]
 public class EnrollmentsController(IMediator mediator) : ControllerBase
 {
+    [HttpPost("bulk-enroll-students")]
+    [ProducesResponseType(typeof(BulkEnrollmentResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> BulkEnrollStudents([FromBody] BulkEnrollStudentsRequest request)
+    {
+        var command = new BulkEnrollStudentsCommand
+        {
+            ClassSectionId = request.ClassSectionId,
+            StudentIds = request.StudentIds
+        };
+
+        var response = await mediator.Send(command);
+
+        return Ok(response);
+    }
+
     [HttpPost("enroll-student")]
     [ProducesResponseType(typeof(EnrollmentResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

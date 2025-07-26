@@ -9,6 +9,19 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepository
 {
+    public async Task BulkAddAsync(List<Enrollment> enrollments, CancellationToken cancellationToken)
+    {
+        await dbContext.Enrollments.AddRangeAsync(enrollments, cancellationToken);
+    }
+
+    public async Task<List<Enrollment>> GetEnrollmentsByClassSectionAsync(Guid classSectionId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Enrollments
+            .Where(e => e.ClassSectionId == classSectionId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Enrollment>> GetEnrollmentsByClassSectionIdAsync(Guid classSectionId,
         CancellationToken cancellationToken)
     {

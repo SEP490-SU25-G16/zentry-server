@@ -14,10 +14,9 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanDat
 
 public class SubmitScanDataCommandHandler(
     IRedisService redisService,
-    IBus bus,
-    IScanLogRepository scanLogRepository,
     IRoundRepository roundRepository,
-    ILogger<SubmitScanDataCommandHandler> logger)
+    ILogger<SubmitScanDataCommandHandler> logger,
+    IBus bus)
     : ICommandHandler<SubmitScanDataCommand, SubmitScanDataResponse>
 {
     public async Task<SubmitScanDataResponse> Handle(SubmitScanDataCommand request, CancellationToken cancellationToken)
@@ -46,9 +45,9 @@ public class SubmitScanDataCommandHandler(
             var currentRound = allRoundsInSession
                 .Where(r => request.Timestamp >= r.StartTime &&
                             (r.EndTime == null || request.Timestamp <= r.EndTime) &&
-                            r.Status != RoundStatus.Completed &&
-                            r.Status != RoundStatus.Cancelled &&
-                            r.Status != RoundStatus.Finalized)
+                            !Equals(r.Status, RoundStatus.Completed) &&
+                            !Equals(r.Status, RoundStatus.Cancelled) &&
+                            !Equals(r.Status, RoundStatus.Finalized))
                 .OrderByDescending(r => r.StartTime)
                 .FirstOrDefault();
 
@@ -73,20 +72,6 @@ public class SubmitScanDataCommandHandler(
             throw new ApplicationException("An error occurred while determining the active round.", ex);
         }
 
-        // Ghi ScanLog với RoundId đã xác định
-        var record = ScanLog.Create(
-            Guid.NewGuid(),
-            request.DeviceId,
-            request.SubmitterUserId,
-            request.SessionId,
-            currentRoundId,
-            request.Timestamp,
-            request.ScannedDevices.Select(sd => new ScannedDevice(sd.DeviceId, sd.Rssi)).ToList()
-        );
-
-        await scanLogRepository.AddScanDataAsync(record);
-
-        // Tạo MassTransit message với RoundId đã xác định
         var message = new ProcessScanDataMessage(
             request.DeviceId,
             request.SubmitterUserId,

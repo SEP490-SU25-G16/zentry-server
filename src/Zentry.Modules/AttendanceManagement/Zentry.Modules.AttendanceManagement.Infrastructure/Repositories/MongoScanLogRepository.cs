@@ -22,4 +22,9 @@ public class MongoScanLogRepository(IMongoDatabase database) : IScanLogRepositor
     {
         return await _collection.Find(r => r.Id == id).FirstOrDefaultAsync();
     }
+
+    public Task<bool> HasLecturerScanLogInRoundAsync(Guid roundId, Guid lecturerUserId, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }

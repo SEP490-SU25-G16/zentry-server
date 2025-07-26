@@ -15,8 +15,6 @@ public class EnrollStudentCommandHandler(
     IMediator mediator)
     : ICommandHandler<EnrollStudentCommand, EnrollmentResponse>
 {
-    private readonly IMediator _mediator = mediator;
-
     public async Task<EnrollmentResponse> Handle(EnrollStudentCommand command, CancellationToken cancellationToken)
     {
         var studentUser =

@@ -14,4 +14,5 @@ public interface ISessionRepository : IRepository<Session, Guid>
 
     public Task<Session?> GetSessionByScheduleIdAndDate(Guid scheduleId, DateTime date,
         CancellationToken cancellationToken);
+    public Task<Guid> GetLecturerIdBySessionId(Guid sessionId, CancellationToken cancellationToken);
 }

@@ -16,6 +16,14 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<Guid> GetLecturerIdBySessionId(Guid sessionId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Sessions
+            .Where(s => s.Id == sessionId)
+            .Select(s => s.UserId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<List<Session>> GetSessionsByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken)
     {
         return await dbContext.Sessions

@@ -1,19 +1,18 @@
 ﻿using MassTransit;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
 public class ProcessScanDataConsumer(
     ILogger<ProcessScanDataConsumer> logger,
-    IServiceScopeFactory serviceScopeFactory,
     IAttendanceProcessorService processor)
     : IConsumer<ProcessScanDataMessage>
 {
-    // To resolve scoped services like DbContexts
-
     public async Task Consume(ConsumeContext<ProcessScanDataMessage> consumeContext)
     {
         var message = consumeContext.Message;
