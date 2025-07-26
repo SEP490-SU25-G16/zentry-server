@@ -2,21 +2,24 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.ResetPassword;
 
 public class RequestResetPasswordHandler(UserDbContext dbContext, IEmailService emailService)
-    : IRequestHandler<RequestResetPasswordCommand>
+    : ICommandHandler<RequestResetPasswordCommand>
 {
-    public async Task Handle(RequestResetPasswordCommand request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(RequestResetPasswordCommand request, CancellationToken cancellationToken)
     {
         var account = await dbContext.Accounts
             .FirstOrDefaultAsync(a => a.Email == request.Email, cancellationToken);
 
-        if (account == null)
+        if (account is null)
+        {
             // For security reasons, always send a success response even if the email doesn't exist
             // to prevent email enumeration.
-            return;
+            return Unit.Value;
+        }
 
         var token = Guid.NewGuid().ToString("N"); // Simple token generation
         var expiryTime = DateTime.UtcNow.AddHours(1); // Token valid for 1 hour
@@ -29,5 +32,7 @@ public class RequestResetPasswordHandler(UserDbContext dbContext, IEmailService 
         var emailBody = $"Your password reset token is: {token}. It is valid for 1 hour. " +
                         $"Please use this token to reset your password on our website."; // Added more context
         await emailService.SendEmailAsync(request.Email, "Password Reset Request for Zentry Account", emailBody);
+
+        return Unit.Value;
     }
 }

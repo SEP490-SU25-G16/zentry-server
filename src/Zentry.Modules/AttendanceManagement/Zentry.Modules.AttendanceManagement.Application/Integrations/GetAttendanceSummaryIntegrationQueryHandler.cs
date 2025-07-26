@@ -1,6 +1,7 @@
 using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Enums;
+using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
@@ -8,7 +9,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 public class GetAttendanceSummaryIntegrationQueryHandler(
     ISessionRepository sessionRepository,
     IAttendanceRecordRepository attendanceRecordRepository)
-    : IRequestHandler<GetAttendanceSummaryIntegrationQuery, AttendanceSummaryIntegrationResponse>
+    : IQueryHandler<GetAttendanceSummaryIntegrationQuery, AttendanceSummaryIntegrationResponse>
 {
     public async Task<AttendanceSummaryIntegrationResponse> Handle(
         GetAttendanceSummaryIntegrationQuery query,

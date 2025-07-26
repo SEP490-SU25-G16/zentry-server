@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.Modules.ScheduleManagement.Domain.Enums;
+using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
@@ -11,7 +12,7 @@ public class GetLecturerDailyClassesQueryHandler(
     IScheduleRepository scheduleRepository,
     IEnrollmentRepository enrollmentRepository,
     IMediator mediator
-) : IRequestHandler<GetLecturerDailyClassesQuery, List<LecturerDailyClassDto>>
+) : IQueryHandler<GetLecturerDailyClassesQuery, List<LecturerDailyClassDto>>
 {
     public async Task<List<LecturerDailyClassDto>> Handle(GetLecturerDailyClassesQuery request,
         CancellationToken cancellationToken)

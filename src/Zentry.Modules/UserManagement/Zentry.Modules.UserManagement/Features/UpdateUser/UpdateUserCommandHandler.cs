@@ -5,9 +5,9 @@ namespace Zentry.Modules.UserManagement.Features.UpdateUser;
 
 // Chỉ cần kế thừa ICommandHandler của bạn
 public class UpdateUserCommandHandler(IUserRepository userRepository)
-    : ICommandHandler<UpdateUserCommand, UpdateUserResponse> // TRƯỚC ĐÂY: IRequestHandler<UpdateUserCommand, UpdateUserResponse>
+    : ICommandHandler<UpdateUserCommand, UpdateUserResponse> // TRƯỚC ĐÂY: IQueryHandler<UpdateUserCommand, UpdateUserResponse>
 {
-    // Phương thức Handle vẫn giữ nguyên tên và chữ ký như của MediatR.IRequestHandler
+    // Phương thức Handle vẫn giữ nguyên tên và chữ ký như của MediatR.IQueryHandler
     public async Task<UpdateUserResponse> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);

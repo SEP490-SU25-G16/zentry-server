@@ -11,5 +11,5 @@ public class BasicUserInfoDto
 {
     public Guid Id { get; set; }
     public string? FullName { get; set; }
-    public string? Email { get; set; } // Thêm email vì có thể hữu ích
+    public string? Email { get; set; }
 }

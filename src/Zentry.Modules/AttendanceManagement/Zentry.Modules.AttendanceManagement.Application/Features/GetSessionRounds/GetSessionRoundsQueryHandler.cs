@@ -2,7 +2,7 @@ using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Schedule; // Cần thêm namespace này cho query Schedule
+using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
@@ -43,6 +43,11 @@ public class GetSessionRoundsQueryHandler(
 
         var result = new List<RoundAttendanceDto>();
 
+        // Lấy CourseCode và SectionCode từ SessionConfigs
+        // Giả sử SessionConfigSnapshot có thể truy cập các giá trị này qua GetConfig hoặc tương tự
+        var courseCode = session.GetConfig<string>("courseCode");
+        var sectionCode = session.GetConfig<string>("sectionCode");
+
         foreach (var round in rounds)
         {
             var attendedCount = allAttendanceRecords
@@ -55,7 +60,12 @@ public class GetSessionRoundsQueryHandler(
                 StartTime = round.StartTime,
                 EndTime = round.EndTime,
                 AttendedCount = attendedCount,
-                TotalStudents = resultCount.TotalStudents
+                TotalStudents = resultCount.TotalStudents,
+                Status = round.Status.ToString(),
+                CreatedAt = round.CreatedAt,
+                UpdatedAt = round.UpdatedAt,
+                CourseCode = courseCode,
+                SectionCode = sectionCode
             });
         }
 

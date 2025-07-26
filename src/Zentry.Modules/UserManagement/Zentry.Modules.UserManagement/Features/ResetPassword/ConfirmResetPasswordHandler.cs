@@ -2,13 +2,14 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.ResetPassword;
 
 public class ConfirmResetPasswordHandler(UserDbContext dbContext, IPasswordHasher passwordHasher)
-    : IRequestHandler<ConfirmResetPasswordCommand>
+    : ICommandHandler<ConfirmResetPasswordCommand>
 {
-    public async Task Handle(ConfirmResetPasswordCommand request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(ConfirmResetPasswordCommand request, CancellationToken cancellationToken)
     {
         var account = await dbContext.Accounts
             .FirstOrDefaultAsync(a => a.Email == request.Email && a.ResetToken == request.Token, cancellationToken);
@@ -35,5 +36,6 @@ public class ConfirmResetPasswordHandler(UserDbContext dbContext, IPasswordHashe
         account.ClearResetToken();
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        return Unit.Value;
     }
 }

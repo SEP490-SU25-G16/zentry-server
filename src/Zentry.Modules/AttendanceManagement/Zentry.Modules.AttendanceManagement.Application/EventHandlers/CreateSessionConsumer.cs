@@ -8,14 +8,18 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
+using MediatR;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
 public class CreateSessionConsumer(
     ILogger<CreateSessionConsumer> logger,
-    IServiceScopeFactory serviceScopeFactory,
-    IBus bus)
+    ISessionRepository sessionRepository,
+    IConfigurationService configService,
+    IBus bus,
+    IMediator mediator)
     : IConsumer<CreateSesssionMessage>
 {
     public async Task Consume(ConsumeContext<CreateSesssionMessage> context)
@@ -27,11 +31,6 @@ public class CreateSessionConsumer(
 
         try
         {
-            using var scope = serviceScopeFactory.CreateScope();
-            var sessionRepository = scope.ServiceProvider.GetRequiredService<ISessionRepository>();
-            var configService =
-                scope.ServiceProvider.GetRequiredService<IConfigurationService>(); // Đây là ConfigurationService mới
-
             logger.LogInformation("Fetching all relevant settings for schedule {ScheduleId}.", message.ScheduleId);
 
             var requests = new List<ScopeQueryRequest>
@@ -67,12 +66,35 @@ public class CreateSessionConsumer(
             // Thêm Session settings (ghi đè Global và Course)
             foreach (var setting in sessionSettings) finalConfigDictionary[setting.Key] = setting.Value;
 
+            if (message.CourseId != Guid.Empty)
+            {
+                var courseCodeResponse = await mediator.Send(new GetCourseCodeIntegrationQuery(message.CourseId),
+                    context.CancellationToken);
+                var courseCode = courseCodeResponse.CourseCode;
+                if (!string.IsNullOrEmpty(courseCode))
+                {
+                    finalConfigDictionary["courseCode"] = courseCode;
+                }
+            }
+
+            if (message.ClassSectionId != Guid.Empty)
+            {
+                var sectionCodeResponse =
+                    await mediator.Send(new GetSectionCodeIntegrationQuery(message.ClassSectionId),
+                        context.CancellationToken);
+                var sectionCode = sectionCodeResponse.SectionCode;
+                if (!string.IsNullOrEmpty(sectionCode))
+                {
+                    finalConfigDictionary["sectionCode"] = sectionCode;
+                }
+            }
+
             var sessionConfigSnapshot = SessionConfigSnapshot.FromDictionary(finalConfigDictionary);
 
             // Các giá trị cấu hình liên quan đến thời gian và rounds
             var attendanceWindowMinutes = sessionConfigSnapshot.AttendanceWindowMinutes;
             var totalAttendanceRounds =
-                sessionConfigSnapshot.TotalAttendanceRounds; // Giữ lại để publish message tạo round
+                sessionConfigSnapshot.TotalAttendanceRounds;
 
             var currentTime = DateTime.UtcNow;
             var currentDate = DateOnly.FromDateTime(currentTime);
@@ -92,34 +114,26 @@ public class CreateSessionConsumer(
 
             var sessionsToPersist = new List<Session>();
 
-            // --- 2. Duyệt qua các ngày trong khoảng Schedule để tạo Session (PENDING) ---
-            // Áp dụng logic kiểm tra ngày và giờ tương tự CreateSessionCommandHandler
             for (var date = message.ScheduledStartDate; date <= message.ScheduledEndDate; date = date.AddDays(1))
                 if (date.DayOfWeek == systemDayOfWeek)
                 {
-                    // Kiểm tra xem ngày hiện tại có nằm trong khoảng thời gian của khóa học không (đã làm ở trên, nhưng giữ lại logic)
                     if (date < message.ScheduledStartDate || date > message.ScheduledEndDate)
                     {
-                        // Logic này thực ra đã được bao phủ bởi vòng lặp for, nhưng giữ lại để khớp
                         logger.LogWarning(
                             "ScheduleCreatedEventConsumer: Date {Date} is outside the course period ({StartDate} - {EndDate}) for schedule {ScheduleId}.",
                             date, message.ScheduledStartDate, message.ScheduledEndDate, message.ScheduleId);
-                        // Không throw, chỉ bỏ qua ngày này nếu có lỗi logic
                         continue;
                     }
 
-                    // Tạo thời điểm bắt đầu và kết thúc của buổi học cho NGÀY NÀY (UTC)
                     var todaySessionStartUnspecified = date.ToDateTime(message.ScheduledStartTime);
                     var todaySessionEndUnspecified = date.ToDateTime(message.ScheduledEndTime);
 
-                    // Nếu session kéo dài qua ngày (ví dụ: 23:00 - 01:00)
                     if (message.ScheduledEndTime < message.ScheduledStartTime)
                         todaySessionEndUnspecified = todaySessionEndUnspecified.AddDays(1);
 
                     var todaySessionStart = DateTime.SpecifyKind(todaySessionStartUnspecified, DateTimeKind.Utc);
                     var todaySessionEnd = DateTime.SpecifyKind(todaySessionEndUnspecified, DateTimeKind.Utc);
 
-                    // Tạo Session với trạng thái Pending
                     var session = Session.Create(
                         message.ScheduleId,
                         message.LecturerId,
@@ -133,7 +147,6 @@ public class CreateSessionConsumer(
                         session.Id, message.ScheduleId, date.ToShortDateString());
                 }
 
-            // --- 3. LƯU TẤT CẢ SESSIONS VÀO DATABASE ---
             if (sessionsToPersist.Count > 0)
             {
                 await sessionRepository.AddRangeAsync(sessionsToPersist, context.CancellationToken);
@@ -142,7 +155,6 @@ public class CreateSessionConsumer(
                     "Successfully created and saved {NumSessions} sessions for Schedule {ScheduleId}.",
                     sessionsToPersist.Count, message.ScheduleId);
 
-                // --- 4. Publish messages cho các Consumer khác (Tạo Rounds & Whitelist) ---
                 foreach (var session in sessionsToPersist)
                 {
                     var currentSessionConfigSnapshot = session.SessionConfigs;
@@ -166,8 +178,6 @@ public class CreateSessionConsumer(
                             session.Id);
                     }
 
-                    // Publish message để tạo/tính toán Whitelist cho Session này
-                    // Dữ liệu từ ScheduleCreatedEvent message gốc được truyền vào
                     var generateWhitelistMessage = new GenerateSessionWhitelistMessage(
                         session.Id,
                         message.ScheduleId,

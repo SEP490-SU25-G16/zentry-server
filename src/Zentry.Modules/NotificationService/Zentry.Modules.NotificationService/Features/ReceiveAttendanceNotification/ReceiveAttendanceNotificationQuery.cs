@@ -6,4 +6,4 @@ namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotificat
 public record ReceiveAttendanceNotificationServiceQuery(
     Guid UserId,
     int Page = 1,
-    int PageSize = 10) : IQuery<List<Notification>>, IRequest<List<Notification>>;
+    int PageSize = 10) : IQuery<List<Notification>>;

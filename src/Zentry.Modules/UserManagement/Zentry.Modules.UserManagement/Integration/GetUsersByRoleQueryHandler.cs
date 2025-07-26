@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
+using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
 
 // Chỉ User Management mới truy cập DbContext này
@@ -13,7 +14,7 @@ namespace Zentry.Modules.UserManagement.Integration;
 
 // Đổi lại tên lớp handler
 public class GetUsersByRoleQueryHandler(UserDbContext userDbContext)
-    : IRequestHandler<GetUsersByRoleIntegrationQuery, GetUsersByRoleIntegrationResponse>
+    : IQueryHandler<GetUsersByRoleIntegrationQuery, GetUsersByRoleIntegrationResponse>
 {
     public async Task<GetUsersByRoleIntegrationResponse> Handle(GetUsersByRoleIntegrationQuery request,
         CancellationToken cancellationToken)

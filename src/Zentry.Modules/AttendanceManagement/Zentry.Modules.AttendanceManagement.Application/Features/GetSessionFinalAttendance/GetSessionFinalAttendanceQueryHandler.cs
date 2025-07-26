@@ -3,7 +3,7 @@ using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Schedule; // Cần thiết cho GetClassSectionIdByScheduleIdIntegrationQuery
+using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
 
@@ -11,7 +11,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFin
 
 public class GetSessionFinalAttendanceQueryHandler(
     IAttendanceRecordRepository attendanceRecordRepository,
-    ISessionRepository sessionRepository, // Thêm ISessionRepository
+    ISessionRepository sessionRepository,
     IMediator mediator)
     : IQueryHandler<GetSessionFinalAttendanceQuery, List<FinalAttendanceDto>>
 {
@@ -22,6 +22,13 @@ public class GetSessionFinalAttendanceQueryHandler(
 
         if (session is null)
             throw new NotFoundException("Session", request.SessionId);
+
+        // Lấy CourseCode và SectionCode từ SessionConfigs của Session
+        var courseCode = session.GetConfig<string>("courseCode");
+        var sectionCode = session.GetConfig<string>("sectionCode");
+        var classInfo = string.IsNullOrWhiteSpace(courseCode) || string.IsNullOrWhiteSpace(sectionCode)
+            ? null
+            : $"{courseCode} - {sectionCode}";
 
         var classSectionIdResponse = await mediator.Send(
             new GetClassSectionIdByScheduleIdIntegrationQuery(session.ScheduleId),
@@ -38,7 +45,7 @@ public class GetSessionFinalAttendanceQueryHandler(
             cancellationToken);
 
         if (!enrollmentsResponse.Enrollments.Any())
-            return [];
+            return new List<FinalAttendanceDto>(); // Trả về danh sách rỗng nếu không có sinh viên nào đăng ký
 
         var enrollments = enrollmentsResponse.Enrollments;
 
@@ -48,7 +55,7 @@ public class GetSessionFinalAttendanceQueryHandler(
 
         var studentIds = enrollments.Select(e => e.StudentId).ToList();
         var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(studentIds), cancellationToken);
-        var userDict = usersResponse.Users.ToDictionary(u => u.Id, u => u); // Truy cập thuộc tính Users từ response DTO
+        var userDict = usersResponse.Users.ToDictionary(u => u.Id, u => u);
 
         var finalAttendance = new List<FinalAttendanceDto>();
 
@@ -62,13 +69,23 @@ public class GetSessionFinalAttendanceQueryHandler(
                 .OrderByDescending(ar => ar.CreatedAt)
                 .FirstOrDefault();
 
-            var status = lastAttendanceRecord?.Status ?? AttendanceStatus.Absent;
+            var attendanceStatus = lastAttendanceRecord?.Status ?? AttendanceStatus.Absent;
 
             finalAttendance.Add(new FinalAttendanceDto
             {
                 StudentId = studentId,
                 StudentFullName = user?.FullName,
-                Status = status.ToString()
+                Email = user?.Email, // Gán email
+                Status = attendanceStatus.ToString(), // Trạng thái Present/Late/Absent
+
+                EnrolledAt = enrollment.EnrolledAt, // Gán ngày đăng ký
+                EnrollmentStatus = enrollment.Status, // Gán trạng thái đăng ký
+
+                ClassInfo = classInfo, // Gán thông tin lớp học
+                SessionStartTime = session.StartTime, // Gán thời gian bắt đầu session
+
+                DetailedAttendanceStatus = attendanceStatus.ToString(), // Gán trạng thái điểm danh chi tiết
+                LastAttendanceTime = lastAttendanceRecord?.CreatedAt // Gán thời gian điểm danh cuối cùng
             });
         }
 

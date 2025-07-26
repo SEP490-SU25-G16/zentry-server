@@ -7,4 +7,9 @@ public class RoundAttendanceDto
     public DateTime? EndTime { get; set; }
     public int AttendedCount { get; set; }
     public int TotalStudents { get; set; }
+    public string Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? CourseCode { get; set; }
+    public string? SectionCode { get; set; }
 }

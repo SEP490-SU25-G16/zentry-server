@@ -1,11 +1,12 @@
 using MediatR;
 using Zentry.Modules.ReportingService.Persistence;
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ReportingService.Features.ViewClassAttendanceReport;
 
 public class
     ViewClassAttendanceReportQueryHandler(ReportingDbContext reportingDbContext)
-    : IRequestHandler<ViewClassAttendanceReportQuery, AttendanceReportResponse>
+    : IQueryHandler<ViewClassAttendanceReportQuery, AttendanceReportResponse>
 {
     private readonly ReportingDbContext _reportingDbContext = reportingDbContext;
 
