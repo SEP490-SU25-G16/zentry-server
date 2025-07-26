@@ -24,4 +24,5 @@ public interface IUserRepository : IRepository<User, Guid>
 
     Task SoftDeleteUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<List<User>> GetUsersByIdsAsync(List<Guid> userIds, CancellationToken cancellationToken);
+    Task<List<(Guid UserId, Role Role)>> GetUserRolesByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken);
 }

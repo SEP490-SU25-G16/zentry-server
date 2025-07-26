@@ -16,7 +16,7 @@ public class SubmitScanDataCommandHandler(
     IRedisService redisService,
     IBus bus,
     IScanLogRepository scanLogRepository,
-    IRoundRepository roundRepository, // <-- Vẫn cần để tìm round
+    IRoundRepository roundRepository,
     ILogger<SubmitScanDataCommandHandler> logger)
     : ICommandHandler<SubmitScanDataCommand, SubmitScanDataResponse>
 {

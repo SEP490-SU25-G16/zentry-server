@@ -22,4 +22,12 @@ public class MartenStudentTrackRepository(IDocumentSession documentSession) : IS
         return await documentSession.Query<StudentTrack>()
             .FirstOrDefaultAsync(s => s.DeviceId == deviceId, cancellationToken);
     }
+
+    public async Task<List<StudentTrack>> GetStudentTracksBySessionIdAsync(Guid sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        return (await documentSession.Query<StudentTrack>()
+            .Where(st => st.SessionId == sessionId)
+            .ToListAsync(cancellationToken)).ToList();
+    }
 }

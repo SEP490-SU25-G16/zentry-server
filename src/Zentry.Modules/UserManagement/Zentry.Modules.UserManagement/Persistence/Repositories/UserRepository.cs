@@ -10,6 +10,25 @@ namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
+    public async Task<List<(Guid UserId, Zentry.SharedKernel.Enums.User.Role Role)>> GetUserRolesByUserIdsAsync(
+        List<Guid> userIds, CancellationToken cancellationToken)
+    {
+        return await dbContext.Accounts
+            .AsNoTracking()
+            .Join(dbContext.Users,
+                account => account.Id,
+                user => user.AccountId,
+                (account, user) => new { Account = account, User = user })
+            .Where(joined => userIds.Contains(joined.User.Id) && joined.Account.Status == AccountStatus.Active)
+            .Select(joined => new
+            {
+                joined.User.Id, // UserId
+                joined.Account.Role // Role (Smart Enum)
+            })
+            .ToListAsync(cancellationToken)
+            .ContinueWith(t => t.Result.Select(x => (x.Id, x.Role)).ToList(), cancellationToken);
+    }
+
     public async Task<List<User>> GetUsersByIdsAsync(List<Guid> userIds,
         CancellationToken cancellationToken)
     {

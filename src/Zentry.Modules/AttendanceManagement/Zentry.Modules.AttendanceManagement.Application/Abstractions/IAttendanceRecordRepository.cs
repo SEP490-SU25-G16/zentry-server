@@ -9,4 +9,7 @@ public interface IAttendanceRecordRepository : IRepository<AttendanceRecord, Gui
 
     public Task<List<AttendanceRecord>> GetAttendanceRecordsBySessionIdAsync(Guid sessionId,
         CancellationToken cancellationToken);
+    Task<AttendanceRecord?> GetByUserIdAndSessionIdAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken);
+
+    Task AddOrUpdateAsync(AttendanceRecord entity, CancellationToken cancellationToken);
 }

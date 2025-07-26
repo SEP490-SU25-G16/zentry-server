@@ -7,6 +7,13 @@ namespace Zentry.Modules.DeviceManagement.Persistence.Repositories;
 
 public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
 {
+    public async Task<List<Device>> GetByIdsAsync(List<Guid> deviceIds, CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .Where(d => deviceIds.Contains(d.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<Guid?> GetActiveDeviceByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await dbContext.Devices

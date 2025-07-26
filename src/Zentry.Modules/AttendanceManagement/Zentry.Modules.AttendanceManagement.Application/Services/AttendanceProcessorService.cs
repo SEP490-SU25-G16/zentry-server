@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using MassTransit;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
@@ -7,6 +8,7 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Enums.Attendance;
 using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
@@ -20,15 +22,14 @@ public class AttendanceProcessorService(
     IScanLogRepository scanLogRepository,
     IRedisService redisService,
     IMediator mediator,
-    ISessionRepository sessionRepository,
     IRoundTrackRepository roundTrackRepository,
-    IStudentTrackRepository studentTrackRepository)
+    IStudentTrackRepository studentTrackRepository,
+    IPublishEndpoint publishEndpoint)
     : IAttendanceProcessorService
 {
     public async Task ProcessBluetoothScanData(ProcessScanDataMessage message, CancellationToken cancellationToken)
     {
         var currentRoundId = message.RoundId;
-
         Round? currentRound = null;
         if (currentRoundId != Guid.Empty)
         {
@@ -64,7 +65,7 @@ public class AttendanceProcessorService(
             message.SessionId,
             currentRoundId,
             cancellationToken);
-
+        await CheckAndTriggerFinalAttendanceProcessing(currentRound, cancellationToken);
         logger.LogInformation("Finished processing scan data for SessionId: {SessionId}.", message.SessionId);
     }
 
@@ -239,56 +240,68 @@ public class AttendanceProcessorService(
     {
         logger.LogInformation("Building device records with neighbor scan lists");
 
-        // Nhóm các scan logs theo DeviceId của submitter
         var groupedScanLogs = scanLogs
             .GroupBy(s => s.DeviceId.ToString())
             .ToList();
 
-        logger.LogInformation("Processing {DeviceCount} devices sequentially to avoid concurrency issues",
-            groupedScanLogs.Count);
-
         var records = new List<DeviceRecord>();
 
-        // Xử lý tuần tự từng device để tránh concurrency issues
+        // THAY ĐỔI Ở ĐÂY: Thu thập tất cả DeviceId duy nhất để truy vấn vai trò theo batch
+        var allUniqueDeviceIdGuids = groupedScanLogs
+            .Select(g => Guid.Parse(g.Key)) // Chắc chắn là Guid
+            .ToList();
+
+        Dictionary<Guid, string> deviceRolesMap = new Dictionary<Guid, string>();
+        if (allUniqueDeviceIdGuids.Any())
+        {
+            try
+            {
+                // Gọi một truy vấn tích hợp mới để lấy vai trò của nhiều thiết bị cùng lúc
+                var getDeviceRolesQuery = new GetDeviceRolesByDevicesIntegrationQuery(allUniqueDeviceIdGuids);
+                var response = await mediator.Send(getDeviceRolesQuery);
+                deviceRolesMap = response.DeviceRolesMap; // Giả định response có một map
+                logger.LogInformation("Fetched roles for {Count} devices in batch query.", deviceRolesMap.Count);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex,
+                    "Error fetching device roles in batch. Individual lookups may fail. Defaulting to 'Unknown' for affected devices.");
+                // Trong trường hợp lỗi batch, bạn có thể cân nhắc một chiến lược dự phòng
+                // Ví dụ: cố gắng lấy từng cái một hoặc mặc định là "Unknown"
+            }
+        }
+
         foreach (var g in groupedScanLogs)
         {
-            var deviceId = g.Key;
+            var deviceIdString = g.Key;
+            var deviceIdGuid = Guid.Parse(deviceIdString);
 
-            logger.LogDebug("Processing device {DeviceId} for role and scan list", deviceId);
+            logger.LogDebug("Processing device {DeviceId} for role and scan list", deviceIdString);
 
-            // Lấy vai trò của device (Student/Lecturer) - xử lý tuần tự
-            var role = await GetDeviceRole(deviceId);
+            // Lấy vai trò từ map đã fetch
+            var role = deviceRolesMap.GetValueOrDefault(deviceIdGuid, "Unknown");
+            if (role == "Unknown")
+            {
+                logger.LogWarning(
+                    "Role not found for Device {DeviceId} in batch result or initial error. Defaulting to 'Unknown'.",
+                    deviceIdString);
+            }
 
-            // Xây dựng optimized neighbor list cho device này
             var scanList = g
-                // Flatten tất cả ScannedDevices từ multiple submissions của device này
                 .SelectMany(s => s.ScannedDevices)
-
-                // FILTER 1: Chỉ giữ neighbors có trong whitelist (registered devices only)
                 .Where(d => whitelist.Contains(d.DeviceId))
-
-                // Group theo DeviceId để merge multiple scans của cùng 1 neighbor
                 .GroupBy(d => d.DeviceId)
-
-                // Với mỗi neighbor, lấy RSSI mạnh nhất từ multiple scans
                 .Select(gr => new { Id = gr.Key, Rssi = gr.Max(x => x.Rssi) })
-
-                // OPTIMIZATION 1: Sắp xếp theo signal strength (mạnh nhất trước)
                 .OrderByDescending(x => x.Rssi)
-
-                // OPTIMIZATION 2: Có thể giới hạn số lượng neighbors để tối ưu BFS
-                // .Take(10) // Uncomment nếu muốn giới hạn top 10 neighbors mạnh nhất
-
-                // Chỉ lấy DeviceId, bỏ RSSI (không cần cho BFS algorithm)
                 .Select(x => x.Id)
                 .ToList();
 
             logger.LogDebug("Device {DeviceId} ({Role}) has {NeighborCount} neighbors after filtering",
-                deviceId, role, scanList.Count);
+                deviceIdString, role, scanList.Count);
 
             records.Add(new DeviceRecord
             {
-                DeviceId = deviceId,
+                DeviceId = deviceIdString,
                 Role = role,
                 ScanList = scanList
             });
@@ -296,7 +309,6 @@ public class AttendanceProcessorService(
 
         logger.LogInformation("Successfully built {RecordCount} device records", records.Count);
 
-        // Log chi tiết adjacency list của từng device để debug BFS algorithm
         foreach (var record in records)
             logger.LogInformation("Device {DeviceId} ({Role}) → Neighbors: [{Neighbors}]",
                 record.DeviceId,
@@ -436,30 +448,26 @@ public class AttendanceProcessorService(
         var studentsInRoundTrack = new List<StudentAttendanceInRound>();
         var studentTracksToUpdate = new List<StudentTrack>();
 
-        foreach (var entry in deviceToUserMap)
+        foreach (var (deviceId, userId) in deviceToUserMap)
         {
-            var deviceId = entry.Key;
-            var userId = entry.Value;
-
             // Mặc định là đã có mặt vì deviceId này nằm trong danh sách attendedDeviceGuids
             const bool isAttended = true;
             var attendedTime = DateTime.UtcNow;
             var usedDeviceIdString = deviceId.ToString();
 
             // Sử dụng UserId làm StudentId trong StudentAttendanceInRound và StudentTrack
-            var studentIdToUse = userId;
 
             studentsInRoundTrack.Add(new StudentAttendanceInRound
             {
-                StudentId = studentIdToUse,
+                StudentId = userId,
                 DeviceId = usedDeviceIdString,
                 IsAttended = isAttended,
                 AttendedTime = attendedTime
             });
 
-            var studentTrack = await studentTrackRepository.GetByIdAsync(studentIdToUse, cancellationToken);
+            var studentTrack = await studentTrackRepository.GetByIdAsync(userId, cancellationToken);
             if (studentTrack == null)
-                studentTrack = new StudentTrack(studentIdToUse, usedDeviceIdString);
+                studentTrack = new StudentTrack(sessionId, userId, usedDeviceIdString);
             else
                 studentTrack.DeviceId = usedDeviceIdString;
 
@@ -512,45 +520,43 @@ public class AttendanceProcessorService(
             currentRound.StartTime)
         {
             ProcessedAt = DateTime.Now,
-            Students = new List<StudentAttendanceInRound>() // Danh sách rỗng
+            Students = []
         };
         await roundTrackRepository.AddOrUpdateAsync(roundTrack, cancellationToken);
         logger.LogInformation("Empty RoundTrack for Round {RoundId} saved.", currentRound.Id);
     }
 
-
-    private async Task<string> GetDeviceRole(string deviceIdString)
+    private async Task CheckAndTriggerFinalAttendanceProcessing(
+        Round currentRound,
+        CancellationToken cancellationToken)
     {
-        if (!Guid.TryParse(deviceIdString, out var deviceIdGuid))
-        {
-            logger.LogWarning(
-                "Invalid DeviceId string format: {DeviceIdString} when getting role. Returning 'Unknown'.",
-                deviceIdString);
-            return "Unknown";
-        }
+        var sessionId = currentRound.SessionId;
+        var currentRoundNumber = currentRound.RoundNumber;
 
-        try
-        {
-            var query = new GetDeviceRoleByDeviceIntegrationQuery(deviceIdGuid);
-            var response = await mediator.Send(query);
+        var totalRounds = await roundRepository.CountRoundsBySessionIdAsync(sessionId, cancellationToken);
 
-            logger.LogDebug("Device {DeviceId} role retrieved: {Role}", deviceIdString, response.Role);
-            return response.Role;
-        }
-        catch (NotFoundException ex)
+        if (currentRoundNumber == totalRounds)
         {
-            logger.LogWarning(ex, "Device {DeviceId} not found when getting role. Returning 'Unknown'.",
-                deviceIdString);
-            return "Unknown";
+            logger.LogInformation(
+                "Round {RoundNumber} is the final round for Session {SessionId}. Publishing final attendance processing message.",
+                currentRoundNumber, sessionId);
+
+            var message = new SessionFinalAttendanceToProcess
+            {
+                SessionId = sessionId
+            };
+            await publishEndpoint.Publish(message, cancellationToken);
+
+            logger.LogInformation("SessionFinalAttendanceToProcess message published for Session {SessionId}.",
+                sessionId);
         }
-        catch (Exception ex)
+        else
         {
-            logger.LogError(ex, "Error getting device role for DeviceId {DeviceId}. Returning 'Error'.",
-                deviceIdString);
-            return "Error";
+            logger.LogInformation(
+                "Round {RoundNumber} is not the final round ({TotalRounds} total rounds) for Session {SessionId}. No final processing triggered.",
+                currentRoundNumber, sessionId, totalRounds);
         }
     }
-
 
     // Internal DTO for algorithm processing
     private class DeviceRecord

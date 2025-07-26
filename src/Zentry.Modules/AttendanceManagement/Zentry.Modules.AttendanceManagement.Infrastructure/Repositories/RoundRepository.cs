@@ -52,4 +52,20 @@ public class RoundRepository(AttendanceDbContext dbContext) : IRoundRepository
             .OrderBy(r => r.RoundNumber)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<int> CountRoundsBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Rounds
+            .Where(r => r.SessionId == sessionId)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<Guid> GetFirstRoundBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Rounds
+            .Where(r => r.SessionId == sessionId)
+            .OrderBy(r => r.RoundNumber)
+            .Select(r => r.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

@@ -1,9 +1,12 @@
 using System.Text.Json;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Enums.Attendance;
 using Zentry.SharedKernel.Exceptions;
 
@@ -14,6 +17,8 @@ public class StartSessionCommandHandler(
     IRoundRepository roundRepository,
     IRedisService redisService,
     IScanLogWhitelistRepository scanLogWhitelistRepository,
+    IScanLogRepository scanLogRepository,
+    IMediator mediator,
     ILogger<StartSessionCommandHandler> logger)
     : ICommandHandler<StartSessionCommand, StartSessionResponse>
 {
@@ -136,6 +141,22 @@ public class StartSessionCommandHandler(
         // --- 5. (Optional) Gửi thông báo đến các máy trong lớp ---
         logger.LogInformation("Sending session started notification for Session {SessionId}.", session.Id);
         // Có thể publish một MassTransit event ở đây, ví dụ: await bus.Publish(new SessionStartedEvent(...), cancellationToken);
+
+
+        var device = await mediator.Send(new GetDeviceByUserIntegrationQuery(request.UserId), cancellationToken);
+        var firstRoundId = await roundRepository.GetFirstRoundBySessionIdAsync(session.Id, cancellationToken);
+
+        var record = ScanLog.Create(
+            Guid.NewGuid(),
+            device.DeviceId,
+            request.UserId,
+            request.SessionId,
+            firstRoundId,
+            DateTime.UtcNow,
+            []
+        );
+
+        await scanLogRepository.AddScanDataAsync(record);
 
         // --- 6. Trả về Response ---
         return new StartSessionResponse
