@@ -2,8 +2,8 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.SharedKernel.Contracts.Schedule;
 
-public record GetSchedulesAndClassSectionsForAttendanceSeedQuery()
-    : IQuery<GetSchedulesAndClassSectionsForAttendanceSeedResponse>;
+public record
+    GetSchedulesAndClassSectionsForAttendanceSeedQuery : IQuery<GetSchedulesAndClassSectionsForAttendanceSeedResponse>;
 
 public record GetSchedulesAndClassSectionsForAttendanceSeedResponse(
     List<SeededScheduleDto> Schedules,
@@ -20,11 +20,11 @@ public record SeededScheduleDto
     public TimeOnly EndTime { get; init; }
     public DateOnly StartDate { get; init; }
     public DateOnly EndDate { get; init; }
-};
+}
 
 public record SeededClassSectionDto
 {
     public Guid Id { get; init; }
     public Guid CourseId { get; init; }
     public Guid LecturerId { get; init; } // Cần để tạo Session (UserId)
-};
+}

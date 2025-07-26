@@ -12,10 +12,7 @@ public class GetCourseCodeIntegrationQueryHandler(ICourseRepository courseReposi
         CancellationToken cancellationToken)
     {
         var course = await courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
-        if (course is null)
-        {
-            throw new NotFoundException("Course", request.CourseId);
-        }
+        if (course is null) throw new NotFoundException("Course", request.CourseId);
 
         return new GetCourseCodeIntegrationResponse(course.Code);
     }

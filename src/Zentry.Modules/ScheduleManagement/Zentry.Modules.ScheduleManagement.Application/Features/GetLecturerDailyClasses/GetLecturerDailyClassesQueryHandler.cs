@@ -84,10 +84,7 @@ public class GetLecturerDailyClassesQueryHandler(
 
                 var timeDifference = sessionStartTimeUtc - now;
 
-                if (timeDifference.TotalMinutes >= -5 && timeDifference.TotalMinutes <= 5)
-                {
-                    canStartSession = true;
-                }
+                if (timeDifference.TotalMinutes >= -5 && timeDifference.TotalMinutes <= 5) canStartSession = true;
             }
 
             result.Add(new LecturerDailyClassDto

@@ -31,7 +31,8 @@ public class Account : AggregateRoot<Guid>
     public DateTime? ResetTokenExpiryTime { get; private set; }
 
 
-    public static Account Create(string email, string passwordHash, string passwordSalt, Role role) // Thay string bằng Role
+    public static Account
+        Create(string email, string passwordHash, string passwordSalt, Role role) // Thay string bằng Role
     {
         return new Account(Guid.NewGuid(), email, passwordHash, passwordSalt, role);
     }

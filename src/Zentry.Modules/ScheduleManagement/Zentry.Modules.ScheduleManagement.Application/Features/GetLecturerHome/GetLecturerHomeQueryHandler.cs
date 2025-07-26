@@ -1,11 +1,15 @@
+using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Attendance; // Cần dùng để truy vấn sessions
-using Zentry.Modules.ScheduleManagement.Application.Services; // Đảm bảo có using này
-using MediatR;
+using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Enums.Attendance;
-using Zentry.SharedKernel.Enums.User; // Cần MediatR để gửi GetSessionsByScheduleIdIntegrationQuery
+using Zentry.SharedKernel.Enums.User;
+// Cần dùng để truy vấn sessions
+// Đảm bảo có using này
+
+// Cần MediatR để gửi GetSessionsByScheduleIdIntegrationQuery
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerHome;
 

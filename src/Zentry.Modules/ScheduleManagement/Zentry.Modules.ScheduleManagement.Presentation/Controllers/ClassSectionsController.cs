@@ -6,11 +6,11 @@ using Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.DeleteClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
-using Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
-// Thêm using cho query mới
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerHome;
+using Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
+// Thêm using cho query mới
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
@@ -32,6 +32,7 @@ public class ClassSectionsController(IMediator mediator) : ControllerBase
 
         return Ok(response);
     }
+
     [HttpGet("{lecturerId:guid}/report/daily")]
     [ProducesResponseType(typeof(List<LecturerDailyReportDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLecturerDailyReport(

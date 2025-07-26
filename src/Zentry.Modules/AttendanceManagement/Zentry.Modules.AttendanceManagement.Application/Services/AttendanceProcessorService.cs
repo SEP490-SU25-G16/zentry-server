@@ -298,12 +298,10 @@ public class AttendanceProcessorService(
 
         // Log chi tiết adjacency list của từng device để debug BFS algorithm
         foreach (var record in records)
-        {
             logger.LogInformation("Device {DeviceId} ({Role}) → Neighbors: [{Neighbors}]",
                 record.DeviceId,
                 record.Role,
                 record.ScanList.Any() ? string.Join(", ", record.ScanList) : "No neighbors");
-        }
 
         return records;
     }

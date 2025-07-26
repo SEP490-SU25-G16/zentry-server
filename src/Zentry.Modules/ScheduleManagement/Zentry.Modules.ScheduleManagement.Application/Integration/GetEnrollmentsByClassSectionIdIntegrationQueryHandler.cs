@@ -16,9 +16,7 @@ public class GetEnrollmentsByClassSectionIdIntegrationQueryHandler(IEnrollmentRe
             await enrollmentRepository.GetEnrollmentsByClassSectionIdAsync(request.ClassSectionId, cancellationToken);
 
         if (enrollments.Count == 0)
-        {
             return new GetEnrollmentsByClassSectionIdIntegrationResponse(new List<BasicEnrollmentDto>());
-        }
 
         var dtos = enrollments.Select(e => new BasicEnrollmentDto
         {

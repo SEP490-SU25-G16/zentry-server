@@ -2,7 +2,6 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.SharedKernel.Contracts.Attendance;
 
-
 public record GetAttendanceSummaryIntegrationQuery(Guid ScheduleId, Guid ClassSectionId, DateTime Date)
     : IQuery<AttendanceSummaryIntegrationResponse>;
 

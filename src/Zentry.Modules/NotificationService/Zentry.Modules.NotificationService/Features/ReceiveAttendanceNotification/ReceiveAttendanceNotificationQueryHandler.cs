@@ -1,4 +1,3 @@
-using MediatR;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Common;

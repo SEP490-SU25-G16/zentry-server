@@ -12,10 +12,7 @@ public class GetSectionCodeIntegrationQueryHandler(IClassSectionRepository class
         CancellationToken cancellationToken)
     {
         var classSection = await classSectionRepository.GetByIdAsync(request.ClassSectionId, cancellationToken);
-        if (classSection is null)
-        {
-            throw new NotFoundException("ClassSection", request.ClassSectionId);
-        }
+        if (classSection is null) throw new NotFoundException("ClassSection", request.ClassSectionId);
 
         return new GetSectionCodeIntegrationResponse(classSection.SectionCode);
     }

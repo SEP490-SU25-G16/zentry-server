@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
-using Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;

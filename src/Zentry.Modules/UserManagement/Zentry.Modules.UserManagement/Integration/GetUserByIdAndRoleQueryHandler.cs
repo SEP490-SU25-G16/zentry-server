@@ -24,7 +24,7 @@ public class GetUserByIdAndRoleQueryHandler(IUserRepository userRepository)
                 throw new NotFoundException(nameof(Account), integrationQuery.UserId);
 
             if (account.Role != integrationQuery.Role)
-                throw new NotFoundException($"Role {integrationQuery.Role.ToString()} not found for user",
+                throw new NotFoundException($"Role {integrationQuery.Role} not found for user",
                     integrationQuery.UserId);
 
             var response = new GetUserByIdAndRoleIntegrationResponse(

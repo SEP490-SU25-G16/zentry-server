@@ -15,11 +15,9 @@ public class RequestResetPasswordHandler(UserDbContext dbContext, IEmailService 
             .FirstOrDefaultAsync(a => a.Email == request.Email, cancellationToken);
 
         if (account is null)
-        {
             // For security reasons, always send a success response even if the email doesn't exist
             // to prevent email enumeration.
             return Unit.Value;
-        }
 
         var token = Guid.NewGuid().ToString("N"); // Simple token generation
         var expiryTime = DateTime.Now.AddHours(1); // Token valid for 1 hour

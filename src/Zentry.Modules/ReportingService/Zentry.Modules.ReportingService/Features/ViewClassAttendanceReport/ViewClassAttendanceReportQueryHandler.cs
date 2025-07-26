@@ -1,4 +1,3 @@
-using MediatR;
 using Zentry.Modules.ReportingService.Persistence;
 using Zentry.SharedKernel.Abstractions.Application;
 

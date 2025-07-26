@@ -1,5 +1,6 @@
-using System;
-using TimeZoneConverter; // Đảm bảo đã cài đặt NuGet package này
+using TimeZoneConverter;
+
+// Đảm bảo đã cài đặt NuGet package này
 
 public static class DateTimeExtensions
 {
@@ -8,35 +9,28 @@ public static class DateTimeExtensions
         TZConvert.GetTimeZoneInfo("Asia/Ho_Chi_Minh");
 
     /// <summary>
-    /// Chuyển đổi DateTime UTC sang giờ địa phương Việt Nam.
+    ///     Chuyển đổi DateTime UTC sang giờ địa phương Việt Nam.
     /// </summary>
     public static DateTime ToVietnamLocalTime(this DateTime utcDateTime)
     {
         // Nếu đã là Local hoặc Unspecified, chuyển về UTC trước khi chuyển đổi
         if (utcDateTime.Kind == DateTimeKind.Local)
-        {
             utcDateTime = utcDateTime.ToUniversalTime();
-        }
         else if (utcDateTime.Kind == DateTimeKind.Unspecified)
-        {
             utcDateTime = DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc);
-        }
         // Nếu đã là UTC, giữ nguyên
 
         return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, VietnamTimeZone);
     }
 
     /// <summary>
-    /// Chuyển đổi DateTime đại diện cho giờ địa phương Việt Nam sang UTC.
-    /// Đầu vào `localDateTime` nên có Kind là `Unspecified` hoặc `Local` (sẽ được xử lý).
+    ///     Chuyển đổi DateTime đại diện cho giờ địa phương Việt Nam sang UTC.
+    ///     Đầu vào `localDateTime` nên có Kind là `Unspecified` hoặc `Local` (sẽ được xử lý).
     /// </summary>
     public static DateTime ToUtcFromVietnamLocalTime(this DateTime localDateTime)
     {
         // Nếu đã là UTC, không cần làm gì nữa
-        if (localDateTime.Kind == DateTimeKind.Utc)
-        {
-            return localDateTime;
-        }
+        if (localDateTime.Kind == DateTimeKind.Utc) return localDateTime;
 
         // Nếu là DateTimeKind.Local (nghĩa là múi giờ của hệ thống server),
         // chúng ta cần chuyển đổi nó sang UTC trước khi áp dụng múi giờ Việt Nam.

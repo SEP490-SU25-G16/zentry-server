@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums;
 using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Features.SignIn;

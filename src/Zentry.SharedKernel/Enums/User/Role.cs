@@ -1,6 +1,6 @@
-namespace Zentry.SharedKernel.Enums.User;
-
 using Zentry.SharedKernel.Domain;
+
+namespace Zentry.SharedKernel.Enums.User;
 
 public class Role : Enumeration
 {

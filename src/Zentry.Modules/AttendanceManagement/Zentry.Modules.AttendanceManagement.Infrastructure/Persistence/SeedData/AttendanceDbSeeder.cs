@@ -2,11 +2,16 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Zentry.SharedKernel.Contracts.Schedule; // Cần để dùng GetSchedulesAndClassSectionsForAttendanceSeedQuery
+using Zentry.SharedKernel.Contracts.Schedule;
+
+// Cần để dùng GetSchedulesAndClassSectionsForAttendanceSeedQuery
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.SeedData;
 
-public class AttendanceDbSeeder(IServiceProvider serviceProvider, ILogger<AttendanceDbSeeder> logger, IMediator mediator)
+public class AttendanceDbSeeder(
+    IServiceProvider serviceProvider,
+    ILogger<AttendanceDbSeeder> logger,
+    IMediator mediator)
 {
     public async Task SeedAllAsync(bool recreateDatabase = false, CancellationToken cancellationToken = default)
     {
@@ -28,11 +33,13 @@ public class AttendanceDbSeeder(IServiceProvider serviceProvider, ILogger<Attend
             // --- Bắt đầu phần lấy dữ liệu từ Schedule Module qua Mediator ---
             logger.LogInformation("Requesting Schedule and ClassSection data from Schedule module via Mediator...");
 
-            var scheduleDataResponse = await mediator.Send(new GetSchedulesAndClassSectionsForAttendanceSeedQuery(), cancellationToken);
+            var scheduleDataResponse = await mediator.Send(new GetSchedulesAndClassSectionsForAttendanceSeedQuery(),
+                cancellationToken);
 
             if (scheduleDataResponse != null && scheduleDataResponse.Schedules.Any())
             {
-                logger.LogInformation($"Received {scheduleDataResponse.Schedules.Count} Schedule DTOs and {scheduleDataResponse.ClassSections.Count} ClassSection DTOs.");
+                logger.LogInformation(
+                    $"Received {scheduleDataResponse.Schedules.Count} Schedule DTOs and {scheduleDataResponse.ClassSections.Count} ClassSection DTOs.");
 
                 await AttendanceSeedData.SeedSessionsAndRoundsAsync(
                     attendanceContext,
@@ -44,7 +51,8 @@ public class AttendanceDbSeeder(IServiceProvider serviceProvider, ILogger<Attend
             }
             else
             {
-                logger.LogWarning("No schedule data received from Schedule module. Skipping Session and Round seeding for Attendance module.");
+                logger.LogWarning(
+                    "No schedule data received from Schedule module. Skipping Session and Round seeding for Attendance module.");
             }
 
             // Attendance Record sẽ được seed sau khi bạn cung cấp định nghĩa Entity của nó

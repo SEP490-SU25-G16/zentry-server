@@ -15,10 +15,7 @@ public class GetClassSectionIdByScheduleQueryHandler(IScheduleRepository schedul
         var schedule =
             await scheduleRepository.GetByIdAsync(request.ScheduleId, cancellationToken); // Giả sử có GetByIdAsync
 
-        if (schedule is null)
-        {
-            throw new NotFoundException("Schedule", request.ScheduleId);
-        }
+        if (schedule is null) throw new NotFoundException("Schedule", request.ScheduleId);
 
         return new GetClassSectionIdByScheduleIdIntegrationResponse(schedule.ClassSectionId);
     }

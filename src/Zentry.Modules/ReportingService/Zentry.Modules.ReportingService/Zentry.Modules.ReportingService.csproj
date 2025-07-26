@@ -13,7 +13,7 @@
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Persistence\Enums\" />
+        <Folder Include="Persistence\Enums\"/>
     </ItemGroup>
 
 

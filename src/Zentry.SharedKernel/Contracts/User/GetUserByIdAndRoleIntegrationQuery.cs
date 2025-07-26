@@ -1,5 +1,7 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.User; // Đảm bảo đã có using này
+using Zentry.SharedKernel.Enums.User;
+
+// Đảm bảo đã có using này
 
 namespace Zentry.SharedKernel.Contracts.User;
 

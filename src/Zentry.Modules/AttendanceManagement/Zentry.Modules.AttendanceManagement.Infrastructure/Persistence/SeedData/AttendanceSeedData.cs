@@ -2,16 +2,15 @@ using Bogus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.SharedKernel.Contracts.Schedule;
 // Cần nếu dùng RoundStatus hay các Enums khác của Attendance
-using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
-using Zentry.SharedKernel.Contracts.Schedule; // Cần nếu dùng SessionConfigSnapshot
+
+// Cần nếu dùng SessionConfigSnapshot
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.SeedData;
 
 public static class AttendanceSeedData
 {
-    private static List<Session> SeededSessions { get; set; } = [];
-    private static List<Round> SeededRounds { get; set; } = [];
     // private static List<AttendanceRecord> SeededAttendanceRecords { get; set; } = []; // Sẽ thêm sau
 
     // Cấu hình mặc định cho SessionConfigSnapshot khi seeding
@@ -22,6 +21,9 @@ public static class AttendanceSeedData
         { "AbsentReportGracePeriodHours", "24" },
         { "ManualAdjustmentGracePeriodHours", "24" }
     };
+
+    private static List<Session> SeededSessions { get; set; } = [];
+    private static List<Round> SeededRounds { get; set; } = [];
 
     public static async Task SeedSessionsAndRoundsAsync(
         AttendanceDbContext context,
@@ -82,17 +84,13 @@ public static class AttendanceSeedData
 
                 // Lặp qua từng ngày trong khoảng thời gian của Schedule DTO
                 for (var date = scheduleDto.StartDate; date <= scheduleDto.EndDate; date = date.AddDays(1))
-                {
                     if (date.DayOfWeek == systemDayOfWeek)
                     {
                         var sessionStartTime = date.ToDateTime(scheduleDto.StartTime);
                         var sessionEndTime = date.ToDateTime(scheduleDto.EndTime);
 
                         // Xử lý trường hợp thời gian kết thúc nhỏ hơn thời gian bắt đầu (qua ngày)
-                        if (scheduleDto.EndTime < scheduleDto.StartTime)
-                        {
-                            sessionEndTime = sessionEndTime.AddDays(1);
-                        }
+                        if (scheduleDto.EndTime < scheduleDto.StartTime) sessionEndTime = sessionEndTime.AddDays(1);
 
                         // Đảm bảo UTC Kind
                         sessionStartTime = DateTime.SpecifyKind(sessionStartTime, DateTimeKind.Utc);
@@ -121,10 +119,7 @@ public static class AttendanceSeedData
                             var roundEndTime = roundStartTime.AddSeconds(durationPerRoundSeconds);
 
                             // Đảm bảo EndTime của round cuối cùng không vượt quá EndTime của session
-                            if (i == totalAttendanceRounds)
-                            {
-                                roundEndTime = session.EndTime;
-                            }
+                            if (i == totalAttendanceRounds) roundEndTime = session.EndTime;
 
                             var newRound = Round.Create(
                                 session.Id,
@@ -135,7 +130,6 @@ public static class AttendanceSeedData
                             roundsToAdd.Add(newRound);
                         }
                     }
-                }
             }
 
             if (sessionsToAdd.Count > 0)

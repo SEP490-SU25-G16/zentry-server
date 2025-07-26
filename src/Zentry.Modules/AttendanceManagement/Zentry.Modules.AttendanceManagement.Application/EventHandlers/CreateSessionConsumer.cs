@@ -1,4 +1,5 @@
 using MassTransit;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services;
@@ -9,7 +10,6 @@ using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
-using MediatR;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -70,10 +70,7 @@ public class CreateSessionConsumer(
                 var courseCodeResponse = await mediator.Send(new GetCourseCodeIntegrationQuery(message.CourseId),
                     context.CancellationToken);
                 var courseCode = courseCodeResponse.CourseCode;
-                if (!string.IsNullOrEmpty(courseCode))
-                {
-                    finalConfigDictionary["courseCode"] = courseCode;
-                }
+                if (!string.IsNullOrEmpty(courseCode)) finalConfigDictionary["courseCode"] = courseCode;
             }
 
             if (message.ClassSectionId != Guid.Empty)
@@ -82,10 +79,7 @@ public class CreateSessionConsumer(
                     await mediator.Send(new GetSectionCodeIntegrationQuery(message.ClassSectionId),
                         context.CancellationToken);
                 var sectionCode = sectionCodeResponse.SectionCode;
-                if (!string.IsNullOrEmpty(sectionCode))
-                {
-                    finalConfigDictionary["sectionCode"] = sectionCode;
-                }
+                if (!string.IsNullOrEmpty(sectionCode)) finalConfigDictionary["sectionCode"] = sectionCode;
             }
 
             var sessionConfigSnapshot = SessionConfigSnapshot.FromDictionary(finalConfigDictionary);

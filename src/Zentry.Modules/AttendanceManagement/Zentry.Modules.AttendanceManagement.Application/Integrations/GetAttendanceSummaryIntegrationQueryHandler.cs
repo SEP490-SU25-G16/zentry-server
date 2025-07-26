@@ -1,4 +1,3 @@
-using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
@@ -18,10 +17,7 @@ public class GetAttendanceSummaryIntegrationQueryHandler(
         var session =
             await sessionRepository.GetSessionByScheduleIdAndDate(query.ScheduleId, query.Date, cancellationToken);
 
-        if (session is null)
-        {
-            return new AttendanceSummaryIntegrationResponse();
-        }
+        if (session is null) return new AttendanceSummaryIntegrationResponse();
 
         var attendanceRecords =
             await attendanceRecordRepository.GetAttendanceRecordsBySessionIdAsync(session.Id, cancellationToken);

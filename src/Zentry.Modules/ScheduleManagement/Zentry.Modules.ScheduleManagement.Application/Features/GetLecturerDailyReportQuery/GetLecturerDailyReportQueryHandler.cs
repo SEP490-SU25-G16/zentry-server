@@ -5,7 +5,9 @@ using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User; // Cần thêm namespace này để dùng GetUserByIdAndRoleIntegrationQuery
+using Zentry.SharedKernel.Enums.User;
+
+// Cần thêm namespace này để dùng GetUserByIdAndRoleIntegrationQuery
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyReportQuery;
 
@@ -58,8 +60,8 @@ public class GetLecturerDailyReportQueryHandler(
                 AttendedStudents = attendedCount,
                 PresentStudents = attendanceSummary.PresentCount,
                 AbsentStudents = attendanceSummary.AbsentCount,
-                AttendanceRate = $"{Math.Round((attendedCount * 100.0 / total), 1)}%",
-                OnTimeRate = $"{Math.Round((attendanceSummary.PresentCount * 100.0 / total), 1)}%"
+                AttendanceRate = $"{Math.Round(attendedCount * 100.0 / total, 1)}%",
+                OnTimeRate = $"{Math.Round(attendanceSummary.PresentCount * 100.0 / total, 1)}%"
             });
         }
 

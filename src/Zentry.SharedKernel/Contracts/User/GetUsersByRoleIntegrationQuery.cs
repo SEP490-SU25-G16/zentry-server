@@ -1,4 +1,3 @@
-using MediatR;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Enums.User;
 

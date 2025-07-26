@@ -35,10 +35,7 @@ public class AttendanceRecord : AggregateRoot<Guid>
 
     public void Update(AttendanceStatus? status = null, bool? isManual = null, DateTime? expiredAt = null)
     {
-        if (status != null)
-        {
-            Status = status;
-        }
+        if (status != null) Status = status;
 
         if (isManual.HasValue) IsManual = isManual.Value;
         if (expiredAt.HasValue) ExpiredAt = expiredAt.Value;
