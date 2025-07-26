@@ -5,6 +5,7 @@ using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
+using Zentry.SharedKernel.Enums.Attendance;
 using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
@@ -45,7 +46,7 @@ public class GetLecturerDailyClassesQueryHandler(
             var currentSession = allSessions
                 .FirstOrDefault(s => s.StartTime.Date == request.Date.Date);
 
-            var sessionStatus = currentSession?.Status ?? "PENDING";
+            var sessionStatus = currentSession?.Status ?? SessionStatus.Pending.ToString();
 
             // Có thể cần điều chỉnh logic tìm currentSessionNumber nếu allSessions không được sắp xếp
             // Tốt nhất là sắp xếp allSessions theo StartTime trước khi dùng FindIndex

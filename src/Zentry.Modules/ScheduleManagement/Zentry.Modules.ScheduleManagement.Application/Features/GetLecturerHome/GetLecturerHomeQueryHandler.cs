@@ -4,6 +4,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance; // Cần dùng để truy vấn sessions
 using Zentry.Modules.ScheduleManagement.Application.Services; // Đảm bảo có using này
 using MediatR;
+using Zentry.SharedKernel.Enums.Attendance;
 using Zentry.SharedKernel.Enums.User; // Cần MediatR để gửi GetSessionsByScheduleIdIntegrationQuery
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerHome;
@@ -41,8 +42,8 @@ public class GetLecturerHomeQueryHandler(
                 totalSessions += allSessionsForSchedule.Count;
 
                 completedSessions += allSessionsForSchedule
-                    .Count(s => s.Status == "COMPLETED" ||
-                                s.Status == "ACTIVE");
+                    .Count(s => s.Status == SessionStatus.Completed.ToString() ||
+                                s.Status == SessionStatus.Active.ToString());
             }
 
             result.Add(new LecturerHomeDto
