@@ -3,8 +3,8 @@ using Bogus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
-using Zentry.Modules.ScheduleManagement.Domain.Enums;
 using Zentry.SharedKernel.Domain;
+using Zentry.SharedKernel.Enums.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.SeedData;
 

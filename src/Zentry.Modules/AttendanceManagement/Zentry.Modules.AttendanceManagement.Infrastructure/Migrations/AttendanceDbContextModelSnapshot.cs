@@ -137,7 +137,8 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -150,8 +151,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StartTime");
-
-                    b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 

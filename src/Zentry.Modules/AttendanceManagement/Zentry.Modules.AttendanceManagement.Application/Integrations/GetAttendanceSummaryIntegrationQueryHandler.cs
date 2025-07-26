@@ -1,8 +1,8 @@
 using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
-using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
+using Zentry.SharedKernel.Enums.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 

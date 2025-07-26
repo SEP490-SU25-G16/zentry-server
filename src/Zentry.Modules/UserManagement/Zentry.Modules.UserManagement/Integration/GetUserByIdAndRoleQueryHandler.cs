@@ -23,12 +23,19 @@ public class GetUserByIdAndRoleQueryHandler(IUserRepository userRepository)
             if (account is null)
                 throw new NotFoundException(nameof(Account), integrationQuery.UserId);
 
-            if (!string.Equals(account.Role, integrationQuery.Role, StringComparison.OrdinalIgnoreCase))
-                throw new NotFoundException(integrationQuery.Role, integrationQuery.UserId);
+            if (account.Role != integrationQuery.Role)
+                throw new NotFoundException($"Role {integrationQuery.Role.ToString()} not found for user",
+                    integrationQuery.UserId);
 
             var response = new GetUserByIdAndRoleIntegrationResponse(
-                user.Id, account.Id, account.Email, user.FullName,
-                user.PhoneNumber, account.Role, account.Status.ToString(), account.CreatedAt
+                user.Id,
+                account.Id,
+                account.Email,
+                user.FullName,
+                user.PhoneNumber,
+                account.Role,
+                account.Status.ToString(),
+                account.CreatedAt
             );
 
             return response;
@@ -36,8 +43,6 @@ public class GetUserByIdAndRoleQueryHandler(IUserRepository userRepository)
         catch (Exception e)
         {
             Console.WriteLine(e);
-            // return new GetUserByIdAndRoleResponse(Guid.Empty, Guid.Empty, string.Empty, string.Empty, string.Empty,
-            //     string.Empty, string.Empty, DateTime.Now);
             return null;
         }
     }

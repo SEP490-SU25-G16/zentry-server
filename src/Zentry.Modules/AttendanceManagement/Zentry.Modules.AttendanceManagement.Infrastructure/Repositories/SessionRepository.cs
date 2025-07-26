@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
+using Zentry.SharedKernel.Enums.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 

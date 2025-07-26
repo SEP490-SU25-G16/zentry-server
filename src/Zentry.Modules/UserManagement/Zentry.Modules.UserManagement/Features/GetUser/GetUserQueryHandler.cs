@@ -28,7 +28,7 @@ public class GetUserQueryHandler(IUserRepository userRepository)
             Email = account.Email,
             FullName = user.FullName,
             PhoneNumber = user.PhoneNumber,
-            Role = account.Role,
+            Role = account.Role.ToString(),
             Status = account.Status.ToString(),
             CreatedAt = account.CreatedAt
         };

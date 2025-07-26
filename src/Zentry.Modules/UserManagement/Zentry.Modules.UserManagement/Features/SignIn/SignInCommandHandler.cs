@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Enums;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Features.SignIn;
 
@@ -33,11 +34,11 @@ public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPas
             throw new UnauthorizedAccessException("Invalid credentials."); // Sai mật khẩu
 
         // Tạo JWT. Đảm bảo IJwtService.GenerateToken có thể nhận các tham số này
-        var token = jwtService.GenerateToken(account.Id, account.Email, account.Role);
+        var token = jwtService.GenerateToken(account.Id, account.Email, account.Role.ToString());
 
         // Ghi log hoạt động đăng nhập thành công (Bạn cần triển khai ILogger hoặc EventDispatcher ở đây)
         // Ví dụ: _logger.LogInformation("User {UserId} logged in successfully via Password.", account.Id);
 
-        return new SignInResponse(token, new UserInfo(account.Id, account.Email, account.Role));
+        return new SignInResponse(token, new UserInfo(account.Id, account.Email, account.Role.ToString()));
     }
 }

@@ -1,12 +1,13 @@
 ﻿using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public class UserService(IMediator mediator) : IUserService
 {
-    public async Task<GetUserByIdAndRoleIntegrationResponse?> GetUserByIdAndRoleAsync(string role, Guid userId,
+    public async Task<GetUserByIdAndRoleIntegrationResponse?> GetUserByIdAndRoleAsync(Role role, Guid userId,
         CancellationToken cancellationToken)
     {
         try

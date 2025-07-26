@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 
@@ -36,7 +37,7 @@ public class GetSchedulesQueryHandler(
             .ToList();
 
         var lecturerLookupTasks = lecturerIds
-            .Select(id => lecturerLookupService.GetUserByIdAndRoleAsync("Lecturer", id, cancellationToken))
+            .Select(id => lecturerLookupService.GetUserByIdAndRoleAsync(Role.Lecturer, id, cancellationToken))
             .ToList();
 
         await Task.WhenAll(lecturerLookupTasks);

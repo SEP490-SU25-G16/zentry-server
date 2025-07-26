@@ -7,7 +7,9 @@ public class LecturerHomeDto
     public string SectionCode { get; set; } = string.Empty;
     public int EnrolledStudents { get; set; }
     public int TotalSessions { get; set; }
+    public string SessionProgress { get; set; }
     public List<ScheduleInfoDto> Schedules { get; set; } = [];
+    public string LecturerName { get; set; }
 }
 
 public class ScheduleInfoDto

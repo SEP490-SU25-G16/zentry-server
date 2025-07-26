@@ -5,6 +5,7 @@ using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Configuration;
+using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.CreateSession;
@@ -20,7 +21,7 @@ public class CreateSessionCommandHandler(
     public async Task<CreateSessionResponse> Handle(CreateSessionCommand request, CancellationToken cancellationToken)
     {
         var lecturer =
-            await userService.GetUserByIdAndRoleAsync("Lecturer", request.UserId, cancellationToken);
+            await userService.GetUserByIdAndRoleAsync(Role.Lecturer, request.UserId, cancellationToken);
         if (lecturer == null)
         {
             logger.LogWarning("CreateSession failed: Lecturer with ID {LecturerId} not found or not authorized.",

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.SharedKernel.Enums.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configurations;
 
@@ -29,7 +30,11 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
             .IsRequired();
 
         builder.Property(s => s.Status)
-            .HasConversion<string>()
+            .HasConversion(
+                s => s.ToString(),
+                s => SessionStatus.FromName(s)
+            )
+            .HasMaxLength(20)
             .IsRequired();
 
         builder.Property(s => s.CreatedAt)
@@ -42,7 +47,6 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.HasIndex(s => s.ScheduleId);
         builder.HasIndex(s => s.UserId);
         builder.HasIndex(s => s.StartTime);
-        builder.HasIndex(s => s.Status);
 
         builder.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");

@@ -1,18 +1,11 @@
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
-
-// Chỉ User Management mới truy cập DbContext này
-// Sử dụng contracts mới
-
-// Để truy cập AccountStatus
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Integration;
 
-// Đổi lại tên lớp handler
 public class GetUsersByRoleQueryHandler(UserDbContext userDbContext)
     : IQueryHandler<GetUsersByRoleIntegrationQuery, GetUsersByRoleIntegrationResponse>
 {

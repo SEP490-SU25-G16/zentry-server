@@ -5,6 +5,7 @@ using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
@@ -33,9 +34,9 @@ public class CreateScheduleCommandHandler(
             throw new NotFoundException("Room", $"ID '{command.RoomId}' not found.");
 
         var lecturer =
-            await lecturerScheduleService.GetUserByIdAndRoleAsync("Lecturer", command.LecturerId, cancellationToken);
+            await lecturerScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, command.LecturerId, cancellationToken);
         if (lecturer is null)
-            throw new NotFoundException("Lecturer", $"ID '{command.LecturerId}' not found or invalid.");
+            throw new NotFoundException(Role.Lecturer.ToString(), $"ID '{command.LecturerId}' not found or invalid.");
 
         if (!await scheduleRepository.IsLecturerAvailableAsync(command.LecturerId, command.WeekDay, command.StartTime,
                 command.EndTime, cancellationToken))

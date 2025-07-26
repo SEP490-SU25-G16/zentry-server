@@ -1,5 +1,5 @@
-using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.SharedKernel.Domain;
+using Zentry.SharedKernel.Enums.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 

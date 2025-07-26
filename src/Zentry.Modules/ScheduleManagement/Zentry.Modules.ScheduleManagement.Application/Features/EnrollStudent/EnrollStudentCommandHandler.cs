@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
@@ -19,7 +20,7 @@ public class EnrollStudentCommandHandler(
     public async Task<EnrollmentResponse> Handle(EnrollStudentCommand command, CancellationToken cancellationToken)
     {
         var studentUser =
-            await userLookupService.GetUserByIdAndRoleAsync("Student", command.StudentId, cancellationToken);
+            await userLookupService.GetUserByIdAndRoleAsync(Role.Student, command.StudentId, cancellationToken);
         if (studentUser == null)
             throw new NotFoundException("Student", command.StudentId);
 

@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
-using Zentry.Modules.ScheduleManagement.Domain.Enums;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
+using Zentry.SharedKernel.Enums.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 

@@ -5,9 +5,10 @@ using Bogus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.UserManagement.Entities;
-using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
+using Zentry.SharedKernel.Enums;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Persistence.SeedData;
 
@@ -15,8 +16,6 @@ public static class UserSeedData
 {
     private const int StudentCount = 100;
     private const int LecturerCount = 10;
-
-    private static readonly string[] SystemRoles = ["Admin", "Manager", "Lecturer", "Student"];
 
     public static async Task SeedAsync(UserDbContext context, IPasswordHasher passwordHasher, ILogger? logger = null)
     {
@@ -57,7 +56,7 @@ public static class UserSeedData
             "admin@zentry.com",
             defaultHash,
             defaultSalt,
-            "Admin"
+            Role.Admin
         );
         var adminUser = User.Create(adminAccount.Id, "System Administrator", "+84901234567");
 
@@ -65,7 +64,7 @@ public static class UserSeedData
             "manager@zentry.com",
             defaultHash,
             defaultSalt,
-            "Manager"
+            Role.Manager
         );
         var managerUser = User.Create(managerAccount.Id, "Nguyễn Văn Manager", "+84901234569");
 
@@ -108,7 +107,7 @@ public static class UserSeedData
                 var email =
                     $"{emailName}.lecturer{i}@zentry.edu";
 
-                var account = Account.Create(email, defaultHash, defaultSalt, "Lecturer");
+                var account = Account.Create(email, defaultHash, defaultSalt, Role.Lecturer);
 
                 var phoneNumber = $"+849{faker.Random.Number(10000000, 99999999)}";
                 var user = User.Create(account.Id, name, phoneNumber);
@@ -175,7 +174,7 @@ public static class UserSeedData
                 var email =
                     $"{emailName}.student{i}@{faker.PickRandom(companyDomains)}";
 
-                var account = Account.Create(email, defaultHash, defaultSalt, "Student");
+                var account = Account.Create(email, defaultHash, defaultSalt, Role.Student);
 
                 var phoneNumber = faker.Random.Bool(0.6f)
                     ? $"+84{faker.Random.Number(300000000, 999999999)}"

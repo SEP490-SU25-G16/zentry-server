@@ -1,5 +1,5 @@
-using Zentry.Modules.UserManagement.Enums;
 using Zentry.SharedKernel.Domain;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Entities;
 
@@ -9,13 +9,13 @@ public class Account : AggregateRoot<Guid>
     {
     }
 
-    private Account(Guid id, string email, string passwordHash, string passwordSalt, string role)
+    private Account(Guid id, string email, string passwordHash, string passwordSalt, Role role) // Thay string bằng Role
         : base(id)
     {
         Email = email;
         PasswordHash = passwordHash;
         PasswordSalt = passwordSalt;
-        Role = role;
+        Role = role; // Gán Role Smart Enum
         CreatedAt = DateTime.UtcNow;
         Status = AccountStatus.Active;
     }
@@ -23,22 +23,23 @@ public class Account : AggregateRoot<Guid>
     public string Email { get; private set; }
     public string PasswordHash { get; private set; }
     public string PasswordSalt { get; private set; }
-    public string Role { get; private set; }
+    public Role Role { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public AccountStatus Status { get; private set; }
     public string? ResetToken { get; private set; }
     public DateTime? ResetTokenExpiryTime { get; private set; }
 
-    public static Account Create(string email, string passwordHash, string passwordSalt, string role)
+
+    public static Account Create(string email, string passwordHash, string passwordSalt, Role role) // Thay string bằng Role
     {
         return new Account(Guid.NewGuid(), email, passwordHash, passwordSalt, role);
     }
 
-    public void UpdateAccount(string? email = null, string? role = null)
+    public void UpdateAccount(string? email = null, Role? role = null) // Thay string bằng Role?
     {
         if (!string.IsNullOrWhiteSpace(email)) Email = email;
-        if (!string.IsNullOrWhiteSpace(role)) Role = role;
+        if (role != null) Role = role; // Gán Role Smart Enum nếu không null
         UpdatedAt = DateTime.UtcNow;
     }
 

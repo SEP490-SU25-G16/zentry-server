@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Entities;
-using Zentry.Modules.UserManagement.Enums;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
+using Zentry.SharedKernel.Enums;
+using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
@@ -19,9 +21,8 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<string?> GetUserRoleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<Role> GetUserRoleByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        // Tái sử dụng logic từ GetAccountByUserId nhưng chỉ lấy Role
         var role = await dbContext.Accounts
             .AsNoTracking()
             .Join(dbContext.Users,
@@ -32,7 +33,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
             .Select(joined => joined.Account.Role)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return role;
+        return role ?? throw new NotFoundException(nameof(Role), userId);
     }
 
     public async Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken)
@@ -85,7 +86,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         int pageNumber,
         int pageSize,
         string? searchTerm,
-        string? role,
+        Role? role,
         string? status)
     {
         var query = from u in dbContext.Users
@@ -101,7 +102,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                 x.User.FullName.Contains(lowerSearchTerm, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        if (!string.IsNullOrWhiteSpace(role))
+        if (role != null)
             query = query.Where(x => x.Account.Role == role);
 
         // ✅ SỬA: Filter cho Smart Enum

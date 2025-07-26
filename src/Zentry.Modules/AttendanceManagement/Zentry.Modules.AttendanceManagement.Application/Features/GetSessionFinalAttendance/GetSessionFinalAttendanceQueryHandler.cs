@@ -1,10 +1,10 @@
 using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
-using Zentry.Modules.AttendanceManagement.Domain.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.Attendance;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;

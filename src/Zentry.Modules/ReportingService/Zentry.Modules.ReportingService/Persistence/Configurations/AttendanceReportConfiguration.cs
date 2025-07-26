@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.ReportingService.Persistence.Entities;
-using Zentry.Modules.ReportingService.Persistence.Enums;
+using Zentry.SharedKernel.Enums.Reporting;
 
 namespace Zentry.Modules.ReportingService.Persistence.Configurations;
 

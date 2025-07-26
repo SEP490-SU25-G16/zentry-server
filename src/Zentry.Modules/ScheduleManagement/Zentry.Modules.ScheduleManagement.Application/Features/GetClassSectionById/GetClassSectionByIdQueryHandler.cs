@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById;
@@ -21,7 +22,7 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
         GetUserByIdAndRoleIntegrationResponse? lecturerInfo = null;
         if (cs.LecturerId != Guid.Empty)
         {
-            var getUserQuery = new GetUserByIdAndRoleIntegrationQuery("Lecturer", cs.LecturerId);
+            var getUserQuery = new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId);
             lecturerInfo = await mediator.Send(getUserQuery, ct);
         }
 

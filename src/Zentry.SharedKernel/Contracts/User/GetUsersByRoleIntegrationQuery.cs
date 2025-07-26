@@ -1,8 +1,9 @@
 using MediatR;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.SharedKernel.Contracts.User;
 
-public record GetUsersByRoleIntegrationQuery(string Role) : IQuery<GetUsersByRoleIntegrationResponse>;
+public record GetUsersByRoleIntegrationQuery(Role Role) : IQuery<GetUsersByRoleIntegrationResponse>;
 
 public record GetUsersByRoleIntegrationResponse(List<Guid> UserIds);

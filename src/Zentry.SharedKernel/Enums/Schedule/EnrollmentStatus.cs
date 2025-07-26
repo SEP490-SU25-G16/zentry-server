@@ -1,6 +1,6 @@
 ﻿using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.ScheduleManagement.Domain.Enums;
+namespace Zentry.SharedKernel.Enums.Schedule;
 
 public class EnrollmentStatus : Enumeration
 {

@@ -1,11 +1,12 @@
 ﻿using MediatR;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Services;
 
 public class UserScheduleService(IMediator mediator) : IUserScheduleService
 {
-    public async Task<GetUserByIdAndRoleIntegrationResponse?> GetUserByIdAndRoleAsync(string role, Guid userId,
+    public async Task<GetUserByIdAndRoleIntegrationResponse?> GetUserByIdAndRoleAsync(Role role, Guid userId,
         CancellationToken cancellationToken)
     {
         try

@@ -1,5 +1,6 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Features.UpdateUser;
 
@@ -19,7 +20,7 @@ public class UpdateUserCommandHandler(IUserRepository userRepository)
 
         user.UpdateUser(command.FullName, command.PhoneNumber);
 
-        if (!string.IsNullOrWhiteSpace(command.Role)) account.UpdateAccount(role: command.Role);
+        if (!string.IsNullOrWhiteSpace(command.Role)) account.UpdateAccount(role: Role.FromName(command.Role));
 
         await userRepository.UpdateAsync(user, cancellationToken);
         await userRepository.UpdateAccountAsync(account, cancellationToken);

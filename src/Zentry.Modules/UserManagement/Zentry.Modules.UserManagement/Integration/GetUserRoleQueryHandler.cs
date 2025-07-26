@@ -13,10 +13,10 @@ public class GetUserRoleQueryHandler(IUserRepository userRepository) // <-- Inje
     {
         var accountRole = await userRepository.GetUserRoleByUserIdAsync(request.UserId, cancellationToken);
 
-        if (string.IsNullOrEmpty(accountRole))
+        if (accountRole is null)
             throw new NotFoundException(nameof(GetUserRoleQueryHandler),
                 $"Active role not found for user ID {request.UserId}.");
 
-        return new GetUserRoleIntegrationResponse(request.UserId, accountRole);
+        return new GetUserRoleIntegrationResponse(request.UserId, accountRole.ToString());
     }
 }

@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
@@ -17,7 +18,7 @@ public class GetEnrollmentsQueryHandler(
     {
         try
         {
-// 1. Kiểm tra CourseId nếu cần
+            // 1. Kiểm tra CourseId nếu cần
             if (query.CourseId.HasValue && query.CourseId.Value != Guid.Empty)
             {
                 var courseExists = await courseRepository.GetByIdAsync(query.CourseId.Value, cancellationToken);
@@ -51,7 +52,7 @@ public class GetEnrollmentsQueryHandler(
             foreach (var studentId in studentIds)
             {
                 var studentDto =
-                    await userScheduleService.GetUserByIdAndRoleAsync("Student", studentId, cancellationToken);
+                    await userScheduleService.GetUserByIdAndRoleAsync(Role.Student, studentId, cancellationToken);
                 if (studentDto != null)
                     students[studentId] = studentDto;
             }
@@ -62,7 +63,7 @@ public class GetEnrollmentsQueryHandler(
             foreach (var lecturerId in lecturerIds)
             {
                 var lecturerDto =
-                    await userScheduleService.GetUserByIdAndRoleAsync("Lecturer", lecturerId, cancellationToken);
+                    await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, lecturerId, cancellationToken);
                 if (lecturerDto != null)
                     lecturers[lecturerId] = lecturerDto;
             }

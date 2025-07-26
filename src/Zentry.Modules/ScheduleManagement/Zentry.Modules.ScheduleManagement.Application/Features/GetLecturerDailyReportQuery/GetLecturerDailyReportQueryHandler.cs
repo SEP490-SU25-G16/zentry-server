@@ -4,7 +4,8 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
-using Zentry.SharedKernel.Contracts.User; // Cần thêm namespace này để dùng GetUserByIdAndRoleIntegrationQuery
+using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User; // Cần thêm namespace này để dùng GetUserByIdAndRoleIntegrationQuery
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyReportQuery;
 
@@ -18,7 +19,7 @@ public class GetLecturerDailyReportQueryHandler(
         GetLecturerDailyReportQuery request,
         CancellationToken cancellationToken)
     {
-        var getUserQuery = new GetUserByIdAndRoleIntegrationQuery("Lecturer", request.LecturerId);
+        var getUserQuery = new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, request.LecturerId);
         var lecturerInfo = await mediator.Send(getUserQuery, cancellationToken);
 
         var dayOfWeek = request.Date.DayOfWeek.ToWeekDayEnum();

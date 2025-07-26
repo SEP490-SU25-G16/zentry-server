@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.SeedData;
 
@@ -32,7 +33,7 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
 
             // Get Lecturer IDs (User IDs) via Integration Query
             var lecturerResponse =
-                await mediator.Send(new GetUsersByRoleIntegrationQuery("Lecturer"), cancellationToken);
+                await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Lecturer), cancellationToken);
             var lecturerUserIds = lecturerResponse.UserIds;
 
             if (lecturerUserIds.Count == 0)
@@ -48,7 +49,7 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
 
             // Get Student IDs (User IDs) via Integration Query
             var studentIdsResponse =
-                await mediator.Send(new GetUsersByRoleIntegrationQuery("Student"), cancellationToken);
+                await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Student), cancellationToken);
             await ScheduleSeedData.SeedEnrollmentsAsync(scheduleContext, studentIdsResponse.UserIds, logger,
                 cancellationToken);
 

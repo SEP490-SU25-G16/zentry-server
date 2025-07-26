@@ -12,7 +12,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250726051924_Initial")]
+    [Migration("20250726070152_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -140,7 +140,8 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -153,8 +154,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StartTime");
-
-                    b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 

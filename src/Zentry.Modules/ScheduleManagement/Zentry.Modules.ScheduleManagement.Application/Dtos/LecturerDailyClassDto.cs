@@ -16,4 +16,7 @@ public class LecturerDailyClassDto
     public string SessionProgress { get; set; } // Ví dụ: "Buổi 5/10"
     public string SessionStatus { get; set; } // Trạng thái của Session (Pending, Active, Completed, v.v.)
     public bool CanStartSession { get; set; } // Logic để bật/tắt nút "Start Session"
+    public string Weekday { get; set; } // Ví dụ: "Thứ Hai", "Tuesday"
+    public DateOnly DateInfo { get; set; } // Ngày cụ thể của lịch trình này
+    public string LecturerName { get; set; } // Tên của giảng viên
 }

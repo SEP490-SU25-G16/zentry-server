@@ -1,4 +1,4 @@
-﻿using Zentry.Modules.ScheduleManagement.Domain.Enums;
+﻿using Zentry.SharedKernel.Enums.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 

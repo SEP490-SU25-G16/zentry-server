@@ -8,4 +8,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Enums\" />
+    </ItemGroup>
 </Project>

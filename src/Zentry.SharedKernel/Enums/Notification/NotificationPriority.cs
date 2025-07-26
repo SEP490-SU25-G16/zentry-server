@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.NotificationService.Enums;
+namespace Zentry.SharedKernel.Enums.Notification;
 
 public class NotificationPriority : Enumeration
 {

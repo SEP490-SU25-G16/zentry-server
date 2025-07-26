@@ -1,5 +1,6 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Enums.User;
 
 // Đảm bảo using này có mặt
 
@@ -13,7 +14,7 @@ public class GetUsersQueryHandler(IUserRepository userRepository) : IQueryHandle
             query.PageNumber,
             query.PageSize,
             query.SearchTerm,
-            query.Role,
+            string.IsNullOrEmpty(query.Role) ? null : Role.FromName(query.Role),
             query.Status
         );
 

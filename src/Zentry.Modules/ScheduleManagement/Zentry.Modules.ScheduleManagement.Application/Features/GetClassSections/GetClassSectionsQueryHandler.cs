@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 
@@ -35,7 +36,7 @@ public class GetClassSectionsQueryHandler(
 
         var lecturerLookupTasks = lecturerIds
             .Select<Guid, Task<GetUserByIdAndRoleIntegrationResponse?>>(id =>
-                userScheduleService.GetUserByIdAndRoleAsync("Lecturer", id, cancellationToken))
+                userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, id, cancellationToken))
             .ToList();
 
         await Task.WhenAll(lecturerLookupTasks);

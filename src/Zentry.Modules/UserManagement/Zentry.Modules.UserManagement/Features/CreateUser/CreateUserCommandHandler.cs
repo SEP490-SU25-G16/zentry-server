@@ -2,6 +2,7 @@
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
@@ -22,7 +23,7 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordH
 
         // 3. Tạo đối tượng Account và User
         // Sử dụng phương thức Create tĩnh từ entity
-        var account = Account.Create(command.Email, hashedPassword, salt, command.Role);
+        var account = Account.Create(command.Email, hashedPassword, salt, Role.FromName(command.Role));
         var user = User.Create(account.Id, command.FullName, command.PhoneNumber);
 
         // 4. Lưu vào cơ sở dữ liệu
@@ -35,7 +36,7 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordH
             AccountId = account.Id,
             Email = account.Email,
             FullName = user.FullName,
-            Role = account.Role,
+            Role = account.Role.ToString(),
             Status = account.Status,
             CreatedAt = account.CreatedAt
         };

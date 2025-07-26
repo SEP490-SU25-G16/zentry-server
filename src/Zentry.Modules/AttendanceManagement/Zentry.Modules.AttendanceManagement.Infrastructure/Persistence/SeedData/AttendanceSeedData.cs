@@ -2,7 +2,7 @@ using Bogus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.Modules.AttendanceManagement.Domain.Enums; // Cần nếu dùng RoundStatus hay các Enums khác của Attendance
+// Cần nếu dùng RoundStatus hay các Enums khác của Attendance
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Contracts.Schedule; // Cần nếu dùng SessionConfigSnapshot
 

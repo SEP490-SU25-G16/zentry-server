@@ -1,8 +1,9 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Enums.User; // Đảm bảo đã có using này
 
 namespace Zentry.SharedKernel.Contracts.User;
 
-public record GetUserByIdAndRoleIntegrationQuery(string Role, Guid UserId)
+public record GetUserByIdAndRoleIntegrationQuery(Role Role, Guid UserId)
     : IQuery<GetUserByIdAndRoleIntegrationResponse>;
 
 public record GetUserByIdAndRoleIntegrationResponse(
@@ -11,7 +12,7 @@ public record GetUserByIdAndRoleIntegrationResponse(
     string Email,
     string FullName,
     string? PhoneNumber,
-    string Role,
+    Role Role,
     string Status,
     DateTime CreatedAt
 );
