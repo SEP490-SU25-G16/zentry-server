@@ -39,6 +39,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<bool>("IsManual")
                         .HasColumnType("boolean");
 
+                    b.Property<double>("PercentageAttended")
+                        .HasColumnType("double precision");
+
                     b.Property<Guid>("SessionId")
                         .HasColumnType("uuid");
 
@@ -234,8 +237,16 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                             b1.Property<int>("AttendanceWindowMinutes")
                                 .HasColumnType("integer");
 
+                            b1.Property<string>("CourseCode")
+                                .IsRequired()
+                                .HasColumnType("text");
+
                             b1.Property<int>("ManualAdjustmentGracePeriodHours")
                                 .HasColumnType("integer");
+
+                            b1.Property<string>("SectionCode")
+                                .IsRequired()
+                                .HasColumnType("text");
 
                             b1.Property<int>("TotalAttendanceRounds")
                                 .HasColumnType("integer");

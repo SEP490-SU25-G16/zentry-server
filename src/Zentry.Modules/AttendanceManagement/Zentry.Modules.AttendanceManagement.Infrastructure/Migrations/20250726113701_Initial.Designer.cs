@@ -12,7 +12,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250726070152_Initial")]
+    [Migration("20250726113701_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -41,6 +41,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
                     b.Property<bool>("IsManual")
                         .HasColumnType("boolean");
+
+                    b.Property<double>("PercentageAttended")
+                        .HasColumnType("double precision");
 
                     b.Property<Guid>("SessionId")
                         .HasColumnType("uuid");
@@ -237,8 +240,16 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                             b1.Property<int>("AttendanceWindowMinutes")
                                 .HasColumnType("integer");
 
+                            b1.Property<string>("CourseCode")
+                                .IsRequired()
+                                .HasColumnType("text");
+
                             b1.Property<int>("ManualAdjustmentGracePeriodHours")
                                 .HasColumnType("integer");
+
+                            b1.Property<string>("SectionCode")
+                                .IsRequired()
+                                .HasColumnType("text");
 
                             b1.Property<int>("TotalAttendanceRounds")
                                 .HasColumnType("integer");
