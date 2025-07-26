@@ -45,13 +45,11 @@ public class CreateRoundsConsumer(
 
             var roundsToAdd = new List<Round>();
 
-            // Tạo tất cả các round từ 1 đến TotalAttendanceRounds
             for (var i = 1; i <= session.TotalAttendanceRounds; i++)
             {
                 var roundStartTime = session.StartTime.AddSeconds(durationPerRoundSeconds * (i - 1));
                 var roundEndTime = roundStartTime.AddSeconds(durationPerRoundSeconds);
 
-                // Đảm bảo EndTime của round cuối cùng không vượt quá EndTime của session
                 if (i == session.TotalAttendanceRounds) roundEndTime = session.EndTime;
 
                 var newRound = Round.Create(

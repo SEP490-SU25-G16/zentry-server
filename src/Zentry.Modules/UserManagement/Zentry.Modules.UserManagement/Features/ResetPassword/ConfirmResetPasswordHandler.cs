@@ -15,7 +15,7 @@ public class ConfirmResetPasswordHandler(UserDbContext dbContext, IPasswordHashe
             .FirstOrDefaultAsync(a => a.Email == request.Email && a.ResetToken == request.Token, cancellationToken);
 
         // Check if account exists, token matches, and token is not expired
-        if (account == null || account.ResetTokenExpiryTime == null || account.ResetTokenExpiryTime <= DateTime.UtcNow)
+        if (account == null || account.ResetTokenExpiryTime == null || account.ResetTokenExpiryTime <= DateTime.Now)
         {
             // IMPORTANT: If a token was found but expired/invalid, clear it to prevent further attempts.
             // Sử dụng phương thức ClearResetToken của entity Account

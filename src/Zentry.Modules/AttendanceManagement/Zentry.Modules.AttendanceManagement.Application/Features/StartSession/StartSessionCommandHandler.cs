@@ -129,7 +129,7 @@ public class StartSessionCommandHandler(
         // ĐIỀU CHỈNH: Chỉ sử dụng SetAsync cho từng key
 
         // Key: Xác nhận rằng session này đang active (dùng cho SubmitScanDataCommandHandler)
-        await redisService.SetAsync($"session:{session.Id}", "active", totalRemainingDuration);
+        await redisService.SetAsync($"session:{session.Id}", "ACTIVE", totalRemainingDuration);
         // Key: Đảm bảo chỉ có một session active cho ScheduleId cụ thể
         await redisService.SetAsync(activeScheduleKey, session.Id.ToString(), totalRemainingDuration);
 

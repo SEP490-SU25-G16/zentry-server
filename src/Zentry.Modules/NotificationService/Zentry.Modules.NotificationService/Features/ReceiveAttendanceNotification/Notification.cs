@@ -29,8 +29,8 @@ public class Notification
             Content = content,
             Type = type,
             Priority = priority,
-            CreatedAt = DateTime.UtcNow,
-            SentAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now,
+            SentAt = DateTime.Now,
             ReadAt = null
         };
     }

@@ -1,5 +1,4 @@
 using MassTransit;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services;
@@ -117,34 +116,28 @@ public class CreateSessionConsumer(
             for (var date = message.ScheduledStartDate; date <= message.ScheduledEndDate; date = date.AddDays(1))
                 if (date.DayOfWeek == systemDayOfWeek)
                 {
-                    if (date < message.ScheduledStartDate || date > message.ScheduledEndDate)
-                    {
-                        logger.LogWarning(
-                            "ScheduleCreatedEventConsumer: Date {Date} is outside the course period ({StartDate} - {EndDate}) for schedule {ScheduleId}.",
-                            date, message.ScheduledStartDate, message.ScheduledEndDate, message.ScheduleId);
-                        continue;
-                    }
-
                     var todaySessionStartUnspecified = date.ToDateTime(message.ScheduledStartTime);
                     var todaySessionEndUnspecified = date.ToDateTime(message.ScheduledEndTime);
 
+                    // Xử lý trường hợp endTime qua nửa đêm
                     if (message.ScheduledEndTime < message.ScheduledStartTime)
                         todaySessionEndUnspecified = todaySessionEndUnspecified.AddDays(1);
 
-                    var todaySessionStart = DateTime.SpecifyKind(todaySessionStartUnspecified, DateTimeKind.Utc);
-                    var todaySessionEnd = DateTime.SpecifyKind(todaySessionEndUnspecified, DateTimeKind.Utc);
+                    var todaySessionStartUtc = todaySessionStartUnspecified.ToUtcFromVietnamLocalTime();
+                    var todaySessionEndUtc = todaySessionEndUnspecified.ToUtcFromVietnamLocalTime();
 
                     var session = Session.Create(
                         message.ScheduleId,
                         message.LecturerId,
-                        todaySessionStart,
-                        todaySessionEnd,
+                        todaySessionStartUtc,
+                        todaySessionEndUtc,
                         finalConfigDictionary
                     );
                     sessionsToPersist.Add(session);
 
-                    logger.LogInformation("Prepared Session {SessionId} for Schedule {ScheduleId} on {SessionDate}.",
-                        session.Id, message.ScheduleId, date.ToShortDateString());
+                    logger.LogInformation(
+                        "Prepared Session {SessionId} for Schedule {ScheduleId} on {SessionDate} (UTC: {UtcStart:HH:mm}).",
+                        session.Id, message.ScheduleId, date.ToShortDateString(), todaySessionStartUtc);
                 }
 
             if (sessionsToPersist.Count > 0)
@@ -161,11 +154,13 @@ public class CreateSessionConsumer(
 
                     if (currentSessionConfigSnapshot.TotalAttendanceRounds > 0)
                     {
+                        // Lưu ý: session.StartTime và session.EndTime giờ đây đã là UTC khi được lưu trong DB
+                        // và cũng là UTC khi được lấy ra từ session object.
                         var createRoundsMessage = new CreateRoundsMessage(
                             session.Id,
                             currentSessionConfigSnapshot.TotalAttendanceRounds,
-                            session.StartTime,
-                            session.EndTime
+                            session.StartTime, // Đây là UTC
+                            session.EndTime // Đây là UTC
                         );
                         await bus.Publish(createRoundsMessage, context.CancellationToken);
                         logger.LogInformation("Published CreateSessionRoundsMessage for SessionId: {SessionId}.",

@@ -42,7 +42,7 @@ public class
         //     return new AttendanceReportDto
         //     {
         //         CourseId = request.CourseId,
-        //         GeneratedAt = DateTime.UtcNow,
+        //         GeneratedAt = DateTime.Now,
         //         TotalStudents = 0,
         //         TotalSessions = 0,
         //         AverageAttendanceRate = 0
@@ -56,7 +56,7 @@ public class
         // return new AttendanceReportDto
         // {
         //     CourseId = result.CourseId,
-        //     GeneratedAt = DateTime.UtcNow,
+        //     GeneratedAt = DateTime.Now,
         //     TotalStudents = result.TotalStudents,
         //     TotalSessions = result.TotalSessions,
         //     AverageAttendanceRate = Math.Round(averageAttendanceRate, 2)

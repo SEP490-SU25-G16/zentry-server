@@ -22,7 +22,7 @@ public class RequestResetPasswordHandler(UserDbContext dbContext, IEmailService 
         }
 
         var token = Guid.NewGuid().ToString("N"); // Simple token generation
-        var expiryTime = DateTime.UtcNow.AddHours(1); // Token valid for 1 hour
+        var expiryTime = DateTime.Now.AddHours(1); // Token valid for 1 hour
 
         // Sử dụng phương thức SetResetToken của entity Account
         account.SetResetToken(token, expiryTime);

@@ -39,7 +39,7 @@ public class AttendanceDbMigrationService(
                     var seeder =
                         scope.ServiceProvider.GetRequiredService<AttendanceDbSeeder>();
 
-                    await seeder.SeedAllAsync(false, cancellationToken);
+                    // await seeder.SeedAllAsync(false, cancellationToken);
                 });
                 logger.LogInformation("Attendance Management database migration and seeding completed successfully.");
             }

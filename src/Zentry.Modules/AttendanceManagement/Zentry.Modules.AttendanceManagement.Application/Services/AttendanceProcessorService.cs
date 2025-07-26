@@ -490,7 +490,7 @@ public class AttendanceProcessorService(
         var roundTrack = new RoundTrack(currentRound.Id, currentRound.SessionId, currentRound.RoundNumber,
             currentRound.StartTime)
         {
-            ProcessedAt = DateTime.UtcNow,
+            ProcessedAt = DateTime.Now,
             Students = studentsInRoundTrack // Chỉ chứa những người được điểm danh qua Bluetooth
         };
         await roundTrackRepository.AddOrUpdateAsync(roundTrack, cancellationToken);
@@ -513,7 +513,7 @@ public class AttendanceProcessorService(
         var roundTrack = new RoundTrack(currentRound.Id, currentRound.SessionId, currentRound.RoundNumber,
             currentRound.StartTime)
         {
-            ProcessedAt = DateTime.UtcNow,
+            ProcessedAt = DateTime.Now,
             Students = new List<StudentAttendanceInRound>() // Danh sách rỗng
         };
         await roundTrackRepository.AddOrUpdateAsync(roundTrack, cancellationToken);
