@@ -60,30 +60,30 @@ public class ConfigurationDbSeeder(IServiceProvider serviceProvider, ILogger<Con
         // Các AttributeDefinition quan trọng với ID cố định (dùng FromSeedingData)
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.AttendanceWindowMinutesAttrId, "attendanceWindowMinutes", "Thời gian mở cửa điểm danh",
-            "Số phút trước và sau thời gian biểu cho phép tạo phiên điểm danh.", DataType.Int, ScopeType.GLOBAL, "phút"
+            "Số phút trước và sau thời gian biểu cho phép tạo phiên điểm danh.", DataType.Int, ScopeType.Global, "phút"
         ).Generate());
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.TotalAttendanceRoundsAttrId, "totalAttendanceRounds", "Tổng số vòng điểm danh",
-            "Tổng số vòng điểm danh trong một phiên học.", DataType.Int, ScopeType.GLOBAL, "vòng"
+            "Tổng số vòng điểm danh trong một phiên học.", DataType.Int, ScopeType.Global, "vòng"
         ).Generate());
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.AbsentReportGracePeriodHoursAttrId, "absentReportGracePeriodHours", "Thời gian ân hạn báo vắng",
-            "Số giờ sau khi phiên kết thúc để cho phép gửi báo cáo vắng mặt.", DataType.Int, ScopeType.GLOBAL, "giờ"
+            "Số giờ sau khi phiên kết thúc để cho phép gửi báo cáo vắng mặt.", DataType.Int, ScopeType.Global, "giờ"
         ).Generate());
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.ManualAdjustmentGracePeriodHoursAttrId, "manualAdjustmentGracePeriodHours",
             "Thời gian ân hạn điều chỉnh thủ công",
-            "Số giờ sau khi phiên kết thúc để cho phép điều chỉnh điểm danh thủ công.", DataType.Int, ScopeType.GLOBAL,
+            "Số giờ sau khi phiên kết thúc để cho phép điều chỉnh điểm danh thủ công.", DataType.Int, ScopeType.Global,
             "giờ"
         ).Generate());
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.MinRssiThresholdAttrId, "minRssiThreshold", "Ngưỡng RSSI tối thiểu",
             "Ngưỡng cường độ tín hiệu Bluetooth (RSSI) tối thiểu để coi thiết bị là có mặt.", DataType.Int,
-            ScopeType.GLOBAL, "dBm"
+            ScopeType.Global, "dBm"
         ).Generate());
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.MaxHopDistanceAttrId, "maxHopDistance", "Khoảng cách Hop tối đa",
-            "Số bước nhảy tối đa cho thuật toán điểm danh đa bước (multi-hop).", DataType.Int, ScopeType.GLOBAL, "hops"
+            "Số bước nhảy tối đa cho thuật toán điểm danh đa bước (multi-hop).", DataType.Int, ScopeType.Global, "hops"
         ).Generate());
 
         await context.AttributeDefinitions.AddRangeAsync(attributeDefinitions);
@@ -95,30 +95,30 @@ public class ConfigurationDbSeeder(IServiceProvider serviceProvider, ILogger<Con
         var settings = new List<Setting>();
 
         // Global Settings (sử dụng ID cố định của AttributeDefinition)
-        settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.GLOBAL, Guid.Empty, "10")
+        settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.Global, Guid.Empty, "10")
             .Generate());
         settings.Add(
-            new SettingFaker(SeedGuids.TotalAttendanceRoundsAttrId, ScopeType.GLOBAL, Guid.Empty, "3").Generate());
-        settings.Add(new SettingFaker(SeedGuids.AbsentReportGracePeriodHoursAttrId, ScopeType.GLOBAL, Guid.Empty, "24")
+            new SettingFaker(SeedGuids.TotalAttendanceRoundsAttrId, ScopeType.Global, Guid.Empty, "3").Generate());
+        settings.Add(new SettingFaker(SeedGuids.AbsentReportGracePeriodHoursAttrId, ScopeType.Global, Guid.Empty, "24")
             .Generate());
-        settings.Add(new SettingFaker(SeedGuids.ManualAdjustmentGracePeriodHoursAttrId, ScopeType.GLOBAL, Guid.Empty,
+        settings.Add(new SettingFaker(SeedGuids.ManualAdjustmentGracePeriodHoursAttrId, ScopeType.Global, Guid.Empty,
             "48").Generate());
-        settings.Add(new SettingFaker(SeedGuids.MinRssiThresholdAttrId, ScopeType.GLOBAL, Guid.Empty, "-75")
+        settings.Add(new SettingFaker(SeedGuids.MinRssiThresholdAttrId, ScopeType.Global, Guid.Empty, "-75")
             .Generate());
-        settings.Add(new SettingFaker(SeedGuids.MaxHopDistanceAttrId, ScopeType.GLOBAL, Guid.Empty, "2").Generate());
+        settings.Add(new SettingFaker(SeedGuids.MaxHopDistanceAttrId, ScopeType.Global, Guid.Empty, "2").Generate());
 
         // Course-specific Settings (Overrides Global)
-        settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.COURSE,
+        settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.Course,
             SeedGuids.SampleCourseId, "15").Generate());
-        settings.Add(new SettingFaker(SeedGuids.TotalAttendanceRoundsAttrId, ScopeType.COURSE, SeedGuids.SampleCourseId,
+        settings.Add(new SettingFaker(SeedGuids.TotalAttendanceRoundsAttrId, ScopeType.Course, SeedGuids.SampleCourseId,
             "2").Generate());
-        settings.Add(new SettingFaker(SeedGuids.MaxHopDistanceAttrId, ScopeType.COURSE, SeedGuids.SampleCourseId, "1")
+        settings.Add(new SettingFaker(SeedGuids.MaxHopDistanceAttrId, ScopeType.Course, SeedGuids.SampleCourseId, "1")
             .Generate());
 
         // Session-specific Settings (Overrides Global and Course)
-        settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.SESSION,
+        settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.Session,
             SeedGuids.SampleScheduleId, "5").Generate());
-        settings.Add(new SettingFaker(SeedGuids.MinRssiThresholdAttrId, ScopeType.SESSION, SeedGuids.SampleScheduleId,
+        settings.Add(new SettingFaker(SeedGuids.MinRssiThresholdAttrId, ScopeType.Session, SeedGuids.SampleScheduleId,
             "-80").Generate());
 
         await context.Settings.AddRangeAsync(settings);

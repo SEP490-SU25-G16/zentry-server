@@ -119,8 +119,8 @@ public class Session : AggregateRoot<Guid>
 
     public void CancelSession()
     {
-        // Có thể thêm logic kiểm tra nếu session đã Active thì cần xác nhận đặc biệt
-        // Hoặc có thể hủy bỏ một phiên Active nếu cần
+        // Có thể thêm logic kiểm tra nếu session đã ACTIVE thì cần xác nhận đặc biệt
+        // Hoặc có thể hủy bỏ một phiên ACTIVE nếu cần
         Status = SessionStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }

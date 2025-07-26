@@ -17,7 +17,7 @@ public class UserRequest : AggregateRoot<Guid>
         TargetUserId = targetUserId;
         RequestType = requestType;
         RelatedEntityId = relatedEntityId;
-        Status = UserRequestStatus.PENDING;
+        Status = UserRequestStatus.Pending;
         Reason = reason;
         CreatedAt = DateTime.UtcNow;
     }
@@ -39,13 +39,13 @@ public class UserRequest : AggregateRoot<Guid>
 
     public void Approve()
     {
-        Status = UserRequestStatus.APPROVED;
+        Status = UserRequestStatus.Approved;
         ProcessedAt = DateTime.UtcNow;
     }
 
     public void Reject()
     {
-        Status = UserRequestStatus.REJECTED;
+        Status = UserRequestStatus.Rejected;
         ProcessedAt = DateTime.UtcNow;
     }
 }

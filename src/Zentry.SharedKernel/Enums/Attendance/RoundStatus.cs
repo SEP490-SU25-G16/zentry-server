@@ -4,11 +4,11 @@ namespace Zentry.SharedKernel.Enums.Attendance;
 
 public class RoundStatus : Enumeration
 {
-    public static readonly RoundStatus Pending = new(1, "PENDING");
-    public static readonly RoundStatus Active = new(2, "ACTIVE");
-    public static readonly RoundStatus Completed = new(3, "COMPLETED");
-    public static readonly RoundStatus Finalized = new(4, "FINALIZED");
-    public static readonly RoundStatus Cancelled = new(5, "CANCELLED");
+    public static readonly RoundStatus Pending = new(1, nameof(Pending));
+    public static readonly RoundStatus Active = new(2, nameof(Active));
+    public static readonly RoundStatus Completed = new(3, nameof(Completed));
+    public static readonly RoundStatus Finalized = new(4, nameof(Finalized));
+    public static readonly RoundStatus Cancelled = new(5, nameof(Cancelled));
 
     private RoundStatus(int id, string name) : base(id, name)
     {

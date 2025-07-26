@@ -10,7 +10,7 @@ public class AttributeDefinition : AggregateRoot<Guid>
         Key = string.Empty;
         DisplayName = string.Empty;
         DataType = DataType.Int;
-        ScopeType = ScopeType.GLOBAL;
+        ScopeType = ScopeType.Global;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }

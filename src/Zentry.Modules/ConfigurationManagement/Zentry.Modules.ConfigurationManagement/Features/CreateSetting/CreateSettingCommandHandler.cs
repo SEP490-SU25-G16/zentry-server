@@ -316,7 +316,7 @@ public class
         await DeleteKeysByPattern(keyPatternByScopeType);
 
         // Invalidating global settings (if this change impacts global settings, e.g., if scopeType is GLOBAL)
-        if (scopeType == ScopeType.GLOBAL)
+        if (scopeType == ScopeType.Global)
         {
             var keyPatternGlobal = "settings:null:GLOBAL:*"; // Only for Global scopeType
             await DeleteKeysByPattern(keyPatternGlobal);

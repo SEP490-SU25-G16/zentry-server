@@ -122,9 +122,9 @@ public class GetMultipleSettingsIntegrationQueryHandler(
         ScopeType requestedScopeType)
     {
         // Chỉ cache những loại scope nhất định
-        if (requestedScopeType.Equals(ScopeType.GLOBAL) ||
-            requestedScopeType.Equals(ScopeType.COURSE) ||
-            requestedScopeType.Equals(ScopeType.SESSION))
+        if (requestedScopeType.Equals(ScopeType.Global) ||
+            requestedScopeType.Equals(ScopeType.Course) ||
+            requestedScopeType.Equals(ScopeType.Session))
         {
             await redisService.SetAsync(cacheKey, settingsToCache, CacheExpiry);
             logger.LogInformation("Cached response for key: {CacheKey}", cacheKey);

@@ -4,11 +4,9 @@ namespace Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 
 public class ScopeType : Enumeration
 {
-    public static readonly ScopeType GLOBAL = new(1, nameof(GLOBAL));
-    public static readonly ScopeType COURSE = new(2, nameof(COURSE));
-    public static readonly ScopeType USER = new(3, nameof(USER));
-    public static readonly ScopeType SESSION = new(4, nameof(SESSION));
-    public static readonly ScopeType DEVICE = new(5, nameof(DEVICE));
+    public static readonly ScopeType Global = new(1, nameof(Global));
+    public static readonly ScopeType Course = new(2, nameof(Course));
+    public static readonly ScopeType Session = new(4, nameof(Session));
 
     private ScopeType(int id, string name) : base(id, name)
     {

@@ -4,9 +4,9 @@ namespace Zentry.SharedKernel.Enums.Attendance;
 
 public class UserRequestStatus : Enumeration
 {
-    public static readonly UserRequestStatus PENDING = new(1, nameof(PENDING));
-    public static readonly UserRequestStatus APPROVED = new(2, nameof(APPROVED));
-    public static readonly UserRequestStatus REJECTED = new(3, nameof(REJECTED));
+    public static readonly UserRequestStatus Pending = new(1, nameof(Pending));
+    public static readonly UserRequestStatus Approved = new(2, nameof(Approved));
+    public static readonly UserRequestStatus Rejected = new(3, nameof(Rejected));
 
     private UserRequestStatus(int id, string name) : base(id, name)
     {

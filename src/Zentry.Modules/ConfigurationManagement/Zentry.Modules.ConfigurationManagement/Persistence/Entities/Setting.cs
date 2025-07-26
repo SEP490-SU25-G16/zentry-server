@@ -8,7 +8,7 @@ public class Setting : AggregateRoot<Guid>
     public Setting() : base(Guid.Empty)
     {
         Value = string.Empty;
-        ScopeType = ScopeType.GLOBAL; // Default
+        ScopeType = ScopeType.Global; // Default
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }

@@ -103,11 +103,11 @@ public class
         // 2. Lưu vào Redis nếu ScopeType phù hợp và không có SearchTerm (để tránh cache quá nhiều data linh tinh)
         // Chỉ cache nếu không có searchTerm, và ScopeType là GLOBAL, COURSE, hoặc SESSION
         var canCache = string.IsNullOrWhiteSpace(query.SearchTerm) &&
-                       (requestedScopeType == ScopeType.GLOBAL ||
-                        requestedScopeType == ScopeType.COURSE ||
+                       (requestedScopeType == ScopeType.Global ||
+                        requestedScopeType == ScopeType.Course ||
                         requestedScopeType ==
                         ScopeType
-                            .SESSION); // Sử dụng `SESSION` như định nghĩa của bạn cho `ScopeType` là lịch trình/buổi học
+                            .Session); // Sử dụng `SESSION` như định nghĩa của bạn cho `ScopeType` là lịch trình/buổi học
 
         if (!canCache) return response;
         await redisService.SetAsync(cacheKey, response, _cacheExpiry);
