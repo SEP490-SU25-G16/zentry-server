@@ -44,8 +44,8 @@ public class GetSessionFinalAttendanceQueryHandler(
             new GetEnrollmentsByClassSectionIdIntegrationQuery(classSectionId),
             cancellationToken);
 
-        if (!enrollmentsResponse.Enrollments.Any())
-            return new List<FinalAttendanceDto>(); // Trả về danh sách rỗng nếu không có sinh viên nào đăng ký
+        if (enrollmentsResponse.Enrollments.Count == 0)
+            return []; // Trả về danh sách rỗng nếu không có sinh viên nào đăng ký
 
         var enrollments = enrollmentsResponse.Enrollments;
 
@@ -85,7 +85,8 @@ public class GetSessionFinalAttendanceQueryHandler(
                 SessionStartTime = session.StartTime, // Gán thời gian bắt đầu session
 
                 DetailedAttendanceStatus = attendanceStatus.ToString(), // Gán trạng thái điểm danh chi tiết
-                LastAttendanceTime = lastAttendanceRecord?.CreatedAt // Gán thời gian điểm danh cuối cùng
+                LastAttendanceTime =
+                    lastAttendanceRecord?.CreatedAt ?? session.StartTime // Gán thời gian điểm danh cuối cùng
             });
         }
 

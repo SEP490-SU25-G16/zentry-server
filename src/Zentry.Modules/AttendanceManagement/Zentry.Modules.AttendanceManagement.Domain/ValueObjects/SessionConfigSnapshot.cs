@@ -59,6 +59,18 @@ public record SessionConfigSnapshot
         set => SetInt("ManualAdjustmentGracePeriodHours", value);
     }
 
+    public string CourseCode
+    {
+        get => GetString("courseCode", "Unknown");
+        set => SetString("courseCode", value);
+    }
+
+    public string SectionCode
+    {
+        get => GetString("sectionCode", "Unknown");
+        set => SetString("sectionCode", value);
+    }
+
     public IEnumerable<string> Keys => _configs.Keys;
 
     public IEnumerable<string> Values => _configs.Values;

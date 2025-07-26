@@ -53,7 +53,7 @@ public class GetLecturerDailyClassesQueryHandler(
             var currentSessionNumber = currentSession is not null
                 ? allSessions
                     .OrderBy(s => s.StartTime) // Đảm bảo thứ tự để FindIndex đúng
-                    .ToList() // Chuyển sang List để dùng FindIndex
+                    .ToList()
                     .FindIndex(s => s.SessionId == currentSession.SessionId) + 1
                 : 0;
 

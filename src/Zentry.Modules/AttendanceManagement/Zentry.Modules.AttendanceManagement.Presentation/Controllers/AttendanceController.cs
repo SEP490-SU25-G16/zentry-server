@@ -19,7 +19,7 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 [Route("api/attendance")]
 public class AttendanceController(IMediator mediator) : ControllerBase
 {
-    [HttpGet("{sessionId:guid}/rounds")]
+    [HttpGet("sessions/{sessionId}/rounds")]
     [ProducesResponseType(typeof(List<RoundAttendanceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionRounds(Guid sessionId, CancellationToken cancellationToken)
@@ -29,7 +29,7 @@ public class AttendanceController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{sessionId:guid}/attendance/final")]
+    [HttpGet("sessions/{sessionId}/final")]
     [ProducesResponseType(typeof(List<FinalAttendanceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionFinalAttendance(Guid sessionId, CancellationToken cancellationToken)
