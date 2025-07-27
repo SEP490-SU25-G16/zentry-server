@@ -1,4 +1,7 @@
-﻿namespace Zentry.Modules.ConfigurationManagement.Dtos;
+﻿using System.ComponentModel.DataAnnotations;
+using Zentry.SharedKernel.Helpers;
+
+namespace Zentry.Modules.ConfigurationManagement.Dtos;
 
 public class SettingCreationDto
 {

@@ -38,4 +38,14 @@ public static class ErrorCodes
     public const string SessionNotFound = "SESSION_NOT_FOUND";
     public const string SessionAlreadyStarted = "SESSION_ALREADY_STARTED";
     public const string AttendanceCalculationFailed = "ATTENDANCE_CALCULATION_FAILED";
+
+
+    public const string InvalidCredentials = "INVALID_CREDENTIALS";
+    public const string AccountInactive = "ACCOUNT_INACTIVE";
+    public const string AccountLocked = "ACCOUNT_LOCKED";
+    public const string AccountDisabled = "ACCOUNT_DISABLED";
+    public const string TokenExpired = "TOKEN_EXPIRED";
+    public const string EmailNotConfirmed = "EMAIL_NOT_CONFIRMED";
+    public const string TwoFactorRequired = "TWO_FACTOR_REQUIRED";
+    public const string PasswordResetRequired = "PASSWORD_RESET_REQUIRED";
 }

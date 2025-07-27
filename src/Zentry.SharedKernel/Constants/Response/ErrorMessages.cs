@@ -1,0 +1,55 @@
+namespace Zentry.SharedKernel.Constants.Response;
+
+public static class ErrorMessages
+{
+    // Common validation messages
+    public const string RequestBodyRequired = "Dữ liệu yêu cầu không được để trống";
+    public const string InvalidDataFormat = "Định dạng dữ liệu không hợp lệ";
+    public const string GuidFormatInvalid = "ID phải có định dạng hợp lệ (ví dụ: 12345678-1234-1234-1234-123456789abc)";
+
+    // Setting specific messages
+    public static class Settings
+    {
+        public const string AttributeDefinitionRequired = "Thông tin định nghĩa thuộc tính là bắt buộc";
+        public const string KeyRequired = "Key là bắt buộc";
+        public const string DisplayNameRequired = "Tên hiển thị là bắt buộc";
+        public const string DataTypeRequired = "Kiểu dữ liệu là bắt buộc";
+        public const string ScopeTypeRequired = "Loại phạm vi là bắt buộc";
+        public const string SettingDetailsRequired = "Thông tin cài đặt là bắt buộc";
+        public const string SettingScopeTypeRequired = "Loại phạm vi cài đặt là bắt buộc";
+        public const string ScopeIdRequired = "ID phạm vi là bắt buộc";
+        public const string ValueRequired = "Giá trị cài đặt là bắt buộc";
+    }
+
+    // User specific messages
+    public static class Users
+    {
+        public const string UserNotFound = "Không tìm thấy người dùng";
+        public const string EmailRequired = "Email là bắt buộc";
+        public const string PasswordRequired = "Mật khẩu là bắt buộc";
+        public const string UserAlreadyExists = "Người dùng đã tồn tại";
+    }
+
+    // Device specific messages
+    public static class Devices
+    {
+        public const string DeviceNotFound = "Không tìm thấy thiết bị";
+        public const string DeviceNameRequired = "Tên thiết bị là bắt buộc";
+        public const string DeviceAlreadyRegistered = "Thiết bị đã được đăng ký";
+    }
+
+    // Authentication messages
+    public static class Authentication
+    {
+        public const string InvalidCredentials = "Email hoặc mật khẩu không chính xác";
+        public const string AccountNotFound = "Tài khoản không tồn tại";
+        public const string AccountInactive = "Tài khoản chưa được kích hoạt";
+        public const string AccountLocked = "Tài khoản đã bị khóa";
+        public const string AccountDisabled = "Tài khoản đã bị vô hiệu hóa";
+        public const string TokenExpired = "Token đã hết hạn";
+        public const string EmailNotConfirmed = "Email chưa được xác nhận";
+        public const string TwoFactorRequired = "Yêu cầu xác thực hai yếu tố";
+        public const string PasswordResetRequired = "Yêu cầu đặt lại mật khẩu";
+        public const string ServerError = "Có lỗi xảy ra phía server";
+    }
+}

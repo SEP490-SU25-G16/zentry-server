@@ -1,4 +1,6 @@
+using FluentValidation;
 using MassTransit;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Zentry.Infrastructure;
@@ -17,41 +19,65 @@ using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 using Zentry.Modules.UserManagement;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Constants.Response;
+using Zentry.SharedKernel.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ===== CẤU HÌNH CONTROLLERS VÀ JSON =====
 builder.Services.AddControllers()
     .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = null; });
 
+// ===== CẤU HÌNH MODEL VALIDATION =====
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var firstError = context.ModelState
+            .SelectMany(x => x.Value.Errors)
+            .FirstOrDefault();
+
+        var message = firstError?.ErrorMessage ?? ErrorMessages.InvalidDataFormat;
+
+        if (IsGuidFormatError(firstError?.ErrorMessage))
+        {
+            message = ErrorMessages.GuidFormatInvalid;
+        }
+
+        var apiResponse = ApiResponse.ErrorResult(ErrorCodes.ValidationError, message);
+        return new BadRequestObjectResult(apiResponse);
+    };
+});
+
+// ===== CẤU HÌNH CORS =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", corsPolicyBuilder =>
         corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
+
 builder.Services.AddAuthorization();
 
+// ===== CẤU HÌNH MASSTRANSIT =====
 builder.Services.AddMassTransit(x =>
 {
-    // Cấu hình các consumers của Attendance module
     x.AddAttendanceMassTransitConsumers();
 
-    // Cấu hình MassTransit chung với RabbitMQ
     x.UsingRabbitMq((context, cfg) =>
     {
-        // --- Thay đổi cách lấy RabbitMQ_ConnectionString ---
         var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
-        // ----------------------------------------------------
 
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
             throw new InvalidOperationException(
                 "RabbitMQ_ConnectionString is not configured in appsettings.json or environment variables.");
 
         cfg.Host(new Uri(rabbitMqConnectionString));
-
-        // Cấu hình Receive Endpoint cho Attendance module
         cfg.ConfigureAttendanceReceiveEndpoints(context);
     });
 });
+
+// ===== ĐĂNG KÝ CÁC MODULES =====
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddUserInfrastructure(builder.Configuration);
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
@@ -65,79 +91,63 @@ builder.Services.AddReportingInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+// ===== CẤU HÌNH MIDDLEWARE PIPELINE =====
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
+app.UseValidationExceptionMiddleware();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
+// ===== DATABASE MIGRATION CODE =====
+await RunDatabaseMigrationsAsync(app);
+
+app.Run();
+
+// ===== HELPER METHODS =====
+static bool IsGuidFormatError(string? errorMessage)
 {
+    if (string.IsNullOrEmpty(errorMessage)) return false;
+
+    return errorMessage.Contains("GUID", StringComparison.OrdinalIgnoreCase) ||
+           errorMessage.Contains("is not valid", StringComparison.OrdinalIgnoreCase) ||
+           errorMessage.Contains("format", StringComparison.OrdinalIgnoreCase);
+}
+
+static async Task RunDatabaseMigrationsAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var serviceProvider = scope.ServiceProvider;
 
     var retryPolicy = Policy
         .Handle<Exception>()
-        .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(5),
+        .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(5),
             (exception, timeSpan, retryCount, context) =>
             {
-                logger.LogWarning(exception, "Migration attempt {RetryCount} failed. Retrying in {TimeSpan} seconds...",
+                logger.LogWarning(exception,
+                    "Migration attempt {RetryCount} failed. Retrying in {TimeSpan} seconds...",
                     retryCount, timeSpan.TotalSeconds);
             });
 
-    // Migrate Attendance
-    retryPolicy.Execute(() =>
+    var migrations = new[]
     {
-        var attendanceContext = serviceProvider.GetRequiredService<AttendanceDbContext>();
-        logger.LogInformation("Applying migrations for AttendanceDbContext...");
-        attendanceContext.Database.Migrate();
-        logger.LogInformation("Attendance migrations applied successfully.");
-    });
+        (typeof(AttendanceDbContext), "AttendanceDbContext"),
+        (typeof(ScheduleDbContext), "ScheduleDbContext"),
+        (typeof(DeviceDbContext), "DeviceManagementDbContext"),
+        (typeof(ConfigurationDbContext), "ConfigurationDbContext"),
+        (typeof(ReportingDbContext), "ReportingDbContext"),
+        (typeof(UserDbContext), "UserDbContext")
+    };
 
-    // Migrate Schedule
-    retryPolicy.Execute(() =>
+    foreach (var (contextType, contextName) in migrations)
     {
-        var scheduleContext = serviceProvider.GetRequiredService<ScheduleDbContext>();
-        logger.LogInformation("Applying migrations for ScheduleDbContext...");
-        scheduleContext.Database.Migrate();
-        logger.LogInformation("Schedule migrations applied successfully.");
-    });
-
-    // Migrate DeviceManagement
-    retryPolicy.Execute(() =>
-    {
-        var deviceDbContext = serviceProvider.GetRequiredService<DeviceDbContext>();
-        logger.LogInformation("Applying migrations for DeviceManagementDbContext...");
-        deviceDbContext.Database.Migrate();
-        logger.LogInformation("DeviceManagement migrations applied successfully.");
-    });
-
-    // Migrate Configuration
-    retryPolicy.Execute(() =>
-    {
-        var configDbContext = serviceProvider.GetRequiredService<ConfigurationDbContext>();
-        logger.LogInformation("Applying migrations for ConfigurationDbContext...");
-        configDbContext.Database.Migrate();
-        logger.LogInformation("Configuration migrations applied successfully.");
-    });
-
-    // Migrate Reporting
-    retryPolicy.Execute(() =>
-    {
-        var reportingDbContext = serviceProvider.GetRequiredService<ReportingDbContext>();
-        logger.LogInformation("Applying migrations for ReportingDbContext...");
-        reportingDbContext.Database.Migrate();
-        logger.LogInformation("Reporting migrations applied successfully.");
-    });
-
-    // Migrate User
-    retryPolicy.Execute(() =>
-    {
-        var userDbContext = serviceProvider.GetRequiredService<UserDbContext>();
-        logger.LogInformation("Applying migrations for UserDbContext...");
-        userDbContext.Database.Migrate();
-        logger.LogInformation("User migrations applied successfully.");
-    });
+        await retryPolicy.ExecuteAsync(async () =>
+        {
+            var dbContext = (DbContext)serviceProvider.GetRequiredService(contextType);
+            logger.LogInformation("Applying migrations for {ContextName}...", contextName);
+            await dbContext.Database.MigrateAsync();
+            logger.LogInformation("{ContextName} migrations applied successfully.", contextName);
+        });
+    }
 }
-
-app.Run();

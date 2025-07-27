@@ -1,4 +1,6 @@
-﻿namespace Zentry.Modules.ConfigurationManagement.Dtos;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Zentry.Modules.ConfigurationManagement.Dtos;
 
 public class AttributeDefinitionCreationDto
 {

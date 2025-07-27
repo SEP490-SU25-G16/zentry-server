@@ -1,9 +1,11 @@
-﻿namespace Zentry.Modules.ConfigurationManagement.Dtos;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Zentry.Modules.ConfigurationManagement.Dtos;
 
 public class CreateSettingRequest
 {
     public AttributeDefinitionCreationDto? AttributeDefinitionDetails { get; set; }
-    public SettingCreationDto Setting { get; set; } = new();
+    public SettingCreationDto? Setting { get; set; }
 }
 //
 // {

@@ -15,10 +15,14 @@ public class AuthController(IMediator mediator) : BaseController
     [HttpPost("sign-in")]
     [ProducesResponseType(typeof(ApiResponse<SignInResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SignIn([FromBody] SignInCommand command)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
+        if (!ModelState.IsValid)
+            return HandleValidationError();
+
         try
         {
             var result = await mediator.Send(command);
