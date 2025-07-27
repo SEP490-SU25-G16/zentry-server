@@ -71,6 +71,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
     {
         var overlap = await dbContext.Schedules
             .Include(s => s.ClassSection)
+            .ThenInclude(cs => cs!.Course)
+            .Include(s => s.Room)
             .AnyAsync(s => s.ClassSection!.LecturerId == lecturerId &&
                            s.WeekDay == weekDay &&
                            s.StartTime < endTime &&

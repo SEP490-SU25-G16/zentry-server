@@ -19,22 +19,31 @@ public class GetSessionRoundsQueryHandler(
     {
         var rounds = await roundRepository.GetRoundsBySessionIdAsync(request.SessionId, cancellationToken);
         if (rounds is null || rounds.Count == 0)
-            throw new NotFoundException("Session", request.SessionId);
+            throw new NotFoundException("Rounds for Session", request.SessionId);
 
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
 
         if (session is null)
             throw new NotFoundException("Session", request.SessionId);
 
-        var classSectionIdResponse =
-            await mediator.Send(new GetClassSectionIdByScheduleIdIntegrationQuery(session.ScheduleId),
+        // Lấy thông tin ClassSection từ Schedule module
+        var classSectionResponse =
+            await mediator.Send(
+                new GetClassSectionByScheduleIdIntegrationQuery(session
+                    .ScheduleId), // <-- Sửa Query để lấy cả ClassSection info
                 cancellationToken);
-        var classSectionId = classSectionIdResponse.ClassSectionId;
 
-        if (classSectionId == Guid.Empty)
+        if (classSectionResponse == null || classSectionResponse.ClassSectionId == Guid.Empty)
             throw new NotFoundException("ClassSection", $"corresponding to ScheduleId {session.ScheduleId}");
 
-        var resultCount = await mediator.Send(
+        var classSectionId = classSectionResponse.ClassSectionId;
+        var courseId = classSectionResponse.CourseId; // <-- Lấy CourseId
+        var courseCode = classSectionResponse.CourseCode; // <-- Lấy CourseCode
+        var courseName = classSectionResponse.CourseName; // <-- Lấy CourseName
+        var sectionCode = classSectionResponse.SectionCode; // <-- Lấy SectionCode
+
+        // Lấy tổng số sinh viên đăng ký
+        var totalStudentsCountResponse = await mediator.Send(
             new CountActiveStudentsByClassSectionIdIntegrationQuery(classSectionId),
             cancellationToken);
 
@@ -42,11 +51,6 @@ public class GetSessionRoundsQueryHandler(
             request.SessionId, cancellationToken);
 
         var result = new List<RoundAttendanceDto>();
-
-        // Lấy CourseCode và SectionCode từ SessionConfigs
-        // Giả sử SessionConfigSnapshot có thể truy cập các giá trị này qua GetConfig hoặc tương tự
-        var courseCode = session.GetConfig<string>("courseCode");
-        var sectionCode = session.GetConfig<string>("sectionCode");
 
         foreach (var round in rounds)
         {
@@ -56,19 +60,27 @@ public class GetSessionRoundsQueryHandler(
 
             result.Add(new RoundAttendanceDto
             {
+                RoundId = round.Id, // <-- Gán RoundId
+                SessionId = request.SessionId, // <-- Gán SessionId
+
                 RoundNumber = round.RoundNumber,
                 StartTime = round.StartTime,
                 EndTime = round.EndTime,
                 AttendedCount = attendedCount,
-                TotalStudents = resultCount.TotalStudents,
+                TotalStudents = totalStudentsCountResponse.TotalStudents,
                 Status = round.Status.ToString(),
                 CreatedAt = round.CreatedAt,
                 UpdatedAt = round.UpdatedAt,
-                CourseCode = courseCode,
-                SectionCode = sectionCode
+
+                CourseId = courseId, // <-- Gán CourseId
+                CourseCode = courseCode, // <-- Gán CourseCode
+                CourseName = courseName, // <-- Gán CourseName
+
+                ClassSectionId = classSectionId, // <-- Gán ClassSectionId
+                SectionCode = sectionCode // <-- Gán SectionCode
             });
         }
 
-        return result;
+        return result.OrderBy(r => r.RoundNumber).ToList();
     }
 }

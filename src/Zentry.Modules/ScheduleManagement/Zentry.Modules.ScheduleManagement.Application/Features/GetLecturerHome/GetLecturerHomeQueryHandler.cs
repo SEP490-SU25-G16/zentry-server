@@ -6,17 +6,13 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Enums.Attendance;
 using Zentry.SharedKernel.Enums.User;
-// Cần dùng để truy vấn sessions
-// Đảm bảo có using này
-
-// Cần MediatR để gửi GetSessionsByScheduleIdIntegrationQuery
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerHome;
 
 public class GetLecturerHomeQueryHandler(
     IClassSectionRepository classSectionRepository,
-    IMediator mediator, // Thêm MediatR để gửi query lấy sessions
-    IUserScheduleService userScheduleService // Thêm UserScheduleService
+    IMediator mediator,
+    IUserScheduleService userScheduleService
 ) : IQueryHandler<GetLecturerHomeQuery, List<LecturerHomeDto>>
 {
     public async Task<List<LecturerHomeDto>> Handle(GetLecturerHomeQuery request, CancellationToken cancellationToken)
@@ -25,7 +21,6 @@ public class GetLecturerHomeQueryHandler(
             await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, request.LecturerId, cancellationToken);
         var lecturerName = lecturer?.FullName ?? "N/A";
 
-        // Lấy tất cả ClassSection của giảng viên, bao gồm Course, Schedules và Enrollments
         var classSections =
             await classSectionRepository.GetLecturerClassSectionsAsync(request.LecturerId, cancellationToken);
 
@@ -33,8 +28,6 @@ public class GetLecturerHomeQueryHandler(
 
         foreach (var cs in classSections)
         {
-            // Lấy tất cả các sessions cho ClassSection này thông qua Schedules của nó
-            // Đây là phần tính toán phức tạp hơn
             var totalSessions = 0;
             var completedSessions = 0;
 
@@ -52,14 +45,21 @@ public class GetLecturerHomeQueryHandler(
 
             result.Add(new LecturerHomeDto
             {
+                ClassSectionId = cs.Id,
+                CourseId = cs.Course?.Id ?? Guid.Empty,
+                LecturerId = request.LecturerId,
+
                 CourseCode = cs.Course?.Code ?? string.Empty,
                 CourseName = cs.Course?.Name ?? string.Empty,
                 SectionCode = cs.SectionCode,
                 EnrolledStudents = cs.Enrollments.Count,
                 TotalSessions = totalSessions,
-                SessionProgress = $"Buổi {completedSessions}/{totalSessions}", // Tính toán và gán
+                SessionProgress = $"Buổi {completedSessions}/{totalSessions}",
                 Schedules = cs.Schedules.Select(s => new ScheduleInfoDto
                 {
+                    ScheduleId = s.Id,
+                    RoomId = s.Room?.Id ?? Guid.Empty,
+
                     RoomInfo = $"{s.Room?.RoomName} ({s.Room?.Building})",
                     ScheduleInfo = $"{s.WeekDay} {s.StartTime.ToShortTimeString()}-{s.EndTime.ToShortTimeString()}"
                 }).ToList(),

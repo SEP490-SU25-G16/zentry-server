@@ -26,6 +26,7 @@ public class GetLecturerDailyClassesQueryHandler(
             await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, request.LecturerId, cancellationToken);
         var lecturerName = lecturer?.FullName ?? "N/A";
 
+        // Lấy schedules bao gồm ClassSection, Course và Room
         var schedules = await scheduleRepository.GetLecturerSchedulesForDateAsync(
             request.LecturerId,
             request.Date,
@@ -37,65 +38,95 @@ public class GetLecturerDailyClassesQueryHandler(
 
         foreach (var schedule in schedules)
         {
+            // Kiểm tra null cho các navigation properties để tránh NRE
+            var classSection = schedule.ClassSection;
+            var course = classSection?.Course;
+            var room = schedule.Room;
+
+            // Bỏ qua nếu dữ liệu liên quan không đầy đủ
+            if (classSection == null || course == null || room == null)
+            {
+                // Có thể log warning ở đây nếu cần
+                continue;
+            }
+
+            // Lấy tất cả các sessions cho Schedule này
             var getSessionsQuery = new GetSessionsByScheduleIdIntegrationQuery(schedule.Id);
-            var allSessions = await mediator.Send(getSessionsQuery, cancellationToken);
+            var allSessionsForSchedule = await mediator.Send(getSessionsQuery, cancellationToken);
 
-            var totalSessions = allSessions.Count;
+            var totalSessions = allSessionsForSchedule.Count;
 
-            // FIX LỖI: So sánh trực tiếp phần ngày của hai DateTime
-            var currentSession = allSessions
-                .FirstOrDefault(s => s.StartTime.Date == request.Date.Date);
+            // Sắp xếp sessions theo StartTime để đảm bảo tính đúng đắn của SessionNumber
+            var orderedSessions = allSessionsForSchedule.OrderBy(s => s.StartTime).ToList();
+
+            // Tìm session hiện tại của ngày đang xét
+            var currentSession = orderedSessions
+                .FirstOrDefault(s => s.StartTime.Date == request.Date.Date); // So sánh chỉ phần ngày
 
             var sessionStatus = currentSession?.Status ?? SessionStatus.Pending.ToString();
 
-            // Có thể cần điều chỉnh logic tìm currentSessionNumber nếu allSessions không được sắp xếp
-            // Tốt nhất là sắp xếp allSessions theo StartTime trước khi dùng FindIndex
             var currentSessionNumber = currentSession is not null
-                ? allSessions
-                    .OrderBy(s => s.StartTime) // Đảm bảo thứ tự để FindIndex đúng
-                    .ToList()
-                    .FindIndex(s => s.SessionId == currentSession.SessionId) + 1
-                : 0;
+                ? orderedSessions.FindIndex(s => s.SessionId == currentSession.SessionId) + 1
+                : 0; // Nếu không tìm thấy session cho ngày này, số buổi là 0
 
             var enrolledStudents = await enrollmentRepository.GetActiveStudentIdsByClassSectionIdAsync(
                 schedule.ClassSectionId, cancellationToken);
 
             var canStartSession = false;
-            // Dùng request.Date.Date.ToUniversalTime() để đảm bảo so sánh đúng nếu DateTime.Today có Kind khác
-            if (request.Date.Date == DateTime.Today.Date && sessionStatus == "PENDING")
+            // Kiểm tra CanStartSession chỉ khi là ngày hiện tại và session đang Pending
+            if (request.Date.Date == DateTime.Today.Date && sessionStatus.Equals(SessionStatus.Pending.ToString(),
+                    StringComparison.OrdinalIgnoreCase))
             {
-                var now = DateTime.UtcNow; // Luôn dùng UTC để so sánh
+                var now = DateTime.UtcNow;
 
-                // Kết hợp request.Date (DateTime) với schedule.StartTime (TimeOnly)
-                // request.Date.Date sẽ tạo ra một DateTime với giờ là 00:00:00 và Kind=Unspecified
-                // schedule.StartTime là TimeOnly
-                // Dùng phương thức Date.ToDateTime(TimeOnly) trên request.Date (nếu nó là DateOnly)
-                // HOẶC tạo DateTime từ các thành phần nếu request.Date là DateTime.
-                // Vì request.Date là DateTime, ta có thể dùng trực tiếp các thành phần của nó
-                // và kết hợp với TimeOnly
-                var localSessionStartUnspecified = new DateTime(
+                // Tạo DateTime UTC từ ngày yêu cầu và thời gian bắt đầu của schedule
+                // Điều này đòi hỏi hàm mở rộng ToUtcFromVietnamLocalTime phải chính xác
+                // hoặc đảm bảo rằng request.Date.Date là UTC nếu bạn đang làm việc hoàn toàn với UTC.
+                // Nếu request.Date là DateTime.Today (local time), thì cần chuyển đổi cẩn thận.
+                // Giả định request.Date là ngày trong local time zone của server/ứng dụng.
+                var scheduleStartTimeTodayLocal = new DateTime(
                     request.Date.Year, request.Date.Month, request.Date.Day,
                     schedule.StartTime.Hour, schedule.StartTime.Minute, schedule.StartTime.Second,
-                    DateTimeKind.Unspecified // Khai báo rõ là Unspecified
+                    DateTimeKind.Unspecified // Quan trọng: Đây là local time nhưng không được đánh dấu là Local hay Utc
                 );
 
-                // Chuyển đổi giờ cục bộ đó sang UTC để so sánh với DateTime.UtcNow
-                var sessionStartTimeUtc = localSessionStartUnspecified.ToUtcFromVietnamLocalTime();
+                // Chuyển đổi từ "unspecified" local time sang UTC
+                // Hàm mở rộng ToUtcFromVietnamLocalTime phải xử lý việc này đúng cách.
+                // Ví dụ: var sessionStartTimeUtc = TimeZoneInfo.ConvertTimeToUtc(scheduleStartTimeTodayLocal, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")); // Hoặc múi giờ Việt Nam
+                var sessionStartTimeUtc =
+                    scheduleStartTimeTodayLocal.ToUtcFromVietnamLocalTime(); // Giữ lại hàm mở rộng của bạn
 
                 var timeDifference = sessionStartTimeUtc - now;
 
-                if (timeDifference.TotalMinutes >= -5 && timeDifference.TotalMinutes <= 5) canStartSession = true;
+                // Cho phép bắt đầu trong khoảng 5 phút trước đến 5 phút sau giờ bắt đầu
+                if (timeDifference.TotalMinutes >= -5 && timeDifference.TotalMinutes <= 5)
+                {
+                    canStartSession = true;
+                }
             }
+
+            // Map tất cả sessions vào SessionInfoDto
+            var sessionInfoDtos = orderedSessions.Select((s, index) => new SessionInfoDto
+            {
+                SessionId = s.SessionId,
+                ScheduleId = schedule.Id, // Gán ScheduleId liên quan
+                SessionNumber = index + 1, // Buổi thứ n
+                Status = s.Status,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime
+            }).ToList();
 
             result.Add(new LecturerDailyClassDto
             {
                 ScheduleId = schedule.Id,
-                ClassSectionId = schedule.ClassSectionId,
-                CourseCode = schedule.ClassSection?.Course?.Code!,
-                CourseName = schedule.ClassSection?.Course?.Name!,
-                SectionCode = schedule.ClassSection?.SectionCode!,
-                RoomName = schedule.Room?.RoomName!,
-                Building = schedule.Room?.Building!,
+                ClassSectionId = classSection.Id, // <-- Gán ClassSectionId
+                CourseId = course.Id, // <-- Gán CourseId
+                CourseCode = course.Code,
+                CourseName = course.Name,
+                SectionCode = classSection.SectionCode,
+                RoomId = room.Id, // <-- Gán RoomId
+                RoomName = room.RoomName,
+                Building = room.Building,
                 StartTime = schedule.StartTime,
                 EndTime = schedule.EndTime,
                 EnrolledStudentsCount = enrolledStudents.Count,
@@ -104,8 +135,10 @@ public class GetLecturerDailyClassesQueryHandler(
                 SessionStatus = sessionStatus,
                 CanStartSession = canStartSession,
                 Weekday = dayOfWeek.ToString(),
-                DateInfo = DateOnly.FromDateTime(request.Date), // Chuyển DateTime sang DateOnly
-                LecturerName = lecturerName
+                DateInfo = DateOnly.FromDateTime(request.Date),
+                LecturerId = request.LecturerId, // <-- Gán LecturerId
+                LecturerName = lecturerName,
+                Sessions = sessionInfoDtos // <-- Gán danh sách sessions
             });
         }
 

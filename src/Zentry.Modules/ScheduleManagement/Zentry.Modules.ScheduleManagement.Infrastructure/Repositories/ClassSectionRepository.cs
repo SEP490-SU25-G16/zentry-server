@@ -8,6 +8,13 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSectionRepository
 {
+    public async Task<ClassSection?> GetByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .Include(cs => cs.Course)
+            .FirstOrDefaultAsync(cs => cs.Schedules.Any(s => s.Id == scheduleId), cancellationToken);
+    }
+
     public async Task<List<ClassSection>> GetLecturerClassSectionsAsync(Guid lecturerId,
         CancellationToken cancellationToken)
     {

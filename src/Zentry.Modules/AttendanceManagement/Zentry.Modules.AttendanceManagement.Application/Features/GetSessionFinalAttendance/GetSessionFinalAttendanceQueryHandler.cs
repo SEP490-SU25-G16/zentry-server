@@ -23,33 +23,31 @@ public class GetSessionFinalAttendanceQueryHandler(
         if (session is null)
             throw new NotFoundException("Session", request.SessionId);
 
-        // Lấy CourseCode và SectionCode từ SessionConfigs của Session
-        var courseCode = session.GetConfig<string>("courseCode");
-        var sectionCode = session.GetConfig<string>("sectionCode");
+        var classSectionResponse = await mediator.Send(
+            new GetClassSectionByScheduleIdIntegrationQuery(session.ScheduleId),
+            cancellationToken);
+
+        if (classSectionResponse == null || classSectionResponse.ClassSectionId == Guid.Empty)
+            throw new NotFoundException("ClassSection", $"for ScheduleId {session.ScheduleId}.");
+
+        var classSectionId = classSectionResponse.ClassSectionId;
+        var courseId = classSectionResponse.CourseId;
+        var courseCode = classSectionResponse.CourseCode;
+        var courseName = classSectionResponse.CourseName;
+        var sectionCode = classSectionResponse.SectionCode;
         var classInfo = string.IsNullOrWhiteSpace(courseCode) || string.IsNullOrWhiteSpace(sectionCode)
             ? null
             : $"{courseCode} - {sectionCode}";
-
-        var classSectionIdResponse = await mediator.Send(
-            new GetClassSectionIdByScheduleIdIntegrationQuery(session.ScheduleId),
-            cancellationToken);
-
-        var classSectionId = classSectionIdResponse.ClassSectionId;
-
-        if (classSectionId == Guid.Empty)
-            throw new NotFoundException("ClassSection", $"for ScheduleId {session.ScheduleId}.");
-
 
         var enrollmentsResponse = await mediator.Send(
             new GetEnrollmentsByClassSectionIdIntegrationQuery(classSectionId),
             cancellationToken);
 
         if (enrollmentsResponse.Enrollments.Count == 0)
-            return []; // Trả về danh sách rỗng nếu không có sinh viên nào đăng ký
+            return [];
 
         var enrollments = enrollmentsResponse.Enrollments;
 
-        // Lấy tất cả bản ghi điểm danh trong session
         var attendanceRecords = await attendanceRecordRepository.GetAttendanceRecordsBySessionIdAsync(
             request.SessionId, cancellationToken);
 
@@ -75,21 +73,26 @@ public class GetSessionFinalAttendanceQueryHandler(
             {
                 StudentId = studentId,
                 StudentFullName = user?.FullName,
-                Email = user?.Email, // Gán email
-                Status = attendanceStatus.ToString(), // Trạng thái Present/Late/Absent
+                Email = user?.Email,
+                Status = attendanceStatus.ToString(),
 
-                EnrolledAt = enrollment.EnrolledAt, // Gán ngày đăng ký
-                EnrollmentStatus = enrollment.Status, // Gán trạng thái đăng ký
+                EnrollmentId = enrollment.Id,
+                EnrolledAt = enrollment.EnrolledAt,
+                EnrollmentStatus = enrollment.Status,
 
-                ClassInfo = classInfo, // Gán thông tin lớp học
-                SessionStartTime = session.StartTime, // Gán thời gian bắt đầu session
+                SessionId = request.SessionId,
+                ClassSectionId = classSectionId,
+                ScheduleId = session.ScheduleId,
+                CourseId = courseId,
+                ClassInfo = classInfo,
+                SessionStartTime = session.StartTime,
 
-                DetailedAttendanceStatus = attendanceStatus.ToString(), // Gán trạng thái điểm danh chi tiết
-                LastAttendanceTime =
-                    lastAttendanceRecord?.CreatedAt ?? session.StartTime // Gán thời gian điểm danh cuối cùng
+                LastAttendanceRecordId = lastAttendanceRecord?.Id,
+                DetailedAttendanceStatus = attendanceStatus.ToString(),
+                LastAttendanceTime = lastAttendanceRecord?.CreatedAt ?? session.StartTime
             });
         }
 
-        return finalAttendance;
+        return finalAttendance.OrderBy(fa => fa.StudentFullName).ToList();
     }
 }
