@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
@@ -14,30 +16,28 @@ public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPas
         var account = await dbContext.Accounts
             .FirstOrDefaultAsync(a => a.Email == request.Email, cancellationToken);
 
-        // --- Bổ sung kiểm tra trạng thái tài khoản ---
-        if (account == null) throw new UnauthorizedAccessException("Invalid credentials."); // Không tìm thấy email
+        if (account is null) throw new UnauthorizedAccessException("Invalid credentials.");
 
-        if (account.Status != AccountStatus.Active)
+        if (!Equals(account.Status, AccountStatus.Active))
             // Trả về lỗi phù hợp với trạng thái tài khoản
             throw account.Status.Id switch
             {
                 2 => new UnauthorizedAccessException("Account is inactive."),
                 3 => new UnauthorizedAccessException("Account is locked."),
-                _ => new UnauthorizedAccessException("Account is not active.")
+                _ => throw new ArgumentOutOfRangeException()
             };
-        // --- Kết thúc bổ sung kiểm tra trạng thái tài khoản ---
 
-        // For security reasons, don't distinguish between invalid email and invalid password
+
         if (string.IsNullOrEmpty(account.PasswordHash) || string.IsNullOrEmpty(account.PasswordSalt) ||
             !passwordHasher.VerifyHashedPassword(account.PasswordHash, account.PasswordSalt, request.Password))
-            throw new UnauthorizedAccessException("Invalid credentials."); // Sai mật khẩu
+            throw new UnauthorizedAccessException("Invalid credentials.");
 
-        // Tạo JWT. Đảm bảo IJwtService.GenerateToken có thể nhận các tham số này
-        var token = jwtService.GenerateToken(account.Id, account.Email, account.Role.ToString());
+        var user = await dbContext.Users.Where(u => u.AccountId == account.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        // Ghi log hoạt động đăng nhập thành công (Bạn cần triển khai ILogger hoặc EventDispatcher ở đây)
-        // Ví dụ: _logger.LogInformation("User {UserId} logged in successfully via Password.", account.Id);
+        if (user is null) throw new BadHttpRequestException("There are something wrong at server side.");
 
-        return new SignInResponse(token, new UserInfo(account.Id, account.Email, account.Role.ToString()));
+        var token = jwtService.GenerateToken(user.Id, account.Email, user.FullName, account.Role.ToString());
+        return new SignInResponse(token, new UserInfo(user.Id, account.Email, user.FullName, account.Role.ToString()));
     }
 }

@@ -6,4 +6,4 @@ public record SignInCommand(string Email, string Password) : ICommand<SignInResp
 
 public record SignInResponse(string Token, UserInfo UserInfo);
 
-public record UserInfo(Guid Id, string Email, string Role);
+public record UserInfo(Guid Id, string Email, string FullName, string Role);

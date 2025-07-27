@@ -3,27 +3,23 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Zentry.Modules.UserManagement.Interfaces;
 
 namespace Zentry.Modules.UserManagement.Services;
 
-public class JwtService : IJwtService
+public class JwtService(IConfiguration configuration) : IJwtService
 {
-    private readonly string _audience;
-    private readonly IConfiguration _configuration;
-    private readonly int _expirationMinutes;
-    private readonly string _issuer;
-    private readonly string _secret;
+    private readonly string _audience = configuration["Jwt:Audience"] ?? "ZentryUsers"; // Default audience
 
-    public JwtService(IConfiguration configuration)
-    {
-        _configuration = configuration;
-        _secret = _configuration["Jwt:Secret"] ?? throw new ArgumentNullException("JWT Secret not configured.");
-        _issuer = _configuration["Jwt:Issuer"] ?? "Zentry"; // Default issuer
-        _audience = _configuration["Jwt:Audience"] ?? "ZentryUsers"; // Default audience
-        _expirationMinutes = int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "60"); // Default 60 minutes
-    }
+    private readonly int
+        _expirationMinutes = int.Parse(configuration["Jwt:ExpirationMinutes"] ?? "60"); // Default 60 minutes
 
-    public string GenerateToken(Guid userId, string email, string role)
+    private readonly string _issuer = configuration["Jwt:Issuer"] ?? "Zentry"; // Default issuer
+
+    private readonly string _secret =
+        configuration["Jwt:Secret"] ?? throw new ArgumentNullException($"JWT Secret not configured.");
+
+    public string GenerateToken(Guid userId, string email, string fullName, string role)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_secret);
@@ -32,6 +28,7 @@ public class JwtService : IJwtService
         {
             new(ClaimTypes.NameIdentifier, userId.ToString()),
             new(ClaimTypes.Email, email),
+            new(ClaimTypes.Name, fullName),
             new(ClaimTypes.Role, role)
         };
 
