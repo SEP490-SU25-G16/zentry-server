@@ -19,13 +19,15 @@ public class RoomsController(IMediator mediator) : BaseController
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<CreateRoomResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateRoom([FromBody] CreateRoomCommand request,
+    public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return HandleValidationError();
         try
         {
-            var response = await mediator.Send(request, cancellationToken);
+            var response =
+                await mediator.Send(new CreateRoomCommand(request.RoomName, request.Building, request.Capacity),
+                    cancellationToken);
             return HandleCreated(response, nameof(CreateRoom), new { id = response.Id });
         }
         catch (Exception ex)

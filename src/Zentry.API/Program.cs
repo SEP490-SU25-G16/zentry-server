@@ -27,7 +27,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ===== CẤU HÌNH CONTROLLERS VÀ JSON =====
 builder.Services.AddControllers()
-    .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = null; });
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
 
 // ===== CẤU HÌNH MODEL VALIDATION =====
 builder.Services.Configure<ApiBehaviorOptions>(options =>

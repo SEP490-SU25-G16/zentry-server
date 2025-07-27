@@ -23,6 +23,7 @@ public class CoursesController(IMediator mediator) : BaseController
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return HandleValidationError();
+
         try
         {
             var response = await mediator.Send(request, cancellationToken);

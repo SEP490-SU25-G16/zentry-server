@@ -1,6 +1,7 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateRoom;
 
@@ -11,7 +12,7 @@ public class CreateRoomCommandHandler(IRoomRepository roomRepository)
     {
         // 1. Business Rule: RoomName phải là duy nhất
         var isRoomNameUnique = await roomRepository.IsRoomNameUniqueAsync(command.RoomName, cancellationToken);
-        if (!isRoomNameUnique) throw new Exception($"Room with name '{command.RoomName}' already exists.");
+        if (!isRoomNameUnique) throw new ResourceAlreadyExistsException($"Room with name '{command.RoomName}' already exists.");
 
         // 2. Tạo đối tượng Room Domain Entity
         var room = Room.Create(
@@ -22,7 +23,7 @@ public class CreateRoomCommandHandler(IRoomRepository roomRepository)
 
         // 3. Lưu vào cơ sở dữ liệu thông qua Repository
         await roomRepository.AddAsync(room, cancellationToken);
-        await roomRepository.SaveChangesAsync(cancellationToken); // Lưu thay đổi vào DB
+        await roomRepository.SaveChangesAsync(cancellationToken);
 
         // 4. Ánh xạ từ Domain Entity sang DTO để trả về
         var responseDto = new CreateRoomResponse
