@@ -5,6 +5,7 @@ using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Features.SignIn;
 
@@ -16,10 +17,9 @@ public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPas
         var account = await dbContext.Accounts
             .FirstOrDefaultAsync(a => a.Email == request.Email, cancellationToken);
 
-        if (account is null) throw new UnauthorizedAccessException("Invalid credentials.");
+        if (account is null) throw new AccountNotFoundException("Account not found.");
 
         if (!Equals(account.Status, AccountStatus.Active))
-            // Trả về lỗi phù hợp với trạng thái tài khoản
             throw account.Status.Id switch
             {
                 2 => new UnauthorizedAccessException("Account is inactive."),
@@ -27,10 +27,9 @@ public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPas
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-
         if (string.IsNullOrEmpty(account.PasswordHash) || string.IsNullOrEmpty(account.PasswordSalt) ||
             !passwordHasher.VerifyHashedPassword(account.PasswordHash, account.PasswordSalt, request.Password))
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            throw new UnauthorizedAccessException("Incorrect account information or password.");
 
         var user = await dbContext.Users.Where(u => u.AccountId == account.Id)
             .FirstOrDefaultAsync(cancellationToken);
