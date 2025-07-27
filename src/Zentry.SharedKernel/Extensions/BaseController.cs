@@ -116,6 +116,16 @@ public abstract class BaseController : ControllerBase
             // FluentValidation exceptions
             ValidationException validationEx =>
                 HandleFluentValidationException(validationEx),
+            InvalidAttributeDefinitionTypeException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidAttributeDefinitionType, ex.Message)),
+            AttributeDefinitionKeyAlreadyExistsException =>
+                Conflict(ApiResponse.ErrorResult(ErrorCodes.AttributeDefinitionKeyExists, ex.Message)),
+            InvalidSettingValueException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidSettingValue, ex.Message)),
+            SelectionDataTypeRequiresOptionsException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.SelectionOptionsRequired, ex.Message)),
+            SettingAlreadyExistsException =>
+                Conflict(ApiResponse.ErrorResult(ErrorCodes.SettingAlreadyExists, ex.Message)),
 
             // General business logic exceptions
             BusinessLogicException =>

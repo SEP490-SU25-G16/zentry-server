@@ -24,6 +24,11 @@ public static class ErrorCodes
     // Configuration
     public const string ConfigurationError = "CONFIGURATION_ERROR";
     public const string SettingNotFound = "SETTING_NOT_FOUND";
+    public const string InvalidAttributeDefinitionType = "INVALID_ATTRIBUTE_DEFINITION_TYPE";
+    public const string AttributeDefinitionKeyExists = "ATTRIBUTE_DEFINITION_KEY_EXISTS";
+    public const string InvalidSettingValue = "INVALID_SETTING_VALUE";
+    public const string SelectionOptionsRequired = "SELECTION_OPTIONS_REQUIRED";
+    public const string SettingAlreadyExists = "SETTING_ALREADY_EXISTS";
 
     // Schedule management
     public const string ScheduleConflict = "SCHEDULE_CONFLICT";
