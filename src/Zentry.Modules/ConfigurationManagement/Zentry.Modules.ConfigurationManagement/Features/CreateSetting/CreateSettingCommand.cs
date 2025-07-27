@@ -1,6 +1,6 @@
 ﻿using Zentry.Modules.ConfigurationManagement.Dtos;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 

@@ -2,8 +2,8 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
-using Zentry.SharedKernel.Enums.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -60,7 +60,7 @@ public class FinalAttendanceConsumer(
                 await attendanceRecordRepository.GetByUserIdAndSessionIdAsync(studentTrack.Id, sessionId,
                     context.CancellationToken);
 
-            AttendanceStatus newStatus = percentage >= AttendanceThresholdPercentage
+            var newStatus = percentage >= AttendanceThresholdPercentage
                 ? AttendanceStatus.Present
                 : AttendanceStatus.Absent;
 
@@ -96,9 +96,7 @@ public class FinalAttendanceConsumer(
 
         // Sử dụng AddOrUpdateAsync cho từng bản ghi
         foreach (var record in attendanceRecordsToProcess)
-        {
             await attendanceRecordRepository.AddOrUpdateAsync(record, context.CancellationToken);
-        }
 
         // Chỉ gọi SaveChangesAsync một lần sau khi tất cả các thao tác Add/Update đã được thực hiện
         await attendanceRecordRepository.SaveChangesAsync(context.CancellationToken);

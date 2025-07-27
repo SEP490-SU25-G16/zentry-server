@@ -1,6 +1,6 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 
 // Đảm bảo using này có mặt
 

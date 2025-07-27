@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.SharedKernel.Enums.Attendance;
+namespace Zentry.SharedKernel.Constants.Attendance;
 
 public class SessionStatus : Enumeration
 {

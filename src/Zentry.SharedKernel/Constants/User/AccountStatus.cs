@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.SharedKernel.Enums.User;
+namespace Zentry.SharedKernel.Constants.User;
 
 public class AccountStatus : Enumeration
 {

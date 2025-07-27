@@ -20,15 +20,12 @@ public class RegisterDeviceCommandHandler(
         // 1. Validate UserId existence (from Identity Module)
         var userExists = await userDeviceService.CheckUserExistsAsync(command.UserId, cancellationToken);
         if (!userExists)
-            // This scenario should ideally be caught by authentication middleware,
-            // but good to have a robust check.
-            throw new BusinessLogicException("User not found."); // Or custom NotFoundException
+            throw new UserNotFoundException("User not found.");
 
         // 2. Check if user already has an active device
         var existingDevice = await deviceRepository.GetActiveDeviceByUserIdAsync(command.UserId, cancellationToken);
         if (existingDevice != null)
-            // As per business rule: "Chỉ có 1 thiết bị cho 1 user"
-            throw new BusinessLogicException("User already has a primary device registered.");
+            throw new DeviceAlreadyRegisteredException("User already has a primary device registered.");
 
         // 3. Create DeviceName ValueObject
         DeviceName deviceNameVo;
@@ -38,7 +35,7 @@ public class RegisterDeviceCommandHandler(
         }
         catch (ArgumentException ex)
         {
-            throw new BusinessLogicException($"Invalid device name: {ex.Message}");
+            throw new ArgumentException($"Invalid device name: {ex.Message}");
         }
 
         // 4. Generate DeviceToken ValueObject

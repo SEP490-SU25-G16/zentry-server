@@ -2,8 +2,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.SeedData;
 

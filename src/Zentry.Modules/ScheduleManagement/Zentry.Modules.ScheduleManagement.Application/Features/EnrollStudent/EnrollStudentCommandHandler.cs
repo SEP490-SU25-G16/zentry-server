@@ -3,7 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
@@ -29,7 +29,7 @@ public class EnrollStudentCommandHandler(
         var alreadyEnrolled =
             await enrollmentRepository.ExistsAsync(command.StudentId, command.ClassSectionId, cancellationToken);
         if (alreadyEnrolled)
-            throw new BusinessLogicException("Student already enrolled in this class section.");
+            throw new UserAlreadyExistsException("Student already enrolled in this class section.");
 
         var enrollment = Enrollment.Create(command.StudentId, command.ClassSectionId);
 

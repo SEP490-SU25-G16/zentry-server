@@ -1,4 +1,4 @@
-using Zentry.SharedKernel.Enums.Notification;
+using Zentry.SharedKernel.Constants.Notification;
 
 namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 

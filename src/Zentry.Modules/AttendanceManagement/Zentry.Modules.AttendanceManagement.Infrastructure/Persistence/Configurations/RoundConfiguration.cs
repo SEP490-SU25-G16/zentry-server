@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.SharedKernel.Enums.Attendance;
+using Zentry.SharedKernel.Constants.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configurations;
 

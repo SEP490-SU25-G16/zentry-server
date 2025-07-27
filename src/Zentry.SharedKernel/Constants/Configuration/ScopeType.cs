@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.ConfigurationManagement.Persistence.Enums;
+namespace Zentry.SharedKernel.Constants.Configuration;
 
 public class ScopeType : Enumeration
 {

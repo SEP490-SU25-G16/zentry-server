@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
-using Zentry.SharedKernel.Exceptions; // Có thể cần nếu bạn dùng NotFoundException ở đây
+using Zentry.SharedKernel.Constants.Attendance;
+
+// Có thể cần nếu bạn dùng NotFoundException ở đây
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
@@ -104,7 +106,7 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
                 .Any(ar => ar.UserId == studentId &&
                            ar.SessionId == sessionId &&
                            ar.Status ==
-                           Zentry.SharedKernel.Enums.Attendance.AttendanceStatus.Present)) // Giả sử Present là Attended
+                           AttendanceStatus.Present)) // Giả sử Present là Attended
             .CountAsync();
 
         return (totalSessions, attendedSessions);

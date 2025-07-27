@@ -1,5 +1,5 @@
+using Zentry.SharedKernel.Constants.Schedule;
 using Zentry.SharedKernel.Domain;
-using Zentry.SharedKernel.Enums.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 

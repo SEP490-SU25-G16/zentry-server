@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
-using Zentry.SharedKernel.Enums.Schedule;
+using Zentry.SharedKernel.Constants.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configurations;
 

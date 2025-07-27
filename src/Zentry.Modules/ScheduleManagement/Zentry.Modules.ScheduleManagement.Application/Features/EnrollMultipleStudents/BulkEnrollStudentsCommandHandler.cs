@@ -2,7 +2,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.EnrollMultipleStudents;
@@ -24,10 +24,7 @@ public class BulkEnrollStudentsCommandHandler(
 
         // Validate class section exists
         var classSection = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
-        if (classSection is null)
-        {
-            throw new NotFoundException("ClassSection", command.ClassSectionId);
-        }
+        if (classSection is null) throw new NotFoundException("ClassSection", command.ClassSectionId);
 
         // Get existing enrollments for this class section to avoid duplicates
         var existingEnrollments = await enrollmentRepository
@@ -96,7 +93,6 @@ public class BulkEnrollStudentsCommandHandler(
 
         // Bulk add enrollments if any successful ones
         if (enrollmentsToAdd.Count != 0)
-        {
             try
             {
                 await enrollmentRepository.BulkAddAsync(enrollmentsToAdd, cancellationToken);
@@ -118,7 +114,6 @@ public class BulkEnrollStudentsCommandHandler(
 
                 response.Errors.Add($"Bulk save failed: {ex.Message}");
             }
-        }
 
         response.SuccessfulEnrollments = successCount;
         response.FailedEnrollments = failedCount;

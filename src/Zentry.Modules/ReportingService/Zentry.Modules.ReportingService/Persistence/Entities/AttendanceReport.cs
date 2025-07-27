@@ -1,5 +1,5 @@
+using Zentry.SharedKernel.Constants.Reporting;
 using Zentry.SharedKernel.Domain;
-using Zentry.SharedKernel.Enums.Reporting;
 
 namespace Zentry.Modules.ReportingService.Persistence.Entities;
 

@@ -1,5 +1,5 @@
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.Attendance;
+using Zentry.SharedKernel.Constants.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 

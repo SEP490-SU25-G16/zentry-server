@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.Modules.DeviceManagement.Entities;
-using Zentry.SharedKernel.Enums.Device;
+using Zentry.SharedKernel.Constants.Device;
 
 namespace Zentry.Modules.DeviceManagement.Persistence.Repositories;
 

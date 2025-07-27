@@ -1,5 +1,5 @@
+using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Domain;
-using Zentry.SharedKernel.Enums.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
@@ -10,7 +10,8 @@ public class AttendanceRecord : AggregateRoot<Guid>
     }
 
     // Cập nhật constructor để bao gồm percentageAttended
-    private AttendanceRecord(Guid id, Guid userId, Guid sessionId, AttendanceStatus status, bool isManual, double percentageAttended)
+    private AttendanceRecord(Guid id, Guid userId, Guid sessionId, AttendanceStatus status, bool isManual,
+        double percentageAttended)
         : base(id)
     {
         UserId = userId;
@@ -33,13 +34,15 @@ public class AttendanceRecord : AggregateRoot<Guid>
     public double PercentageAttended { get; private set; } // THÊM FIELD NÀY
 
     // Cập nhật phương thức Create
-    public static AttendanceRecord Create(Guid userId, Guid sessionId, AttendanceStatus status, bool isManual, double percentageAttended)
+    public static AttendanceRecord Create(Guid userId, Guid sessionId, AttendanceStatus status, bool isManual,
+        double percentageAttended)
     {
         return new AttendanceRecord(Guid.NewGuid(), userId, sessionId, status, isManual, percentageAttended);
     }
 
     // Cập nhật phương thức Update để có thể thay đổi percentage
-    public void Update(AttendanceStatus? status = null, bool? isManual = null, DateTime? expiredAt = null, double? percentageAttended = null)
+    public void Update(AttendanceStatus? status = null, bool? isManual = null, DateTime? expiredAt = null,
+        double? percentageAttended = null)
     {
         if (status != null) Status = status;
 

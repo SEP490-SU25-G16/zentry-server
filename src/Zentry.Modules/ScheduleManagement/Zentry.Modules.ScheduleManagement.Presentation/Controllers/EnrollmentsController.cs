@@ -4,56 +4,76 @@ using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Features.EnrollMultipleStudents;
 using Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/enrollments")]
-public class EnrollmentsController(IMediator mediator) : ControllerBase
+public class EnrollmentsController(IMediator mediator) : BaseController
 {
     [HttpPost("bulk-enroll-students")]
-    [ProducesResponseType(typeof(BulkEnrollmentResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<BulkEnrollmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> BulkEnrollStudents([FromBody] BulkEnrollStudentsRequest request)
     {
-        var command = new BulkEnrollStudentsCommand
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
         {
-            ClassSectionId = request.ClassSectionId,
-            StudentIds = request.StudentIds
-        };
-
-        var response = await mediator.Send(command);
-
-        return Ok(response);
+            var command = new BulkEnrollStudentsCommand
+            {
+                ClassSectionId = request.ClassSectionId,
+                StudentIds = request.StudentIds
+            };
+            var response = await mediator.Send(command);
+            return HandleResult(response, "Students bulk enrolled successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 
     [HttpPost("enroll-student")]
-    [ProducesResponseType(typeof(EnrollmentResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<EnrollmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EnrollStudent([FromBody] EnrollStudentRequest request)
     {
-        var command = new EnrollStudentCommand
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
         {
-            ClassSectionId = request.ClassSectionId,
-            StudentId = request.StudentId
-        };
-
-        var response = await mediator.Send(command);
-
-        return Ok(response);
+            var command = new EnrollStudentCommand
+            {
+                ClassSectionId = request.ClassSectionId,
+                StudentId = request.StudentId
+            };
+            var response = await mediator.Send(command);
+            return HandleResult(response, "Student enrolled successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(GetEnrollmentsResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<GetEnrollmentsResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetEnrollments([FromQuery] GetEnrollmentsRequest request)
     {
-        var query = new GetEnrollmentsQuery(request);
-
-        var response = await mediator.Send(query);
-
-        return Ok(response);
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            var query = new GetEnrollmentsQuery(request);
+            var response = await mediator.Send(query);
+            return HandleResult(response, "Enrollments retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 }

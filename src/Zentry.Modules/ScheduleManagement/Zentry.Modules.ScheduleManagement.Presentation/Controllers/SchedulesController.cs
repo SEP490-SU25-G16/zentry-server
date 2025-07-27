@@ -3,47 +3,52 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/schedules")]
-public class SchedulesController(IMediator mediator) : ControllerBase
+public class SchedulesController(IMediator mediator) : BaseController
 {
     [HttpPost]
-    [ProducesResponseType(typeof(CreatedScheduleResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<CreatedScheduleResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid) return HandleValidationError();
 
         try
         {
             var command = new CreateScheduleCommand(request);
             var response = await mediator.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(CreateSchedule), new { id = response.Id }, response);
-        }
-        catch (BadHttpRequestException ex)
-        {
-            return NotFound(new { errors = ex.Message });
+            return HandleCreated(response, nameof(CreateSchedule), new { id = response.Id });
         }
         catch (Exception ex)
         {
-            return BadRequest(new { errors = ex.Message });
+            return HandleError(ex);
         }
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(GetSchedulesResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<GetSchedulesResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid) return HandleValidationError();
 
-        var response = await mediator.Send(query, cancellationToken);
-        return Ok(response);
+        try
+        {
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 }

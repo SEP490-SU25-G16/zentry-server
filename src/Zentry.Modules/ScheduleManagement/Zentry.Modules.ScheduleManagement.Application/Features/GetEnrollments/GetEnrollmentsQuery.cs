@@ -1,6 +1,6 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.Schedule;
+using Zentry.SharedKernel.Constants.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 

@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.SharedKernel.Enums.Reporting;
+namespace Zentry.SharedKernel.Constants.Reporting;
 
 public class ReportScopeType : Enumeration
 {

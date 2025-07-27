@@ -1,9 +1,7 @@
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
+using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Domain;
-using Zentry.SharedKernel.Enums.Attendance;
 using Zentry.SharedKernel.Exceptions;
-
-// Thêm using này cho BusinessRuleException
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 

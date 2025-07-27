@@ -7,100 +7,103 @@ using Zentry.Modules.ScheduleManagement.Application.Features.DeleteCourse;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetCourseById;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
 using Zentry.Modules.ScheduleManagement.Application.Features.UpdateCourse;
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/courses")]
-public class CoursesController(IMediator mediator) : ControllerBase
+public class CoursesController(IMediator mediator) : BaseController
 {
     [HttpPost]
-    [ProducesResponseType(typeof(CourseCreatedResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<CourseCreatedResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var response = await mediator.Send(request, cancellationToken);
-
-        return CreatedAtAction(nameof(CreateCourse), new { id = response.Id }, response);
-    }
-
-    [HttpGet]
-    [ProducesResponseType(typeof(GetCoursesResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetCourses([FromQuery] GetCoursesQuery query, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var response = await mediator.Send(query, cancellationToken);
-        return Ok(response);
-    }
-
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetCourseById(Guid id, CancellationToken cancellationToken)
-    {
-        var query = new GetCourseByIdQuery(id);
-
+        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
-            var response = await mediator.Send(query, cancellationToken);
-            return Ok(response);
+            var response = await mediator.Send(request, cancellationToken);
+            return HandleCreated(response, nameof(CreateCourse), new { id = response.Id });
         }
         catch (Exception ex)
         {
-            return NotFound(new { errors = ex.Message });
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(ApiResponse<GetCoursesResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetCourses([FromQuery] GetCoursesQuery query, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response, "Courses retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<CourseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCourseById(Guid id, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            var query = new GetCourseByIdQuery(id);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response, "Course retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
         }
     }
 
     [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<CourseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var command = new UpdateCourseCommand(id, request);
-
+        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
+            var command = new UpdateCourseCommand(id, request);
             var response = await mediator.Send(command, cancellationToken);
-            return Ok(response);
-        }
-        catch (DirectoryNotFoundException ex)
-        {
-            return NotFound(new { errors = ex.Message });
+            return HandleResult(response, "Course updated successfully.");
         }
         catch (Exception ex)
         {
-            return BadRequest(new { errors = ex.Message });
+            return HandleError(ex);
         }
     }
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCourse(Guid id, CancellationToken cancellationToken)
     {
-        var command = new DeleteCourseCommand(id);
-
+        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
+            var command = new DeleteCourseCommand(id);
             await mediator.Send(command, cancellationToken);
-            return NoContent();
-        }
-        catch (DirectoryNotFoundException ex)
-        {
-            return NotFound(new { errors = ex.Message });
+            return HandleNoContent();
         }
         catch (Exception ex)
         {
-            return BadRequest(new { errors = ex.Message });
+            return HandleError(ex);
         }
     }
 }

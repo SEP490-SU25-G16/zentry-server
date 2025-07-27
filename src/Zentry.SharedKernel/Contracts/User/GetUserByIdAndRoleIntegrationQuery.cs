@@ -1,5 +1,5 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 
 // Đảm bảo đã có using này
 

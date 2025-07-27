@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Persistence;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Contracts.Configuration;
-using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ConfigurationManagement.Integration;
 
@@ -48,7 +47,7 @@ public class GetSettingsByScopeQueryHandler(
     private static ScopeType ValidateAndParseScopeType(string scopeTypeString) // Không còn '?''
     {
         if (string.IsNullOrWhiteSpace(scopeTypeString))
-            throw new BusinessLogicException(
+            throw new ArgumentException(
                 "ScopeType cannot be null or empty for GetSettingsByScopeIntegrationQuery.");
 
         try
@@ -57,7 +56,7 @@ public class GetSettingsByScopeQueryHandler(
         }
         catch (ArgumentException ex)
         {
-            throw new BusinessLogicException($"Invalid ScopeType provided for integration query: {ex.Message}");
+            throw new ArgumentException($"Invalid ScopeType provided for integration query: {ex.Message}");
         }
     }
 

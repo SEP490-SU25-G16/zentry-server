@@ -2,7 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.DeviceManagement.Features.RegisterDevice;
-using Zentry.SharedKernel.Exceptions;
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Extensions;
 
 // Assuming RegisterDeviceRequest is here
 // For [Authorize] attribute
@@ -13,16 +14,19 @@ namespace Zentry.Modules.DeviceManagement.Controllers;
 [ApiController]
 [Route("api/devices")]
 // [Authorize] // Apply authorization to ensure only authenticated users can access
-public class DevicesController(IMediator mediator) : ControllerBase
+public class DevicesController(IMediator mediator) : BaseController
 {
     [HttpPost("register")]
-    [ProducesResponseType(typeof(RegisterDeviceResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)] // For BusinessLogicException
-    [ProducesResponseType(StatusCodes.Status404NotFound)] // For UserNotFound if applicable, or Handled by 400
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)] // If [Authorize] fails
+    [ProducesResponseType(typeof(ApiResponse<RegisterDeviceResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)] // For BusinessLogicException
+    [ProducesResponseType(typeof(ApiResponse),
+        StatusCodes.Status404NotFound)] // For UserNotFound if applicable, or Handled by 400
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)] // If [Authorize] fails
     public async Task<IActionResult> Register([FromBody] RegisterDeviceRequest request,
         CancellationToken cancellationToken)
     {
+        if (!ModelState.IsValid) return HandleValidationError();
+
         // 1. Lấy UserId từ JWT (đã được middleware xác thực và gán vào HttpContext.User)
         // Đây là cách an toàn và chuẩn để lấy UserId của người dùng đã đăng nhập.
         // var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -30,14 +34,14 @@ public class DevicesController(IMediator mediator) : ControllerBase
         // {
         //     // Trường hợp này hiếm khi xảy ra nếu Authorization attribute hoạt động đúng,
         //     // nhưng là một kiểm tra an toàn nếu JWT hợp lệ nhưng không có claim User ID.
-        //     return Unauthorized("User ID claim not found or invalid in token.");
+        //     return Unauthorized("User ID claim not found or invalid in token."); // Có thể chuyển thành HandleError
         // }
-        var userId = new Guid(request.UserId); // <-- Dòng này chỉ dùng cho testing
+        var userId = request.UserId; // Sử dụng userId trực tiếp từ request như bạn đang làm cho testing
 
         // 2. Tạo RegisterDeviceCommand và gán UserId cùng với các thông tin thiết bị bổ sung
         var command = new RegisterDeviceCommand
         {
-            UserId = userId,
+            UserId = new Guid(userId),
             DeviceName = request.DeviceName,
             Platform = request.Platform,
             OsVersion = request.OsVersion,
@@ -51,28 +55,14 @@ public class DevicesController(IMediator mediator) : ControllerBase
         {
             // 3. Gửi command tới MediatR để được xử lý bởi RegisterDeviceCommandHandler
             var response = await mediator.Send(command, cancellationToken);
-
             // 4. Trả về phản hồi thành công (HTTP 201 Created)
             // Cung cấp URL cho resource mới tạo nếu cần, hoặc đơn giản là trả về response
-            return CreatedAtAction(nameof(Register), new { id = response.DeviceId }, response);
+            return HandleCreated(response, nameof(Register), new { id = response.DeviceId });
         }
-        catch (BusinessLogicException ex)
-        {
-            // Bắt các ngoại lệ nghiệp vụ cụ thể (như "User already has a primary device registered.")
-            // và trả về lỗi 400 Bad Request kèm thông báo.
-            return BadRequest(new { message = ex.Message });
-        }
-        // catch (NotFoundException ex) // Nếu bạn có một NotFoundException cụ thể cho trường hợp UserNotFound
-        // {
-        //     return NotFound(new { message = ex.Message });
-        // }
         catch (Exception ex)
         {
-            // Bắt các ngoại lệ không mong muốn khác và trả về 500 Internal Server Error
-            // Quan trọng: Ghi log lỗi chi tiết ở đây!
-            // Logger.LogError(ex, "An unhandled error occurred during device registration.");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An unexpected error occurred." });
+            // Sử dụng HandleError để xử lý các loại ngoại lệ đã định nghĩa
+            return HandleError(ex);
         }
     }
 }

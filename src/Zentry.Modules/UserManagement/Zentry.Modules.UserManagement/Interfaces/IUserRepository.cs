@@ -1,7 +1,7 @@
 ﻿using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.SharedKernel.Abstractions.Data;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Interfaces;
 
@@ -24,5 +24,7 @@ public interface IUserRepository : IRepository<User, Guid>
 
     Task SoftDeleteUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<List<User>> GetUsersByIdsAsync(List<Guid> userIds, CancellationToken cancellationToken);
-    Task<List<(Guid UserId, Role Role)>> GetUserRolesByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken);
+
+    Task<List<(Guid UserId, Role Role)>> GetUserRolesByUserIdsAsync(List<Guid> userIds,
+        CancellationToken cancellationToken);
 }

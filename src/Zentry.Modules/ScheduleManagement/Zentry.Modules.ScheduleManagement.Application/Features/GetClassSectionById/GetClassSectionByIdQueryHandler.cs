@@ -2,8 +2,8 @@ using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById;

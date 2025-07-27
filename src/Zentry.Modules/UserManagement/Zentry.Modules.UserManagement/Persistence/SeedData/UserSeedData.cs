@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Persistence.SeedData;
 

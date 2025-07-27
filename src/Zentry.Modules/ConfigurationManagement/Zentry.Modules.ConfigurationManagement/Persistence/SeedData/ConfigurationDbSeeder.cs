@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
+using Zentry.SharedKernel.Constants.Configuration;
 
 // Cần Bogus để Randomizer.Seed
 

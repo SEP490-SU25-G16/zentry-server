@@ -6,13 +6,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0"/>
-    </ItemGroup>
-    <ItemGroup>
         <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Folder Include="Enums\"/>
     </ItemGroup>
 </Project>

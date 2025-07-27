@@ -2,9 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.DeviceManagement.Integration;
 
@@ -57,7 +55,6 @@ public class GetDeviceRolesByDevicesQueryHandler(
         // 3. Kết hợp thông tin DeviceId -> UserId và UserId -> Role để tạo DeviceId -> Role
         var deviceRolesMap = new Dictionary<Guid, string>();
         foreach (var device in devices)
-        {
             if (userRolesMap.TryGetValue(device.UserId, out var role))
             {
                 deviceRolesMap[device.Id] = role;
@@ -69,7 +66,6 @@ public class GetDeviceRolesByDevicesQueryHandler(
                     "Role not found for user {UserId} associated with device {DeviceId}. Defaulting to 'Unknown'.",
                     device.UserId, device.Id);
             }
-        }
 
         logger.LogInformation("Successfully retrieved roles for {Count} DeviceIds.", deviceRolesMap.Count);
         return new GetDeviceRolesByDevicesIntegrationResponse(deviceRolesMap);

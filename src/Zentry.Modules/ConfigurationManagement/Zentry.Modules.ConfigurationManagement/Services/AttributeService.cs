@@ -3,8 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ConfigurationManagement.Abstractions;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
-using Zentry.SharedKernel.Exceptions;
+using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Services;
 
@@ -24,7 +23,7 @@ public class AttributeService(ConfigurationDbContext dbContext) : IAttributeServ
     {
         var attributeDefinition = await GetAttributeDefinitionByIdAsync(attributeId);
         if (attributeDefinition == null)
-            throw new BusinessLogicException($"Attribute Definition with ID '{attributeId}' not found.");
+            throw new ArgumentException($"Attribute Definition with ID '{attributeId}' not found.");
 
         // So sánh DataType với các Smart Enum instances
         if (attributeDefinition.DataType.Equals(DataType.String)) return true; // String luôn hợp lệ

@@ -14,7 +14,6 @@ public class GetClassSectionByScheduleQueryHandler(IClassSectionRepository class
         var classSection = await classSectionRepository.GetByScheduleIdAsync(request.ScheduleId, cancellationToken);
 
         if (classSection is null)
-        {
             return new GetClassSectionByScheduleIdIntegrationResponse
             {
                 ClassSectionId = Guid.Empty,
@@ -23,7 +22,6 @@ public class GetClassSectionByScheduleQueryHandler(IClassSectionRepository class
                 CourseName = string.Empty,
                 SectionCode = string.Empty
             };
-        }
 
         return new GetClassSectionByScheduleIdIntegrationResponse
         {

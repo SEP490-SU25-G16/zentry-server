@@ -4,9 +4,9 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.Attendance;
-using Zentry.SharedKernel.Enums.Attendance;
-using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
 
@@ -45,10 +45,8 @@ public class GetLecturerDailyClassesQueryHandler(
 
             // Bỏ qua nếu dữ liệu liên quan không đầy đủ
             if (classSection == null || course == null || room == null)
-            {
                 // Có thể log warning ở đây nếu cần
                 continue;
-            }
 
             // Lấy tất cả các sessions cho Schedule này
             var getSessionsQuery = new GetSessionsByScheduleIdIntegrationQuery(schedule.Id);
@@ -99,10 +97,7 @@ public class GetLecturerDailyClassesQueryHandler(
                 var timeDifference = sessionStartTimeUtc - now;
 
                 // Cho phép bắt đầu trong khoảng 5 phút trước đến 5 phút sau giờ bắt đầu
-                if (timeDifference.TotalMinutes >= -5 && timeDifference.TotalMinutes <= 5)
-                {
-                    canStartSession = true;
-                }
+                if (timeDifference.TotalMinutes >= -5 && timeDifference.TotalMinutes <= 5) canStartSession = true;
             }
 
             // Map tất cả sessions vào SessionInfoDto

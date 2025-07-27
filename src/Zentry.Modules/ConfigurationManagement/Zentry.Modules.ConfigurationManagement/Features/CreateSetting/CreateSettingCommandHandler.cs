@@ -5,8 +5,8 @@ using Zentry.Modules.ConfigurationManagement.Abstractions;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
@@ -44,7 +44,7 @@ public class
                 {
                     logger.LogWarning(ex, "Invalid DataType or ScopeType provided for Attribute Definition: {Message}",
                         ex.Message);
-                    throw new BusinessLogicException(
+                    throw new ArgumentException(
                         $"Invalid DataType or ScopeType provided for Attribute Definition: {ex.Message}");
                 }
 
@@ -70,7 +70,7 @@ public class
                     {
                         logger.LogWarning("Attribute Definition with Key '{Key}' already exists with a different ID.",
                             command.AttributeDefinitionDetails.Key);
-                        throw new BusinessLogicException(
+                        throw new ArgumentException(
                             $"Attribute Definition with Key '{command.AttributeDefinitionDetails.Key}' already exists with a different ID.");
                     }
                 }
@@ -126,7 +126,7 @@ public class
                         logger.LogWarning(
                             "Attribute Definition with DataType 'Selection' must have options provided for Key '{Key}'.",
                             attributeDefinition.Key);
-                        throw new BusinessLogicException(
+                        throw new ArgumentException(
                             "Attribute Definition with DataType 'Selection' must have options provided.");
                     }
                 }
@@ -135,7 +135,7 @@ public class
             {
                 logger.LogWarning(
                     "AttributeDefinitionDetails is required to create or update an Attribute Definition.");
-                throw new BusinessLogicException(
+                throw new ArgumentException(
                     "AttributeDefinitionDetails is required to create or update an Attribute Definition.");
             }
 
@@ -148,7 +148,7 @@ public class
             catch (ArgumentException ex)
             {
                 logger.LogWarning(ex, "Invalid ScopeType provided for Setting: {Message}", ex.Message);
-                throw new BusinessLogicException($"Invalid ScopeType provided for Setting: {ex.Message}");
+                throw new ArgumentException($"Invalid ScopeType provided for Setting: {ex.Message}");
             }
 
             // 4. Validate Value của  Setting dựa trên DataType của AttributeDefinition
@@ -157,7 +157,7 @@ public class
             {
                 logger.LogWarning("Provided value '{Value}' is not valid for Attribute '{Key}' (DataType: {DataType}).",
                     command.Setting.Value, attributeDefinition.Key, attributeDefinition.DataType);
-                throw new BusinessLogicException(
+                throw new ArgumentException(
                     $"Provided value '{command.Setting.Value}' is not valid for Attribute '{attributeDefinition.DisplayName}' (DataType: {attributeDefinition.DataType}).");
             }
 
@@ -173,7 +173,7 @@ public class
                 logger.LogWarning(
                     "Setting for Attribute '{Key}' with Scope '{ScopeType}' and ScopeId '{ScopeId}' already exists.",
                     attributeDefinition.Key, settingScopeType, command.Setting.ScopeId);
-                throw new BusinessLogicException(
+                throw new ArgumentException(
                     $"Setting for Attribute '{attributeDefinition.Key}' with Scope '{settingScopeType}' and ScopeId '{command.Setting.ScopeId}' already exists.");
             }
 

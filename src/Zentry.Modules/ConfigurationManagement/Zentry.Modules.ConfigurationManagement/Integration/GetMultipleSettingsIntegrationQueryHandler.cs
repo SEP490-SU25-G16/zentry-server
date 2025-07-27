@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Persistence;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Contracts.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Integration;

@@ -1,14 +1,12 @@
 ﻿// Updated AttendanceProcessorService.cs - Simplified version
 
-using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
-using Zentry.SharedKernel.Contracts.Device;
+using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
-using Zentry.SharedKernel.Enums.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 

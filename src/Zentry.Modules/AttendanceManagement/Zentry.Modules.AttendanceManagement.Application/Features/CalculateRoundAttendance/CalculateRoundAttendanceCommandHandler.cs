@@ -6,10 +6,10 @@ using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.CalculateRoundAttendance;
@@ -42,7 +42,7 @@ public class CalculateRoundAttendanceCommandHandler(
             if (round is null)
             {
                 logger.LogWarning("Round {RoundId} not found", request.RoundId);
-                return new CalculateRoundAttendanceResponse(false, "Round not found", 0);
+                return new CalculateRoundAttendanceResponse(false, "Round not found");
             }
 
             // Calculate and persist attendance
@@ -71,8 +71,7 @@ public class CalculateRoundAttendanceCommandHandler(
 
             return new CalculateRoundAttendanceResponse(
                 false,
-                "An error occurred while calculating attendance",
-                0);
+                "An error occurred while calculating attendance");
         }
     }
 
@@ -265,7 +264,6 @@ public class CalculateRoundAttendanceCommandHandler(
 
         var deviceRolesMap = new Dictionary<Guid, string>();
         if (allUniqueDeviceIdGuids.Count != 0)
-        {
             try
             {
                 var getDeviceRolesQuery = new GetDeviceRolesByDevicesIntegrationQuery(allUniqueDeviceIdGuids);
@@ -278,7 +276,6 @@ public class CalculateRoundAttendanceCommandHandler(
                 logger.LogError(ex,
                     "Error fetching device roles in batch. Individual lookups may fail. Defaulting to 'Unknown' for affected devices.");
             }
-        }
 
         foreach (var g in groupedScanLogs)
         {
@@ -289,11 +286,9 @@ public class CalculateRoundAttendanceCommandHandler(
 
             var role = deviceRolesMap.GetValueOrDefault(deviceIdGuid, "Unknown");
             if (role == "Unknown")
-            {
                 logger.LogWarning(
                     "Role not found for Device {DeviceId} in batch result or initial error. Defaulting to 'Unknown'.",
                     deviceIdString);
-            }
 
             var scanList = g
                 .SelectMany(s => s.ScannedDevices)
@@ -417,7 +412,7 @@ public class CalculateRoundAttendanceCommandHandler(
 
         roundTrack.ProcessedAt = DateTime.Now;
 
-        Dictionary<Guid, Guid> deviceToUserMap = new Dictionary<Guid, Guid>();
+        var deviceToUserMap = new Dictionary<Guid, Guid>();
         if (attendedDeviceGuids.Any())
         {
             var getUserIdsByDevicesQuery = new GetUserIdsByDevicesIntegrationQuery(attendedDeviceGuids);
@@ -428,9 +423,7 @@ public class CalculateRoundAttendanceCommandHandler(
         var mergedStudentsInRoundTrack = new Dictionary<Guid, StudentAttendanceInRound>();
 
         foreach (var existingStudent in roundTrack.Students)
-        {
             mergedStudentsInRoundTrack[existingStudent.StudentId] = existingStudent;
-        }
 
         var studentTracksToUpdate = new List<StudentTrack>();
 

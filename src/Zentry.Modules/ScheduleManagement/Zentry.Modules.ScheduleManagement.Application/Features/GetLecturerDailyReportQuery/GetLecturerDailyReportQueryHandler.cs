@@ -3,9 +3,9 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyReportQuery;
 
@@ -45,10 +45,8 @@ public class GetLecturerDailyReportQueryHandler(
 
             // Bỏ qua nếu dữ liệu không đủ để tạo báo cáo
             if (classSection == null || course == null || room == null)
-            {
                 // Log warning nếu cần
                 continue;
-            }
 
             // Lấy tổng số sinh viên đăng ký từ module Schedule
             var totalStudents = await enrollmentRepository.CountActiveStudentsByClassSectionIdAsync(
@@ -70,11 +68,9 @@ public class GetLecturerDailyReportQueryHandler(
             var targetSession = sessionsForSchedule.FirstOrDefault(s => s.StartTime.Date == request.Date.Date);
 
             if (targetSession == null)
-            {
                 // Nếu không tìm thấy session cụ thể cho ngày này, có thể bỏ qua báo cáo cho schedule này hoặc báo cáo với 0 học sinh
                 // Tùy thuộc vào yêu cầu nghiệp vụ
                 continue; // Bỏ qua lịch trình này nếu không có session tương ứng trong ngày
-            }
 
             // Truyền SessionId cụ thể vào GetAttendanceSummaryIntegrationQuery
             var attendanceSummary = await mediator.Send(

@@ -1,6 +1,6 @@
 using Bogus;
 using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
+using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence.SeedData;
 

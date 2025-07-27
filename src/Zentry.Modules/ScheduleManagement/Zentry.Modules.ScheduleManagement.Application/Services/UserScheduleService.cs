@@ -1,6 +1,6 @@
 ﻿using MediatR;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Services;
 

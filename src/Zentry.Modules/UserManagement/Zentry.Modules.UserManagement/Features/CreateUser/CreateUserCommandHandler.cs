@@ -2,7 +2,7 @@
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 

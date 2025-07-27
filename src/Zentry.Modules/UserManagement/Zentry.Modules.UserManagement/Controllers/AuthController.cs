@@ -1,32 +1,68 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.UserManagement.Features.ResetPassword;
 using Zentry.Modules.UserManagement.Features.SignIn;
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.UserManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IMediator mediator) : ControllerBase
+public class AuthController(IMediator mediator) : BaseController
 {
     [HttpPost("sign-in")]
+    [ProducesResponseType(typeof(ApiResponse<SignInResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SignIn([FromBody] SignInCommand command)
     {
-        var result = await mediator.Send(command);
-        return Ok(result);
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            var result = await mediator.Send(command);
+            return HandleResult(result, "User signed in successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 
     [HttpPost("reset-password/request")]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RequestResetPassword([FromBody] RequestResetPasswordCommand command)
     {
-        await mediator.Send(command);
-        return Ok("Password reset email sent if account exists.");
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            await mediator.Send(command);
+            // Trả về thông báo thành công chung để tránh lộ thông tin tài khoản
+            return HandleResult("Password reset email sent if account exists.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 
     [HttpPost("reset-password/confirm")]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ConfirmResetPassword([FromBody] ConfirmResetPasswordCommand command)
     {
-        await mediator.Send(command);
-        return Ok("Password has been reset successfully.");
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            await mediator.Send(command);
+            return HandleResult("Password has been reset successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 }

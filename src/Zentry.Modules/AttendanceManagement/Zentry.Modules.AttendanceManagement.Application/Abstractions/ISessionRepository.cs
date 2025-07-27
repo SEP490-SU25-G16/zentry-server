@@ -1,6 +1,6 @@
 ﻿using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
-using Zentry.SharedKernel.Enums.Attendance;
+using Zentry.SharedKernel.Constants.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
@@ -14,5 +14,6 @@ public interface ISessionRepository : IRepository<Session, Guid>
 
     public Task<Session?> GetSessionByScheduleIdAndDate(Guid scheduleId, DateTime date,
         CancellationToken cancellationToken);
+
     public Task<Guid> GetLecturerIdBySessionId(Guid sessionId, CancellationToken cancellationToken);
 }

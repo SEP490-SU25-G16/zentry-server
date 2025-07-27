@@ -1,4 +1,4 @@
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
+using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;

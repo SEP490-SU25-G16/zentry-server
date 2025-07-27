@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Enums.Schedule;
+using Zentry.SharedKernel.Constants.Schedule;
 
 // Đảm bảo import WeekDayEnum
 

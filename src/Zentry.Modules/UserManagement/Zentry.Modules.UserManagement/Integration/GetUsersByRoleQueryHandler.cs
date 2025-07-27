@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Integration;
 

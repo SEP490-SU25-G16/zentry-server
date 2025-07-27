@@ -20,10 +20,12 @@ public class StudentTrack
     public Guid SessionId { get; set; }
     public List<RoundParticipation> Rounds { get; set; } = [];
     public double CurrentPercentageAttended { get; private set; }
+
     public void SetCurrentPercentageAttended(int totalRoundsInSession)
     {
         CurrentPercentageAttended = CalculatePercentageAttended(totalRoundsInSession);
     }
+
     public double CalculatePercentageAttended(int totalRoundsInSession)
     {
         if (totalRoundsInSession == 0) return 0;

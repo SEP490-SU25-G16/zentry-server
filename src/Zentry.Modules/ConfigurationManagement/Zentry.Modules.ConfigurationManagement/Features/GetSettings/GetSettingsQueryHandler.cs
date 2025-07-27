@@ -4,9 +4,8 @@ using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
-using Zentry.Modules.ConfigurationManagement.Persistence.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Exceptions;
+using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
 
@@ -54,7 +53,7 @@ public class
             }
             catch (ArgumentException ex)
             {
-                throw new BusinessLogicException($"Invalid ScopeType provided: {ex.Message}");
+                throw new ArgumentException($"Invalid ScopeType provided: {ex.Message}");
             }
 
         if (query.ScopeId.HasValue)

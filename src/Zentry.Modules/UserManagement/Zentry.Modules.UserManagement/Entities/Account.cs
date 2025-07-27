@@ -1,5 +1,5 @@
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Domain;
-using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.UserManagement.Entities;
 

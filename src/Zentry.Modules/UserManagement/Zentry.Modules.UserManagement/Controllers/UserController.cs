@@ -6,38 +6,38 @@ using Zentry.Modules.UserManagement.Features.DeleteUser;
 using Zentry.Modules.UserManagement.Features.GetUser;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Features.UpdateUser;
-
-// Thêm using MediatR
-
-// Thêm using này nếu chưa có
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Constants.Response;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.UserManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController(IMediator mediator) : ControllerBase
+public class UserController(IMediator mediator) : BaseController
 {
     [HttpGet]
-    [ProducesResponseType(typeof(GetUsersResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<GetUsersResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetUsers([FromQuery] GetUsersQuery query)
     {
         try
         {
             var response = await mediator.Send(query);
-            return Ok(response);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {
-            // Ghi log lỗi
-            return BadRequest(new { message = "An error occurred while retrieving the list of users." });
+            return HandleError(ex);
         }
     }
 
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<GetUserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetUserDetail(Guid id)
     {
         var query = new GetUserQuery(id);
@@ -46,21 +46,23 @@ public class UserController(IMediator mediator) : ControllerBase
         {
             var response = await mediator.Send(query);
 
-            if (response == null) return NotFound(new { message = $"User with ID '{id}' not found." });
+            if (response == null)
+                return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound,
+                    $"User with ID '{id}' not found"));
 
-            return Ok(response);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {
-            // Ghi log lỗi
-            return BadRequest(new { message = "An error occurred while retrieving user details." });
+            return HandleError(ex);
         }
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(CreateUserResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiResponse<CreateUserResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
         var command = new CreateUserCommand(request);
@@ -68,22 +70,23 @@ public class UserController(IMediator mediator) : ControllerBase
         try
         {
             var response = await mediator.Send(command);
-            return CreatedAtAction(nameof(CreateUser), new { id = response.UserId }, response);
+            return HandleCreated(response, nameof(GetUserDetail), new { id = response.UserId });
         }
-        catch (InvalidOperationException ex) // Bắt lỗi nếu email đã tồn tại
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
         {
-            return Conflict(new { message = ex.Message }); // Trả về 409 Conflict
+            return Conflict(ApiResponse.ErrorResult(ErrorCodes.UserAlreadyExists, ex.Message));
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = "An error occurred while creating the user." });
+            return HandleError(ex);
         }
     }
 
     [HttpPut("{id}")]
-    [ProducesResponseType(typeof(UpdateUserResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<UpdateUserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
         var command = new UpdateUserCommand(id, request);
@@ -94,24 +97,30 @@ public class UserController(IMediator mediator) : ControllerBase
 
             if (!response.Success)
             {
-                if (response.Message == "User not found." || response.Message == "Associated account not found.")
-                    return NotFound(new { message = response.Message });
+                // Sử dụng các ErrorCodes cụ thể thay vì kiểm tra message
+                if (response.Message?.Contains("User not found") == true)
+                    return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound, response.Message));
 
-                return BadRequest(new { message = response.Message });
+                if (response.Message?.Contains("Associated account not found") == true ||
+                    response.Message?.Contains("Account not found") == true)
+                    return NotFound(ApiResponse.ErrorResult(ErrorCodes.AccountNotFound, response.Message));
+
+                return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message));
             }
 
-            return Ok(response);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = "An error occurred while updating the user." });
+            return HandleError(ex);
         }
     }
 
     [HttpDelete("{id}")]
-    [ProducesResponseType(typeof(DeleteUserResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<DeleteUserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SoftDeleteUser(Guid id)
     {
         var command = new DeleteUserCommand(id);
@@ -122,16 +131,17 @@ public class UserController(IMediator mediator) : ControllerBase
 
             if (!response.Success)
             {
-                if (response.Message.Contains("not found"))
-                    return NotFound(new { message = response.Message });
-                return BadRequest(new { message = response.Message });
+                if (response.Message?.Contains("not found") == true)
+                    return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound, response.Message));
+
+                return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message));
             }
 
-            return Ok(response);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = "An unexpected error occurred during soft delete." });
+            return HandleError(ex);
         }
     }
 }

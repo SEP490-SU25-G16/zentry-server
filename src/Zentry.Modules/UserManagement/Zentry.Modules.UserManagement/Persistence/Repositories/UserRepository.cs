@@ -3,14 +3,14 @@ using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
-using Zentry.SharedKernel.Enums.User;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
-    public async Task<List<(Guid UserId, Zentry.SharedKernel.Enums.User.Role Role)>> GetUserRolesByUserIdsAsync(
+    public async Task<List<(Guid UserId, Role Role)>> GetUserRolesByUserIdsAsync(
         List<Guid> userIds, CancellationToken cancellationToken)
     {
         return await dbContext.Accounts

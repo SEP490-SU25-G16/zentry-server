@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Enums.User;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 

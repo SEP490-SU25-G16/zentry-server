@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.DeviceManagement.Entities;
 using Zentry.Modules.DeviceManagement.ValueObjects;
-using Zentry.SharedKernel.Enums.Device;
+using Zentry.SharedKernel.Constants.Device;
 
 namespace Zentry.Modules.DeviceManagement.Persistence.Configurations;
 

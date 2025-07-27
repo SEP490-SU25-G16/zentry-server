@@ -1,7 +1,7 @@
 using Zentry.Modules.DeviceManagement.ValueObjects;
 using Zentry.SharedKernel.Common;
+using Zentry.SharedKernel.Constants.Device;
 using Zentry.SharedKernel.Domain;
-using Zentry.SharedKernel.Enums.Device;
 
 namespace Zentry.Modules.DeviceManagement.Entities;
 

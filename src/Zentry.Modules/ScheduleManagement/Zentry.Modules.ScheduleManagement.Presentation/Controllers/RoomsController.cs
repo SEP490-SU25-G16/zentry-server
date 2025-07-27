@@ -7,101 +7,105 @@ using Zentry.Modules.ScheduleManagement.Application.Features.DeleteRoom;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetRoomById;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetRooms;
 using Zentry.Modules.ScheduleManagement.Application.Features.UpdateRoom;
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/rooms")]
-public class RoomsController(IMediator mediator) : ControllerBase
+public class RoomsController(IMediator mediator) : BaseController
 {
     [HttpPost]
-    [ProducesResponseType(typeof(CreateRoomResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<CreateRoomResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRoom([FromBody] CreateRoomCommand request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var response = await mediator.Send(request, cancellationToken);
-
-        return CreatedAtAction(nameof(CreateRoom), new { id = response.Id }, response);
-    }
-
-    [HttpGet]
-    [ProducesResponseType(typeof(GetRoomsResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetRooms([FromQuery] GetRoomsQuery query, CancellationToken cancellationToken)
-    {
-        // Model binding sẽ tự động điền các thuộc tính của GetRoomsQuery từ query string
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var response = await mediator.Send(query, cancellationToken);
-        return Ok(response);
-    }
-
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(RoomDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetRoomById(Guid id, CancellationToken cancellationToken)
-    {
-        var query = new GetRoomByIdQuery(id);
-
+        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
-            var response = await mediator.Send(query, cancellationToken);
-            return Ok(response);
+            var response = await mediator.Send(request, cancellationToken);
+            return HandleCreated(response, nameof(CreateRoom), new { id = response.Id });
         }
         catch (Exception ex)
         {
-            return NotFound(new { errors = ex.Message });
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(ApiResponse<GetRoomsResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetRooms([FromQuery] GetRoomsQuery query, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response, "Rooms retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<RoomDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetRoomById(Guid id, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            var query = new GetRoomByIdQuery(id);
+            var response = await mediator.Send(query, cancellationToken);
+            return response == null
+                ? HandleNotFound("Room", id)
+                : HandleResult(response, "Room retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
         }
     }
 
     [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(RoomDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<RoomDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var command = new UpdateRoomCommand(id, request);
-
+        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
+            var command = new UpdateRoomCommand(id, request);
             var response = await mediator.Send(command, cancellationToken);
-            return Ok(response);
-        }
-        catch (BadHttpRequestException ex)
-        {
-            return NotFound(new { errors = ex.Message });
+            return HandleResult(response, "Room updated successfully.");
         }
         catch (Exception ex)
         {
-            return BadRequest(new { errors = ex.Message });
+            return HandleError(ex);
         }
     }
 
-    [HttpDelete("{id:guid}")] // Endpoint này giữ nguyên
+    [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteRoom(Guid id, CancellationToken cancellationToken)
     {
-        var command = new DeleteRoomCommand(id);
-
+        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
+            var command = new DeleteRoomCommand(id);
             await mediator.Send(command, cancellationToken);
-            return NoContent(); // Trả về 204 No Content khi xóa thành công
-        }
-        catch (BadHttpRequestException ex)
-        {
-            return NotFound(new { errors = ex.Message });
+            return HandleNoContent();
         }
         catch (Exception ex)
         {
-            return BadRequest(new { errors = ex.Message });
+            return HandleError(ex);
         }
     }
 }

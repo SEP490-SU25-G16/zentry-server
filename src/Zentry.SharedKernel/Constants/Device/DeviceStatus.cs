@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.SharedKernel.Enums.Device;
+namespace Zentry.SharedKernel.Constants.Device;
 
 public class DeviceStatus : Enumeration
 {

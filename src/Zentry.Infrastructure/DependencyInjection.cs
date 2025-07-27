@@ -1,5 +1,3 @@
-// File: Zentry.Infrastructure/DependencyInjection.cs
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,8 +5,6 @@ using Serilog;
 using StackExchange.Redis;
 using Zentry.Infrastructure.Caching;
 using Zentry.Infrastructure.Logging;
-
-// Thêm using này nếu chưa có
 
 namespace Zentry.Infrastructure;
 
