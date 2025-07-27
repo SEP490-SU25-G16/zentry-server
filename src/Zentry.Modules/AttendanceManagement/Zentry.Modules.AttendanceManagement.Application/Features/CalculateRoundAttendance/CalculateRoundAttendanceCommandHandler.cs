@@ -165,25 +165,6 @@ public class CalculateRoundAttendanceCommandHandler(
 
         try
         {
-            var lecturerId = await sessionRepository.GetLecturerIdBySessionId(sessionId, cancellationToken);
-            var isLecturerIdExist =
-                await scanLogRepository.HasLecturerScanLogInRoundAsync(roundId, lecturerId, cancellationToken);
-            if (!isLecturerIdExist)
-            {
-                var device = await mediator.Send(new GetDeviceByUserIntegrationQuery(lecturerId), cancellationToken);
-                var record = ScanLog.Create(
-                    Guid.NewGuid(),
-                    device.DeviceId,
-                    lecturerId,
-                    sessionId,
-                    roundId,
-                    DateTime.UtcNow,
-                    []
-                );
-
-                await scanLogRepository.AddScanDataAsync(record);
-            }
-
             var scanLogs = await scanLogRepository.GetScanLogsByRoundIdAsync(roundId, cancellationToken);
 
             if (scanLogs.Count == 0)
