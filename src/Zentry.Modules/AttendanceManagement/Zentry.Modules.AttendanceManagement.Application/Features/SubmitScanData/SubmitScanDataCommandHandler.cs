@@ -14,7 +14,7 @@ public class SubmitScanDataCommandHandler(
     IRedisService redisService,
     IRoundRepository roundRepository,
     ILogger<SubmitScanDataCommandHandler> logger,
-    IBus bus)
+    IPublishEndpoint publishEndpoint)
     : ICommandHandler<SubmitScanDataCommand, SubmitScanDataResponse>
 {
     public async Task<SubmitScanDataResponse> Handle(SubmitScanDataCommand request, CancellationToken cancellationToken)
@@ -81,7 +81,7 @@ public class SubmitScanDataCommandHandler(
                 request.Timestamp
             );
 
-            await bus.Publish(message, cancellationToken);
+            await publishEndpoint.Publish(message, cancellationToken);
             logger.LogInformation(
                 "Scan data message for Session {SessionId}, User {UserId} published and ScanLog saved with RoundId {RoundId}.",
                 request.SessionId, request.SubmitterUserId, currentRoundId);

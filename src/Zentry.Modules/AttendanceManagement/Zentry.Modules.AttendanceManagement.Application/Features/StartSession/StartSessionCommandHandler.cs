@@ -135,7 +135,7 @@ public class StartSessionCommandHandler(
 
         // --- 5. (Optional) Gửi thông báo đến các máy trong lớp ---
         logger.LogInformation("Sending session started notification for Session {SessionId}.", session.Id);
-        // Có thể publish một MassTransit event ở đây, ví dụ: await bus.Publish(new SessionStartedEvent(...), cancellationToken);
+        // Có thể publish một MassTransit event ở đây, ví dụ: await publishEndpoint.Publish(new SessionStartedEvent(...), cancellationToken);
 
         // --- 6. Trả về Response ---
         return new StartSessionResponse

@@ -17,7 +17,7 @@ public class CreateSessionConsumer(
     ILogger<CreateSessionConsumer> logger,
     ISessionRepository sessionRepository,
     IConfigurationService configService,
-    IBus bus,
+    IPublishEndpoint publishEndpoint,
     IMediator mediator)
     : IConsumer<CreateSesssionMessage>
 {
@@ -156,7 +156,7 @@ public class CreateSessionConsumer(
                             session.StartTime, // Đây là UTC
                             session.EndTime // Đây là UTC
                         );
-                        await bus.Publish(createRoundsMessage, context.CancellationToken);
+                        await publishEndpoint.Publish(createRoundsMessage, context.CancellationToken);
                         logger.LogInformation("Published CreateSessionRoundsMessage for SessionId: {SessionId}.",
                             session.Id);
                     }
@@ -173,7 +173,7 @@ public class CreateSessionConsumer(
                         message.LecturerId,
                         message.ClassSectionId
                     );
-                    await bus.Publish(generateWhitelistMessage, context.CancellationToken);
+                    await publishEndpoint.Publish(generateWhitelistMessage, context.CancellationToken);
                     logger.LogInformation("Published GenerateSessionWhitelistMessage for SessionId: {SessionId}.",
                         session.Id);
                 }
