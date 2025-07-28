@@ -1,3 +1,4 @@
+using MediatR;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;

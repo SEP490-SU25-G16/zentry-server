@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zentry.Modules.NotificationService.Domain\Zentry.Modules.NotificationService.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="13.0.0" />
+    <PackageReference Include="MassTransit" Version="8.2.0" />
+  </ItemGroup>
+
+</Project> 

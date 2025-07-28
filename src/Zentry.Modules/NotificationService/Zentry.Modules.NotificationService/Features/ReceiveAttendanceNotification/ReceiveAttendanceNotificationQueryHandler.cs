@@ -1,5 +1,5 @@
-using Zentry.Modules.NotificationService.Persistence.Repository;
-using Zentry.SharedKernel.Abstractions.Application;
+using MediatR;
+using Zentry.Modules.NotificationService.Infrastructure.Persistence;
 using Zentry.SharedKernel.Common;
 
 namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
@@ -15,10 +15,14 @@ public class ReceiveAttendanceNotificationServiceQueryHandler(INotificationRepos
 
         var notifications = await repository.GetByUserIdAsync(
             request.UserId,
-            (request.Page - 1) * request.PageSize,
-            request.PageSize,
             cancellationToken);
 
-        return notifications;
+        // Apply pagination
+        var paginatedNotifications = notifications
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToList();
+
+        return paginatedNotifications;
     }
 }

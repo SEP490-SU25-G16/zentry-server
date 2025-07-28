@@ -22,6 +22,9 @@ using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Middlewares;
+using Zentry.Modules.FaceId;
+using Zentry.Modules.FaceId.Persistence;
+using Zentry.Modules.NotificationService.Infrastructure.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,26 +66,43 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddAuthorization();
 
+// --- Thêm health check ---
+builder.Services.AddHealthChecks();
+
+
+// --- Cấu hình MassTransit chung ---
 // ===== CẤU HÌNH MASSTRANSIT =====
 builder.Services.AddMassTransit(x =>
 {
     x.AddAttendanceMassTransitConsumers();
+    // Tự động tìm và đăng ký tất cả consumer từ các assembly của module
+    x.AddConsumers(typeof(Program).Assembly); // API assembly
+    x.AddConsumers(typeof(Zentry.Modules.NotificationService.Application.AssemblyReference).Assembly); // NotificationService assembly
+    x.AddConsumers(typeof(Zentry.Modules.AttendanceManagement.Application.AssemblyReference).Assembly); // AttendanceManagement assembly
 
     x.UsingRabbitMq((context, cfg) =>
     {
         var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
 
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
-            throw new InvalidOperationException(
-                "RabbitMQ_ConnectionString is not configured in appsettings.json or environment variables.");
+            throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured.");
 
         cfg.Host(new Uri(rabbitMqConnectionString));
+
+        // Cấu hình receive endpoints cho tất cả consumer được đăng ký
+        cfg.ConfigureEndpoints(context);
+
+        // Nếu Attendance có cấu hình endpoint riêng thì giữ lại
         cfg.ConfigureAttendanceReceiveEndpoints(context);
     });
 });
 
 // ===== ĐĂNG KÝ CÁC MODULES =====
 builder.Services.AddInfrastructure(builder.Configuration);
+
+
+// --- Đăng ký các module ---
+builder.Services.AddInfrastructure(builder.Configuration); // Infrastructure chung
 builder.Services.AddUserInfrastructure(builder.Configuration);
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
 builder.Services.AddScheduleApplication();
@@ -90,8 +110,11 @@ builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddDeviceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceApplication();
-builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddReportingInfrastructure(builder.Configuration);
+
+builder.Services.AddNotificationModule(builder.Configuration); // Đăng ký module Notification
+builder.Services.AddFaceIdInfrastructure(builder.Configuration); // --- Đăng ký FaceId ---
+
 
 var app = builder.Build();
 
@@ -102,6 +125,9 @@ app.UseValidationExceptionMiddleware();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub"); // SignalR Hub cho real-time notifications
+app.MapHealthChecks("/health"); // expose health check endpoint
+
 
 // ===== DATABASE MIGRATION CODE =====
 await RunDatabaseMigrationsAsync(app);

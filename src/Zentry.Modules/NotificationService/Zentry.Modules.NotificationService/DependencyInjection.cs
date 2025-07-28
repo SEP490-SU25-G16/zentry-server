@@ -1,35 +1,40 @@
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
-using Zentry.Infrastructure.Messaging.External;
-using Zentry.Modules.NotificationService.Persistence.Configurations;
-using Zentry.Modules.NotificationService.Persistence.Data;
-using Zentry.Modules.NotificationService.Persistence.Repository;
+using Zentry.Modules.NotificationService.Application.EventHandlers;
+using Zentry.Modules.NotificationService.Application.Services;
+using Zentry.Modules.NotificationService.Infrastructure.Hubs;
+using Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
+using Zentry.Modules.NotificationService.Infrastructure.Persistence;
+using Zentry.Modules.NotificationService.Infrastructure.Push;
+using Zentry.Modules.NotificationService.Infrastructure.Services;
 
 namespace Zentry.Modules.NotificationService;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddNotificationInfrastructure(this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddNotificationModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
-                                    throw new ArgumentNullException(nameof(services));
+        // 1. Cấu hình EF Core
+        services.AddDbContext<NotificationDbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddSingleton<IMongoClient>(s => new MongoClient(mongoConnectionString));
-
-        services.AddSingleton(s =>
-        {
-            var mongoClient = s.GetRequiredService<IMongoClient>();
-            var database = mongoClient.GetDatabase("zentry");
-            NotificationConfiguration.Configure(database);
-            NotificationSeed.SeedData(database);
-            return database;
-        });
-
+        // 2. Đăng ký Repositories và Services
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-        services.AddSingleton<IMessagePublisher, MessagePublisher>();
+        services.AddScoped<IDeviceTokenRepository, Infrastructure.DeviceTokens.DeviceTokenRepository>(); // Real implementation using DeviceManagement integration
+        services.AddScoped<IFcmSender, FcmSender>();
+        services.AddScoped<INotificationSender, NotificationSender>();
+
+        // 3. Đăng ký MediatR handlers (nếu có)
+        services.AddMediatR(cfg => 
+            cfg.RegisterServicesFromAssembly(Application.AssemblyReference.Assembly));
+
+        // 4. Configure SignalR for real-time notifications
+        services.AddSignalR();
+
+        // 5. Note: MassTransit is configured centrally in Program.cs
+        // The NotificationCreatedEventHandler will be automatically discovered
 
         return services;
     }
