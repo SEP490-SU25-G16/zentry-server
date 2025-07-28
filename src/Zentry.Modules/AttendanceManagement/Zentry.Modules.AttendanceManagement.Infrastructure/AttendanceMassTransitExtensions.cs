@@ -10,7 +10,7 @@ public static class AttendanceMassTransitExtensions
         configurator.AddConsumer<CreateRoundsConsumer>();
         configurator.AddConsumer<CreateSessionConsumer>();
         configurator.AddConsumer<GenerateSessionWhitelistConsumer>();
-        configurator.AddConsumer<ProcessScanDataConsumer>();
+        configurator.AddConsumer<SubmitScanDataConsumer>();
     }
 
     public static void ConfigureAttendanceReceiveEndpoints(this IRabbitMqBusFactoryConfigurator cfg,
@@ -21,7 +21,7 @@ public static class AttendanceMassTransitExtensions
             e.ConfigureConsumer<CreateRoundsConsumer>(context);
             e.ConfigureConsumer<CreateSessionConsumer>(context);
             e.ConfigureConsumer<GenerateSessionWhitelistConsumer>(context);
-            e.ConfigureConsumer<ProcessScanDataConsumer>(context);
+            e.ConfigureConsumer<SubmitScanDataConsumer>(context);
             e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
         });
     }

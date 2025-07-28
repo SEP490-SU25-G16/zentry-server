@@ -70,17 +70,17 @@ public class SubmitScanDataCommandHandler(
             throw new ApplicationException("An error occurred while determining the active round.", ex);
         }
 
-        var message = new ProcessScanDataMessage(
-            request.DeviceId,
-            request.SubmitterUserId,
-            request.SessionId,
-            currentRoundId,
-            request.ScannedDevices.Select(sd => new ScannedDeviceContract(sd.DeviceId, sd.Rssi)).ToList(),
-            request.Timestamp
-        );
-
         try
         {
+            var message = new SubmitScanDataMessage(
+                request.DeviceId,
+                request.SubmitterUserId,
+                request.SessionId,
+                currentRoundId,
+                request.ScannedDevices.Select(sd => new ScannedDeviceContract(sd.DeviceId, sd.Rssi)).ToList(),
+                request.Timestamp
+            );
+
             await bus.Publish(message, cancellationToken);
             logger.LogInformation(
                 "Scan data message for Session {SessionId}, User {UserId} published and ScanLog saved with RoundId {RoundId}.",

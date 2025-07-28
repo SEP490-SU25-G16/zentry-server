@@ -2,7 +2,7 @@
 
 namespace Zentry.SharedKernel.Contracts.Events;
 
-public record ProcessScanDataMessage(
+public record SubmitScanDataMessage(
     Guid DeviceId,
     Guid SubmitterUserId,
     Guid SessionId,

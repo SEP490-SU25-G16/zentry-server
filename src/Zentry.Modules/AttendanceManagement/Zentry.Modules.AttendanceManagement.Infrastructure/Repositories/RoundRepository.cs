@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
+using Zentry.SharedKernel.Constants.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
@@ -67,5 +68,16 @@ public class RoundRepository(AttendanceDbContext dbContext) : IRoundRepository
             .OrderBy(r => r.RoundNumber)
             .Select(r => r.Id)
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task UpdateRoundStatusAsync(Guid roundId, RoundStatus status,
+        CancellationToken cancellationToken = default)
+    {
+        await dbContext.Rounds
+            .Where(r => r.Id == roundId)
+            .ExecuteUpdateAsync(sets => sets
+                    .SetProperty(r => r.Status, status)
+                    .SetProperty(r => r.UpdatedAt, DateTime.UtcNow),
+                cancellationToken);
     }
 }
