@@ -20,12 +20,18 @@ public class DevicesController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse<RegisterDeviceResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)] // For BusinessLogicException
     [ProducesResponseType(typeof(ApiResponse),
-        StatusCodes.Status404NotFound)] // For UserNotFound if applicable, or Handled by 400
+        StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)] // If [Authorize] fails
     public async Task<IActionResult> Register([FromBody] RegisterDeviceRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return HandleValidationError();
+
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(request.MacAddress))
+        {
+            return BadRequest("MAC address is required for device registration.");
+        }
 
         // 1. Lấy UserId từ JWT (đã được middleware xác thực và gán vào HttpContext.User)
         // Đây là cách an toàn và chuẩn để lấy UserId của người dùng đã đăng nhập.
@@ -38,11 +44,12 @@ public class DevicesController(IMediator mediator) : BaseController
         // }
         var userId = request.UserId; // Sử dụng userId trực tiếp từ request như bạn đang làm cho testing
 
-        // 2. Tạo RegisterDeviceCommand và gán UserId cùng với các thông tin thiết bị bổ sung
+        // 2. Tạo RegisterDeviceCommand và gán UserId cùng với các thông tin thiết bị bổ sung bao gồm MAC address
         var command = new RegisterDeviceCommand
         {
             UserId = new Guid(userId),
             DeviceName = request.DeviceName,
+            MacAddress = request.MacAddress, // Thêm MAC address vào command
             Platform = request.Platform,
             OsVersion = request.OsVersion,
             Model = request.Model,

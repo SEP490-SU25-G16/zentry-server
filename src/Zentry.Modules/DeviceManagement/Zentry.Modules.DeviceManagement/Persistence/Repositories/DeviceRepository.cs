@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.Modules.DeviceManagement.Entities;
 using Zentry.SharedKernel.Constants.Device;
+using Zentry.Modules.DeviceManagement.ValueObjects; // Thêm using này để truy cập MacAddress Value Object
 
 namespace Zentry.Modules.DeviceManagement.Persistence.Repositories;
 
@@ -41,6 +42,63 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
             .ToListAsync(cancellationToken);
     }
 
+    // Thêm các method liên quan đến MAC address
+    public async Task<Device?> GetByMacAddressAsync(string macAddress, CancellationToken cancellationToken)
+    {
+        // Sử dụng MacAddress.Create để đảm bảo MAC address được chuẩn hóa
+        // và so sánh với giá trị string của MacAddress trong DB.
+        // EF Core sẽ sử dụng implicit operator string hoặc cơ chế HasConversion.
+        var macAddressObject = MacAddress.Create(macAddress);
+
+        return await dbContext.Devices
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => ((string)d.MacAddress) == macAddressObject.Value, cancellationToken);
+            // ^^^ Dùng explicit cast để đảm bảo EF Core dịch đúng
+    }
+
+    public async Task<(Guid DeviceId, Guid UserId)?> GetDeviceAndUserIdByMacAddressAsync(string macAddress, CancellationToken cancellationToken)
+    {
+        var macAddressObject = MacAddress.Create(macAddress);
+
+        var result = await dbContext.Devices
+            .AsNoTracking()
+            .Where(d => ((string)d.MacAddress) == macAddressObject.Value && d.Status == DeviceStatus.Active)
+            .Select(d => new { d.Id, d.UserId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return result != null ? (result.Id, result.UserId) : null;
+    }
+
+    public async Task<List<Device>> GetActiveDevicesByMacAddressesAsync(List<string> macAddresses, CancellationToken cancellationToken)
+    {
+        // Chuẩn hóa tất cả MAC addresses đầu vào thành list các string
+        var normalizedMacs = macAddresses.Select(m => MacAddress.Create(m).Value).ToList();
+
+        return await dbContext.Devices
+            .AsNoTracking()
+            .Where(d => normalizedMacs.Contains(((string)d.MacAddress)) && d.Status == DeviceStatus.Active)
+            //                                  ^^^ Dùng explicit cast
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Dictionary<string, (Guid DeviceId, Guid UserId)>> GetDeviceAndUserIdsByMacAddressesAsync(
+        List<string> macAddresses, CancellationToken cancellationToken)
+    {
+        var normalizedMacs = macAddresses.Select(m => MacAddress.Create(m).Value).ToList();
+
+        var results = await dbContext.Devices
+            .AsNoTracking()
+            .Where(d => normalizedMacs.Contains(((string)d.MacAddress)) && d.Status == DeviceStatus.Active)
+            //                                  ^^^ Dùng explicit cast
+            .Select(d => new { MacValue = ((string)d.MacAddress), d.Id, d.UserId }) // Lấy giá trị string của MacAddress
+            .ToListAsync(cancellationToken);
+
+        return results.ToDictionary(
+            r => r.MacValue, // Dùng MacValue đã được Select ra
+            r => (r.Id, r.UserId)
+        );
+    }
+
     public async Task AddAsync(Device device)
     {
         await dbContext.Devices.AddAsync(device);
@@ -50,7 +108,6 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
     {
         await dbContext.Devices.AddRangeAsync(entities, cancellationToken);
     }
-
 
     public Task DeleteAsync(Device entity, CancellationToken cancellationToken)
     {
@@ -95,6 +152,7 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
     {
         // Assuming DeviceToken is stored directly or as an owned type's value.
         // Make sure your EF Core setting for DeviceToken allows this query.
+        // Cần đảm bảo DeviceToken.Create(v) trong Configuration ánh xạ đúng cách
         return await dbContext.Devices
             .FirstOrDefaultAsync(d => d.DeviceToken.Value == deviceToken, cancellationToken);
     }

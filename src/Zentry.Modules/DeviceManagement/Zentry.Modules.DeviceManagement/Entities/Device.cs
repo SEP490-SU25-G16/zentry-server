@@ -18,6 +18,7 @@ public class Device : AggregateRoot<Guid>
         Guid userId,
         DeviceName deviceName,
         DeviceToken deviceToken,
+        MacAddress macAddress, // Thêm MAC address
         string? platform,
         string? osVersion,
         string? model,
@@ -28,10 +29,12 @@ public class Device : AggregateRoot<Guid>
     {
         Guard.AgainstNull(deviceName, nameof(deviceName));
         Guard.AgainstNull(deviceToken, nameof(deviceToken));
+        Guard.AgainstNull(macAddress, nameof(macAddress));
 
         UserId = userId;
         DeviceName = deviceName;
         DeviceToken = deviceToken;
+        MacAddress = macAddress; // Gán MAC address
         Platform = platform;
         OsVersion = osVersion;
         Model = model;
@@ -40,20 +43,21 @@ public class Device : AggregateRoot<Guid>
         PushNotificationToken = pushNotificationToken;
 
         CreatedAt = DateTime.UtcNow;
-        Status = DeviceStatus.Active; // Initial status upon creation
+        Status = DeviceStatus.Active;
     }
 
     public Guid UserId { get; private set; }
     public DeviceName DeviceName { get; private set; }
     public DeviceToken DeviceToken { get; }
+    public MacAddress MacAddress { get; private set; } // Thêm property MAC address
 
     // Các trường bổ sung
-    public string? Platform { get; private set; } // Ví dụ: "iOS", "Android", "Web"
-    public string? OsVersion { get; private set; } // Ví dụ: "17.5.1", "14"
-    public string? Model { get; private set; } // Ví dụ: "iPhone15,3", "SM-G998B"
-    public string? Manufacturer { get; private set; } // Ví dụ: "Apple Inc.", "Samsung"
-    public string? AppVersion { get; private set; } // Phiên bản ứng dụng đang chạy, ví dụ: "1.0.0", "1.2.3"
-    public string? PushNotificationToken { get; private set; } // Token cho push notifications (FCM/APNS)
+    public string? Platform { get; private set; }
+    public string? OsVersion { get; private set; }
+    public string? Model { get; private set; }
+    public string? Manufacturer { get; private set; }
+    public string? AppVersion { get; private set; }
+    public string? PushNotificationToken { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
@@ -65,6 +69,7 @@ public class Device : AggregateRoot<Guid>
         Guid userId,
         DeviceName deviceName,
         DeviceToken deviceToken,
+        MacAddress macAddress, // Thêm MAC address parameter
         string? platform = null,
         string? osVersion = null,
         string? model = null,
@@ -78,6 +83,7 @@ public class Device : AggregateRoot<Guid>
             userId,
             deviceName,
             deviceToken,
+            macAddress, // Truyền MAC address
             platform,
             osVersion,
             model,
@@ -85,7 +91,6 @@ public class Device : AggregateRoot<Guid>
             appVersion,
             pushNotificationToken
         );
-        // device.AddDomainEvent(new DeviceRegisteredEvent(device.Id, device.UserId, device.CreatedAt));
         return device;
     }
 
@@ -93,6 +98,7 @@ public class Device : AggregateRoot<Guid>
     public void Update(
         DeviceName deviceName,
         DeviceStatus status,
+        MacAddress? macAddress = null, // Cho phép cập nhật MAC address
         string? platform = null,
         string? osVersion = null,
         string? model = null,
@@ -105,6 +111,7 @@ public class Device : AggregateRoot<Guid>
         DeviceName = deviceName;
         Status = status;
 
+        if (macAddress != null) MacAddress = macAddress;
         if (platform != null) Platform = platform;
         if (osVersion != null) OsVersion = osVersion;
         if (model != null) Model = model;
@@ -128,5 +135,18 @@ public class Device : AggregateRoot<Guid>
 
         LastVerifiedAt = DateTime.UtcNow;
         return true;
+    }
+
+    // Thêm method để verify MAC address
+    public bool VerifyMacAddress(string macAddress)
+    {
+        Guard.AgainstNullOrEmpty(macAddress, nameof(macAddress));
+        return MacAddress.Value.Equals(macAddress, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Method để tìm device theo MAC address
+    public static bool IsSameMacAddress(Device device, string macAddress)
+    {
+        return device.MacAddress.Value.Equals(macAddress, StringComparison.OrdinalIgnoreCase);
     }
 }

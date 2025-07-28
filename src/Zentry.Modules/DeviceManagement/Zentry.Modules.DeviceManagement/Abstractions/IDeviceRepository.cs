@@ -12,4 +12,15 @@ public interface IDeviceRepository : IRepository<Device, Guid>
     Task<List<Device>> GetActiveDevicesByUserIdsAsync(List<Guid> userIds, CancellationToken cancellationToken);
     Task<List<Device>> GetUserIdsByDeviceIdsAsync(List<Guid> deviceIds, CancellationToken cancellationToken);
     Task AddAsync(Device device);
+
+    Task<Device?> GetByMacAddressAsync(string macAddress, CancellationToken cancellationToken);
+
+    Task<(Guid DeviceId, Guid UserId)?> GetDeviceAndUserIdByMacAddressAsync(string macAddress,
+        CancellationToken cancellationToken);
+
+    Task<List<Device>> GetActiveDevicesByMacAddressesAsync(List<string> macAddresses,
+        CancellationToken cancellationToken);
+
+    Task<Dictionary<string, (Guid DeviceId, Guid UserId)>> GetDeviceAndUserIdsByMacAddressesAsync(
+        List<string> macAddresses, CancellationToken cancellationToken);
 }

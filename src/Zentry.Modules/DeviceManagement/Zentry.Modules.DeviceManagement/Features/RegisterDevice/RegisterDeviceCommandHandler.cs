@@ -22,12 +22,17 @@ public class RegisterDeviceCommandHandler(
         if (!userExists)
             throw new UserNotFoundException("User not found.");
 
-        // 2. Check if user already has an active device
+        // 2. Check if MAC address already exists (MAC addresses should be unique across all devices)
+        var existingDeviceByMac = await deviceRepository.GetByMacAddressAsync(command.MacAddress, cancellationToken);
+        if (existingDeviceByMac != null)
+            throw new DeviceAlreadyRegisteredException($"Device with MAC address {command.MacAddress} already exists.");
+
+        // 3. Check if user already has an active device
         var existingDevice = await deviceRepository.GetActiveDeviceByUserIdAsync(command.UserId, cancellationToken);
         if (existingDevice != null)
             throw new DeviceAlreadyRegisteredException("User already has a primary device registered.");
 
-        // 3. Create DeviceName ValueObject
+        // 4. Create DeviceName ValueObject
         DeviceName deviceNameVo;
         try
         {
@@ -38,15 +43,27 @@ public class RegisterDeviceCommandHandler(
             throw new ArgumentException($"Invalid device name: {ex.Message}");
         }
 
-        // 4. Generate DeviceToken ValueObject
+        // 5. Create MacAddress ValueObject with validation
+        MacAddress macAddressVo;
+        try
+        {
+            macAddressVo = MacAddress.Create(command.MacAddress);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new ArgumentException($"Invalid MAC address: {ex.Message}");
+        }
+
+        // 6. Generate DeviceToken ValueObject
         var deviceTokenVo = DeviceToken.Create();
 
-        // 5. Create the new Device entity using the factory method
-        //    Truyền tất cả các trường optional từ command vào phương thức Create của entity Device
+        // 7. Create the new Device entity using the factory method
+        //    Truyền tất cả các trường bao gồm MAC address từ command vào phương thức Create của entity Device
         var newDevice = Device.Create(
             command.UserId,
             deviceNameVo,
             deviceTokenVo,
+            macAddressVo, // Thêm MAC address vào
             command.Platform,
             command.OsVersion,
             command.Model,
@@ -55,13 +72,13 @@ public class RegisterDeviceCommandHandler(
             command.PushNotificationToken
         );
 
-        // 6. Add the new device to the repository
+        // 8. Add the new device to the repository
         await deviceRepository.AddAsync(newDevice);
 
-        // 7. Save changes to the database
+        // 9. Save changes to the database
         await deviceRepository.SaveChangesAsync(cancellationToken);
 
-        // 8. (Optional) Publish Domain Event if the Device entity collected any
+        // 10. (Optional) Publish Domain Event if the Device entity collected any
         // if (newDevice.DomainEvents.Any())
         // {
         //     foreach (var domainEvent in newDevice.DomainEvents)
@@ -71,12 +88,13 @@ public class RegisterDeviceCommandHandler(
         //     newDevice.ClearDomainEvents();
         // }
 
-        // 9. Return response DTO
+        // 11. Return response DTO với MAC address đã được normalize
         return new RegisterDeviceResponse
         {
             DeviceId = newDevice.Id,
             UserId = newDevice.UserId,
             DeviceToken = newDevice.DeviceToken.Value, // Return the string value of the token
+            MacAddress = newDevice.MacAddress.Value, // Return normalized MAC address
             CreatedAt = newDevice.CreatedAt
             // Nếu muốn, bạn có thể trả về các thông tin optional đã lưu vào DB
             // Platform = newDevice.Platform,

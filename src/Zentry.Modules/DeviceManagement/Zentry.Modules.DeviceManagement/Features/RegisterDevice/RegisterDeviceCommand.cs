@@ -4,10 +4,10 @@ namespace Zentry.Modules.DeviceManagement.Features.RegisterDevice;
 
 public class RegisterDeviceCommand : ICommand<RegisterDeviceResponse>
 {
-    // UserId is populated by the Controller from JWT claims, NOT sent by the client.
     public Guid UserId { get; set; }
 
     public string DeviceName { get; set; } = string.Empty;
+    public string MacAddress { get; set; } = string.Empty; // Thêm MAC address - bắt buộc
 
     public string? Platform { get; set; }
     public string? OsVersion { get; set; }
@@ -22,5 +22,6 @@ public class RegisterDeviceResponse
     public Guid DeviceId { get; set; }
     public Guid UserId { get; set; }
     public string? DeviceToken { get; set; } // The string value of the DeviceToken ValueObject
+    public string MacAddress { get; set; } = string.Empty; // Trả về MAC address đã được normalize
     public DateTime CreatedAt { get; set; }
 }
