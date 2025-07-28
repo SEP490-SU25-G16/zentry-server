@@ -3,10 +3,11 @@ using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 
 namespace Zentry.Modules.AttendanceManagement.Presentation.Requests;
 
+
 public record SubmitScanRequest(
-    [Required] Guid DeviceId, // DeviceId của thiết bị đã gửi scan
-    [Required] Guid SubmitterUserId, // UserId của người dùng liên kết với DeviceId đó
+    [Required] string SubmitterDeviceMacAddress, // Đổi từ DeviceId thành MacAddress của thiết bị gửi request
+    // [Required] Guid SubmitterUserId, // UserId sẽ được lấy từ MacAddress
     [Required] Guid SessionId,
-    [Required] List<ScannedDevice> ScannedDevices,
+    [Required] List<ScannedDeviceFromRequest> ScannedDevices, // Thay đổi loại ScannedDevice
     [Required] DateTime Timestamp
 );

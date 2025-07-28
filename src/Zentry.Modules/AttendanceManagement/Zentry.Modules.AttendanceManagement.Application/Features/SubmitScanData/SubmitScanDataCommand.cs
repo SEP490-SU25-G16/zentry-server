@@ -4,10 +4,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 
 public record SubmitScanDataCommand(
-    Guid DeviceId,
-    Guid SubmitterUserId,
+    string SubmitterDeviceMacAddress,
     Guid SessionId,
-    List<ScannedDevice> ScannedDevices,
+    List<ScannedDeviceFromRequest> ScannedDevices,
     DateTime Timestamp
 ) : ICommand<SubmitScanDataResponse>;
 

@@ -113,8 +113,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         try
         {
             var command = new SubmitScanDataCommand(
-                request.DeviceId,
-                request.SubmitterUserId,
+                request.SubmitterDeviceMacAddress,
                 request.SessionId,
                 request.ScannedDevices,
                 request.Timestamp

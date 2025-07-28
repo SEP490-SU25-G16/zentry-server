@@ -1,12 +1,16 @@
 ﻿using MassTransit;
+using MediatR; // Vẫn cần MediatR nếu các command/query khác trong module này sử dụng nó.
+                // Nếu SubmitScanDataCommandHandler là handler duy nhất cần MediatR, có thể bỏ.
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
+// using Zentry.SharedKernel.Contracts.Device; // KHÔNG CẦN THIẾT NỮA
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 
@@ -14,14 +18,18 @@ public class SubmitScanDataCommandHandler(
     IRedisService redisService,
     IRoundRepository roundRepository,
     ILogger<SubmitScanDataCommandHandler> logger,
-    IPublishEndpoint publishEndpoint)
+    IPublishEndpoint publishEndpoint
+    /*, IMediator mediator*/) // <-- Bỏ IMediator nếu không dùng nữa
     : ICommandHandler<SubmitScanDataCommand, SubmitScanDataResponse>
 {
     public async Task<SubmitScanDataResponse> Handle(SubmitScanDataCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Received SubmitScanDataCommand for Session {SessionId}, Device {DeviceId}, SubmitterUser {SubmitterUserId}",
-            request.SessionId, request.DeviceId, request.SubmitterUserId);
+            "Received SubmitScanDataCommand for Session {SessionId}, SubmitterDeviceMac {SubmitterMac}. Publishing message to consumer.",
+            request.SessionId, request.SubmitterDeviceMacAddress);
+
+        // --- BỎ BƯỚC 1: Lấy DeviceId và UserId của thiết bị gửi request (Submitter) từ MAC Address ---
+        // Logic này sẽ được chuyển xuống consumer
 
         var sessionKey = $"session:{request.SessionId}";
         var sessionExists = await redisService.KeyExistsAsync(sessionKey);
@@ -54,8 +62,7 @@ public class SubmitScanDataCommandHandler(
                 logger.LogWarning(
                     "No active or pending round found for Session {SessionId} at timestamp {Timestamp}. Scan data will be logged without a specific round.",
                     request.SessionId, request.Timestamp);
-
-                throw new ApplicationException("An error occurred while determining the round   .");
+                throw new ApplicationException("An error occurred while determining the round.");
             }
 
             currentRoundId = currentRound.Id;
@@ -70,30 +77,33 @@ public class SubmitScanDataCommandHandler(
             throw new ApplicationException("An error occurred while determining the active round.", ex);
         }
 
+        // --- BỎ BƯỚC 3: Ánh xạ MAC Address của các thiết bị được quét thành DeviceId ---
+        // Logic này cũng sẽ được chuyển xuống consumer
+
+        // --- BƯỚC 4: Publish message với MAC Addresses thô ---
         try
         {
             var message = new SubmitScanDataMessage(
-                request.DeviceId,
-                request.SubmitterUserId,
+                request.SubmitterDeviceMacAddress, // Truyền MAC Address của thiết bị gửi
                 request.SessionId,
                 currentRoundId,
-                request.ScannedDevices.Select(sd => new ScannedDeviceContract(sd.DeviceId, sd.Rssi)).ToList(),
+                request.ScannedDevices.Select(sd => new ScannedDeviceContractForMessage(sd.MacAddress, sd.Rssi)).ToList(), // Dùng ScannedDeviceContractForMessage
                 request.Timestamp
             );
 
             await publishEndpoint.Publish(message, cancellationToken);
             logger.LogInformation(
-                "Scan data message for Session {SessionId}, User {UserId} published and ScanLog saved with RoundId {RoundId}.",
-                request.SessionId, request.SubmitterUserId, currentRoundId);
+                "Scan data message for Session {SessionId}, Submitter MAC {SubmitterMac} published with RoundId {RoundId}.",
+                request.SessionId, request.SubmitterDeviceMacAddress, currentRoundId);
 
             return new SubmitScanDataResponse(true, "Dữ liệu quét đã được tiếp nhận và đưa vào hàng đợi xử lý.");
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Failed to publish scan data message via MassTransit or save ScanLog for Session {SessionId}, User {UserId}.",
-                request.SessionId, request.SubmitterUserId);
-            throw new ApplicationException("An error occurred while queuing or saving scan data.", ex);
+                "Failed to publish scan data message via MassTransit for Session {SessionId}, Submitter MAC {SubmitterMac}.",
+                request.SessionId, request.SubmitterDeviceMacAddress);
+            throw new ApplicationException("An error occurred while queuing scan data.", ex);
         }
     }
 }
