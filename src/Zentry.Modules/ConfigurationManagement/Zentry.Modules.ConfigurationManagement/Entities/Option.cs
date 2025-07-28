@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;
+namespace Zentry.Modules.ConfigurationManagement.Entities;
 
 public class Option : AggregateRoot<Guid>
 {
@@ -8,7 +8,7 @@ public class Option : AggregateRoot<Guid>
     {
         Value = string.Empty;
         DisplayLabel = string.Empty;
-        SortOrder = 0; // Default
+        SortOrder = 0;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -30,12 +30,13 @@ public class Option : AggregateRoot<Guid>
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; }
 
+    public virtual AttributeDefinition AttributeDefinition { get; private set; } = null!;
+
     public static Option Create(Guid attributeId, string value, string displayLabel, int sortOrder)
     {
         return new Option(Guid.NewGuid(), attributeId, value, displayLabel, sortOrder);
     }
 
-    // Thêm phương thức FromSeedingData
     public static Option FromSeedingData(Guid id, Guid attributeId, string value, string displayLabel, int sortOrder)
     {
         return new Option(id, attributeId, value, displayLabel, sortOrder);

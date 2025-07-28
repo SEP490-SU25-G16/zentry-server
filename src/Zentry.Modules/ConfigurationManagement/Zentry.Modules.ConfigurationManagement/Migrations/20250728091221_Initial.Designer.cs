@@ -12,7 +12,7 @@ using Zentry.Modules.ConfigurationManagement.Persistence;
 namespace Zentry.Modules.ConfigurationManagement.Migrations
 {
     [DbContext(typeof(ConfigurationDbContext))]
-    [Migration("20250726051929_Initial")]
+    [Migration("20250728091221_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,11 +25,16 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.AttributeDefinition", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.AttributeDefinition", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("AllowedScopeTypes")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -41,6 +46,10 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("DefaultValue")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
@@ -50,15 +59,13 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<bool>("IsDeletable")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<string>("ScopeType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Unit")
                         .HasMaxLength(50)
@@ -76,12 +83,10 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.HasIndex("ScopeType");
-
                     b.ToTable("AttributeDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.Option", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.Option", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -119,13 +124,16 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
 
                     b.HasIndex("SortOrder");
 
+                    b.HasIndex("AttributeId", "DisplayLabel")
+                        .IsUnique();
+
                     b.HasIndex("AttributeId", "Value")
                         .IsUnique();
 
                     b.ToTable("Options", (string)null);
                 });
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.Setting", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.Setting", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -171,7 +179,7 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                     b.ToTable("Settings", (string)null);
                 });
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.UserAttribute", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.UserAttribute", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -210,9 +218,20 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                     b.ToTable("UserAttributes", (string)null);
                 });
 
-            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Persistence.Entities.Setting", b =>
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.Option", b =>
                 {
-                    b.HasOne("Zentry.Modules.ConfigurationManagement.Persistence.Entities.AttributeDefinition", "AttributeDefinition")
+                    b.HasOne("Zentry.Modules.ConfigurationManagement.Entities.AttributeDefinition", "AttributeDefinition")
+                        .WithMany()
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AttributeDefinition");
+                });
+
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.Setting", b =>
+                {
+                    b.HasOne("Zentry.Modules.ConfigurationManagement.Entities.AttributeDefinition", "AttributeDefinition")
                         .WithMany()
                         .HasForeignKey("AttributeId")
                         .OnDelete(DeleteBehavior.Cascade)

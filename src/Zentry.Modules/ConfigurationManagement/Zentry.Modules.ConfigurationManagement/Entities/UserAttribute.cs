@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;
+namespace Zentry.Modules.ConfigurationManagement.Entities;
 
 public class UserAttribute : AggregateRoot<Guid>
 {

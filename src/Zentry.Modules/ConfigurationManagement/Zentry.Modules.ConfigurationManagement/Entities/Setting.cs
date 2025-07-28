@@ -1,14 +1,15 @@
 using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.ConfigurationManagement.Persistence.Entities;
+namespace Zentry.Modules.ConfigurationManagement.Entities;
 
 public class Setting : AggregateRoot<Guid>
 {
     public Setting() : base(Guid.Empty)
     {
         Value = string.Empty;
-        ScopeType = ScopeType.Global; // Default
+        ScopeType = ScopeType.Global;
+        ScopeId = Guid.Empty;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -29,16 +30,32 @@ public class Setting : AggregateRoot<Guid>
     public string Value { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; }
-    public virtual AttributeDefinition AttributeDefinition { get; private set; }
+    public virtual AttributeDefinition AttributeDefinition { get; private set; } = null!;
 
     public static Setting Create(Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
+        if (scopeType == ScopeType.Global && scopeId != Guid.Empty)
+        {
+            throw new ArgumentException("ScopeId must be Guid.Empty for Global ScopeType.");
+        }
+        if (scopeType != ScopeType.Global && scopeId == Guid.Empty)
+        {
+            throw new ArgumentException("ScopeId cannot be Guid.Empty for non-Global ScopeType.");
+        }
+
         return new Setting(Guid.NewGuid(), attributeId, scopeType, scopeId, value);
     }
 
-    // Thêm phương thức FromSeedingData
     public static Setting FromSeedingData(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
+        if (scopeType == ScopeType.Global && scopeId != Guid.Empty)
+        {
+            throw new ArgumentException("ScopeId must be Guid.Empty for Global ScopeType in seeding data.");
+        }
+        if (scopeType != ScopeType.Global && scopeId == Guid.Empty)
+        {
+            throw new ArgumentException("ScopeId cannot be Guid.Empty for non-Global ScopeType in seeding data.");
+        }
         return new Setting(id, attributeId, scopeType, scopeId, value);
     }
 

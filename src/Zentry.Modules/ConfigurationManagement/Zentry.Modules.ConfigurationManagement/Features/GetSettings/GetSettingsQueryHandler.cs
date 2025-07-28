@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Dtos;
+using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 using Zentry.Modules.ConfigurationManagement.Persistence;
-using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Configuration;
 

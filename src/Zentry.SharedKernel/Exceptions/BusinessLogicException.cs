@@ -5,11 +5,18 @@ namespace Zentry.SharedKernel.Exceptions;
 /// </summary>
 public abstract class BusinessLogicException : Exception
 {
-    public BusinessLogicException(string message) : base(message)
+    /// <summary>
+    /// Gets a unique error code for this exception type.
+    /// </summary>
+    public string ErrorCode { get; }
+
+    protected BusinessLogicException(string message, string errorCode = "BUSINESS_ERROR") : base(message)
     {
+        ErrorCode = errorCode;
     }
 
-    public BusinessLogicException(string message, Exception innerException) : base(message, innerException)
+    protected BusinessLogicException(string message, Exception innerException, string errorCode = "BUSINESS_ERROR") : base(message, innerException)
     {
+        ErrorCode = errorCode;
     }
 }

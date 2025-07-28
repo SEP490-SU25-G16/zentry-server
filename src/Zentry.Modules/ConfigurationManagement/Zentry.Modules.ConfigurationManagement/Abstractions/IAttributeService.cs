@@ -1,4 +1,4 @@
-﻿using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
+﻿using Zentry.Modules.ConfigurationManagement.Entities;
 
 namespace Zentry.Modules.ConfigurationManagement.Abstractions;
 

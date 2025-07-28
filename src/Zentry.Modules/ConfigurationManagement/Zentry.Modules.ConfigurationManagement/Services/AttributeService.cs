@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ConfigurationManagement.Abstractions;
+using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.Modules.ConfigurationManagement.Persistence;
-using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Services;

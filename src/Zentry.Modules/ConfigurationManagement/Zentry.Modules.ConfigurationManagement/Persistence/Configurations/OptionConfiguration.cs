@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
+using Zentry.Modules.ConfigurationManagement.Entities;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence.Configurations;
 
@@ -41,6 +41,14 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
         builder.HasIndex(o => o.SortOrder);
 
         builder.HasIndex(o => new { o.AttributeId, o.Value })
-            .IsUnique(); // A unique option value per attribute
+            .IsUnique();
+
+        builder.HasIndex(o => new { o.AttributeId, o.DisplayLabel })
+            .IsUnique();
+
+        builder.HasOne(o => o.AttributeDefinition)
+            .WithMany()
+            .HasForeignKey(o => o.AttributeId)
+            .IsRequired();
     }
 }

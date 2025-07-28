@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence.Configurations;
@@ -35,16 +36,28 @@ public class AttributeDefinitionConfiguration : IEntityTypeConfiguration<Attribu
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.Property(ad => ad.ScopeType)
-            .HasConversion(
-                st => st.ToString(),
-                st => ScopeType.FromName(st)
-            )
+
+        var scopeTypeListConverter = new ValueConverter<List<ScopeType>, string>(
+            v => string.Join(",",
+                v.Select(st => st.ToString())),
+            v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(name => ScopeType.FromName(name.Trim()))
+                .ToList()
+        );
+
+        builder.Property(ad => ad.AllowedScopeTypes)
+            .HasConversion(scopeTypeListConverter)
             .IsRequired()
-            .HasMaxLength(50);
+            .HasMaxLength(255);
 
         builder.Property(ad => ad.Unit)
             .HasMaxLength(50);
+
+        builder.Property(ad => ad.DefaultValue)
+            .HasMaxLength(1000);
+
+        builder.Property(ad => ad.IsDeletable)
+            .IsRequired();
 
         builder.Property(ad => ad.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -58,6 +71,5 @@ public class AttributeDefinitionConfiguration : IEntityTypeConfiguration<Attribu
             .IsUnique();
 
         builder.HasIndex(ad => ad.DataType);
-        builder.HasIndex(ad => ad.ScopeType);
     }
 }

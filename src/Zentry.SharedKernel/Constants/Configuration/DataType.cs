@@ -12,9 +12,7 @@ public class DataType : Enumeration
     public static readonly DataType Json = new(6, nameof(Json));
     public static readonly DataType Selection = new(7, nameof(Selection));
 
-    private DataType(int id, string name) : base(id, name)
-    {
-    }
+    private DataType(int id, string name) : base(id, name) { }
 
     public static DataType FromName(string name)
     {

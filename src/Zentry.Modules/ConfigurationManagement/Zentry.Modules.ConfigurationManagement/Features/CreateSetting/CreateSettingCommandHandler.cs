@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.ConfigurationManagement.Abstractions;
-using Zentry.Modules.ConfigurationManagement.Dtos;
+using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.Modules.ConfigurationManagement.Persistence;
-using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Constants.Response;
@@ -24,172 +23,85 @@ public class CreateSettingCommandHandler(
 
         try
         {
-            AttributeDefinition attributeDefinition;
-            List<Option> createdOrUpdatedOptions = [];
+            var settingRequest = command.SettingDetails;
 
-            if (command.AttributeDefinitionDetails != null)
+            var attributeDefinition = await dbContext.AttributeDefinitions
+                .FirstOrDefaultAsync(ad => ad.Key == settingRequest.AttributeKey, cancellationToken);
+
+            if (attributeDefinition is null)
             {
-                DataType attributeDefinitionDataType;
-                ScopeType attributeDefinitionScopeType;
-                try
-                {
-                    attributeDefinitionDataType = DataType.FromName(command.AttributeDefinitionDetails.DataType);
-                    attributeDefinitionScopeType = ScopeType.FromName(command.AttributeDefinitionDetails.ScopeType);
-                }
-                catch (InvalidOperationException ex) // Enumeration.FromName ném ArgumentException
-                {
-                    logger.LogWarning(ex, "Invalid DataType or ScopeType provided for Attribute Definition: {Message}",
-                        ex.Message);
-                    // Thay đổi dòng này
-                    throw new InvalidAttributeDefinitionTypeException(ErrorMessages.Settings
-                        .InvalidAttributeDefinitionDataTypeOrScopeType);
-                }
-
-
-                var existingAttributeDefinition = await dbContext.AttributeDefinitions
-                    .FirstOrDefaultAsync(ad => ad.Key == command.AttributeDefinitionDetails.Key, cancellationToken);
-
-                if (existingAttributeDefinition != null)
-                {
-                    if (command.AttributeDefinitionDetails.Id.HasValue &&
-                        existingAttributeDefinition.Id == command.AttributeDefinitionDetails.Id.Value)
-                    {
-                        existingAttributeDefinition.Update(
-                            command.AttributeDefinitionDetails.DisplayName,
-                            command.AttributeDefinitionDetails.Description,
-                            attributeDefinitionDataType,
-                            attributeDefinitionScopeType,
-                            command.AttributeDefinitionDetails.Unit
-                        );
-                        dbContext.AttributeDefinitions.Update(existingAttributeDefinition);
-                        attributeDefinition = existingAttributeDefinition;
-                    }
-                    else
-                    {
-                        logger.LogWarning("Attribute Definition with Key '{Key}' already exists with a different ID.",
-                            command.AttributeDefinitionDetails.Key);
-                        throw new AttributeDefinitionKeyAlreadyExistsException(command.AttributeDefinitionDetails.Key);
-                    }
-                }
-                else
-                {
-                    attributeDefinition = AttributeDefinition.Create(
-                        command.AttributeDefinitionDetails.Key,
-                        command.AttributeDefinitionDetails.DisplayName,
-                        command.AttributeDefinitionDetails.Description,
-                        attributeDefinitionDataType,
-                        attributeDefinitionScopeType,
-                        command.AttributeDefinitionDetails.Unit
-                    );
-                    await dbContext.AttributeDefinitions.AddAsync(attributeDefinition, cancellationToken);
-                }
-
-                await dbContext.SaveChangesAsync(cancellationToken);
-
-                if (attributeDefinition.DataType == DataType.Selection)
-                {
-                    if (command.AttributeDefinitionDetails.Options != null &&
-                        command.AttributeDefinitionDetails.Options.Count != 0)
-                    {
-                        var oldOptions = await dbContext.Options
-                            .Where(o => o.AttributeId == attributeDefinition.Id)
-                            .ToListAsync(cancellationToken);
-                        if (oldOptions.Count != 0)
-                        {
-                            dbContext.Options.RemoveRange(oldOptions);
-                            await dbContext.SaveChangesAsync(cancellationToken);
-                        }
-
-                        foreach (var optionDto in command.AttributeDefinitionDetails.Options)
-                        {
-                            var newOption = Option.Create(
-                                attributeDefinition.Id,
-                                optionDto.Value,
-                                optionDto.DisplayLabel,
-                                optionDto.SortOrder
-                            );
-                            createdOrUpdatedOptions.Add(newOption);
-                            await dbContext.Options.AddAsync(newOption, cancellationToken);
-                        }
-
-                        await dbContext.SaveChangesAsync(cancellationToken);
-                    }
-                    else // for DataType.Selection without options
-                    {
-                        logger.LogWarning(
-                            "Attribute Definition with DataType 'Selection' must have options provided for Key '{Key}'.",
-                            attributeDefinition.Key);
-                        throw new SelectionDataTypeRequiresOptionsException();
-                    }
-                }
-            }
-            else
-            {
-                logger.LogWarning(
-                    "AttributeDefinitionDetails is required to create or update an Attribute Definition.");
-                throw new ArgumentException(
-                    "AttributeDefinitionDetails is required to create or update an Attribute Definition.");
+                logger.LogWarning("Attribute Definition with Key '{Key}' not found.", settingRequest.AttributeKey);
+                throw new AttributeDefinitionNotFoundException(settingRequest.AttributeKey);
             }
 
             ScopeType settingScopeType;
             try
             {
-                settingScopeType = ScopeType.FromName(command.Setting.ScopeType);
+                settingScopeType = ScopeType.FromName(settingRequest.ScopeType);
             }
             catch (InvalidOperationException ex)
             {
                 logger.LogWarning(ex, "Invalid ScopeType provided for Setting: {Message}", ex.Message);
-                throw new InvalidSettingValueException(ErrorMessages.Settings
-                    .InvalidSettingValue);
+                throw new InvalidSettingValueException(ErrorMessages.Settings.InvalidSettingValue);
             }
 
-            if (!await attributeService.IsValueValidForAttribute(attributeDefinition.Id, command.Setting.Value))
+            if (!attributeDefinition.AllowedScopeTypes.Contains(settingScopeType))
+            {
+                logger.LogWarning(
+                    "Attribute Definition '{Key}' does not allow settings for ScopeType '{ScopeType}'. Allowed: {AllowedScopes}",
+                    attributeDefinition.Key, settingScopeType.ToString(),
+                    string.Join(", ", attributeDefinition.AllowedScopeTypes.Select(s => s.ToString())));
+                throw new InvalidSettingScopeException(attributeDefinition.Key, settingScopeType.ToString());
+            }
+
+            if (!await attributeService.IsValueValidForAttribute(attributeDefinition.Id, settingRequest.Value))
             {
                 logger.LogWarning("Provided value '{Value}' is not valid for Attribute '{Key}' (DataType: {DataType}).",
-                    command.Setting.Value, attributeDefinition.Key, attributeDefinition.DataType);
-                throw new InvalidSettingValueException(ErrorMessages.Settings
-                    .InvalidSettingValue);
+                    settingRequest.Value, attributeDefinition.Key, attributeDefinition.DataType);
+                throw new InvalidSettingValueException(ErrorMessages.Settings.InvalidSettingValue);
             }
 
-            if (!Guid.TryParse(command.Setting.ScopeId, out var parsedScopeId))
+            Guid finalScopeId;
+            if (Equals(settingScopeType, ScopeType.Global))
             {
-                throw new ArgumentException("ScopeId không phải là định dạng GUID hợp lệ.");
+                finalScopeId = Guid.Empty;
+            }
+            else
+            {
+                if (!Guid.TryParse(settingRequest.ScopeId, out finalScopeId))
+                {
+                    logger.LogError("Validator failed to catch invalid GUID for non-Global ScopeId: {ScopeId}",
+                        settingRequest.ScopeId);
+                    throw new ArgumentException("ScopeId không phải là định dạng GUID hợp lệ.");
+                }
             }
 
             var existingSetting = await dbContext.Settings
                 .FirstOrDefaultAsync(c => c.AttributeId == attributeDefinition.Id &&
                                           c.ScopeType == settingScopeType &&
-                                          c.ScopeId == parsedScopeId, cancellationToken);
+                                          c.ScopeId == finalScopeId,
+                    cancellationToken);
 
-            if (existingSetting != null)
+            if (existingSetting is not null)
             {
                 logger.LogWarning(
                     "Setting for Attribute '{Key}' with Scope '{ScopeType}' and ScopeId '{ScopeId}' already exists.",
-                    attributeDefinition.Key, settingScopeType, parsedScopeId);
-                // Thay đổi dòng này
+                    attributeDefinition.Key, settingScopeType, finalScopeId);
                 throw new SettingAlreadyExistsException(attributeDefinition.Key, settingScopeType.ToString(),
-                    parsedScopeId);
+                    finalScopeId);
             }
 
             var newSetting = Setting.Create(
                 attributeDefinition.Id,
                 settingScopeType,
-                parsedScopeId,
-                command.Setting.Value
+                finalScopeId,
+                settingRequest.Value
             );
 
             await dbContext.Settings.AddAsync(newSetting, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
-
-            var optionDtos = createdOrUpdatedOptions.Select(o => new OptionDto
-            {
-                Id = o.Id,
-                Value = o.Value,
-                DisplayLabel = o.DisplayLabel,
-                SortOrder = o.SortOrder
-            }).ToList();
 
             logger.LogInformation(
                 "Setting {SettingId} created successfully for Attribute '{AttributeKey}' with Scope '{ScopeType}' and ScopeId '{ScopeId}'.",
@@ -202,9 +114,7 @@ public class CreateSettingCommandHandler(
                 AttributeKey = attributeDefinition.Key,
                 AttributeDisplayName = attributeDefinition.DisplayName,
                 DataType = attributeDefinition.DataType,
-                AttributeDefinitionScopeType = attributeDefinition.ScopeType,
                 Unit = attributeDefinition.Unit,
-                Options = optionDtos.Any() ? optionDtos : null,
                 SettingScopeType = newSetting.ScopeType,
                 ScopeId = newSetting.ScopeId,
                 Value = newSetting.Value,
@@ -221,9 +131,9 @@ public class CreateSettingCommandHandler(
         {
             await transaction.RollbackAsync(cancellationToken);
             logger.LogError(ex,
-                "An unexpected error occurred while creating setting for attribute '{AttributeKey}' and scope '{ScopeType}' '{ScopeId}'.",
-                command.AttributeDefinitionDetails?.Key, command.Setting?.ScopeType,
-                command.Setting?.ScopeId);
+                "An unexpected error occurred while creating setting for attribute key '{AttributeKey}' and scope '{ScopeType}' '{ScopeId}'.",
+                command.SettingDetails?.AttributeKey, command.SettingDetails?.ScopeType,
+                command.SettingDetails?.ScopeId);
             throw;
         }
     }

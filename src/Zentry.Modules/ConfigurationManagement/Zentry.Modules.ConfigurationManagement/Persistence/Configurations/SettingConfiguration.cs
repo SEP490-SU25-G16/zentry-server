@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Zentry.Modules.ConfigurationManagement.Persistence.Entities;
+using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence.Configurations;
@@ -46,16 +46,12 @@ public class SettingConfiguration : IEntityTypeConfiguration<Setting>
         builder.HasIndex(c => c.ScopeType);
         builder.HasIndex(c => c.ScopeId);
 
-        // Add unique constraint for combination of AttributeId, ScopeType, ScopeId
-        // This ensures a specific setting value exists only once for a given scope
         builder.HasIndex(c => new { c.AttributeId, c.ScopeType, c.ScopeId })
             .IsUnique();
 
-        // THÊM CẤU HÌNH MỐI QUAN HỆ VỚI ATTRIBUTEDEFINITION
-        // Mỗi  Setting có một AttributeDefinition
-        builder.HasOne(c => c.AttributeDefinition) //  Setting có một AttributeDefinition
-            .WithMany() // AttributeDefinition có thể có nhiều Settings (nếu bạn muốn AttributeDefinition biết các Configurations của nó, bạn sẽ cần thêm collection vào AttributeDefinition)
-            .HasForeignKey(c => c.AttributeId) // Khóa ngoại là AttributeId
-            .IsRequired(); // Bắt buộc phải có AttributeDefinition
+        builder.HasOne(c => c.AttributeDefinition)
+            .WithMany()
+            .HasForeignKey(c => c.AttributeId)
+            .IsRequired();
     }
 }
