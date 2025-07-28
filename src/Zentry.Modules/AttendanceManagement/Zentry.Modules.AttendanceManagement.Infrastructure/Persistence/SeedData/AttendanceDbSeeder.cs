@@ -2,9 +2,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Contracts.Schedule;
-
-// Cần để dùng GetSchedulesAndClassSectionsForAttendanceSeedQuery
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.SeedData;
 
@@ -17,6 +16,7 @@ public class AttendanceDbSeeder(
     {
         using var scope = serviceProvider.CreateScope();
         var attendanceContext = scope.ServiceProvider.GetRequiredService<AttendanceDbContext>();
+        var whitelistRepository = scope.ServiceProvider.GetRequiredService<IScanLogWhitelistRepository>();
 
         try
         {
@@ -41,6 +41,7 @@ public class AttendanceDbSeeder(
                 logger.LogInformation(
                     $"Received {scheduleDataResponse.Schedules.Count} Schedule DTOs and {scheduleDataResponse.ClassSections.Count} ClassSection DTOs.");
 
+                // 1. Seed Sessions and Rounds
                 await AttendanceSeedData.SeedSessionsAndRoundsAsync(
                     attendanceContext,
                     scheduleDataResponse.Schedules,
@@ -52,12 +53,20 @@ public class AttendanceDbSeeder(
             else
             {
                 logger.LogWarning(
-                    "No schedule data received from Schedule module. Skipping Session and Round seeding for Attendance module.");
+                    "No schedule data received from Schedule module. Skipping Session, Round, and SessionWhitelist seeding for Attendance module.");
             }
 
-            // Attendance Record sẽ được seed sau khi bạn cung cấp định nghĩa Entity của nó
-
+            // Save all changes
             await attendanceContext.SaveChangesAsync(cancellationToken);
+            await SessionWhitelistSeedData.SeedSessionWhitelistsAsync(
+                attendanceContext,
+                whitelistRepository,
+                mediator,
+                scheduleDataResponse.Schedules,
+                scheduleDataResponse.ClassSections,
+                logger,
+                cancellationToken
+            );
             logger.LogInformation("Attendance Management module data seeding completed successfully.");
         }
         catch (Exception ex)
@@ -71,13 +80,18 @@ public class AttendanceDbSeeder(
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AttendanceDbContext>();
+        var whitelistRepository = scope.ServiceProvider.GetRequiredService<IScanLogWhitelistRepository>();
 
         logger.LogInformation("Clearing all Attendance Management data...");
 
+        // Xóa dữ liệu từ MartenDB
+        await whitelistRepository.DeleteAllAsync(cancellationToken);
+
+        // Xóa theo thứ tự dependency (từ child đến parent)
         context.AttendanceRecords.RemoveRange(context.AttendanceRecords);
         context.Rounds.RemoveRange(context.Rounds);
         context.Sessions.RemoveRange(context.Sessions);
-        context.UserRequests.RemoveRange(context.UserRequests); // Nếu UserRequest cũng là dữ liệu seed
+        context.UserRequests.RemoveRange(context.UserRequests);
 
         await context.SaveChangesAsync(cancellationToken);
         logger.LogInformation("All Attendance Management data cleared.");

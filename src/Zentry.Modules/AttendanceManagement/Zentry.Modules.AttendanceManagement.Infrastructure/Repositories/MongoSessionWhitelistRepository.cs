@@ -28,4 +28,24 @@ public class MongoSessionWhitelistRepository(IMongoDatabase database) : IScanLog
         await _collection.ReplaceOneAsync(filter, whitelist, new ReplaceOptions { IsUpsert = true }, cancellationToken);
         // IsUpsert = true sẽ tạo mới nếu không tìm thấy, hữu ích cho trường hợp cập nhật lần đầu
     }
+
+    public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<SessionWhitelist>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddRangeAsync(IEnumerable<SessionWhitelist> whitelists, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteAllAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

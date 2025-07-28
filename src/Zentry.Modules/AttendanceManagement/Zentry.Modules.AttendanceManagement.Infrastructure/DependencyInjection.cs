@@ -36,7 +36,8 @@ public static class DependencyInjection
             {
                 options.Connection(connectionString);
                 options.Schema.For<ScanLog>().Identity(r => r.Id);
-                options.Schema.For<SessionWhitelist>().Identity(r => r.Id);
+                options.Schema.For<SessionWhitelist>()
+                    .Index(x => x.SessionId, x => x.IsUnique = true);
             });
 
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
