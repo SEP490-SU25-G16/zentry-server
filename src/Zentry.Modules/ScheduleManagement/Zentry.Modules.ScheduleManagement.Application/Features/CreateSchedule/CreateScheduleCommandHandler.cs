@@ -15,7 +15,7 @@ public class CreateScheduleCommandHandler(
     IClassSectionRepository classSectionRepository,
     IRoomRepository roomRepository,
     IUserScheduleService lecturerScheduleService,
-    IBus bus,
+    IPublishEndpoint publishEndpoint,
     ILogger<CreateScheduleCommandHandler> logger)
     : ICommandHandler<CreateScheduleCommand, CreatedScheduleResponse>
 {
@@ -75,7 +75,7 @@ public class CreateScheduleCommandHandler(
             schedule.CreatedAt
         );
 
-        await bus.Publish(scheduleCreatedEvent, cancellationToken);
+        await publishEndpoint.Publish(scheduleCreatedEvent, cancellationToken);
         logger.LogInformation("ScheduleCreatedEvent published for ScheduleId: {ScheduleId}.", schedule.Id);
 
         return new CreatedScheduleResponse

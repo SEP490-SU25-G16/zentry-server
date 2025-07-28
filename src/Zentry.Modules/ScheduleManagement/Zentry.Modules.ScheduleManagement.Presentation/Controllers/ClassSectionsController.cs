@@ -80,11 +80,12 @@ public class ClassSectionsController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateClassSection([FromBody] CreateClassSectionRequest request)
     {
+        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var command = new CreateClassSectionCommand(
-                request.CourseId,
-                request.LecturerId,
+                new Guid(request.CourseId),
+                new Guid(request.LecturerId),
                 request.SectionCode,
                 request.Semester
             );
