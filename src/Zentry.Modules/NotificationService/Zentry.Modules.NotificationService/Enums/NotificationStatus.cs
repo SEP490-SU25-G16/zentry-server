@@ -1,5 +1,4 @@
-
-namespace Zentry.Modules.NotificationService.Domain.Enums;
+namespace Zentry.Modules.NotificationService.Enums;
 
 /// <summary>
 /// Trạng thái của một thông báo (đã đọc hay chưa).
@@ -8,4 +7,4 @@ public enum NotificationStatus
 {
     Unread,
     Read
-} 
+}

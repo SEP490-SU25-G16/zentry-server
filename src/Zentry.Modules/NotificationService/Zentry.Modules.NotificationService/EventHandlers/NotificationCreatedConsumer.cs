@@ -8,8 +8,8 @@ namespace Zentry.Modules.NotificationService.Application.EventHandlers;
 /// <summary>
 /// Lắng nghe sự kiện NotificationCreatedEvent và điều phối việc gửi thông báo.
 /// </summary>
-public class NotificationCreatedEventHandler(
-    ILogger<NotificationCreatedEventHandler> logger,
+public class NotificationCreatedConsumer(
+    ILogger<NotificationCreatedConsumer> logger,
     INotificationSender notificationSender) : IConsumer<NotificationCreatedEvent>
 {
     /// <summary>

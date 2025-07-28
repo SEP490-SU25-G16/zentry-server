@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.NotificationService.Domain.Entities;
+namespace Zentry.Modules.NotificationService.Entities;
 
 /// <summary>
 /// Đại diện cho một thông báo trong hệ thống.
@@ -72,4 +72,4 @@ public class Notification : Entity<Guid>
     {
         IsRead = true;
     }
-} 
+}

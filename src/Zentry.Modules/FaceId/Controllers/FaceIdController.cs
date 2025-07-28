@@ -10,15 +10,8 @@ namespace Zentry.Modules.FaceId.Controllers;
 
 [ApiController]
 [Route("api/faceid")]
-public class FaceIdController : ControllerBase
+public class FaceIdController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public FaceIdController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     [HttpPost("register")]
     [ProducesResponseType(typeof(RegisterFaceIdResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -43,7 +36,7 @@ public class FaceIdController : ControllerBase
 
             // Create and send command
             var command = new RegisterFaceIdCommand(Guid.Parse(userId), embeddingArray);
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
 
             if (result.Success)
                 return Ok(result);
@@ -85,7 +78,7 @@ public class FaceIdController : ControllerBase
 
             // Create and send command
             var command = new UpdateFaceIdCommand(Guid.Parse(userId), embeddingArray);
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
 
             if (result.Success)
                 return Ok(result);
@@ -130,7 +123,7 @@ public class FaceIdController : ControllerBase
                 embeddingArray, 
                 threshold ?? 0.7f);
                 
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
 
             // Always return 200 OK, with Success = true/false in body
             return Ok(result);

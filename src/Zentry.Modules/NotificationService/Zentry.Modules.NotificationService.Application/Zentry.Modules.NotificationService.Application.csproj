@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Zentry.Modules.NotificationService.Domain\Zentry.Modules.NotificationService.Domain.csproj" />
     <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj" />
   </ItemGroup>
 

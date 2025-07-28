@@ -1,20 +1,17 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Pgvector;
 
 #nullable disable
 
-namespace Zentry.Modules.FaceId.Persistence.Migrations
+namespace Zentry.Modules.FaceId.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialFaceId : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Enable pgvector extension
-            migrationBuilder.Sql("CREATE EXTENSION IF NOT EXISTS vector;");
-
             migrationBuilder.CreateTable(
                 name: "FaceEmbeddings",
                 columns: table => new
@@ -35,10 +32,6 @@ namespace Zentry.Modules.FaceId.Persistence.Migrations
                 table: "FaceEmbeddings",
                 column: "UserId",
                 unique: true);
-
-            // Create vector index using raw SQL since EF Core migrations don't support vector index creation directly
-            migrationBuilder.Sql(
-                @"CREATE INDEX ""IX_FaceEmbeddings_Embedding"" ON ""FaceEmbeddings"" USING ivfflat (""Embedding"" vector_cosine_ops);");
         }
 
         /// <inheritdoc />
@@ -48,4 +41,4 @@ namespace Zentry.Modules.FaceId.Persistence.Migrations
                 name: "FaceEmbeddings");
         }
     }
-} 
+}

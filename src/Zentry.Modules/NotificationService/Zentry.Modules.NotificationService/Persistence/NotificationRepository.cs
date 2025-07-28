@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.NotificationService.Domain.Entities;
+using Zentry.Modules.NotificationService.Entities;
 
-namespace Zentry.Modules.NotificationService.Infrastructure.Persistence;
+namespace Zentry.Modules.NotificationService.Persistence.Repository;
 
 public class NotificationRepository(NotificationDbContext dbContext) : INotificationRepository
 {

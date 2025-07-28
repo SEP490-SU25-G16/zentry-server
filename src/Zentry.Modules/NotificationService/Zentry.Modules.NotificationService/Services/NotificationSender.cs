@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.NotificationService.Application.Services;
-using Zentry.Modules.NotificationService.Domain.Entities;
+using Zentry.Modules.NotificationService.Entities;
 using Zentry.Modules.NotificationService.Infrastructure.Hubs;
-using Zentry.Modules.NotificationService.Infrastructure.Persistence;
 using Zentry.Modules.NotificationService.Infrastructure.Push;
+using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.NotificationService.Infrastructure.Services;

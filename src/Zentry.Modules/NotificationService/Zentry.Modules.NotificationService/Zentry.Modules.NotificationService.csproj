@@ -8,13 +8,11 @@
     <ItemGroup>
         <PackageReference Include="MongoDB.Driver" Version="3.4.1"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+        <PackageReference Include="FirebaseAdmin" Version="2.4.0"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules.NotificationService.Application\Zentry.Modules.NotificationService.Application.csproj" />
-        <ProjectReference Include="..\Zentry.Modules.NotificationService.Infrastructure\Zentry.Modules.NotificationService.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

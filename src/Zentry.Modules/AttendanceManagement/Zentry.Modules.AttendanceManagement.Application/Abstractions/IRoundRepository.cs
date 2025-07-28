@@ -1,5 +1,6 @@
 ﻿using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
+using Zentry.SharedKernel.Constants.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 

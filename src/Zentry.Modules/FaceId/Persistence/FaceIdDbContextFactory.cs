@@ -20,17 +20,17 @@ public class FaceIdDbContextFactory : IDesignTimeDbContextFactory<FaceIdDbContex
 
         if (string.IsNullOrEmpty(connectionString))
             // Fallback connection string for development
-            connectionString = "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres";
+            connectionString = "Host=localhost;Database=zentry;Username=admin;Password=pass";
 
         optionsBuilder.UseNpgsql(connectionString,
             b =>
             {
                 b.MigrationsAssembly("Zentry.Modules.FaceId");
-                // Enable pgvector extension
                 b.EnableRetryOnFailure(5);
+                // Enable pgvector extension
                 b.UseVector();
             });
 
         return new FaceIdDbContext(optionsBuilder.Options);
     }
-} 
+}

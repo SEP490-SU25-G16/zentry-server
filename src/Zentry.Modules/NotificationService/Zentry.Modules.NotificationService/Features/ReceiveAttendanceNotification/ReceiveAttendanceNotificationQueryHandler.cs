@@ -1,11 +1,12 @@
 using MediatR;
-using Zentry.Modules.NotificationService.Infrastructure.Persistence;
+using Zentry.Modules.NotificationService.Entities;
+using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Common;
 
 namespace Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 
 public class ReceiveAttendanceNotificationServiceQueryHandler(INotificationRepository repository)
-    : IQueryHandler<ReceiveAttendanceNotificationServiceQuery, List<Notification>>
+    : IRequestHandler<ReceiveAttendanceNotificationServiceQuery, List<Notification>>
 {
     public async Task<List<Notification>> Handle(ReceiveAttendanceNotificationServiceQuery request,
         CancellationToken cancellationToken)

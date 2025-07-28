@@ -3,7 +3,6 @@ using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
-using Zentry.Modules.NotificationService.Infrastructure.Persistence;
 
 namespace Zentry.Modules.NotificationService.Infrastructure.Push;
 

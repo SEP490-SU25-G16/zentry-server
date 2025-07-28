@@ -12,8 +12,8 @@ using Zentry.Modules.UserManagement.Persistence.DbContext;
 namespace Zentry.Modules.UserManagement.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20250723151238_AddFaceIdFields")]
-    partial class AddFaceIdFields
+    [Migration("20250728195633_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -134,6 +134,17 @@ namespace Zentry.Modules.UserManagement.Migrations
                     b.HasIndex("PhoneNumber");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Zentry.Modules.UserManagement.Entities.User", b =>
+                {
+                    b.HasOne("Zentry.Modules.UserManagement.Entities.Account", "Account")
+                        .WithOne()
+                        .HasForeignKey("Zentry.Modules.UserManagement.Entities.User", "AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 #pragma warning restore 612, 618
         }

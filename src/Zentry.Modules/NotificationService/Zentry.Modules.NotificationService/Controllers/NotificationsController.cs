@@ -1,16 +1,17 @@
 using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Zentry.Modules.NotificationService.Application.Services;
+using Zentry.Modules.NotificationService.Entities;
 using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
-using Zentry.Modules.NotificationService.Infrastructure.Persistence;
+using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.NotificationService.Controllers;
 
 [ApiController]
 [Route("api/notifications")]
-public class NotificationsController(IMediator mediator, IBus bus, INotificationRepository notificationRepository) : ControllerBase
+public class NotificationsController(IMediator mediator, IBus bus, INotificationRepository notificationRepository)
+    : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<Notification>>> GetNotifications(
@@ -28,7 +29,8 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     /// Test endpoint để send notification trực tiếp (for testing purposes only)
     /// </summary>
     [HttpPost("send-test")]
-    public async Task<IActionResult> SendTestNotification([FromBody] SendTestNotificationRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SendTestNotification([FromBody] SendTestNotificationRequest request,
+        CancellationToken cancellationToken)
     {
         var notificationEvent = new NotificationCreatedEvent
         {
@@ -41,10 +43,11 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
 
         await bus.Publish(notificationEvent, cancellationToken);
 
-        return Ok(new { 
-            success = true, 
+        return Ok(new
+        {
+            success = true,
             message = "Test notification sent successfully",
-            recipientUserId = request.RecipientUserId 
+            recipientUserId = request.RecipientUserId
         });
     }
 
@@ -57,7 +60,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         try
         {
             var notification = await notificationRepository.GetByIdAsync(notificationId, cancellationToken);
-            
+
             if (notification == null)
             {
                 return NotFound(new { message = "Notification not found" });
@@ -67,17 +70,19 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
             await notificationRepository.UpdateAsync(notification, cancellationToken);
             await notificationRepository.SaveChangesAsync(cancellationToken);
 
-            return Ok(new { 
-                success = true, 
+            return Ok(new
+            {
+                success = true,
                 message = "Notification marked as read",
                 notificationId = notificationId
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                success = false, 
-                message = "Internal server error: " + ex.Message 
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Internal server error: " + ex.Message
             });
         }
     }
@@ -91,7 +96,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         try
         {
             var notifications = await notificationRepository.GetUnreadByUserIdAsync(userId, cancellationToken);
-            
+
             foreach (var notification in notifications)
             {
                 notification.MarkAsRead();
@@ -103,8 +108,9 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
                 await notificationRepository.SaveChangesAsync(cancellationToken);
             }
 
-            return Ok(new { 
-                success = true, 
+            return Ok(new
+            {
+                success = true,
                 message = $"Marked {notifications.Count()} notifications as read",
                 userId = userId,
                 count = notifications.Count()
@@ -112,9 +118,10 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                success = false, 
-                message = "Internal server error: " + ex.Message 
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Internal server error: " + ex.Message
             });
         }
     }
@@ -128,7 +135,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         try
         {
             var notification = await notificationRepository.GetByIdAsync(notificationId, cancellationToken);
-            
+
             if (notification == null)
             {
                 return NotFound(new { message = "Notification not found" });
@@ -137,17 +144,19 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
             await notificationRepository.DeleteAsync(notification, cancellationToken);
             await notificationRepository.SaveChangesAsync(cancellationToken);
 
-            return Ok(new { 
-                success = true, 
+            return Ok(new
+            {
+                success = true,
                 message = "Notification deleted",
                 notificationId = notificationId
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                success = false, 
-                message = "Internal server error: " + ex.Message 
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Internal server error: " + ex.Message
             });
         }
     }
@@ -161,15 +170,16 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         try
         {
             var notifications = await notificationRepository.GetByUserIdAsync(userId, cancellationToken);
-            
+
             if (notifications.Any())
             {
                 await notificationRepository.DeleteRangeAsync(notifications, cancellationToken);
                 await notificationRepository.SaveChangesAsync(cancellationToken);
             }
 
-            return Ok(new { 
-                success = true, 
+            return Ok(new
+            {
+                success = true,
                 message = $"Deleted {notifications.Count()} notifications",
                 userId = userId,
                 count = notifications.Count()
@@ -177,9 +187,10 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                success = false, 
-                message = "Internal server error: " + ex.Message 
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Internal server error: " + ex.Message
             });
         }
     }
@@ -195,7 +206,8 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
             var totalCount = await notificationRepository.GetCountByUserIdAsync(userId, cancellationToken);
             var unreadCount = await notificationRepository.GetUnreadCountByUserIdAsync(userId, cancellationToken);
 
-            return Ok(new { 
+            return Ok(new
+            {
                 userId = userId,
                 total = totalCount,
                 unread = unreadCount,
@@ -204,9 +216,10 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                success = false, 
-                message = "Internal server error: " + ex.Message 
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Internal server error: " + ex.Message
             });
         }
     }

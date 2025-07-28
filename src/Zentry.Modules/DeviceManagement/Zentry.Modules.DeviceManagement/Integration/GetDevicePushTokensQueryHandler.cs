@@ -1,14 +1,9 @@
 using Zentry.Modules.DeviceManagement.Abstractions;
-using Zentry.Modules.DeviceManagement.Enums;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Device;
 
 namespace Zentry.Modules.DeviceManagement.Integration;
 
-/// <summary>
-/// Handler for getting push notification tokens for a specific user
-/// Used by NotificationService to get device tokens for push notifications
-/// </summary>
 public class GetDevicePushTokensQueryHandler(IDeviceRepository repository)
     : IQueryHandler<GetDevicePushTokensIntegrationQuery, GetDevicePushTokensIntegrationResponse>
 {

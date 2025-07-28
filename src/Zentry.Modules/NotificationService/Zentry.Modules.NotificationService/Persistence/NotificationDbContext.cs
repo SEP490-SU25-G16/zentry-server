@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.NotificationService.Domain.Entities;
+using Zentry.Modules.NotificationService.Entities;
 
-namespace Zentry.Modules.NotificationService.Infrastructure.Persistence;
+namespace Zentry.Modules.NotificationService.Persistence.Repository;
 
 public class NotificationDbContext(DbContextOptions<NotificationDbContext> options) : DbContext(options)
 {
@@ -17,7 +17,6 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
             builder.Property(n => n.RecipientUserId).IsRequired();
             builder.Property(n => n.IsRead).IsRequired();
             builder.Property(n => n.CreatedAt).IsRequired();
-            // Thiết lập index cho RecipientUserId để tăng tốc độ truy vấn
             builder.HasIndex(n => n.RecipientUserId);
         });
     }

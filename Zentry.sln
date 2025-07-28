@@ -55,12 +55,6 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.DeviceManagement", "src\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement\Zentry.Modules.DeviceManagement.csproj", "{A306972B-1EA0-4310-934D-F037C5DDA998}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.NotificationService.Domain", "src\Zentry.Modules\NotificationService\Zentry.Modules.NotificationService.Domain\Zentry.Modules.NotificationService.Domain.csproj", "{992F2BF8-E49D-4175-B581-DCEE9C345DF4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.NotificationService.Application", "src\Zentry.Modules\NotificationService\Zentry.Modules.NotificationService.Application\Zentry.Modules.NotificationService.Application.csproj", "{788E6D55-8890-465B-8A1E-544FCAB065F7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.NotificationService.Infrastructure", "src\Zentry.Modules\NotificationService\Zentry.Modules.NotificationService.Infrastructure\Zentry.Modules.NotificationService.Infrastructure.csproj", "{993245AC-80C4-49E3-BE72-62AD6A490689}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FaceId", "FaceId", "{F5B6A320-4F7A-4498-ACBA-11923E1614E5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zentry.Modules.FaceId", "src\Zentry.Modules\FaceId\Zentry.Modules.FaceId.csproj", "{B306972B-1EA0-4310-934D-F037C5DDA999}"
@@ -139,18 +133,6 @@ Global
 		{A306972B-1EA0-4310-934D-F037C5DDA998}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A306972B-1EA0-4310-934D-F037C5DDA998}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A306972B-1EA0-4310-934D-F037C5DDA998}.Release|Any CPU.Build.0 = Release|Any CPU
-		{992F2BF8-E49D-4175-B581-DCEE9C345DF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{992F2BF8-E49D-4175-B581-DCEE9C345DF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{992F2BF8-E49D-4175-B581-DCEE9C345DF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{992F2BF8-E49D-4175-B581-DCEE9C345DF4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{788E6D55-8890-465B-8A1E-544FCAB065F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{788E6D55-8890-465B-8A1E-544FCAB065F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{788E6D55-8890-465B-8A1E-544FCAB065F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{788E6D55-8890-465B-8A1E-544FCAB065F7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{993245AC-80C4-49E3-BE72-62AD6A490689}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{993245AC-80C4-49E3-BE72-62AD6A490689}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{993245AC-80C4-49E3-BE72-62AD6A490689}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{993245AC-80C4-49E3-BE72-62AD6A490689}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F5B6A320-4F7A-4498-ACBA-11923E1614E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F5B6A320-4F7A-4498-ACBA-11923E1614E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5B6A320-4F7A-4498-ACBA-11923E1614E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -184,9 +166,6 @@ Global
 		{662279C9-2E3B-4289-87E4-05949F74D6FA} = {674F5320-4F7A-4498-ACBA-11923E1614EF}
 		{3058E3FE-748B-40EA-A5D9-0DD8F8D01E5A} = {31645492-FCCB-412F-AEB1-09558B953F02}
 		{A306972B-1EA0-4310-934D-F037C5DDA998} = {E24108BB-981E-4040-A043-DA2055EE50B9}
-		{992F2BF8-E49D-4175-B581-DCEE9C345DF4} = {9C97D6BC-0882-450F-AB27-E43F07950522}
-		{788E6D55-8890-465B-8A1E-544FCAB065F7} = {9C97D6BC-0882-450F-AB27-E43F07950522}
-		{993245AC-80C4-49E3-BE72-62AD6A490689} = {9C97D6BC-0882-450F-AB27-E43F07950522}
 		{F5B6A320-4F7A-4498-ACBA-11923E1614E5} = {E5978E3B-C456-4EFF-8869-BE94283AE234}
 		{B306972B-1EA0-4310-934D-F037C5DDA999} = {F5B6A320-4F7A-4498-ACBA-11923E1614E5}
 	EndGlobalSection
