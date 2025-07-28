@@ -36,7 +36,7 @@ public class ConfigurationDbMigrationService(
                     using var scope = serviceProvider.CreateScope();
                     var seeder = scope.ServiceProvider.GetRequiredService<ConfigurationDbSeeder>();
 
-                    // await seeder.SeedAllAsync();
+                    await seeder.SeedAllAsync();
                 });
                 logger.LogInformation(
                     "Configuration Management database migration and seeding completed successfully.");

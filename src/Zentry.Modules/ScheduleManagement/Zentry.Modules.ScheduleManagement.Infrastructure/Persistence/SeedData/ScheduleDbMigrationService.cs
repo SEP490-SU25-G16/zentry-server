@@ -37,7 +37,7 @@ public class ScheduleDbMigrationService(
                     var seeder =
                         scope.ServiceProvider.GetRequiredService<ScheduleDbSeeder>();
 
-                    // await seeder.SeedAllAsync(false, cancellationToken);
+                    await seeder.SeedAllAsync(false, cancellationToken);
                 });
                 logger.LogInformation("Schedule Management database migration and seeding completed successfully.");
             }

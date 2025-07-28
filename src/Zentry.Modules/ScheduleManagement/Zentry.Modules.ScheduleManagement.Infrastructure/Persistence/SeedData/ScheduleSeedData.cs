@@ -17,13 +17,17 @@ public static class ScheduleSeedData
     private const int MaxSchedulesPerClassSection = 6;
     private const int MaxAttemptsForUniqueSchedule = 10;
     private const int NumEnrollmentsToGenerate = 500;
+
+    // Cấu hình cho continuous scheduling
+    private const int ScheduleDurationHours = 1; // Mỗi schedule kéo dài 1 tiếng
+    private const int GapBetweenSchedulesHours = 2; // Khoảng cách giữa các schedule (2-3 tiếng random)
+    private const int MaxGapBetweenSchedulesHours = 3;
+
     private static List<Course> SeededCourses { get; set; } = [];
     private static List<Room> SeededRooms { get; set; } = [];
     private static List<ClassSection> SeededClassSections { get; set; } = [];
     private static List<Schedule> SeededSchedules { get; set; } = [];
     private static List<Enrollment> SeededEnrollments { get; set; } = [];
-
-    // **LOẠI BỎ CÁC PHƯƠNG THỨC GetSeededScheduleDtos() và GetSeededClassSectionDtos() Ở ĐÂY**
 
     public static async Task SeedCoursesAsync(ScheduleDbContext context, ILogger? logger = null,
         CancellationToken cancellationToken = default)
@@ -245,98 +249,95 @@ public static class ScheduleSeedData
             var faker = new Faker();
 
             var schedulesToAdd = new List<Schedule>();
-            var occupiedSlots = new HashSet<(Guid roomId, DateOnly date, TimeOnly startTime, TimeOnly endTime)>();
-            var lecturerOccupiedSlots =
-                new HashSet<(Guid lecturerId, DateOnly date, TimeOnly startTime, TimeOnly endTime)>();
 
-            var commonTimeSlots = new List<(TimeOnly Start, TimeOnly End)>
+            // Bắt đầu từ thời điểm hiện tại, làm tròn đến giờ gần nhất
+            var currentDateTime = DateTime.Now;
+            var startDateTime = new DateTime(currentDateTime.Year, currentDateTime.Month, currentDateTime.Day,
+                currentDateTime.Hour, 0, 0, DateTimeKind.Local);
+
+            // Nếu đã qua nửa giờ thì chuyển sang giờ tiếp theo
+            if (currentDateTime.Minute >= 30)
             {
-                (new TimeOnly(8, 0), new TimeOnly(9, 30)),
-                (new TimeOnly(9, 45), new TimeOnly(11, 15)),
-                (new TimeOnly(13, 0), new TimeOnly(14, 30)),
-                (new TimeOnly(14, 45), new TimeOnly(16, 15)),
-                (new TimeOnly(16, 30), new TimeOnly(18, 0))
-            };
+                startDateTime = startDateTime.AddHours(1);
+            }
 
             var weekdays = Enumeration.GetAll<WeekDayEnum>().ToList();
+            var scheduleCounter = 0;
 
-            var currentYear = DateTime.Now.Year;
-            var semesters = new Dictionary<string, (DateOnly Start, DateOnly End)>
-            {
-                { "SP25", (new DateOnly(2025, 1, 15), new DateOnly(2025, 5, 15)) },
-                { "SU25", (new DateOnly(2025, 6, 1), new DateOnly(2025, 8, 30)) },
-                { "FA25", (new DateOnly(2025, 9, 1), new DateOnly(2025, 12, 30)) },
-                { "SP26", (new DateOnly(2026, 1, 15), new DateOnly(2026, 5, 15)) },
-                { "SU26", (new DateOnly(2026, 6, 1), new DateOnly(2026, 8, 30)) }
-            };
-
+            logger?.LogInformation($"Starting continuous scheduling from: {startDateTime}");
 
             foreach (var classSection in SeededClassSections)
             {
                 var numSchedules = faker.Random.Number(MinSchedulesPerClassSection, MaxSchedulesPerClassSection);
-                var sectionSemesterDates = semesters[classSection.Semester];
+                var randomRoom = faker.PickRandom(SeededRooms);
+
+                // Tính toán thời gian bắt đầu cho class section này
+                var classSectionStartTime = startDateTime.AddHours(scheduleCounter *
+                                                                   (ScheduleDurationHours +
+                                                                    faker.Random.Number(GapBetweenSchedulesHours,
+                                                                        MaxGapBetweenSchedulesHours)));
 
                 for (var i = 0; i < numSchedules; i++)
                 {
-                    var scheduleCreated = false;
-                    for (var attempt = 0; attempt < MaxAttemptsForUniqueSchedule; attempt++)
+                    // Tính thời gian cho schedule này
+                    var scheduleStartTime = classSectionStartTime.AddHours(i *
+                                                                           (ScheduleDurationHours +
+                                                                            faker.Random.Number(
+                                                                                GapBetweenSchedulesHours,
+                                                                                MaxGapBetweenSchedulesHours)));
+                    var scheduleEndTime = scheduleStartTime.AddHours(ScheduleDurationHours);
+
+                    // Chuyển đổi sang DateOnly và TimeOnly
+                    var scheduleDate = DateOnly.FromDateTime(scheduleStartTime);
+                    var startTimeOnly = TimeOnly.FromDateTime(scheduleStartTime);
+                    var endTimeOnly = TimeOnly.FromDateTime(scheduleEndTime);
+
+                    // Xác định ngày trong tuần
+                    var dayOfWeek = scheduleStartTime.DayOfWeek;
+                    var weekDayEnum = weekdays.FirstOrDefault(w => (DayOfWeek)w.Id == dayOfWeek)
+                                      ?? weekdays.First();
+
+                    try
                     {
-                        var randomRoom = faker.PickRandom(SeededRooms);
-                        var randomTimeSlot = faker.PickRandom(commonTimeSlots);
-                        var randomWeekDay =
-                            faker.PickRandom(weekdays);
+                        var newSchedule = Schedule.Create(
+                            classSection.Id,
+                            randomRoom.Id,
+                            scheduleDate,
+                            scheduleDate, // Single day schedule
+                            startTimeOnly,
+                            endTimeOnly,
+                            weekDayEnum
+                        );
 
-                        var scheduleDate =
-                            faker.Date.BetweenDateOnly(sectionSemesterDates.Start, sectionSemesterDates.End);
-
-                        while (scheduleDate.DayOfWeek != (DayOfWeek)randomWeekDay.Id)
-                        {
-                            scheduleDate = scheduleDate.AddDays(1);
-                            if (scheduleDate > sectionSemesterDates.End) break;
-                        }
-
-                        if (scheduleDate > sectionSemesterDates.End) continue;
-
-                        var roomConflict = occupiedSlots.Any(slot =>
-                            slot.roomId == randomRoom.Id &&
-                            slot.date == scheduleDate &&
-                            randomTimeSlot.Start < slot.endTime && randomTimeSlot.End > slot.startTime);
-
-                        var lecturerConflict = lecturerOccupiedSlots.Any(slot =>
-                            slot.lecturerId == classSection.LecturerId &&
-                            slot.date == scheduleDate &&
-                            randomTimeSlot.Start < slot.endTime && randomTimeSlot.End > slot.startTime);
-
-                        if (!roomConflict && !lecturerConflict)
-                        {
-                            var newSchedule = Schedule.Create(
-                                classSection.Id,
-                                randomRoom.Id,
-                                scheduleDate,
-                                scheduleDate, // Assuming single-day schedules for simplicity in seed
-                                randomTimeSlot.Start,
-                                randomTimeSlot.End,
-                                randomWeekDay
-                            );
-                            schedulesToAdd.Add(newSchedule);
-
-                            occupiedSlots.Add((randomRoom.Id, scheduleDate, randomTimeSlot.Start, randomTimeSlot.End));
-                            lecturerOccupiedSlots.Add((classSection.LecturerId, scheduleDate, randomTimeSlot.Start,
-                                randomTimeSlot.End));
-                            scheduleCreated = true;
-                            break;
-                        }
+                        schedulesToAdd.Add(newSchedule);
                     }
-
-                    if (!scheduleCreated)
-                        logger?.LogWarning(
-                            $"Could not find a unique time slot for ClassSection {classSection.SectionCode} after {MaxAttemptsForUniqueSchedule} attempts.");
+                    catch (Exception ex)
+                    {
+                        logger?.LogWarning($"Failed to create schedule for {classSection.SectionCode}: {ex.Message}");
+                    }
                 }
+
+                scheduleCounter++;
             }
 
-            SeededSchedules = schedulesToAdd;
-            await context.Schedules.AddRangeAsync(SeededSchedules, cancellationToken);
-            logger?.LogInformation($"Added {SeededSchedules.Count} Schedules.");
+            if (schedulesToAdd.Count > 0)
+            {
+                SeededSchedules = schedulesToAdd;
+                await context.Schedules.AddRangeAsync(SeededSchedules, cancellationToken);
+                logger?.LogInformation(
+                    $"Added {SeededSchedules.Count} continuous Schedules starting from {startDateTime}.");
+
+                // Log thời gian của schedule cuối cùng
+                if (schedulesToAdd.Any())
+                {
+                    var lastSchedule = schedulesToAdd.OrderBy(s => s.StartDate).ThenBy(s => s.StartTime).Last();
+                    logger?.LogInformation($"Last schedule ends at: {lastSchedule.StartDate} {lastSchedule.EndTime}");
+                }
+            }
+            else
+            {
+                logger?.LogWarning("No Schedules were generated or added during seeding.");
+            }
         }
         catch (Exception ex)
         {
