@@ -58,11 +58,17 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                     DisplayLabel = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     SortOrder = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    AttributeDefinitionId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Options", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Options_AttributeDefinitions_AttributeDefinitionId",
+                        column: x => x.AttributeDefinitionId,
+                        principalTable: "AttributeDefinitions",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Options_AttributeDefinitions_AttributeId",
                         column: x => x.AttributeId,
@@ -104,6 +110,11 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                 table: "AttributeDefinitions",
                 column: "Key",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Options_AttributeDefinitionId",
+                table: "Options",
+                column: "AttributeDefinitionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Options_AttributeId",

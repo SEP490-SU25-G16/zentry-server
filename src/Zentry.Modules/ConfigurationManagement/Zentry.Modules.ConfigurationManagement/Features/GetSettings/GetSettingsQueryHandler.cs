@@ -1,13 +1,15 @@
 using Microsoft.EntityFrameworkCore;
-using Zentry.Infrastructure.Caching;
+using Zentry.Infrastructure.Caching; // Đảm bảo namespace này đúng
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;
-using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Configuration;
+using System.Linq;
+using Zentry.SharedKernel.Constants.Response;
+using Zentry.SharedKernel.Exceptions; // Thêm namespace này
 
-namespace Zentry.Modules.ConfigurationManagement.Features.GetConfigurations;
+namespace Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 
 public class
     GetSettingsQueryHandler(
@@ -15,26 +17,21 @@ public class
         IRedisService redisService)
     : IQueryHandler<GetSettingsQuery, GetSettingsResponse>
 {
-    private readonly TimeSpan _cacheExpiry = TimeSpan.FromHours(1);
-
     public async Task<GetSettingsResponse> Handle(GetSettingsQuery query,
         CancellationToken cancellationToken)
     {
         // Tạo cache key dựa trên các tham số query
-        // Đảm bảo cache key đủ độc đáo cho mỗi loại query
         var cacheKey =
-            $"settings:{query.AttributeId?.ToString() ?? "null"}:{query.ScopeTypeString ?? "null"}:{query.ScopeId?.ToString() ?? "null"}:{query.SearchTerm ?? "null"}:{query.PageNumber}:{query.PageSize}";
+            $"settings:{query.AttributeId?.ToString() ?? "null"}:{query.ScopeType ?? "null"}:{query.ScopeId ?? "null"}:{query.SearchTerm ?? "null"}:{query.PageNumber}:{query.PageSize}";
 
         // 1. Thử lấy từ Redis trước
         var cachedResponse = await redisService.GetAsync<GetSettingsResponse>(cacheKey);
         if (cachedResponse != null)
         {
-            // Log for debugging (optional)
             Console.WriteLine($"Cache hit for key: {cacheKey}");
             return cachedResponse;
         }
 
-        // Log for debugging (optional)
         Console.WriteLine($"Cache miss for key: {cacheKey}. Fetching from DB...");
 
         IQueryable<Setting> settingsQuery = dbContext.Settings
@@ -44,20 +41,59 @@ public class
             settingsQuery = settingsQuery.Where(c => c.AttributeId == query.AttributeId.Value);
 
         ScopeType? requestedScopeType = null;
-        // Chuyển đổi string ScopeTypeString từ query sang Smart Enum
-        if (!string.IsNullOrWhiteSpace(query.ScopeTypeString))
+        Guid? parsedScopeId = null; // Biến để lưu ScopeId đã parse
+
+        // Chuyển đổi string ScopeType từ query sang Smart Enum
+        if (!string.IsNullOrWhiteSpace(query.ScopeType))
             try
             {
-                requestedScopeType = ScopeType.FromName(query.ScopeTypeString);
+                requestedScopeType = ScopeType.FromName(query.ScopeType);
                 settingsQuery = settingsQuery.Where(c => c.ScopeType == requestedScopeType);
             }
-            catch (ArgumentException ex)
+            catch (InvalidOperationException ex)
             {
-                throw new ArgumentException($"Invalid ScopeType provided: {ex.Message}");
+                throw new InvalidSettingValueException(ErrorMessages.Settings.InvalidSettingValue);
             }
 
-        if (query.ScopeId.HasValue)
-            settingsQuery = settingsQuery.Where(c => c.ScopeId == query.ScopeId.Value);
+        // Xử lý ScopeId dựa trên ScopeType và giá trị chuỗi
+        if (!string.IsNullOrWhiteSpace(query.ScopeId))
+        {
+            // Cố gắng parse ScopeId nếu nó không rỗng
+            if (Guid.TryParse(query.ScopeId, out var tempGuid))
+            {
+                parsedScopeId = tempGuid;
+            }
+            else
+            {
+                // Nếu không parse được và nó không rỗng, đây là lỗi định dạng GUID
+                // Throw một exception để validator bắt hoặc xử lý ở đây
+                throw new ArgumentException("ScopeId không phải là định dạng GUID hợp lệ.");
+            }
+        }
+        else // Nếu ScopeId là null hoặc chuỗi rỗng
+        {
+            parsedScopeId = Guid.Empty; // Coi null/rỗng là Guid.Empty cho mục đích truy vấn
+        }
+
+        // Áp dụng bộ lọc ScopeId đã parse
+        // Điều chỉnh logic lọc ScopeId để phù hợp với quy tắc Global/non-Global
+        // Query theo parsedScopeId thay vì query.ScopeId.Value
+        if (requestedScopeType == ScopeType.Global)
+        {
+            // Với Global, ScopeId trong DB phải là Guid.Empty (hoặc null nếu bạn ánh xạ)
+            // Đảm bảo bạn lưu Guid.Empty vào DB khi tạo Global setting với ScopeId là null/rỗng
+            settingsQuery = settingsQuery.Where(c => c.ScopeId == Guid.Empty);
+        }
+        else if (requestedScopeType != null && parsedScopeId.HasValue) // non-Global scope với ScopeId được cung cấp
+        {
+            // Đối với non-Global, ScopeId trong DB phải khớp với parsedScopeId và không được là Guid.Empty
+            settingsQuery = settingsQuery.Where(c => c.ScopeId == parsedScopeId.Value && c.ScopeId != Guid.Empty);
+        }
+        // Nếu requestedScopeType là non-Global nhưng parsedScopeId không có giá trị (null hoặc rỗng sau khi parse)
+        // thì không cần thêm điều kiện lọc ScopeId, hoặc có thể thêm điều kiện cho trường hợp không khớp (tùy nghiệp vụ)
+        // Hiện tại, validator sẽ bắt lỗi này ở CreateSetting, còn ở GetSettings,
+        // nếu ScopeId rỗng cho non-Global, chúng ta chỉ không lọc theo ScopeId đó.
+
 
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
@@ -72,7 +108,7 @@ public class
         var totalCount = await settingsQuery.CountAsync(cancellationToken);
 
         var settings = await settingsQuery
-            .OrderBy(c => c.CreatedAt)
+            .OrderBy(c => c.CreatedAt) // Có thể thêm OrderBy động như GetListAttributeDefinitionQueryHandler
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToListAsync(cancellationToken);
@@ -85,7 +121,7 @@ public class
             AttributeDisplayName = c.AttributeDefinition?.DisplayName ?? "N/A",
             DataType = c.AttributeDefinition?.DataType != null ? c.AttributeDefinition.DataType.ToString() : "N/A",
             ScopeType = c.ScopeType != null ? c.ScopeType.ToString() : "N/A",
-            ScopeId = c.ScopeId,
+            ScopeId = c.ScopeId, // Sử dụng Guid ScopeId trực tiếp từ entity
             Value = c.Value,
             CreatedAt = c.CreatedAt,
             UpdatedAt = c.UpdatedAt
@@ -98,19 +134,6 @@ public class
             PageNumber = query.PageNumber,
             PageSize = query.PageSize
         };
-
-        // 2. Lưu vào Redis nếu ScopeType phù hợp và không có SearchTerm (để tránh cache quá nhiều data linh tinh)
-        // Chỉ cache nếu không có searchTerm, và ScopeType là GLOBAL, COURSE, hoặc SESSION
-        var canCache = string.IsNullOrWhiteSpace(query.SearchTerm) &&
-                       (requestedScopeType == ScopeType.Global ||
-                        requestedScopeType == ScopeType.Course ||
-                        requestedScopeType ==
-                        ScopeType
-                            .Session); // Sử dụng `SESSION` như định nghĩa của bạn cho `ScopeType` là lịch trình/buổi học
-
-        if (!canCache) return response;
-        await redisService.SetAsync(cacheKey, response, _cacheExpiry);
-        Console.WriteLine($"Cached response for key: {cacheKey}"); // Log for debugging
 
         return response;
     }

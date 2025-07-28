@@ -16,6 +16,7 @@ public class AttributeDefinition : AggregateRoot<Guid>
         IsDeletable = true;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        Options = new List<Option>();
     }
 
     private AttributeDefinition(Guid id, string key, string displayName, string? description, DataType dataType,
@@ -31,6 +32,7 @@ public class AttributeDefinition : AggregateRoot<Guid>
         DefaultValue = defaultValue;
         IsDeletable = isDeletable;
         CreatedAt = DateTime.UtcNow;
+        Options = new List<Option>();
     }
 
     public string Key { get; private set; }
@@ -39,6 +41,7 @@ public class AttributeDefinition : AggregateRoot<Guid>
     public DataType DataType { get; private set; }
     public string? DefaultValue { get; private set; }
     public List<ScopeType> AllowedScopeTypes { get; private set; }
+    public virtual ICollection<Option> Options { get; private set; }
     public string? Unit { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -52,7 +55,7 @@ public class AttributeDefinition : AggregateRoot<Guid>
     }
 
     public static AttributeDefinition FromSeedingData(Guid id, string key, string displayName, string? description,
-        DataType dataType, List<ScopeType> allowedScopeTypes, string? unit, string? defaultValue, bool isDeletable = true) // <-- Thay đổi tham số
+        DataType dataType, List<ScopeType> allowedScopeTypes, string? unit, string? defaultValue, bool isDeletable = true)
     {
         return new AttributeDefinition(id, key, displayName, description, dataType,
             allowedScopeTypes, unit, defaultValue, isDeletable);
@@ -81,5 +84,18 @@ public class AttributeDefinition : AggregateRoot<Guid>
     {
         this.IsDeletable = true;
         UpdatedAt = DateTime.UtcNow;
+    }
+    public void AddOption(Option option)
+    {
+        Options.Add(option);
+    }
+    public void RemoveOption(Option option)
+    {
+        Options.Remove(option);
+    }
+
+    public void SetOptions(List<Option> options)
+    {
+        Options = options;
     }
 }
