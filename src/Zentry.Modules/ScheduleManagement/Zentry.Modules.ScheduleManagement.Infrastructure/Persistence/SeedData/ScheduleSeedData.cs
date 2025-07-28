@@ -21,7 +21,7 @@ public static class ScheduleSeedData
     // Cấu hình cho continuous scheduling
     private const int ScheduleDurationHours = 1; // Mỗi schedule kéo dài 1 tiếng
     private const int GapBetweenSchedulesHours = 2; // Khoảng cách giữa các schedule (2-3 tiếng random)
-    private const int MaxGapBetweenSchedulesHours = 3;
+    private const int MaxGapBetweenSchedulesHours = 2;
 
     private static List<Course> SeededCourses { get; set; } = [];
     private static List<Room> SeededRooms { get; set; } = [];
