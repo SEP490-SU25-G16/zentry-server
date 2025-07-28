@@ -10,6 +10,20 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<List<Schedule>> GetSchedulesByClassSectionIdAndDateAsync(Guid classSectionId, DateTime date,
+        WeekDayEnum weekDay, CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .Include(s => s.ClassSection)
+            .ThenInclude(cs => cs.Course)
+            .Include(s => s.Room)
+            .Where(s => s.ClassSectionId == classSectionId &&
+                        s.WeekDay == weekDay &&
+                        s.StartDate <= DateOnly.FromDateTime(date) &&
+                        s.EndDate >= DateOnly.FromDateTime(date))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Schedule>> GetLecturerSchedulesForDateAsync(
         Guid lecturerId,
         DateTime date,

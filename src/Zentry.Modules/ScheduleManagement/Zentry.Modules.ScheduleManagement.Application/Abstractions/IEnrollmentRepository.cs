@@ -1,6 +1,7 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
+using Zentry.SharedKernel.Constants.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
@@ -20,4 +21,5 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
 
     Task BulkAddAsync(List<Enrollment> enrollments, CancellationToken cancellationToken);
     Task<List<Enrollment>> GetEnrollmentsByClassSectionAsync(Guid classSectionId, CancellationToken cancellationToken);
+    Task<List<Enrollment>> GetEnrollmentsByStudentIdAsync(Guid studentId, CancellationToken cancellationToken);
 }
