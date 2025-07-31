@@ -123,9 +123,9 @@ public class Session : AggregateRoot<Guid>
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void ArchiveSession()
+    public void MissedSession()
     {
-        Status = SessionStatus.Archived;
+        Status = SessionStatus.Missed;
         UpdatedAt = DateTime.UtcNow;
     }
 

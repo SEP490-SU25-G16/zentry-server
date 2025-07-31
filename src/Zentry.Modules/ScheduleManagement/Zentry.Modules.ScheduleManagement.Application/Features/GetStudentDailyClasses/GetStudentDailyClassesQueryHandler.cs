@@ -57,7 +57,9 @@ public class GetStudentDailyClassesQueryHandler(
                     continue;
 
                 // Lấy thông tin giảng viên của ClassSection
-                var lecturer = await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, classSection.LecturerId, cancellationToken);
+                var lecturer =
+                    await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, classSection.LecturerId,
+                        cancellationToken);
                 var lecturerName = lecturer?.FullName ?? "N/A";
 
                 // Lấy tất cả các sessions cho Schedule này

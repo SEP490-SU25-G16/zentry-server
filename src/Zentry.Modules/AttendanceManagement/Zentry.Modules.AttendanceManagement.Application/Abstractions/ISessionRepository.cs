@@ -12,8 +12,11 @@ public interface ISessionRepository : IRepository<Session, Guid>
     Task<Session?> GetActiveSessionByScheduleId(Guid scheduleId, CancellationToken cancellationToken);
     Task<List<Session>> GetSessionsByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken);
 
-    public Task<Session?> GetSessionByScheduleIdAndDate(Guid scheduleId, DateTime date,
+    Task<Session?> GetSessionByScheduleIdAndDate(Guid scheduleId, DateTime date,
         CancellationToken cancellationToken);
 
-    public Task<Guid> GetLecturerIdBySessionId(Guid sessionId, CancellationToken cancellationToken);
+    Task<Guid> GetLecturerIdBySessionId(Guid sessionId, CancellationToken cancellationToken);
+
+    Task<Session?> GetSessionByScheduleIdAndDateAsync(Guid scheduleId, DateOnly date,
+        CancellationToken cancellationToken);
 }
