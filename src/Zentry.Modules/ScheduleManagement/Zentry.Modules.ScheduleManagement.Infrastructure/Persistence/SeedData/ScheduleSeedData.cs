@@ -114,7 +114,7 @@ public static class ScheduleSeedData
                 var roomNum = roomNumbers[currentRoomNumberIndex];
                 currentRoomNumberIndex++;
 
-                var roomName = $"Room {building}{roomNum}";
+                var roomName = $"{building}{roomNum}";
 
                 if (!uniqueRoomNames.Add(roomName)) continue;
                 var room = Room.Create(
