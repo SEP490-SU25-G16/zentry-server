@@ -4,8 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.SharedKernel.Constants.Configuration;
-using System.Collections.Generic; // Thêm namespace này
-using System.Linq; // Thêm namespace này
+// Thêm namespace này
+
+// Thêm namespace này
 
 // Cần Bogus để Randomizer.Seed
 
@@ -83,20 +84,21 @@ public class ConfigurationDbSeeder(IServiceProvider serviceProvider, ILogger<Con
             SeedGuids.ManualAdjustmentGracePeriodHoursAttrId, "manualAdjustmentGracePeriodHours",
             "Thời gian ân hạn điều chỉnh thủ công",
             "Số giờ sau khi phiên kết thúc để cho phép điều chỉnh điểm danh thủ công.", DataType.Int,
-            new List<ScopeType> { ScopeType.Global, ScopeType.Course, ScopeType.Session }, // Có thể Global, Course, Session
+            new List<ScopeType>
+                { ScopeType.Global, ScopeType.Course, ScopeType.Session }, // Có thể Global, Course, Session
             "giờ", "48", false
         ).Generate());
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.MinRssiThresholdAttrId, "minRssiThreshold", "Ngưỡng RSSI tối thiểu",
             "Ngưỡng cường độ tín hiệu Bluetooth (RSSI) tối thiểu để coi thiết bị là có mặt.", DataType.Int,
             new List<ScopeType> { ScopeType.Global, ScopeType.Session }, // Có thể Global, Session
-            "dBm", "-75", true // IsDeletable có thể là true nếu không quá quan trọng
+            "dBm", "-75" // IsDeletable có thể là true nếu không quá quan trọng
         ).Generate());
         attributeDefinitions.Add(new AttributeDefinitionFaker(
             SeedGuids.MaxHopDistanceAttrId, "maxHopDistance", "Khoảng cách Hop tối đa",
             "Số bước nhảy tối đa cho thuật toán điểm danh đa bước (multi-hop).", DataType.Int,
             new List<ScopeType> { ScopeType.Global, ScopeType.Course }, // Có thể Global, Course
-            "hops", "2", true
+            "hops", "2"
         ).Generate());
 
         // Thêm một AttributeDefinition kiểu Selection để seed Options
@@ -131,44 +133,42 @@ public class ConfigurationDbSeeder(IServiceProvider serviceProvider, ILogger<Con
         settings.Add(new SettingFaker(SeedGuids.MinRssiThresholdAttrId, ScopeType.Global, Guid.Empty, "-75")
             .Generate());
         settings.Add(new SettingFaker(SeedGuids.MaxHopDistanceAttrId, ScopeType.Global, Guid.Empty, "2").Generate());
-        settings.Add(new SettingFaker(courseVisibilityAttr.Id, ScopeType.Global, Guid.Empty, "Public").Generate()); // Default Global for Course Visibility
+        settings.Add(new SettingFaker(courseVisibilityAttr.Id, ScopeType.Global, Guid.Empty, "Public")
+            .Generate()); // Default Global for Course Visibility
 
         // Course-specific Settings (Overrides Global)
         // Kiểm tra xem AttributeDefinition có AllowedScopeTypes chứa ScopeType.Course không
-        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.AttendanceWindowMinutesAttrId).AllowedScopeTypes.Contains(ScopeType.Course))
-        {
+        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.AttendanceWindowMinutesAttrId).AllowedScopeTypes
+            .Contains(ScopeType.Course))
             settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.Course,
                 SeedGuids.SampleCourseId, "15").Generate());
-        }
-        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.TotalAttendanceRoundsAttrId).AllowedScopeTypes.Contains(ScopeType.Course))
-        {
-            settings.Add(new SettingFaker(SeedGuids.TotalAttendanceRoundsAttrId, ScopeType.Course, SeedGuids.SampleCourseId,
+        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.TotalAttendanceRoundsAttrId).AllowedScopeTypes
+            .Contains(ScopeType.Course))
+            settings.Add(new SettingFaker(SeedGuids.TotalAttendanceRoundsAttrId, ScopeType.Course,
+                SeedGuids.SampleCourseId,
                 "2").Generate());
-        }
-        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.MaxHopDistanceAttrId).AllowedScopeTypes.Contains(ScopeType.Course))
-        {
-            settings.Add(new SettingFaker(SeedGuids.MaxHopDistanceAttrId, ScopeType.Course, SeedGuids.SampleCourseId, "1")
+        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.MaxHopDistanceAttrId).AllowedScopeTypes
+            .Contains(ScopeType.Course))
+            settings.Add(new SettingFaker(SeedGuids.MaxHopDistanceAttrId, ScopeType.Course, SeedGuids.SampleCourseId,
+                    "1")
                 .Generate());
-        }
         // Course Visibility for SampleCourseId
         if (courseVisibilityAttr.AllowedScopeTypes.Contains(ScopeType.Course))
-        {
-            settings.Add(new SettingFaker(courseVisibilityAttr.Id, ScopeType.Course, SeedGuids.SampleCourseId, "Private").Generate());
-        }
+            settings.Add(new SettingFaker(courseVisibilityAttr.Id, ScopeType.Course, SeedGuids.SampleCourseId,
+                "Private").Generate());
 
 
         // Session-specific Settings (Overrides Global and Course)
         // Kiểm tra xem AttributeDefinition có AllowedScopeTypes chứa ScopeType.Session không
-        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.AttendanceWindowMinutesAttrId).AllowedScopeTypes.Contains(ScopeType.Session))
-        {
+        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.AttendanceWindowMinutesAttrId).AllowedScopeTypes
+            .Contains(ScopeType.Session))
             settings.Add(new SettingFaker(SeedGuids.AttendanceWindowMinutesAttrId, ScopeType.Session,
                 SeedGuids.SampleScheduleId, "5").Generate());
-        }
-        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.MinRssiThresholdAttrId).AllowedScopeTypes.Contains(ScopeType.Session))
-        {
-            settings.Add(new SettingFaker(SeedGuids.MinRssiThresholdAttrId, ScopeType.Session, SeedGuids.SampleScheduleId,
+        if (attributeDefinitions.First(ad => ad.Id == SeedGuids.MinRssiThresholdAttrId).AllowedScopeTypes
+            .Contains(ScopeType.Session))
+            settings.Add(new SettingFaker(SeedGuids.MinRssiThresholdAttrId, ScopeType.Session,
+                SeedGuids.SampleScheduleId,
                 "-80").Generate());
-        }
 
 
         await context.Settings.AddRangeAsync(settings);
@@ -184,6 +184,7 @@ public class ConfigurationDbSeeder(IServiceProvider serviceProvider, ILogger<Con
             options.Add(new OptionFaker(courseVisibilityAttr.Id, "Private", "Riêng tư", 2).Generate());
             options.Add(new OptionFaker(courseVisibilityAttr.Id, "Hidden", "Ẩn", 3).Generate());
         }
+
         await context.Options.AddRangeAsync(options);
         await context.SaveChangesAsync();
         logger.LogInformation($"Added {options.Count} Options.");

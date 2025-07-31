@@ -19,12 +19,21 @@ public static class ErrorMessages
         public const string SettingScopeTypeRequired = "Loại phạm vi cài đặt là bắt buộc";
         public const string ScopeIdRequired = "ID phạm vi là bắt buộc";
         public const string ValueRequired = "Giá trị cài đặt là bắt buộc";
-        public const string InvalidAttributeDefinitionDataTypeOrScopeType = "Kiểu dữ liệu hoặc loại phạm vi định nghĩa thuộc tính không hợp lệ.";
+
+        public const string InvalidAttributeDefinitionDataTypeOrScopeType =
+            "Kiểu dữ liệu hoặc loại phạm vi định nghĩa thuộc tính không hợp lệ.";
+
         public const string InvalidSettingValue = "Phạm vi định nghĩa cho setting không hợp lệ.";
         public const string AttributeDefinitionKeyAlreadyExists = "Định nghĩa thuộc tính với Key '{0}' đã tồn tại.";
-        public const string InvalidSettingValueForAttribute = "Giá trị '{0}' không hợp lệ cho thuộc tính '{1}' (Kiểu dữ liệu: {2}).";
-        public const string SelectionDataTypeRequiresOptions = "Định nghĩa thuộc tính với Kiểu dữ liệu 'Selection' yêu cầu phải có tùy chọn.";
-        public const string SettingExistsForAttributeScope = "Cài đặt cho thuộc tính '{0}' với phạm vi '{1}' và ID '{2}' đã tồn tại.";
+
+        public const string InvalidSettingValueForAttribute =
+            "Giá trị '{0}' không hợp lệ cho thuộc tính '{1}' (Kiểu dữ liệu: {2}).";
+
+        public const string SelectionDataTypeRequiresOptions =
+            "Định nghĩa thuộc tính với Kiểu dữ liệu 'Selection' yêu cầu phải có tùy chọn.";
+
+        public const string SettingExistsForAttributeScope =
+            "Cài đặt cho thuộc tính '{0}' với phạm vi '{1}' và ID '{2}' đã tồn tại.";
     }
 
     // User specific messages

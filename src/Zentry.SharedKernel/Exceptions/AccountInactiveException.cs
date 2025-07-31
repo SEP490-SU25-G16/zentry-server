@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when an account is inactive.
+///     Represents an exception thrown when an account is inactive.
 /// </summary>
 public class AccountInactiveException : BusinessLogicException
 {

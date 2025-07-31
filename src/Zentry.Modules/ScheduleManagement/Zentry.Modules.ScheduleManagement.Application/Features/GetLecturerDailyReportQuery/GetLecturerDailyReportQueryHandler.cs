@@ -5,13 +5,10 @@ using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.Attendance;
+using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Contracts.User;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Zentry.SharedKernel.Contracts.Schedule; // Thêm nếu cần cho batch session query
+
+// Thêm nếu cần cho batch session query
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyReportQuery;
 
@@ -67,14 +64,12 @@ public class GetLecturerDailyReportQueryHandler(
         var allTotalStudentsCounts = new Dictionary<Guid, int>();
 
         if (classSectionIds.Any())
-        {
             // Giả định có một Batch Query hoặc một phương thức trong IEnrollmentRepository
             // để lấy CountActiveStudentsByClassSectionIdsAsync
             // Nếu chưa có, bạn sẽ cần tạo một integration query/handler mới cho nó.
             // Hiện tại, tôi sẽ giả định rằng CountActiveStudentsByClassSectionIdIntegrationQuery có thể được gọi nhiều lần.
             // Để tối ưu, bạn nên viết một batch query tương tự như sessions.
             // (Hiện tại, tôi sẽ giữ nguyên vòng lặp nếu không có batch query cho Enrollment)
-
             foreach (var classSectionId in classSectionIds)
             {
                 var totalStudentsCountResponse = await mediator.Send(
@@ -82,7 +77,6 @@ public class GetLecturerDailyReportQueryHandler(
                     cancellationToken);
                 allTotalStudentsCounts[classSectionId] = totalStudentsCountResponse.TotalStudents;
             }
-        }
 
         // --- Batch Query cho AttendanceSummary nếu có thể ---
         // Điều này phức tạp hơn vì GetAttendanceSummaryIntegrationQuery cần SessionId và ClassSectionId
@@ -97,15 +91,11 @@ public class GetLecturerDailyReportQueryHandler(
             // Lấy SessionId từ dictionary
             if (!sessionDict.TryGetValue(scheduleProjection.ScheduleId, out var targetSessionId) ||
                 targetSessionId == Guid.Empty)
-            {
                 continue; // Bỏ qua nếu không tìm thấy session cho schedule này trong ngày
-            }
 
             // Lấy tổng số sinh viên đăng ký từ dictionary
             if (!allTotalStudentsCounts.TryGetValue(scheduleProjection.ClassSectionId, out var totalStudents))
-            {
                 totalStudents = 0; // Mặc định là 0 nếu không tìm thấy
-            }
 
             // Lấy thông tin điểm danh từ module Attendance
             var attendanceSummary = await mediator.Send(

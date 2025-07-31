@@ -77,10 +77,7 @@ public static class AttendanceSeedData
                 var sessionEndTime = scheduleDto.StartDate.ToDateTime(scheduleDto.EndTime);
 
                 // Xử lý trường hợp thời gian kết thúc nhỏ hơn thời gian bắt đầu (qua ngày)
-                if (scheduleDto.EndTime < scheduleDto.StartTime)
-                {
-                    sessionEndTime = sessionEndTime.AddDays(1);
-                }
+                if (scheduleDto.EndTime < scheduleDto.StartTime) sessionEndTime = sessionEndTime.AddDays(1);
 
                 // Đảm bảo UTC Kind
                 sessionStartTime = DateTime.SpecifyKind(sessionStartTime, DateTimeKind.Utc);
@@ -103,12 +100,11 @@ public static class AttendanceSeedData
                     roundsToAdd.AddRange(rounds);
 
                     logger?.LogDebug($"Created session and {rounds.Count} rounds for schedule {scheduleDto.Id}: " +
-                                   $"{sessionStartTime:yyyy-MM-dd HH:mm} - {sessionEndTime:yyyy-MM-dd HH:mm}");
+                                     $"{sessionStartTime:yyyy-MM-dd HH:mm} - {sessionEndTime:yyyy-MM-dd HH:mm}");
                 }
                 catch (Exception ex)
                 {
                     logger?.LogError(ex, $"Failed to create session for schedule {scheduleDto.Id}");
-                    continue;
                 }
             }
 
@@ -125,7 +121,7 @@ public static class AttendanceSeedData
                     var firstSession = sessionsToAdd.OrderBy(s => s.StartTime).First();
                     var lastSession = sessionsToAdd.OrderBy(s => s.StartTime).Last();
                     logger?.LogInformation($"Sessions span from {firstSession.StartTime:yyyy-MM-dd HH:mm} " +
-                                         $"to {lastSession.EndTime:yyyy-MM-dd HH:mm}");
+                                           $"to {lastSession.EndTime:yyyy-MM-dd HH:mm}");
                 }
             }
             else
@@ -159,10 +155,8 @@ public static class AttendanceSeedData
         var totalDuration = session.EndTime.Subtract(session.StartTime);
         var totalAttendanceRounds = session.TotalAttendanceRounds; // Lấy từ SessionConfigs
 
-        if (totalAttendanceRounds <= 0 || !(totalDuration.TotalSeconds > 0))
-        {
-            return rounds; // Trả về list rỗng nếu không hợp lệ
-        }
+        if (totalAttendanceRounds <= 0 ||
+            !(totalDuration.TotalSeconds > 0)) return rounds; // Trả về list rỗng nếu không hợp lệ
 
         var durationPerRoundSeconds = totalDuration.TotalSeconds / totalAttendanceRounds;
 
@@ -172,10 +166,7 @@ public static class AttendanceSeedData
             var roundEndTime = roundStartTime.AddSeconds(durationPerRoundSeconds);
 
             // Đảm bảo EndTime của round cuối cùng không vượt quá EndTime của session
-            if (i == totalAttendanceRounds)
-            {
-                roundEndTime = session.EndTime;
-            }
+            if (i == totalAttendanceRounds) roundEndTime = session.EndTime;
 
             var newRound = Round.Create(
                 session.Id,
@@ -190,8 +181,14 @@ public static class AttendanceSeedData
     }
 
     // Method để lấy thông tin sessions đã seed (nếu cần thiết)
-    public static List<Session> GetSeededSessions() => SeededSessions.ToList();
+    public static List<Session> GetSeededSessions()
+    {
+        return SeededSessions.ToList();
+    }
 
     // Method để lấy thông tin rounds đã seed (nếu cần thiết)
-    public static List<Round> GetSeededRounds() => SeededRounds.ToList();
+    public static List<Round> GetSeededRounds()
+    {
+        return SeededRounds.ToList();
+    }
 }

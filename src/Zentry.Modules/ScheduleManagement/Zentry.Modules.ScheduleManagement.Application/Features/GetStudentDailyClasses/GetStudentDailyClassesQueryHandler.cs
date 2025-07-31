@@ -3,12 +3,16 @@
 using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Helpers; // Để dùng ToWeekDayEnum
-using Zentry.Modules.ScheduleManagement.Application.Services; // Để dùng IUserScheduleService
+using Zentry.Modules.ScheduleManagement.Application.Helpers;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Constants.User;
-using Zentry.SharedKernel.Contracts.Attendance; // GetSessionsByScheduleIdIntegrationQuery
+using Zentry.SharedKernel.Contracts.Attendance;
+// Để dùng ToWeekDayEnum
+// Để dùng IUserScheduleService
+
+// GetSessionsByScheduleIdIntegrationQuery
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailyClasses;
 

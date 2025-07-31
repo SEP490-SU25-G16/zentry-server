@@ -1,6 +1,7 @@
 using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Domain;
-using System.Collections.Generic; // Thêm namespace này
+
+// Thêm namespace này
 
 namespace Zentry.Modules.ConfigurationManagement.Entities;
 
@@ -55,14 +56,16 @@ public class AttributeDefinition : AggregateRoot<Guid>
     }
 
     public static AttributeDefinition FromSeedingData(Guid id, string key, string displayName, string? description,
-        DataType dataType, List<ScopeType> allowedScopeTypes, string? unit, string? defaultValue, bool isDeletable = true)
+        DataType dataType, List<ScopeType> allowedScopeTypes, string? unit, string? defaultValue,
+        bool isDeletable = true)
     {
         return new AttributeDefinition(id, key, displayName, description, dataType,
             allowedScopeTypes, unit, defaultValue, isDeletable);
     }
 
     public void Update(string? displayName = null, string? description = null, DataType? dataType = null,
-        List<ScopeType>? allowedScopeTypes = null, string? unit = null, string? defaultValue = null, bool? isDeletable = null)
+        List<ScopeType>? allowedScopeTypes = null, string? unit = null, string? defaultValue = null,
+        bool? isDeletable = null)
     {
         if (!string.IsNullOrWhiteSpace(displayName)) DisplayName = displayName;
         if (!string.IsNullOrWhiteSpace(description)) Description = description;
@@ -76,19 +79,21 @@ public class AttributeDefinition : AggregateRoot<Guid>
 
     public void SetCoreConfig()
     {
-        this.IsDeletable = false;
+        IsDeletable = false;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void RemoveCoreConfig()
     {
-        this.IsDeletable = true;
+        IsDeletable = true;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void AddOption(Option option)
     {
         Options.Add(option);
     }
+
     public void RemoveOption(Option option)
     {
         Options.Remove(option);

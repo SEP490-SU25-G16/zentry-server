@@ -1,4 +1,3 @@
-using FluentValidation;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -47,10 +46,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
         var message = firstError?.ErrorMessage ?? ErrorMessages.InvalidDataFormat;
 
-        if (IsGuidFormatError(firstError?.ErrorMessage))
-        {
-            message = ErrorMessages.GuidFormatInvalid;
-        }
+        if (IsGuidFormatError(firstError?.ErrorMessage)) message = ErrorMessages.GuidFormatInvalid;
 
         var apiResponse = ApiResponse.ErrorResult(ErrorCodes.ValidationError, message);
         return new BadRequestObjectResult(apiResponse);
@@ -148,7 +144,6 @@ static async Task RunDatabaseMigrationsAsync(WebApplication app)
     };
 
     foreach (var (contextType, contextName) in migrations)
-    {
         await retryPolicy.ExecuteAsync(async () =>
         {
             var dbContext = (DbContext)serviceProvider.GetRequiredService(contextType);
@@ -156,5 +151,4 @@ static async Task RunDatabaseMigrationsAsync(WebApplication app)
             await dbContext.Database.MigrateAsync();
             logger.LogInformation("{ContextName} migrations applied successfully.", contextName);
         });
-    }
 }

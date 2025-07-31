@@ -1,15 +1,14 @@
 ﻿using MassTransit;
-using MediatR; // Vẫn cần MediatR nếu các command/query khác trong module này sử dụng nó.
-                // Nếu SubmitScanDataCommandHandler là handler duy nhất cần MediatR, có thể bỏ.
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
-using Zentry.SharedKernel.Constants.Response;
-using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
+// Vẫn cần MediatR nếu các command/query khác trong module này sử dụng nó.
+// Nếu SubmitScanDataCommandHandler là handler duy nhất cần MediatR, có thể bỏ.
+
 // using Zentry.SharedKernel.Contracts.Device; // KHÔNG CẦN THIẾT NỮA
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
@@ -87,7 +86,8 @@ public class SubmitScanDataCommandHandler(
                 request.SubmitterDeviceMacAddress, // Truyền MAC Address của thiết bị gửi
                 request.SessionId,
                 currentRoundId,
-                request.ScannedDevices.Select(sd => new ScannedDeviceContractForMessage(sd.MacAddress, sd.Rssi)).ToList(), // Dùng ScannedDeviceContractForMessage
+                request.ScannedDevices.Select(sd => new ScannedDeviceContractForMessage(sd.MacAddress, sd.Rssi))
+                    .ToList(), // Dùng ScannedDeviceContractForMessage
                 request.Timestamp
             );
 

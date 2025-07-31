@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when a user is not found.
+///     Represents an exception thrown when a user is not found.
 /// </summary>
 public class UserNotFoundException : BusinessLogicException
 {

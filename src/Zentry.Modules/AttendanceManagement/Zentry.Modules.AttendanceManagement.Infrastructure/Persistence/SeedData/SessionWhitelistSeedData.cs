@@ -1,4 +1,3 @@
-using Bogus;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -31,7 +30,8 @@ public static class SessionWhitelistSeedData
 
             if (!seededScheduleDtos.Any())
             {
-                logger?.LogWarning("No Schedule DTOs provided to create SessionWhitelists. Skipping SessionWhitelist seeding.");
+                logger?.LogWarning(
+                    "No Schedule DTOs provided to create SessionWhitelists. Skipping SessionWhitelist seeding.");
                 return;
             }
 
@@ -59,52 +59,49 @@ public static class SessionWhitelistSeedData
             var allStudentIds = allStudentsResponse.UserIds;
 
             if (!allStudentIds.Any())
-            {
-                logger?.LogWarning("No active students found in User module. SessionWhitelists will only contain lecturer devices.");
-            }
+                logger?.LogWarning(
+                    "No active students found in User module. SessionWhitelists will only contain lecturer devices.");
             else
-            {
                 logger?.LogInformation($"Found {allStudentIds.Count} active students in User module.");
-            }
 
             // Lấy device mapping cho tất cả sinh viên
             Dictionary<Guid, Guid> studentDeviceMap = new();
             if (allStudentIds.Any())
-            {
                 try
                 {
                     logger?.LogInformation("Fetching device mappings for all students...");
                     var getStudentDevicesQuery = new GetDevicesByUsersIntegrationQuery(allStudentIds);
                     var studentDevicesResponse = await mediator.Send(getStudentDevicesQuery, cancellationToken);
                     studentDeviceMap = studentDevicesResponse.UserDeviceMap;
-                    logger?.LogInformation($"Successfully retrieved device mappings for {studentDeviceMap.Count} students.");
+                    logger?.LogInformation(
+                        $"Successfully retrieved device mappings for {studentDeviceMap.Count} students.");
                 }
                 catch (Exception ex)
                 {
                     logger?.LogError(ex, "Error fetching student device mappings. Continuing with empty device map.");
                     studentDeviceMap = new Dictionary<Guid, Guid>();
                 }
-            }
 
             var whitelistsToAdd = new List<SessionWhitelist>();
             var processedCount = 0;
 
             foreach (var session in existingSessions)
-            {
                 try
                 {
                     // Tìm schedule và classsection tương ứng
                     var schedule = seededScheduleDtos.FirstOrDefault(s => s.Id == session.ScheduleId);
                     if (schedule == null)
                     {
-                        logger?.LogWarning($"Schedule not found for session {session.Id}. Skipping whitelist creation.");
+                        logger?.LogWarning(
+                            $"Schedule not found for session {session.Id}. Skipping whitelist creation.");
                         continue;
                     }
 
                     var classSection = seededClassSectionDtos.FirstOrDefault(cs => cs.Id == schedule.ClassSectionId);
                     if (classSection == null)
                     {
-                        logger?.LogWarning($"ClassSection not found for schedule {schedule.Id}. Skipping whitelist creation.");
+                        logger?.LogWarning(
+                            $"ClassSection not found for schedule {schedule.Id}. Skipping whitelist creation.");
                         continue;
                     }
 
@@ -116,21 +113,25 @@ public static class SessionWhitelistSeedData
                         var getLecturerDeviceQuery = new GetDeviceByUserIntegrationQuery(classSection.LecturerId);
                         var lecturerDeviceResponse = await mediator.Send(getLecturerDeviceQuery, cancellationToken);
                         whitelistedDeviceIds.Add(lecturerDeviceResponse.DeviceId);
-                        logger?.LogDebug($"Added lecturer device {lecturerDeviceResponse.DeviceId} for session {session.Id}");
+                        logger?.LogDebug(
+                            $"Added lecturer device {lecturerDeviceResponse.DeviceId} for session {session.Id}");
                     }
                     catch (NotFoundException)
                     {
-                        logger?.LogWarning($"Lecturer {classSection.LecturerId} does not have an active device. Skipping lecturer device for session {session.Id}.");
+                        logger?.LogWarning(
+                            $"Lecturer {classSection.LecturerId} does not have an active device. Skipping lecturer device for session {session.Id}.");
                     }
                     catch (Exception ex)
                     {
-                        logger?.LogError(ex, $"Error getting lecturer device for session {session.Id}. Continuing without lecturer device.");
+                        logger?.LogError(ex,
+                            $"Error getting lecturer device for session {session.Id}. Continuing without lecturer device.");
                     }
 
                     // 2. Thêm devices của sinh viên trong class section
                     try
                     {
-                        var getStudentIdsQuery = new GetStudentIdsByClassSectionIdIntegrationQuery(schedule.ClassSectionId);
+                        var getStudentIdsQuery =
+                            new GetStudentIdsByClassSectionIdIntegrationQuery(schedule.ClassSectionId);
                         var studentIdsResponse = await mediator.Send(getStudentIdsQuery, cancellationToken);
                         var enrolledStudentIds = studentIdsResponse.StudentIds;
 
@@ -142,21 +143,21 @@ public static class SessionWhitelistSeedData
                                 .Select(studentId => studentDeviceMap[studentId])
                                 .ToList();
 
-                            foreach (var deviceId in enrolledStudentDevices)
-                            {
-                                whitelistedDeviceIds.Add(deviceId);
-                            }
+                            foreach (var deviceId in enrolledStudentDevices) whitelistedDeviceIds.Add(deviceId);
 
-                            logger?.LogDebug($"Added {enrolledStudentDevices.Count} student devices for session {session.Id} (from {enrolledStudentIds.Count} enrolled students)");
+                            logger?.LogDebug(
+                                $"Added {enrolledStudentDevices.Count} student devices for session {session.Id} (from {enrolledStudentIds.Count} enrolled students)");
                         }
                         else
                         {
-                            logger?.LogDebug($"No enrolled students found for ClassSection {schedule.ClassSectionId} of session {session.Id}");
+                            logger?.LogDebug(
+                                $"No enrolled students found for ClassSection {schedule.ClassSectionId} of session {session.Id}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        logger?.LogError(ex, $"Error getting enrolled students for session {session.Id}. Continuing without student devices.");
+                        logger?.LogError(ex,
+                            $"Error getting enrolled students for session {session.Id}. Continuing without student devices.");
                     }
 
                     // 3. Tạo SessionWhitelist
@@ -166,18 +167,16 @@ public static class SessionWhitelistSeedData
 
                     processedCount++;
                     if (processedCount % 50 == 0)
-                    {
-                        logger?.LogInformation($"Processed {processedCount}/{existingSessions.Count} sessions for whitelist creation...");
-                    }
+                        logger?.LogInformation(
+                            $"Processed {processedCount}/{existingSessions.Count} sessions for whitelist creation...");
 
-                    logger?.LogDebug($"Created whitelist for session {session.Id} with {finalWhitelistedDevices.Count} devices");
+                    logger?.LogDebug(
+                        $"Created whitelist for session {session.Id} with {finalWhitelistedDevices.Count} devices");
                 }
                 catch (Exception ex)
                 {
                     logger?.LogError(ex, $"Error creating whitelist for session {session.Id}. Skipping this session.");
-                    continue;
                 }
-            }
 
             // Lưu tất cả SessionWhitelists
             if (whitelistsToAdd.Any())
@@ -190,7 +189,7 @@ public static class SessionWhitelistSeedData
                 var totalDevices = whitelistsToAdd.Sum(w => w.WhitelistedDeviceIds.Count);
                 var avgDevicesPerWhitelist = whitelistsToAdd.Any() ? totalDevices / (double)whitelistsToAdd.Count : 0;
 
-                logger?.LogInformation($"SessionWhitelist seeding statistics:");
+                logger?.LogInformation("SessionWhitelist seeding statistics:");
                 logger?.LogInformation($"  - Total whitelists created: {whitelistsToAdd.Count}");
                 logger?.LogInformation($"  - Total devices across all whitelists: {totalDevices}");
                 logger?.LogInformation($"  - Average devices per whitelist: {avgDevicesPerWhitelist:F2}");
@@ -208,5 +207,8 @@ public static class SessionWhitelistSeedData
     }
 
     // Method để lấy thông tin session whitelists đã seed (nếu cần thiết)
-    public static List<SessionWhitelist> GetSeededSessionWhitelists() => SeededSessionWhitelists.ToList();
+    public static List<SessionWhitelist> GetSeededSessionWhitelists()
+    {
+        return SeededSessionWhitelists.ToList();
+    }
 }

@@ -9,7 +9,6 @@ using Zentry.Modules.ConfigurationManagement.Services;
 
 namespace Zentry.Modules.ConfigurationManagement;
 
-
 public static class DependencyInjection
 {
     public static IServiceCollection AddConfigurationInfrastructure(this IServiceCollection services,

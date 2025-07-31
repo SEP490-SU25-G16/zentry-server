@@ -2,8 +2,10 @@ using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
-using Zentry.SharedKernel.Contracts.Schedule; // Có thể cần nếu dùng integration query
+
+// Có thể cần nếu dùng integration query
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetClassDetail;
 
@@ -28,10 +30,8 @@ public class GetClassDetailQueryHandler(
             request.ClassSectionId, cancellationToken);
 
         if (scheduleInfo == null)
-        {
             // Nếu không tìm thấy schedule nào cho class section này, có thể ném NotFound
             throw new NotFoundException("ClassSection", request.ClassSectionId);
-        }
 
         // Lấy số lượng sinh viên đăng ký
         // Sử dụng Integration Query hiện có

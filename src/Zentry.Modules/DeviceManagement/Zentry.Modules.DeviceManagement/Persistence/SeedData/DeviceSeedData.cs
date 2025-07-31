@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.DeviceManagement.Entities;
 using Zentry.Modules.DeviceManagement.ValueObjects;
-using Zentry.SharedKernel.Constants.Device;
-using System.Linq; // Thêm using này cho các phương thức LINQ
+
+// Thêm using này cho các phương thức LINQ
 
 namespace Zentry.Modules.DeviceManagement.Persistence.SeedData;
 
@@ -40,10 +40,19 @@ public static class DeviceSeedData
             // Common device models and manufacturers
             var deviceModels = new Dictionary<string, string[]>
             {
-                ["Apple"] = ["iPhone 15 Pro", "iPhone 14", "iPhone 13 mini", "iPad Pro (M2)", "iPad Air", "MacBook Pro M3", "MacBook Air M2", "iMac 24-inch"],
-                ["Samsung"] = ["Galaxy S24 Ultra", "Galaxy S23 FE", "Galaxy Z Fold5", "Galaxy Tab S9 Ultra", "Galaxy Book3 Pro", "Galaxy Watch 6"],
+                ["Apple"] =
+                [
+                    "iPhone 15 Pro", "iPhone 14", "iPhone 13 mini", "iPad Pro (M2)", "iPad Air", "MacBook Pro M3",
+                    "MacBook Air M2", "iMac 24-inch"
+                ],
+                ["Samsung"] =
+                [
+                    "Galaxy S24 Ultra", "Galaxy S23 FE", "Galaxy Z Fold5", "Galaxy Tab S9 Ultra", "Galaxy Book3 Pro",
+                    "Galaxy Watch 6"
+                ],
                 ["Google"] = ["Pixel 8 Pro", "Pixel 7a", "Pixel Tablet", "Nest Hub Max", "Chromebook Pixel"],
-                ["Xiaomi"] = ["Xiaomi 14 Ultra", "Redmi Note 13 Pro", "Xiaomi Pad 6 Pro", "Redmi Book Pro", "Mi Band 8 Pro"],
+                ["Xiaomi"] =
+                    ["Xiaomi 14 Ultra", "Redmi Note 13 Pro", "Xiaomi Pad 6 Pro", "Redmi Book Pro", "Mi Band 8 Pro"],
                 ["Oppo"] = ["Oppo Find X7 Ultra", "Reno11 Pro", "Oppo A98", "Oppo Pad 2"],
                 ["Vivo"] = ["Vivo X100 Pro", "V29e", "Y100", "iQOO 12"],
                 ["Huawei"] = ["Huawei Pura 70 Ultra", "Mate 60 Pro", "MatePad Pro", "MateBook X Pro"],
@@ -66,7 +75,6 @@ public static class DeviceSeedData
                 var numberOfDevices = faker.Random.Number(DevicesPerUser, MaxDevicesPerUser);
 
                 for (var i = 0; i < numberOfDevices; i++)
-                {
                     try
                     {
                         // Generate unique MAC address
@@ -80,14 +88,17 @@ public static class DeviceSeedData
 
                         if (attempts >= 100)
                         {
-                            logger?.LogWarning($"Could not generate unique MAC address after {attempts} attempts for user {userId} device {i}. Skipping this device.");
+                            logger?.LogWarning(
+                                $"Could not generate unique MAC address after {attempts} attempts for user {userId} device {i}. Skipping this device.");
                             continue;
                         }
 
                         usedMacAddresses.Add(macAddressValue);
 
                         // Select random manufacturer and model
-                        var manufacturer = faker.PickRandom(deviceModels.Keys.ToList()); // Chuyển Keys sang List để PickRandom hoạt động đúng
+                        var manufacturer =
+                            faker.PickRandom(deviceModels.Keys
+                                .ToList()); // Chuyển Keys sang List để PickRandom hoạt động đúng
                         var model = faker.PickRandom(deviceModels[manufacturer].ToList()); // Chuyển mảng sang List
 
                         // Determine platform based on manufacturer and model
@@ -112,31 +123,36 @@ public static class DeviceSeedData
                             // Đối với các hãng khác, phần lớn là Android
                             platform = "Android";
                         }
+
                         // Đảm bảo platform là một trong các giá trị đã định nghĩa
-                        platform = faker.Random.ArrayElement(platforms); // Chọn lại ngẫu nhiên từ danh sách platforms đã định nghĩa để đa dạng hơn
+                        platform = faker.Random
+                            .ArrayElement(
+                                platforms); // Chọn lại ngẫu nhiên từ danh sách platforms đã định nghĩa để đa dạng hơn
 
                         // Generate OS version based on platform
                         var osVersion = platform switch
                         {
                             "iOS" => faker.Random.ArrayElement(new[] { "17.5.1", "17.4", "17.3", "16.7.8", "16.7.7" }),
-                            "iPadOS" => faker.Random.ArrayElement(new[] { "17.5.1", "17.4", "17.3", "16.7.8", "16.7.7" }),
+                            "iPadOS" => faker.Random.ArrayElement(
+                                new[] { "17.5.1", "17.4", "17.3", "16.7.8", "16.7.7" }),
                             "Android" => faker.Random.ArrayElement(new[] { "14", "13", "12", "11" }),
                             "Windows" => faker.Random.ArrayElement(new[] { "11", "10" }),
                             "macOS" => faker.Random.ArrayElement(new[] { "14.5", "14.4", "13.6", "12.7" }),
                             "Chrome OS" => faker.Random.ArrayElement(new[] { "126.0", "125.0", "124.0" }),
-                            _ => faker.Random.ArrayElement(new[] { "1.0", "1.1", "2.0" }) // Fallback cho các platform không xác định
+                            _ => faker.Random.ArrayElement(new[]
+                                { "1.0", "1.1", "2.0" }) // Fallback cho các platform không xác định
                         };
 
                         // Create device name (mix Vietnamese and English)
-                        var deviceNameValue = i == 0 ?
-                            faker.PickRandom(vietnameseDeviceNames) :
-                            $"{model} {faker.Random.Number(1, 99)}";
+                        var deviceNameValue = i == 0
+                            ? faker.PickRandom(vietnameseDeviceNames)
+                            : $"{model} {faker.Random.Number(1, 99)}";
 
                         // Tạo ValueObjects đúng cách
                         var deviceName = DeviceName.Create(deviceNameValue); // Khởi tạo DeviceName ValueObject
                         var deviceToken = DeviceToken.Create(); // Nếu DeviceToken.Create() tạo ngẫu nhiên
-                                                              // Nếu không, bạn cần tạo string ngẫu nhiên và truyền vào:
-                                                              // var deviceToken = DeviceToken.Create(GeneratePushToken(faker));
+                        // Nếu không, bạn cần tạo string ngẫu nhiên và truyền vào:
+                        // var deviceToken = DeviceToken.Create(GeneratePushToken(faker));
                         var macAddress = MacAddress.Create(macAddressValue); // Khởi tạo MacAddress ValueObject
 
 
@@ -154,10 +170,7 @@ public static class DeviceSeedData
                         );
 
                         // Randomly set some devices as inactive (10% chance)
-                        if (faker.Random.Bool(0.1f))
-                        {
-                            device.Deactivate();
-                        }
+                        if (faker.Random.Bool(0.1f)) device.Deactivate();
 
                         devicesToSeed.Add(device);
                     }
@@ -165,7 +178,6 @@ public static class DeviceSeedData
                     {
                         logger?.LogWarning(ex, $"Failed to create device {i} for user {userId}. Error: {ex.Message}");
                     }
-                }
             }
 
             if (devicesToSeed.Count > 0)

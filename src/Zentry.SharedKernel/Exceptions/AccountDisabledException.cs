@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when an account is disabled.
+///     Represents an exception thrown when an account is disabled.
 /// </summary>
 public class AccountDisabledException : BusinessLogicException
 {

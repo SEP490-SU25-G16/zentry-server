@@ -29,9 +29,7 @@ public class DevicesController(IMediator mediator) : BaseController
 
         // Validate required fields
         if (string.IsNullOrWhiteSpace(request.MacAddress))
-        {
             return BadRequest("MAC address is required for device registration.");
-        }
 
         // 1. Lấy UserId từ JWT (đã được middleware xác thực và gán vào HttpContext.User)
         // Đây là cách an toàn và chuẩn để lấy UserId của người dùng đã đăng nhập.

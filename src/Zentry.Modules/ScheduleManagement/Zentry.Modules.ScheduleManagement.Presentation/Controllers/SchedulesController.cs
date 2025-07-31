@@ -24,9 +24,7 @@ public class SchedulesController(IMediator mediator) : BaseController
         CancellationToken cancellationToken)
     {
         if (month < 1 || month > 12 || year < 1900 || year > 2100)
-        {
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Month or year is out of valid range."));
-        }
 
         try
         {

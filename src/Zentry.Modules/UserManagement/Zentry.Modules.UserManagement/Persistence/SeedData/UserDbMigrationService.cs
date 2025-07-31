@@ -36,7 +36,7 @@ public class UserDbMigrationService(
                     using var scope = serviceProvider.CreateScope();
                     var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
 
-                    await seeder.SeedAllAsync(false);
+                    await seeder.SeedAllAsync();
                 });
                 logger.LogInformation("User Management database migration and seeding completed successfully.");
             }

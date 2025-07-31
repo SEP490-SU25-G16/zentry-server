@@ -1,8 +1,9 @@
+using System.Linq.Expressions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Zentry.Modules.ConfigurationManagement.Persistence;
+using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;
-using System.Linq.Expressions;
+using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
@@ -20,26 +21,17 @@ public class GetListAttributeDefinitionQueryHandler(
         queryable = queryable.Include(ad => ad.Options);
 
         // ... (Các bộ lọc và sắp xếp khác của bạn) ...
-        if (!string.IsNullOrWhiteSpace(query.Key))
-        {
-            queryable = queryable.Where(ad => ad.Key.Contains(query.Key));
-        }
+        if (!string.IsNullOrWhiteSpace(query.Key)) queryable = queryable.Where(ad => ad.Key.Contains(query.Key));
 
         if (!string.IsNullOrWhiteSpace(query.DisplayName))
-        {
             queryable = queryable.Where(ad => ad.DisplayName.Contains(query.DisplayName));
-        }
 
         if (!string.IsNullOrWhiteSpace(query.DataType))
-        {
             queryable = queryable.Where(ad => ad.DataType == DataType.FromName(query.DataType));
-        }
 
         if (!string.IsNullOrWhiteSpace(query.ScopeType))
-        {
             queryable = queryable.Where(ad =>
                 ad.AllowedScopeTypes.Any(st => st == ScopeType.FromName(query.ScopeType)));
-        }
 
         if (!string.IsNullOrWhiteSpace(query.OrderBy))
         {
@@ -85,7 +77,7 @@ public class GetListAttributeDefinitionQueryHandler(
                     IsDeletable = ad.IsDeletable,
                     CreatedAt = ad.CreatedAt,
                     UpdatedAt = ad.UpdatedAt,
-                    Options = ad.Options.Select(opt => new Dtos.OptionDto
+                    Options = ad.Options.Select(opt => new OptionDto
                     {
                         Id = opt.Id,
                         Value = opt.Value,

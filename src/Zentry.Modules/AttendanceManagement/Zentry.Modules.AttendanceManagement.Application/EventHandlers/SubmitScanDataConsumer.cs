@@ -1,15 +1,19 @@
 ﻿using MassTransit;
-using MediatR; // <-- Thêm MediatR
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Constants.Attendance;
-using Zentry.SharedKernel.Constants.Response; // Thêm nếu dùng ErrorMessages
+using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
-using Zentry.SharedKernel.Contracts.Device; // <-- Thêm để truy cập GetDeviceByMacIntegrationQuery/Response
-using Zentry.SharedKernel.Contracts.Attendance; // Để truy cập ScannedDeviceContract (nếu không có)
-using Zentry.SharedKernel.Exceptions; // Thêm nếu dùng NotFoundException
+using Zentry.SharedKernel.Exceptions;
+// <-- Thêm MediatR
+// Thêm nếu dùng ErrorMessages
+// <-- Thêm để truy cập GetDeviceByMacIntegrationQuery/Response
+// Để truy cập ScannedDeviceContract (nếu không có)
+
+// Thêm nếu dùng NotFoundException
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -68,7 +72,7 @@ public class SubmitScanDataConsumer(
 
             // --- BƯỚC B: Ánh xạ MAC Address của các thiết bị được quét thành DeviceId ---
             var scannedMacAddresses = message.ScannedDevices.Select(sd => sd.MacAddress).ToList();
-            List<ScannedDevice> finalScannedDevicesForLog = new List<ScannedDevice>(); // Hoặc dùng [] trong C# 9+
+            var finalScannedDevicesForLog = new List<ScannedDevice>(); // Hoặc dùng [] trong C# 9+
 
             if (scannedMacAddresses.Any())
             {
@@ -83,20 +87,14 @@ public class SubmitScanDataConsumer(
                 );
 
                 foreach (var scannedDeviceFromMsg in message.ScannedDevices)
-                {
                     if (macToDeviceUserMap.TryGetValue(scannedDeviceFromMsg.MacAddress, out var mappedInfo))
-                    {
                         // SỬA ĐỔI DÒNG NÀY: Thêm 'new' trước ScannedDevice
                         finalScannedDevicesForLog.Add(
                             new ScannedDevice(mappedInfo.DeviceId.ToString(), scannedDeviceFromMsg.Rssi));
-                    }
                     else
-                    {
                         logger.LogWarning(
                             "Scanned device with MAC {ScannedMac} not found or inactive during consumer processing, skipping.",
                             scannedDeviceFromMsg.MacAddress);
-                    }
-                }
             }
 
             // Nếu không có thiết bị hợp lệ nào được quét (ví dụ: tất cả đều không đăng ký)

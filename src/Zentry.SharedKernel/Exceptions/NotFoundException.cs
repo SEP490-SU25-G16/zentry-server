@@ -1,8 +1,8 @@
 ﻿namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents a general exception thrown when an entity is not found by its key.
-/// This can be used as a more generic alternative to specific "NotFound" exceptions.
+///     Represents a general exception thrown when an entity is not found by its key.
+///     This can be used as a more generic alternative to specific "NotFound" exceptions.
 /// </summary>
 public class NotFoundException : BusinessLogicException
 {

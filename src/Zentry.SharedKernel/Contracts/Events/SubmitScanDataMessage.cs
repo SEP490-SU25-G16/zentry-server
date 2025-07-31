@@ -1,6 +1,4 @@
-﻿using Zentry.SharedKernel.Contracts.Attendance;
-
-namespace Zentry.SharedKernel.Contracts.Events;
+﻿namespace Zentry.SharedKernel.Contracts.Events;
 
 public record SubmitScanDataMessage(
     string SubmitterDeviceMacAddress, // MAC Address của thiết bị gửi

@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when a room is not available at a specific time.
+///     Represents an exception thrown when a room is not available at a specific time.
 /// </summary>
 public class RoomNotAvailableException : BusinessLogicException
 {

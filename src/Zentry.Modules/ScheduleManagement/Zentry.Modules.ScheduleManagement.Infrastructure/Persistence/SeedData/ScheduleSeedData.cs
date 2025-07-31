@@ -256,10 +256,7 @@ public static class ScheduleSeedData
                 currentDateTime.Hour, 0, 0, DateTimeKind.Local);
 
             // Nếu đã qua nửa giờ thì chuyển sang giờ tiếp theo
-            if (currentDateTime.Minute >= 30)
-            {
-                startDateTime = startDateTime.AddHours(1);
-            }
+            if (currentDateTime.Minute >= 30) startDateTime = startDateTime.AddHours(1);
 
             var weekdays = Enumeration.GetAll<WeekDayEnum>().ToList();
             var scheduleCounter = 0;

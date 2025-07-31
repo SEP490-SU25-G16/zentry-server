@@ -1,5 +1,3 @@
-using System;
-
 namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
 
 public class ClassDetailDto

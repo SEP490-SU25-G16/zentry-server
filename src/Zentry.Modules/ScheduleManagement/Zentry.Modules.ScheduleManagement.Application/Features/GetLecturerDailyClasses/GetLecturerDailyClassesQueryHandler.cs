@@ -5,9 +5,9 @@ using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
-using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.Attendance;
-using Zentry.SharedKernel.Contracts.Schedule; // Đảm bảo đã thêm
+
+// Đảm bảo đã thêm
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
 

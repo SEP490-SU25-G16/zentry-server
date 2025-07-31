@@ -2,8 +2,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Zentry.Modules.DeviceManagement.Persistence;
-using Zentry.Modules.DeviceManagement.Persistence.SeedData;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
 
@@ -35,9 +33,12 @@ public class DeviceDbSeeder(IServiceProvider serviceProvider, ILogger<DeviceDbSe
 
             // Get Admin and Manager User IDs
             var adminResponse = await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Admin), cancellationToken);
-            var managerResponse = await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Manager), cancellationToken);
-            var lecturerResponse = await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Lecturer), cancellationToken);
-            var studentResponse = await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Student), cancellationToken);
+            var managerResponse =
+                await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Manager), cancellationToken);
+            var lecturerResponse =
+                await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Lecturer), cancellationToken);
+            var studentResponse =
+                await mediator.Send(new GetUsersByRoleIntegrationQuery(Role.Student), cancellationToken);
 
             allUserIds.AddRange(adminResponse.UserIds);
             allUserIds.AddRange(managerResponse.UserIds);

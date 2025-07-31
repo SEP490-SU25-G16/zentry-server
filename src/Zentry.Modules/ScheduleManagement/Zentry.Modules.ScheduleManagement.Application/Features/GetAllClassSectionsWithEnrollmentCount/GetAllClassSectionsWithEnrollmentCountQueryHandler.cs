@@ -1,10 +1,12 @@
-using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Services; // Để lấy thông tin User/Lecturer Name
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Schedule; // For EnrollmentStatus
-using Zentry.SharedKernel.Constants.User; // For Role
+using Zentry.SharedKernel.Constants.User;
+// Để lấy thông tin User/Lecturer Name
+// For EnrollmentStatus
+
+// For Role
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetAllClassSectionsWithEnrollmentCount;
 
@@ -36,7 +38,8 @@ public class GetAllClassSectionsWithEnrollmentCountQueryHandler(
                 cs.Id, cancellationToken);
 
             // Lấy thông tin giảng viên (nếu cần)
-            var lecturer = await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, cs.LecturerId, cancellationToken);
+            var lecturer =
+                await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, cs.LecturerId, cancellationToken);
             var lecturerName = lecturer?.FullName ?? "N/A";
 
 

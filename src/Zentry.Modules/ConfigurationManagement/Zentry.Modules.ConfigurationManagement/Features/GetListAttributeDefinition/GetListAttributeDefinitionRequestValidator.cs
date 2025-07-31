@@ -1,6 +1,9 @@
 using FluentValidation;
-using Zentry.SharedKernel.Abstractions.Models; // Nếu BaseValidator nằm ở đây
-using Zentry.SharedKernel.Constants.Configuration; // Để sử dụng ScopeType và DataType
+using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Constants.Configuration;
+// Nếu BaseValidator nằm ở đây
+
+// Để sử dụng ScopeType và DataType
 
 namespace Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 

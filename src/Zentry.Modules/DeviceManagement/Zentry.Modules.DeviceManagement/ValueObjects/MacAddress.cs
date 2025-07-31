@@ -8,21 +8,19 @@ public partial class MacAddress : ValueObject
 {
     private static readonly Regex MacAddressRegex = MyRegex();
 
-    public string Value { get; }
-
     private MacAddress(string value)
     {
         Value = NormalizeFormat(value);
     }
+
+    public string Value { get; }
 
     public static MacAddress Create(string macAddress)
     {
         Guard.AgainstNullOrEmpty(macAddress, nameof(macAddress));
 
         if (!IsValidMacAddress(macAddress))
-        {
             throw new ArgumentException($"Invalid MAC address format: {macAddress}", nameof(macAddress));
-        }
 
         return new MacAddress(macAddress);
     }

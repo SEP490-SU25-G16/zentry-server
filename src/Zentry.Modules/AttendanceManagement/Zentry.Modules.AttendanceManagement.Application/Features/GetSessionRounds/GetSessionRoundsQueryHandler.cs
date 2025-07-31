@@ -49,7 +49,7 @@ public class GetSessionRoundsQueryHandler(
         foreach (var round in rounds)
         {
             var attendedCount = allAttendanceRecords
-                .Count(ar => ar.CreatedAt >= round.StartTime && (ar.CreatedAt <= round.EndTime));
+                .Count(ar => ar.CreatedAt >= round.StartTime && ar.CreatedAt <= round.EndTime);
 
             result.Add(new RoundAttendanceDto
             {

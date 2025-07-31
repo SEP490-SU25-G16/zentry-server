@@ -12,15 +12,12 @@ public class GetSessionsByScheduleIdsAndDatesIntegrationQueryHandler(ISessionRep
         GetSessionsByScheduleIdsAndDatesIntegrationQuery query,
         CancellationToken cancellationToken)
     {
-        if (query.Lookups.Count == 0)
-        {
-            return [];
-        }
+        if (query.Lookups.Count == 0) return [];
 
         // Tạo danh sách các cặp (ScheduleId, DateTime.Date (UTC)) để truy vấn
         var lookupTuples = query.Lookups.Select(l =>
         {
-            DateTime utcDateStart = l.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            var utcDateStart = l.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
             return new { l.ScheduleId, UtcDate = utcDateStart.Date };
         }).ToList();
 

@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when a device is already registered.
+///     Represents an exception thrown when a device is already registered.
 /// </summary>
 public class DeviceAlreadyRegisteredException : Exception
 {

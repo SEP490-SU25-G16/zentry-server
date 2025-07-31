@@ -11,7 +11,9 @@ public class ClassSectionWithEnrollmentCountDto
     public string Semester { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
     public int EnrolledStudentsCount { get; set; } // Số lượng sinh viên đã đăng ký
+
     // Có thể thêm các thông tin khác nếu cần, ví dụ: LecturerName
     public string LecturerName { get; set; } = string.Empty;
 }

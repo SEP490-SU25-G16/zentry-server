@@ -11,9 +11,7 @@ public class GetDevicesByMacListQueryHandler(IDeviceRepository repository)
         CancellationToken cancellationToken)
     {
         if (request.MacAddresses == null || !request.MacAddresses.Any())
-        {
             return new GetDevicesByMacListIntegrationResponse(new List<DeviceMacMapping>());
-        }
 
         var deviceMappings =
             await repository.GetDeviceAndUserIdsByMacAddressesAsync(request.MacAddresses, cancellationToken);

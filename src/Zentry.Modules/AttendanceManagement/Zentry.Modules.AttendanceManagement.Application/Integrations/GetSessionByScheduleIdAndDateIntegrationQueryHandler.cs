@@ -1,8 +1,8 @@
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Schedule;
-using Microsoft.EntityFrameworkCore;
-using Zentry.SharedKernel.Contracts.Attendance; // Để dùng Date.Date
+using Zentry.SharedKernel.Contracts.Attendance;
+
+// Để dùng Date.Date
 
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 
@@ -21,10 +21,7 @@ public class GetSessionByScheduleIdAndDateIntegrationQueryHandler(ISessionReposi
             query.Date,
             cancellationToken);
 
-        if (session is null)
-        {
-            return null;
-        }
+        if (session is null) return null;
 
         // Ánh xạ từ Domain Entity (Session) sang DTO (Response)
         return new GetSessionByScheduleIdAndDateIntegrationResponse
@@ -32,7 +29,7 @@ public class GetSessionByScheduleIdAndDateIntegrationQueryHandler(ISessionReposi
             SessionId = session.Id,
             Status = session.Status.ToString(),
             StartTime = session.StartTime, // Đảm bảo là UTC
-            EndTime = session.EndTime      // Đảm bảo là UTC
+            EndTime = session.EndTime // Đảm bảo là UTC
         };
     }
 }

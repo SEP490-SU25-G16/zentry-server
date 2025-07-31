@@ -1,7 +1,7 @@
 using FluentValidation;
 using Zentry.SharedKernel.Abstractions.Models;
-using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Constants.Configuration;
+using Zentry.SharedKernel.Constants.Response;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 
@@ -29,15 +29,11 @@ public class CreateSettingRequestValidator : BaseValidator<CreateSettingRequest>
 
                 if (Equals(scopeType, ScopeType.Global))
                 {
-                    if (string.IsNullOrWhiteSpace(scopeIdString))
-                    {
-                        return;
-                    }
+                    if (string.IsNullOrWhiteSpace(scopeIdString)) return;
 
                     if (!Guid.TryParse(scopeIdString, out var parsedGuid) || parsedGuid != Guid.Empty)
-                    {
-                        context.AddFailure(nameof(request.ScopeId), "Đối với Global ScopeType, ScopeId phải là GUID rỗng (ví dụ: '00000000-0000-0000-0000-000000000000') hoặc để trống.");
-                    }
+                        context.AddFailure(nameof(request.ScopeId),
+                            "Đối với Global ScopeType, ScopeId phải là GUID rỗng (ví dụ: '00000000-0000-0000-0000-000000000000') hoặc để trống.");
                 }
                 else
                 {
@@ -48,9 +44,8 @@ public class CreateSettingRequestValidator : BaseValidator<CreateSettingRequest>
                     }
 
                     if (!Guid.TryParse(scopeIdString, out var parsedGuid) || parsedGuid == Guid.Empty)
-                    {
-                        context.AddFailure(nameof(request.ScopeId), ErrorMessages.GuidFormatInvalid + " (hoặc không được là GUID rỗng).");
-                    }
+                        context.AddFailure(nameof(request.ScopeId),
+                            ErrorMessages.GuidFormatInvalid + " (hoặc không được là GUID rỗng).");
                 }
             });
 

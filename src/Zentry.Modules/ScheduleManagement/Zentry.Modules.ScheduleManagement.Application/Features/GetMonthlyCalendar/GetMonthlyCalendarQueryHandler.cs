@@ -4,11 +4,6 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetMonthlyCalendar;
 
@@ -29,7 +24,7 @@ public class GetMonthlyCalendarQueryHandler(
         var sessionLookups = new List<ScheduleDateLookup>();
 
         // Bước 1: Thu thập tất cả Schedules cho tất cả các ngày trong tháng
-        for (DateTime currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
+        for (var currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
         {
             var currentDateOnly = DateOnly.FromDateTime(currentDate);
             var dayOfWeek = currentDate.DayOfWeek.ToWeekDayEnum();
@@ -44,7 +39,8 @@ public class GetMonthlyCalendarQueryHandler(
             if (schedulesForDay.Count == 0) continue;
             dailySchedulesMap[currentDateOnly] = schedulesForDay.OrderBy(s => s.StartTime).ToList();
 
-            sessionLookups.AddRange(schedulesForDay.Select(scheduleProjection => new ScheduleDateLookup(scheduleProjection.ScheduleId, currentDateOnly)));
+            sessionLookups.AddRange(schedulesForDay.Select(scheduleProjection =>
+                new ScheduleDateLookup(scheduleProjection.ScheduleId, currentDateOnly)));
         }
 
         var allSessionsForMonth = new List<GetSessionsByScheduleIdAndDateIntegrationResponse>();
@@ -73,15 +69,12 @@ public class GetMonthlyCalendarQueryHandler(
             };
 
             if (dailySchedulesMap.TryGetValue(currentDateOnly, out var schedulesOnThisDay))
-            {
                 foreach (var scheduleProjection in schedulesOnThisDay)
                 {
                     Guid? sessionId = null;
                     if (sessionLookupDict.TryGetValue((scheduleProjection.ScheduleId, currentDateOnly),
                             out var foundSessionId))
-                    {
                         sessionId = foundSessionId;
-                    }
 
                     dailyScheduleDto.Classes.Add(new CalendarClassDto
                     {
@@ -94,12 +87,8 @@ public class GetMonthlyCalendarQueryHandler(
                         ClassSectionId = scheduleProjection.ClassSectionId
                     });
                 }
-            }
 
-            if (dailyScheduleDto.Classes.Count != 0)
-            {
-                response.CalendarDays.Add(dailyScheduleDto);
-            }
+            if (dailyScheduleDto.Classes.Count != 0) response.CalendarDays.Add(dailyScheduleDto);
         }
 
         return response;

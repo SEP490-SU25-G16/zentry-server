@@ -35,13 +35,9 @@ public class Setting : AggregateRoot<Guid>
     public static Setting Create(Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
         if (scopeType == ScopeType.Global && scopeId != Guid.Empty)
-        {
             throw new ArgumentException("ScopeId must be Guid.Empty for Global ScopeType.");
-        }
         if (scopeType != ScopeType.Global && scopeId == Guid.Empty)
-        {
             throw new ArgumentException("ScopeId cannot be Guid.Empty for non-Global ScopeType.");
-        }
 
         return new Setting(Guid.NewGuid(), attributeId, scopeType, scopeId, value);
     }
@@ -49,13 +45,9 @@ public class Setting : AggregateRoot<Guid>
     public static Setting FromSeedingData(Guid id, Guid attributeId, ScopeType scopeType, Guid scopeId, string value)
     {
         if (scopeType == ScopeType.Global && scopeId != Guid.Empty)
-        {
             throw new ArgumentException("ScopeId must be Guid.Empty for Global ScopeType in seeding data.");
-        }
         if (scopeType != ScopeType.Global && scopeId == Guid.Empty)
-        {
             throw new ArgumentException("ScopeId cannot be Guid.Empty for non-Global ScopeType in seeding data.");
-        }
         return new Setting(id, attributeId, scopeType, scopeId, value);
     }
 

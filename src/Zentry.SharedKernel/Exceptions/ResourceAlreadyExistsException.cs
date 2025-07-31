@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when a resource with the given identifier already exists.
+///     Represents an exception thrown when a resource with the given identifier already exists.
 /// </summary>
 public class ResourceAlreadyExistsException : BusinessLogicException
 {

@@ -1,13 +1,15 @@
 using Microsoft.EntityFrameworkCore;
-using Zentry.Infrastructure.Caching; // Đảm bảo namespace này đúng
+using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Configuration;
-using System.Linq;
 using Zentry.SharedKernel.Constants.Response;
-using Zentry.SharedKernel.Exceptions; // Thêm namespace này
+using Zentry.SharedKernel.Exceptions;
+// Đảm bảo namespace này đúng
+
+// Thêm namespace này
 
 namespace Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 
@@ -60,15 +62,11 @@ public class
         {
             // Cố gắng parse ScopeId nếu nó không rỗng
             if (Guid.TryParse(query.ScopeId, out var tempGuid))
-            {
                 parsedScopeId = tempGuid;
-            }
             else
-            {
                 // Nếu không parse được và nó không rỗng, đây là lỗi định dạng GUID
                 // Throw một exception để validator bắt hoặc xử lý ở đây
                 throw new ArgumentException("ScopeId không phải là định dạng GUID hợp lệ.");
-            }
         }
         else // Nếu ScopeId là null hoặc chuỗi rỗng
         {
@@ -79,16 +77,12 @@ public class
         // Điều chỉnh logic lọc ScopeId để phù hợp với quy tắc Global/non-Global
         // Query theo parsedScopeId thay vì query.ScopeId.Value
         if (requestedScopeType == ScopeType.Global)
-        {
             // Với Global, ScopeId trong DB phải là Guid.Empty (hoặc null nếu bạn ánh xạ)
             // Đảm bảo bạn lưu Guid.Empty vào DB khi tạo Global setting với ScopeId là null/rỗng
             settingsQuery = settingsQuery.Where(c => c.ScopeId == Guid.Empty);
-        }
         else if (requestedScopeType != null && parsedScopeId.HasValue) // non-Global scope với ScopeId được cung cấp
-        {
             // Đối với non-Global, ScopeId trong DB phải khớp với parsedScopeId và không được là Guid.Empty
             settingsQuery = settingsQuery.Where(c => c.ScopeId == parsedScopeId.Value && c.ScopeId != Guid.Empty);
-        }
         // Nếu requestedScopeType là non-Global nhưng parsedScopeId không có giá trị (null hoặc rỗng sau khi parse)
         // thì không cần thêm điều kiện lọc ScopeId, hoặc có thể thêm điều kiện cho trường hợp không khớp (tùy nghiệp vụ)
         // Hiện tại, validator sẽ bắt lỗi này ở CreateSetting, còn ở GetSettings,

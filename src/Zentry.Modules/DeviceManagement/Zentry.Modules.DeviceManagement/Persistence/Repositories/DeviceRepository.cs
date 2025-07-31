@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.Modules.DeviceManagement.Entities;
+using Zentry.Modules.DeviceManagement.ValueObjects;
 using Zentry.SharedKernel.Constants.Device;
-using Zentry.Modules.DeviceManagement.ValueObjects; // Thêm using này để truy cập MacAddress Value Object
+
+// Thêm using này để truy cập MacAddress Value Object
 
 namespace Zentry.Modules.DeviceManagement.Persistence.Repositories;
 
@@ -52,31 +54,33 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
 
         return await dbContext.Devices
             .AsNoTracking()
-            .FirstOrDefaultAsync(d => ((string)d.MacAddress) == macAddressObject.Value, cancellationToken);
-            // ^^^ Dùng explicit cast để đảm bảo EF Core dịch đúng
+            .FirstOrDefaultAsync(d => (string)d.MacAddress == macAddressObject.Value, cancellationToken);
+        // ^^^ Dùng explicit cast để đảm bảo EF Core dịch đúng
     }
 
-    public async Task<(Guid DeviceId, Guid UserId)?> GetDeviceAndUserIdByMacAddressAsync(string macAddress, CancellationToken cancellationToken)
+    public async Task<(Guid DeviceId, Guid UserId)?> GetDeviceAndUserIdByMacAddressAsync(string macAddress,
+        CancellationToken cancellationToken)
     {
         var macAddressObject = MacAddress.Create(macAddress);
 
         var result = await dbContext.Devices
             .AsNoTracking()
-            .Where(d => ((string)d.MacAddress) == macAddressObject.Value && d.Status == DeviceStatus.Active)
+            .Where(d => (string)d.MacAddress == macAddressObject.Value && d.Status == DeviceStatus.Active)
             .Select(d => new { d.Id, d.UserId })
             .FirstOrDefaultAsync(cancellationToken);
 
         return result != null ? (result.Id, result.UserId) : null;
     }
 
-    public async Task<List<Device>> GetActiveDevicesByMacAddressesAsync(List<string> macAddresses, CancellationToken cancellationToken)
+    public async Task<List<Device>> GetActiveDevicesByMacAddressesAsync(List<string> macAddresses,
+        CancellationToken cancellationToken)
     {
         // Chuẩn hóa tất cả MAC addresses đầu vào thành list các string
         var normalizedMacs = macAddresses.Select(m => MacAddress.Create(m).Value).ToList();
 
         return await dbContext.Devices
             .AsNoTracking()
-            .Where(d => normalizedMacs.Contains(((string)d.MacAddress)) && d.Status == DeviceStatus.Active)
+            .Where(d => normalizedMacs.Contains((string)d.MacAddress) && d.Status == DeviceStatus.Active)
             //                                  ^^^ Dùng explicit cast
             .ToListAsync(cancellationToken);
     }
@@ -88,9 +92,9 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
 
         var results = await dbContext.Devices
             .AsNoTracking()
-            .Where(d => normalizedMacs.Contains(((string)d.MacAddress)) && d.Status == DeviceStatus.Active)
+            .Where(d => normalizedMacs.Contains((string)d.MacAddress) && d.Status == DeviceStatus.Active)
             //                                  ^^^ Dùng explicit cast
-            .Select(d => new { MacValue = ((string)d.MacAddress), d.Id, d.UserId }) // Lấy giá trị string của MacAddress
+            .Select(d => new { MacValue = (string)d.MacAddress, d.Id, d.UserId }) // Lấy giá trị string của MacAddress
             .ToListAsync(cancellationToken);
 
         return results.ToDictionary(

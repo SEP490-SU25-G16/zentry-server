@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when an account is not found.
+///     Represents an exception thrown when an account is not found.
 /// </summary>
 public class AccountNotFoundException : BusinessLogicException
 {

@@ -2,7 +2,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
 
 public class MonthlyCalendarResponseDto
 {
-    public List<DailyScheduleDto> CalendarDays { get; set; } = new List<DailyScheduleDto>();
+    public List<DailyScheduleDto> CalendarDays { get; set; } = new();
 }
 
 public class DailyScheduleDto

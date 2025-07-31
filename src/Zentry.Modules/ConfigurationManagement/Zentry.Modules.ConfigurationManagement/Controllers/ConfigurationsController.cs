@@ -2,15 +2,13 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Zentry.Modules.ConfigurationManagement.Dtos;
-using Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition; // Namespace mới
+using Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 using Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 using Zentry.SharedKernel.Abstractions.Models;
-using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Extensions;
-using Zentry.SharedKernel.Helpers;
+// Namespace mới
 using CreateSettingRequest = Zentry.Modules.ConfigurationManagement.Features.CreateSetting.CreateSettingRequest;
 
 namespace Zentry.Modules.ConfigurationManagement.Controllers;
@@ -98,6 +96,4 @@ public class ConfigurationsController(
         var response = await mediator.Send(command, cancellationToken);
         return HandleCreated(response, nameof(CreateSetting), new { id = response.SettingId });
     }
-
-
 }
