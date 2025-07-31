@@ -26,23 +26,17 @@ public class GetSessionRoundsQueryHandler(
         if (session is null)
             throw new NotFoundException("Session", request.SessionId);
 
-        // Lấy thông tin ClassSection từ Schedule module
         var classSectionResponse =
             await mediator.Send(
-                new GetClassSectionByScheduleIdIntegrationQuery(session
-                    .ScheduleId),
+                new GetClassSectionByScheduleIdIntegrationQuery(session.ScheduleId),
                 cancellationToken);
 
         if (classSectionResponse == null || classSectionResponse.ClassSectionId == Guid.Empty)
-            throw new NotFoundException("ClassSection", $"corresponding to ScheduleId {session.ScheduleId}");
+            throw new BusinessRuleException("CLASS_SECTION_NOT_FOUND",
+                "Không tìm thấy thông tin lớp học cho buổi học này.");
 
         var classSectionId = classSectionResponse.ClassSectionId;
-        var courseId = classSectionResponse.CourseId;
-        var courseCode = classSectionResponse.CourseCode;
-        var courseName = classSectionResponse.CourseName;
-        var sectionCode = classSectionResponse.SectionCode;
 
-        // Lấy tổng số sinh viên đăng ký
         var totalStudentsCountResponse = await mediator.Send(
             new CountActiveStudentsByClassSectionIdIntegrationQuery(classSectionId),
             cancellationToken);
@@ -55,29 +49,18 @@ public class GetSessionRoundsQueryHandler(
         foreach (var round in rounds)
         {
             var attendedCount = allAttendanceRecords
-                .Count(ar =>
-                    ar.CreatedAt >= round.StartTime && (ar.CreatedAt <= round.EndTime));
+                .Count(ar => ar.CreatedAt >= round.StartTime && (ar.CreatedAt <= round.EndTime));
 
             result.Add(new RoundAttendanceDto
             {
                 RoundId = round.Id,
                 SessionId = request.SessionId,
-
                 RoundNumber = round.RoundNumber,
                 StartTime = round.StartTime,
                 EndTime = round.EndTime,
                 AttendedCount = attendedCount,
                 TotalStudents = totalStudentsCountResponse.TotalStudents,
-                Status = round.Status.ToString(),
-                CreatedAt = round.CreatedAt,
-                UpdatedAt = round.UpdatedAt,
-
-                CourseId = courseId,
-                CourseCode = courseCode,
-                CourseName = courseName,
-
-                ClassSectionId = classSectionId,
-                SectionCode = sectionCode
+                Status = round.Status.ToString()
             });
         }
 

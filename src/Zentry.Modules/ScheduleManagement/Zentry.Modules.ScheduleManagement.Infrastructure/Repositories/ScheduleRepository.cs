@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -10,6 +11,21 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<ClassDetailProjectionDto?> GetScheduleDetailsForClassSectionAsync(Guid classSectionId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .Where(s => s.ClassSectionId == classSectionId)
+            .Select(s => new ClassDetailProjectionDto
+            {
+                CourseName = s.ClassSection!.Course!.Name,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                Building = s.Room!.Building
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<List<Schedule>> GetSchedulesByClassSectionIdAndDateAsync(Guid classSectionId, DateTime date,
         WeekDayEnum weekDay, CancellationToken cancellationToken)
     {

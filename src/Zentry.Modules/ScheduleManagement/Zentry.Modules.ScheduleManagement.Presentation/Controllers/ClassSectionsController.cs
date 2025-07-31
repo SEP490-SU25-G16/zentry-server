@@ -5,6 +5,7 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.DeleteClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetAllClassSectionsWithEnrollmentCount;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetClassDetail;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
@@ -21,6 +22,23 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/class-sections")]
 public class ClassSectionsController(IMediator mediator) : BaseController
 {
+    [HttpGet("{classSectionId:guid}/detail")] // Endpoint mới cho chi tiết lớp học
+    [ProducesResponseType(typeof(ApiResponse<ClassDetailDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClassDetail(Guid classSectionId)
+    {
+        try
+        {
+            var query = new GetClassDetailQuery(classSectionId);
+            var response = await mediator.Send(query);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     [HttpGet("all-with-enrollment-count")] // Endpoint mới
     [ProducesResponseType(typeof(ApiResponse<List<ClassSectionWithEnrollmentCountDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
@@ -37,6 +55,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpGet("student/daily-schedule")]
     [ProducesResponseType(typeof(ApiResponse<List<StudentDailyClassDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

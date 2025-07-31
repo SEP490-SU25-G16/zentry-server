@@ -8,6 +8,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IScheduleRepository : IRepository<Schedule, Guid>
 {
+    Task<ClassDetailProjectionDto?> GetScheduleDetailsForClassSectionAsync(Guid classSectionId, CancellationToken cancellationToken);
     Task<bool> IsLecturerAvailableAsync(Guid lecturerId, WeekDayEnum weekDay, TimeOnly startTime, TimeOnly endTime,
         CancellationToken cancellationToken);
 
