@@ -10,6 +10,7 @@ using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 

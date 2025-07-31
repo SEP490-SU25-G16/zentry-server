@@ -112,11 +112,12 @@ public class AttendanceController(IMediator mediator) : BaseController
         if (!ModelState.IsValid) return HandleValidationError();
         try
         {
+            var utcTimestamp = request.Timestamp.ToUtcFromVietnamLocalTime();
             var command = new SubmitScanDataCommand(
                 request.SubmitterDeviceMacAddress,
                 request.SessionId,
                 request.ScannedDevices,
-                request.Timestamp
+                utcTimestamp
             );
             await mediator.Send(command);
             return HandleResult("Scan data submitted successfully.");

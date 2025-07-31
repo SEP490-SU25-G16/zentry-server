@@ -7,6 +7,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.Attendance;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
 

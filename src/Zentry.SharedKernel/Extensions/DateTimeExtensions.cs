@@ -2,6 +2,8 @@ using TimeZoneConverter;
 
 // Đảm bảo đã cài đặt NuGet package này
 
+namespace Zentry.SharedKernel.Extensions;
+
 public static class DateTimeExtensions
 {
     // Múi giờ mặc định cho Việt Nam (Asia/Ho_Chi_Minh là ID IANA chuẩn)
@@ -13,12 +15,12 @@ public static class DateTimeExtensions
     /// </summary>
     public static DateTime ToVietnamLocalTime(this DateTime utcDateTime)
     {
-        // Nếu đã là Local hoặc Unspecified, chuyển về UTC trước khi chuyển đổi
-        if (utcDateTime.Kind == DateTimeKind.Local)
-            utcDateTime = utcDateTime.ToUniversalTime();
-        else if (utcDateTime.Kind == DateTimeKind.Unspecified)
-            utcDateTime = DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc);
-        // Nếu đã là UTC, giữ nguyên
+        utcDateTime = utcDateTime.Kind switch
+        {
+            DateTimeKind.Local => utcDateTime.ToUniversalTime(),
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc),
+            _ => utcDateTime
+        };
 
         return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, VietnamTimeZone);
     }
