@@ -247,7 +247,7 @@ public class CalculateRoundAttendanceCommandHandler(
         if (allUniqueDeviceIdGuids.Count != 0)
             try
             {
-                var getDeviceRolesQuery = new GetDeviceRolesByDevicesIntegrationQuery(allUniqueDeviceIdGuids);
+                var getDeviceRolesQuery = new GetUserRolesByDevicesIntegrationQuery(allUniqueDeviceIdGuids);
                 var response = await mediator.Send(getDeviceRolesQuery);
                 deviceRolesMap = response.DeviceRolesMap;
                 logger.LogInformation("Fetched roles for {Count} devices in batch query.", deviceRolesMap.Count);

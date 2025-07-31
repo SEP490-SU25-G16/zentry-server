@@ -6,14 +6,14 @@ using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.DeviceManagement.Integration;
 
-public class GetDeviceRolesByDevicesQueryHandler(
+public class GetUserRolesByDevicesQueryHandler(
     IDeviceRepository deviceRepository,
     IMediator mediator, // Vẫn cần Mediator để gửi query tới UserManagement
-    ILogger<GetDeviceRolesByDevicesQueryHandler> logger)
-    : IQueryHandler<GetDeviceRolesByDevicesIntegrationQuery, GetDeviceRolesByDevicesIntegrationResponse>
+    ILogger<GetUserRolesByDevicesQueryHandler> logger)
+    : IQueryHandler<GetUserRolesByDevicesIntegrationQuery, GetUserRolesByDevicesIntegrationResponse>
 {
-    public async Task<GetDeviceRolesByDevicesIntegrationResponse> Handle(
-        GetDeviceRolesByDevicesIntegrationQuery request,
+    public async Task<GetUserRolesByDevicesIntegrationResponse> Handle(
+        GetUserRolesByDevicesIntegrationQuery request,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Attempting to get roles for {Count} DeviceIds in batch.", request.DeviceIds.Count);
@@ -26,7 +26,7 @@ public class GetDeviceRolesByDevicesQueryHandler(
         if (!devices.Any())
         {
             logger.LogWarning("No devices found for the provided DeviceIds. Returning empty map.");
-            return new GetDeviceRolesByDevicesIntegrationResponse(new Dictionary<Guid, string>());
+            return new GetUserRolesByDevicesIntegrationResponse(new Dictionary<Guid, string>());
         }
 
         // Tạo map DeviceId -> UserId
@@ -68,6 +68,6 @@ public class GetDeviceRolesByDevicesQueryHandler(
             }
 
         logger.LogInformation("Successfully retrieved roles for {Count} DeviceIds.", deviceRolesMap.Count);
-        return new GetDeviceRolesByDevicesIntegrationResponse(deviceRolesMap);
+        return new GetUserRolesByDevicesIntegrationResponse(deviceRolesMap);
     }
 }

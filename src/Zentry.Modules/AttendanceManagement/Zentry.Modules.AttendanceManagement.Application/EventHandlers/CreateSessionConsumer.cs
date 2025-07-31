@@ -20,9 +20,9 @@ public class CreateSessionConsumer(
     IConfigurationService configService,
     IPublishEndpoint publishEndpoint,
     IMediator mediator)
-    : IConsumer<CreateSesssionMessage>
+    : IConsumer<CreateSessionMessage>
 {
-    public async Task Consume(ConsumeContext<CreateSesssionMessage> context)
+    public async Task Consume(ConsumeContext<CreateSessionMessage> context)
     {
         var message = context.Message;
         logger.LogInformation(

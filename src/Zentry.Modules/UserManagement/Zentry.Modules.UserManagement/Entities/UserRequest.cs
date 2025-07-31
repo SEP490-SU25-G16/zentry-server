@@ -1,7 +1,7 @@
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Domain;
 
-namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
+namespace Zentry.Modules.UserManagement.Entities;
 
 public class UserRequest : AggregateRoot<Guid>
 {
@@ -9,7 +9,8 @@ public class UserRequest : AggregateRoot<Guid>
     {
     }
 
-    private UserRequest(Guid id, Guid requestedByUserId, Guid targetUserId, string requestType, Guid relatedEntityId,
+    private UserRequest(Guid id, Guid requestedByUserId, Guid targetUserId, RequestType requestType,
+        Guid relatedEntityId,
         string reason)
         : base(id)
     {
@@ -17,21 +18,21 @@ public class UserRequest : AggregateRoot<Guid>
         TargetUserId = targetUserId;
         RequestType = requestType;
         RelatedEntityId = relatedEntityId;
-        Status = UserRequestStatus.Pending;
+        Status = RequestStatus.Pending;
         Reason = reason;
         CreatedAt = DateTime.UtcNow;
     }
 
     public Guid RequestedByUserId { get; private set; }
     public Guid TargetUserId { get; private set; }
-    public string RequestType { get; private set; }
+    public RequestType RequestType { get; private set; }
     public Guid RelatedEntityId { get; private set; }
-    public UserRequestStatus Status { get; private set; }
+    public RequestStatus Status { get; private set; }
     public string? Reason { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? ProcessedAt { get; private set; }
 
-    public static UserRequest Create(Guid requestedByUserId, Guid targetUserId, string requestType,
+    public static UserRequest Create(Guid requestedByUserId, Guid targetUserId, RequestType requestType,
         Guid relatedEntityId, string reason)
     {
         return new UserRequest(Guid.NewGuid(), requestedByUserId, targetUserId, requestType, relatedEntityId, reason);
@@ -39,13 +40,13 @@ public class UserRequest : AggregateRoot<Guid>
 
     public void Approve()
     {
-        Status = UserRequestStatus.Approved;
+        Status = RequestStatus.Approved;
         ProcessedAt = DateTime.UtcNow;
     }
 
     public void Reject()
     {
-        Status = UserRequestStatus.Rejected;
+        Status = RequestStatus.Rejected;
         ProcessedAt = DateTime.UtcNow;
     }
 }

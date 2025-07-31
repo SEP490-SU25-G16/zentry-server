@@ -1,8 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
+using Zentry.Modules.DeviceManagement.Features.GetDeviceDetails;
+using Zentry.Modules.DeviceManagement.Features.GetDevices;
 using Zentry.Modules.DeviceManagement.Features.RegisterDevice;
+using Zentry.Modules.DeviceManagement.Features.RequestDeviceChange;
 using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
 // Assuming RegisterDeviceRequest is here
@@ -67,6 +72,123 @@ public class DevicesController(IMediator mediator) : BaseController
         catch (Exception ex)
         {
             // Sử dụng HandleError để xử lý các loại ngoại lệ đã định nghĩa
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(ApiResponse<GetDevicesResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    // [Authorize(Roles = "Admin")] // Có thể giới hạn quyền truy cập
+    public async Task<IActionResult> GetDevices(
+        [FromQuery] int? pageNumber,
+        [FromQuery] int? pageSize,
+        [FromQuery] string? searchTerm,
+        [FromQuery] Guid? userId,
+        [FromQuery] string? status,
+        CancellationToken cancellationToken)
+    {
+        if (pageNumber <= 0 || pageSize <= 0)
+        {
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR",
+                "PageNumber and PageSize must be greater than 0."));
+        }
+
+        var query = new GetDevicesQuery(
+            pageNumber,
+            pageSize,
+            searchTerm,
+            userId,
+            status
+        );
+
+        try
+        {
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("{deviceId:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<GetDeviceDetailsResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetDeviceDetails(
+        Guid deviceId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetDeviceDetailsQuery(deviceId);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (NotFoundException ex)
+        {
+            return HandleNotFound(ex.Message, deviceId);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("request-change")]
+    [ProducesResponseType(typeof(ApiResponse<RequestDeviceChangeResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RequestDeviceChange(
+        [FromBody] RequestDeviceChangeCommand command,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+
+        if (string.IsNullOrWhiteSpace(command.Reason))
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Lý do thay đổi là bắt buộc."));
+        if (string.IsNullOrWhiteSpace(command.MacAddress))
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Địa chỉ MAC của thiết bị mới là bắt buộc."));
+        if (string.IsNullOrWhiteSpace(command.DeviceName))
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Tên thiết bị là bắt buộc."));
+
+
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("accept-change-request/{userRequestId:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<AcceptDeviceChangeRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AcceptDeviceChangeRequest(
+        Guid userRequestId,
+        CancellationToken cancellationToken)
+    {
+        // TODO: Lấy AdminId từ JWT nếu cần để log hoặc lưu vào UserRequest
+        // var adminIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // Guid.TryParse(adminIdString, out var adminId); // Dùng adminId này trong command nếu muốn
+
+        var command = new AcceptDeviceChangeRequestCommand
+        {
+            UserRequestId = userRequestId,
+        };
+
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
             return HandleError(ex);
         }
     }

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Zentry.Modules.AttendanceManagement.Domain.Entities;
+using Zentry.Modules.UserManagement.Entities;
 using Zentry.SharedKernel.Constants.Attendance;
 
-namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configurations;
+namespace Zentry.Modules.UserManagement.Persistence.Configurations;
 
 public class UserRequestConfiguration : IEntityTypeConfiguration<UserRequest>
 {
@@ -23,6 +23,10 @@ public class UserRequestConfiguration : IEntityTypeConfiguration<UserRequest>
             .IsRequired();
 
         builder.Property(ur => ur.RequestType)
+            .HasConversion(
+                requestType => requestType.ToString(),
+                name => RequestType.FromName(name)
+            )
             .IsRequired()
             .HasMaxLength(100);
 
@@ -31,20 +35,20 @@ public class UserRequestConfiguration : IEntityTypeConfiguration<UserRequest>
 
         builder.Property(ur => ur.Status)
             .HasConversion(
-                s => s.ToString(),
-                s => UserRequestStatus.FromName(s)
+                status => status.ToString(),
+                name => RequestStatus.FromName(name)
             )
             .IsRequired()
-            .HasMaxLength(50); // Max length for enum string
+            .HasMaxLength(50);
 
         builder.Property(ur => ur.Reason)
-            .HasMaxLength(500); // Optional reason
+            .HasMaxLength(500);
 
         builder.Property(ur => ur.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();
 
-        builder.Property(ur => ur.ProcessedAt); // Nullable
+        builder.Property(ur => ur.ProcessedAt);
 
         builder.HasIndex(ur => ur.RequestedByUserId);
         builder.HasIndex(ur => ur.TargetUserId);

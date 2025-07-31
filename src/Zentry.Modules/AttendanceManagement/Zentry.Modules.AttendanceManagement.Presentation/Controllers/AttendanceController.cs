@@ -7,8 +7,10 @@ using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAt
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
+using Zentry.Modules.AttendanceManagement.Application.Features.UpdateStudentAttendanceStatus;
 using Zentry.Modules.AttendanceManagement.Presentation.Requests;
 using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
@@ -121,6 +123,36 @@ public class AttendanceController(IMediator mediator) : BaseController
             );
             await mediator.Send(command);
             return HandleResult("Scan data submitted successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("sessions/{sessionId:guid}/students/{studentId:guid}/status")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStudentAttendanceStatus(
+        Guid sessionId,
+        Guid studentId,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+
+        try
+        {
+            var command = new UpdateStudentAttendanceStatusCommand(
+                sessionId,
+                studentId
+            );
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
+        }
+        catch (NotFoundException ex)
+        {
+            return HandleNotFound(ex.Message, studentId);
         }
         catch (Exception ex)
         {

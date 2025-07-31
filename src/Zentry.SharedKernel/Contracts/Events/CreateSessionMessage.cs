@@ -1,6 +1,6 @@
 namespace Zentry.SharedKernel.Contracts.Events;
 
-public record CreateSesssionMessage(
+public record CreateSessionMessage(
     Guid ScheduleId,
     Guid LecturerId,
     Guid ClassSectionId,

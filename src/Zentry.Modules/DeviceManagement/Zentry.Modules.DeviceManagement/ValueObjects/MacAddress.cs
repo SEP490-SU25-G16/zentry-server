@@ -25,7 +25,7 @@ public partial class MacAddress : ValueObject
         return new MacAddress(macAddress);
     }
 
-    private static bool IsValidMacAddress(string macAddress)
+    public static bool IsValidMacAddress(string macAddress)
     {
         return MacAddressRegex.IsMatch(macAddress);
     }

@@ -12,7 +12,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250731084709_Initial")]
+    [Migration("20250731144936_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -164,56 +164,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                         });
-                });
-
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.UserRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid>("RelatedEntityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("RequestType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid>("RequestedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<Guid>("TargetUserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RequestType");
-
-                    b.HasIndex("RequestedByUserId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("TargetUserId");
-
-                    b.ToTable("UserRequests", (string)null);
                 });
 
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", b =>

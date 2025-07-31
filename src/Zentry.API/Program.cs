@@ -66,6 +66,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddMassTransit(x =>
 {
     x.AddAttendanceMassTransitConsumers();
+    x.AddUserMassTransitConsumers();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -77,6 +78,7 @@ builder.Services.AddMassTransit(x =>
 
         cfg.Host(new Uri(rabbitMqConnectionString));
         cfg.ConfigureAttendanceReceiveEndpoints(context);
+        cfg.ConfigureUserReceiveEndpoints(context);
     });
 });
 

@@ -91,7 +91,6 @@ public class AttendanceDbSeeder(
         context.AttendanceRecords.RemoveRange(context.AttendanceRecords);
         context.Rounds.RemoveRange(context.Rounds);
         context.Sessions.RemoveRange(context.Sessions);
-        context.UserRequests.RemoveRange(context.UserRequests);
 
         await context.SaveChangesAsync(cancellationToken);
         logger.LogInformation("All Attendance Management data cleared.");

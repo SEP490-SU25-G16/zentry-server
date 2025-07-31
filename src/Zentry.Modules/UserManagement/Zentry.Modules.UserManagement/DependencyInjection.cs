@@ -17,6 +17,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserRequestRepository, UserRequestRepository>();
         services.AddDbContext<UserDbContext>(options =>
             options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -36,9 +37,8 @@ public static class DependencyInjection
         // Register services (Real implementations)
         services.AddTransient<IJwtService, JwtService>();
         services.AddTransient<IEmailService, SendGridEmailService>();
-        services.AddTransient<IPasswordHasher, PasswordHasher>(); // Đảm bảo IPasswordHasher được đăng ký
+        services.AddTransient<IPasswordHasher, PasswordHasher>();
 
-        // Đăng ký IHostedService để tự động chạy migration và seed
         services.AddHostedService<UserDbMigrationService>();
 
         return services;

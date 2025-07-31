@@ -83,7 +83,7 @@ public class Device : AggregateRoot<Guid>
             userId,
             deviceName,
             deviceToken,
-            macAddress, // Truyền MAC address
+            macAddress,
             platform,
             osVersion,
             model,
@@ -94,11 +94,10 @@ public class Device : AggregateRoot<Guid>
         return device;
     }
 
-    // Method for updating the device's state
     public void Update(
         DeviceName deviceName,
         DeviceStatus status,
-        MacAddress? macAddress = null, // Cho phép cập nhật MAC address
+        MacAddress? macAddress = null,
         string? platform = null,
         string? osVersion = null,
         string? model = null,

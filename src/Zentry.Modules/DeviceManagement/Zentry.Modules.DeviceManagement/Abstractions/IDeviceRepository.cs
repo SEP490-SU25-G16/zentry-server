@@ -1,5 +1,7 @@
+using Zentry.Modules.DeviceManagement.Dtos;
 using Zentry.Modules.DeviceManagement.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
+using Zentry.SharedKernel.Constants.Device;
 
 namespace Zentry.Modules.DeviceManagement.Abstractions;
 
@@ -23,4 +25,17 @@ public interface IDeviceRepository : IRepository<Device, Guid>
 
     Task<Dictionary<string, (Guid DeviceId, Guid UserId)>> GetDeviceAndUserIdsByMacAddressesAsync(
         List<string> macAddresses, CancellationToken cancellationToken);
+
+    Task<(IEnumerable<DeviceListItemDto> Devices, int TotalCount)> GetDevicesAsync(
+        int pageNumber,
+        int pageSize,
+        string? searchTerm,
+        Guid? userId,
+        DeviceStatus? status,
+        CancellationToken cancellationToken);
+
+    Task<Device?> GetUserActiveDeviceAsync(Guid userId, CancellationToken cancellationToken);
+    Task<int> CountAllByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+    Task<Device?> GetActiveDeviceForUserAsync(Guid userId, CancellationToken cancellationToken);
+    Task<Device?> GetPendingDeviceForUserAsync(Guid userId, Guid deviceId, CancellationToken cancellationToken);
 }

@@ -61,7 +61,7 @@ public class CreateScheduleCommandHandler(
         await scheduleRepository.AddAsync(schedule, cancellationToken);
         await scheduleRepository.SaveChangesAsync(cancellationToken);
 
-        var scheduleCreatedEvent = new CreateSesssionMessage(
+        var scheduleCreatedEvent = new CreateSessionMessage(
             schedule.Id,
             command.LecturerId,
             schedule.ClassSectionId,

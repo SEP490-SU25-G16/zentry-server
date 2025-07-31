@@ -1,15 +1,96 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.DeviceManagement.Abstractions;
+using Zentry.Modules.DeviceManagement.Dtos;
 using Zentry.Modules.DeviceManagement.Entities;
 using Zentry.Modules.DeviceManagement.ValueObjects;
 using Zentry.SharedKernel.Constants.Device;
-
-// Thêm using này để truy cập MacAddress Value Object
 
 namespace Zentry.Modules.DeviceManagement.Persistence.Repositories;
 
 public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
 {
+    public async Task<Device?> GetActiveDeviceForUserAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.Status == DeviceStatus.Active, cancellationToken);
+    }
+
+    public async Task<Device?> GetPendingDeviceForUserAsync(Guid userId, Guid deviceId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.Id == deviceId && d.Status == DeviceStatus.Pending,
+                cancellationToken);
+    }
+
+    public async Task<int> CountAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .CountAsync(d => d.UserId == userId, cancellationToken);
+    }
+
+    public async Task<Device?> GetUserActiveDeviceAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.Status == DeviceStatus.Active, cancellationToken);
+    }
+
+    public async Task<(IEnumerable<DeviceListItemDto> Devices, int TotalCount)> GetDevicesAsync(
+        int pageNumber,
+        int pageSize,
+        string? searchTerm,
+        Guid? userId,
+        DeviceStatus? status,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<Device> query = dbContext.Devices;
+
+        if (userId.HasValue)
+        {
+            query = query.Where(d => d.UserId == userId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var lowerSearchTerm = searchTerm.ToLower();
+            query = query.Where(d =>
+                d.DeviceName.Value.Contains(lowerSearchTerm) ||
+                d.MacAddress.Value.Contains(lowerSearchTerm));
+        }
+
+        if (status != null)
+        {
+            query = query.Where(d => d.Status == status);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var devices = await query
+            .OrderBy(d => d.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(d => new DeviceListItemDto
+            {
+                DeviceId = d.Id,
+                UserId = d.UserId,
+                DeviceName = d.DeviceName.Value,
+                MacAddress = d.MacAddress.Value,
+                Platform = d.Platform,
+                OsVersion = d.OsVersion,
+                Model = d.Model,
+                Manufacturer = d.Manufacturer,
+                AppVersion = d.AppVersion,
+                PushNotificationToken = d.PushNotificationToken,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt,
+                LastVerifiedAt = d.LastVerifiedAt,
+                Status = d.Status
+            })
+            .ToListAsync(cancellationToken);
+
+        return (devices, totalCount);
+    }
+
     public async Task<List<Device>> GetByIdsAsync(List<Guid> deviceIds, CancellationToken cancellationToken)
     {
         return await dbContext.Devices

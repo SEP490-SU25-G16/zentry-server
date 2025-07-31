@@ -13,8 +13,6 @@ public class RegisterDeviceCommandHandler(
     IMediator mediator)
     : ICommandHandler<RegisterDeviceCommand, RegisterDeviceResponse>
 {
-    private readonly IMediator _mediator = mediator; // For publishing domain events if needed
-
     public async Task<RegisterDeviceResponse> Handle(RegisterDeviceCommand command, CancellationToken cancellationToken)
     {
         // 1. Validate UserId existence (from Identity Module)
@@ -24,7 +22,7 @@ public class RegisterDeviceCommandHandler(
 
         // 2. Check if MAC address already exists (MAC addresses should be unique across all devices)
         var existingDeviceByMac = await deviceRepository.GetByMacAddressAsync(command.MacAddress, cancellationToken);
-        if (existingDeviceByMac != null)
+        if (existingDeviceByMac is not null)
             throw new DeviceAlreadyRegisteredException($"Device with MAC address {command.MacAddress} already exists.");
 
         // 3. Check if user already has an active device
