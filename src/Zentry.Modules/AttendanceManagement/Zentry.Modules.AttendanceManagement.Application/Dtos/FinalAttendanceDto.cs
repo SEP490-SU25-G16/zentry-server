@@ -21,5 +21,4 @@ public class FinalAttendanceDto
 
     public Guid? LastAttendanceRecordId { get; set; }
     public string? DetailedAttendanceStatus { get; set; }
-    public DateTime? LastAttendanceTime { get; set; }
 }

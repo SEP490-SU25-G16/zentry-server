@@ -30,17 +30,17 @@ public class GetSessionRoundsQueryHandler(
         var classSectionResponse =
             await mediator.Send(
                 new GetClassSectionByScheduleIdIntegrationQuery(session
-                    .ScheduleId), // <-- Sửa Query để lấy cả ClassSection info
+                    .ScheduleId),
                 cancellationToken);
 
         if (classSectionResponse == null || classSectionResponse.ClassSectionId == Guid.Empty)
             throw new NotFoundException("ClassSection", $"corresponding to ScheduleId {session.ScheduleId}");
 
         var classSectionId = classSectionResponse.ClassSectionId;
-        var courseId = classSectionResponse.CourseId; // <-- Lấy CourseId
-        var courseCode = classSectionResponse.CourseCode; // <-- Lấy CourseCode
-        var courseName = classSectionResponse.CourseName; // <-- Lấy CourseName
-        var sectionCode = classSectionResponse.SectionCode; // <-- Lấy SectionCode
+        var courseId = classSectionResponse.CourseId;
+        var courseCode = classSectionResponse.CourseCode;
+        var courseName = classSectionResponse.CourseName;
+        var sectionCode = classSectionResponse.SectionCode;
 
         // Lấy tổng số sinh viên đăng ký
         var totalStudentsCountResponse = await mediator.Send(
@@ -56,12 +56,12 @@ public class GetSessionRoundsQueryHandler(
         {
             var attendedCount = allAttendanceRecords
                 .Count(ar =>
-                    ar.CreatedAt >= round.StartTime && (round.EndTime == null || ar.CreatedAt <= round.EndTime));
+                    ar.CreatedAt >= round.StartTime && (ar.CreatedAt <= round.EndTime));
 
             result.Add(new RoundAttendanceDto
             {
-                RoundId = round.Id, // <-- Gán RoundId
-                SessionId = request.SessionId, // <-- Gán SessionId
+                RoundId = round.Id,
+                SessionId = request.SessionId,
 
                 RoundNumber = round.RoundNumber,
                 StartTime = round.StartTime,
@@ -72,12 +72,12 @@ public class GetSessionRoundsQueryHandler(
                 CreatedAt = round.CreatedAt,
                 UpdatedAt = round.UpdatedAt,
 
-                CourseId = courseId, // <-- Gán CourseId
-                CourseCode = courseCode, // <-- Gán CourseCode
-                CourseName = courseName, // <-- Gán CourseName
+                CourseId = courseId,
+                CourseCode = courseCode,
+                CourseName = courseName,
 
-                ClassSectionId = classSectionId, // <-- Gán ClassSectionId
-                SectionCode = sectionCode // <-- Gán SectionCode
+                ClassSectionId = classSectionId,
+                SectionCode = sectionCode
             });
         }
 

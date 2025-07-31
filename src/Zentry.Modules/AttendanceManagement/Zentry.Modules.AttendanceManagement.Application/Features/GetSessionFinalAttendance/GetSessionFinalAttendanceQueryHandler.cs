@@ -89,7 +89,6 @@ public class GetSessionFinalAttendanceQueryHandler(
 
                 LastAttendanceRecordId = lastAttendanceRecord?.Id,
                 DetailedAttendanceStatus = attendanceStatus.ToString(),
-                LastAttendanceTime = lastAttendanceRecord?.CreatedAt ?? session.StartTime
             });
         }
 

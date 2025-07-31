@@ -21,6 +21,7 @@ using Zentry.Modules.UserManagement;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
+using Zentry.SharedKernel.Helpers;
 using Zentry.SharedKernel.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,9 +30,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ nguyên tùy chọn này nếu bạn muốn PascalCase
+        // THÊM CÁC CONVERTER DATETIME TẠI ĐÂY
+        options.JsonSerializerOptions.Converters.Add(new DateTimeToLocalConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableDateTimeToLocalConverter());
     });
-
 
 // ===== CẤU HÌNH MODEL VALIDATION =====
 builder.Services.Configure<ApiBehaviorOptions>(options =>
