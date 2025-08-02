@@ -6,6 +6,7 @@ using Zentry.Modules.AttendanceManagement.Application.Features.CalculateRoundAtt
 using Zentry.Modules.AttendanceManagement.Application.Features.GetRoundResult;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
+using Zentry.Modules.AttendanceManagement.Application.Features.GetStudentFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Application.Features.UpdateStudentAttendanceStatus;
@@ -20,6 +21,25 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 [Route("api/attendance")]
 public class AttendanceController(IMediator mediator) : BaseController
 {
+    // Lấy kết quả điểm danh cuối cùng của một sinh viên trong một session
+    [HttpGet("sessions/{sessionId:guid}/students/{studentId:guid}/final-result")]
+    [ProducesResponseType(typeof(ApiResponse<StudentFinalAttendanceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStudentFinalAttendance(Guid sessionId, Guid studentId)
+    {
+        try
+        {
+            var query = new GetStudentFinalAttendanceQuery(sessionId, studentId);
+            var response = await mediator.Send(query);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    // Lấy kết quả điểm danh của một round
     [HttpGet("rounds/{roundId:guid}/result")]
     [ProducesResponseType(typeof(ApiResponse<RoundResultDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -58,7 +78,8 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpGet("sessions/{sessionId}/rounds")]
+    // Lấy danh sách các round trong một session (Đã sửa URL)
+    [HttpGet("sessions/{sessionId:guid}/rounds")]
     [ProducesResponseType(typeof(ApiResponse<List<RoundAttendanceDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionRounds(Guid sessionId, CancellationToken cancellationToken)
@@ -76,7 +97,8 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpGet("sessions/{sessionId}/final")]
+    // Lấy kết quả điểm danh cuối cùng của toàn bộ session (Đã sửa URL)
+    [HttpGet("sessions/{sessionId:guid}/final")]
     [ProducesResponseType(typeof(ApiResponse<List<FinalAttendanceDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionFinalAttendance(Guid sessionId, CancellationToken cancellationToken)
@@ -94,13 +116,13 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPost("sessions/{sessionId}/start")]
+    // Bắt đầu một session (Đã sửa URL)
+    [HttpPost("sessions/{sessionId:guid}/start")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> StartSession(Guid sessionId, [FromBody] StartSessionRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> StartSession(Guid sessionId, [FromBody] StartSessionRequest request, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return HandleValidationError();
 
@@ -148,6 +170,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
+    // Cập nhật trạng thái điểm danh của sinh viên (Đã sửa URL)
     [HttpPut("sessions/{sessionId:guid}/students/{studentId:guid}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
