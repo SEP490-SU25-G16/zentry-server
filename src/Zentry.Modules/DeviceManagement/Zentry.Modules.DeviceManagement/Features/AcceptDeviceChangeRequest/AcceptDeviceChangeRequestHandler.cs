@@ -8,86 +8,95 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
 
-public class AcceptDeviceChangeRequestHandler(
+public class HandleDeviceChangeRequestHandler(
     IDeviceRepository deviceRepository,
-    ILogger<AcceptDeviceChangeRequestHandler> logger,
+    ILogger<HandleDeviceChangeRequestHandler> logger,
     IMediator mediator
-) : ICommandHandler<AcceptDeviceChangeRequestCommand, AcceptDeviceChangeRequestResponse>
+) : ICommandHandler<HandleDeviceChangeRequestCommand, HandleDeviceChangeRequestResponse>
 {
-    public async Task<AcceptDeviceChangeRequestResponse> Handle(AcceptDeviceChangeRequestCommand command,
+    public async Task<HandleDeviceChangeRequestResponse> Handle(HandleDeviceChangeRequestCommand command,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("Admin is accepting device change request for UserRequestId: {UserRequestId}.",
-            command.UserRequestId);
+        var action = command.IsAccepted ? "Accepting" : "Rejecting";
+        logger.LogInformation("Admin is {Action} device change request for UserRequestId: {UserRequestId}.",
+            action, command.UserRequestId);
 
-        var response = await mediator.Send(new UpdateUserRequestStatusIntegrationCommand(command.UserRequestId),
+        // Gọi integration command để cập nhật UserRequest status
+        var userRequestResponse = await mediator.Send(
+            new UpdateUserRequestStatusIntegrationCommand(command.UserRequestId, command.IsAccepted),
             cancellationToken);
 
-        var userId = response.UserId;
+        var userId = userRequestResponse.UserId;
+        var relatedDeviceId = userRequestResponse.RelatedEntityId;
 
-        var currentActiveDevice = await deviceRepository.GetActiveDeviceForUserAsync(userId, cancellationToken);
-        var deactivatedDeviceId = Guid.Empty;
-
-        if (currentActiveDevice is not null)
+        if (command.IsAccepted)
         {
-            currentActiveDevice.Update(
-                currentActiveDevice.DeviceName,
-                DeviceStatus.Inactive,
-                currentActiveDevice.MacAddress,
-                currentActiveDevice.Platform,
-                currentActiveDevice.OsVersion,
-                currentActiveDevice.Model,
-                currentActiveDevice.Manufacturer,
-                currentActiveDevice.AppVersion,
-                currentActiveDevice.PushNotificationToken
-            );
-            await deviceRepository.UpdateAsync(currentActiveDevice, cancellationToken);
-            deactivatedDeviceId = currentActiveDevice.Id;
-            logger.LogInformation("Deactivated old device {DeviceId} for user {UserId}.", currentActiveDevice.Id,
-                userId);
+            // Logic chấp nhận (Accept)
+            var currentActiveDevice = await deviceRepository.GetActiveDeviceForUserAsync(userId, cancellationToken);
+            var deactivatedDeviceId = Guid.Empty;
+
+            if (currentActiveDevice is not null)
+            {
+                currentActiveDevice.UpdateStatus(DeviceStatus.Inactive);
+                await deviceRepository.UpdateAsync(currentActiveDevice, cancellationToken);
+                deactivatedDeviceId = currentActiveDevice.Id;
+                logger.LogInformation("Deactivated old device {DeviceId} for user {UserId}.", currentActiveDevice.Id,
+                    userId);
+            }
+            else
+            {
+                logger.LogWarning(
+                    "No active device found for user {UserId}. Proceeding with new device activation.",
+                    userId);
+            }
+
+            var newPendingDevice =
+                await deviceRepository.GetPendingDeviceForUserAsync(userId, relatedDeviceId, cancellationToken);
+            if (newPendingDevice is null)
+            {
+                logger.LogError(
+                    "Acceptance failed: New pending device with ID {NewDeviceId} for user {UserId} not found or not in Pending status.",
+                    relatedDeviceId, userId);
+                throw new NotFoundException("NewDevice",
+                    $"Thiết bị mới đang chờ duyệt với ID '{relatedDeviceId}' không tìm thấy hoặc không ở trạng thái chờ.");
+            }
+
+            newPendingDevice.UpdateStatus(DeviceStatus.Active);
+            await deviceRepository.UpdateAsync(newPendingDevice, cancellationToken);
+            logger.LogInformation("Activated new device {DeviceId} for user {UserId}.", newPendingDevice.Id, userId);
+
+            logger.LogInformation("UserRequest {UserRequestId} approved successfully.", command.UserRequestId);
+
+            return new HandleDeviceChangeRequestResponse
+            {
+                UpdatedDeviceId = newPendingDevice.Id,
+                DeactivatedDeviceId = deactivatedDeviceId,
+                UserRequestId = command.UserRequestId,
+                Message = "Yêu cầu thay đổi thiết bị đã được chấp nhận thành công."
+            };
         }
         else
         {
-            logger.LogWarning(
-                "No active device found for user {UserId} when accepting request {UserRequestId}. Proceeding with new device activation.",
-                userId, command.UserRequestId);
+            // Logic từ chối (Reject)
+            // Lấy device đang pending và chuyển status sang Rejected (nếu cần, vì nó đã bị từ chối)
+            var pendingDevice =
+                await deviceRepository.GetPendingDeviceForUserAsync(userId, relatedDeviceId, cancellationToken);
+            if (pendingDevice is not null)
+            {
+                pendingDevice.UpdateStatus(DeviceStatus.Rejected);
+                await deviceRepository.UpdateAsync(pendingDevice, cancellationToken);
+                logger.LogInformation("Rejected device {DeviceId} for user {UserId}.", pendingDevice.Id, userId);
+            }
+
+            logger.LogInformation("UserRequest {UserRequestId} rejected successfully.", command.UserRequestId);
+
+            return new HandleDeviceChangeRequestResponse
+            {
+                UserRequestId = command.UserRequestId,
+                Message = "Yêu cầu thay đổi thiết bị đã bị từ chối.",
+                UpdatedDeviceId = relatedDeviceId,
+                DeactivatedDeviceId = null
+            };
         }
-
-        var newPendingDevice =
-            await deviceRepository.GetPendingDeviceForUserAsync(userId, response.RelatedEntityId, cancellationToken);
-        if (newPendingDevice is null)
-        {
-            logger.LogError(
-                "Acceptance failed: New pending device with ID {NewDeviceId} for user {UserId} not found or not in Pending status.",
-                response.RelatedEntityId, userId);
-            throw new NotFoundException("NewDevice",
-                $"Thiết bị mới đang chờ duyệt với ID '{response.RelatedEntityId}' không tìm thấy hoặc không ở trạng thái chờ.");
-        }
-
-        newPendingDevice.Update(
-            newPendingDevice.DeviceName,
-            DeviceStatus.Active,
-            newPendingDevice.MacAddress,
-            newPendingDevice.Platform,
-            newPendingDevice.OsVersion,
-            newPendingDevice.Model,
-            newPendingDevice.Manufacturer,
-            newPendingDevice.AppVersion,
-            newPendingDevice.PushNotificationToken
-        );
-        await deviceRepository.UpdateAsync(newPendingDevice, cancellationToken);
-        logger.LogInformation("Activated new device {DeviceId} for user {UserId}.", newPendingDevice.Id, userId);
-
-
-        logger.LogInformation("UserRequest {UserRequestId} approved successfully.", command.UserRequestId);
-
-
-        return new AcceptDeviceChangeRequestResponse
-        {
-            UpdatedDeviceId = newPendingDevice.Id,
-            DeactivatedDeviceId = deactivatedDeviceId,
-            UserRequestId = response.UserId,
-            Message = "Yêu cầu thay đổi thiết bị đã được chấp nhận thành công."
-        };
     }
 }

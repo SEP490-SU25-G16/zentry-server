@@ -165,21 +165,43 @@ public class DevicesController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPut("accept-change-request/{userRequestId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<AcceptDeviceChangeRequestResponse>), StatusCodes.Status200OK)]
+    [HttpPut("change-request/{userRequestId:guid}/accept")]
+    [ProducesResponseType(typeof(ApiResponse<HandleDeviceChangeRequestResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AcceptDeviceChangeRequest(
         Guid userRequestId,
         CancellationToken cancellationToken)
     {
-        // TODO: Lấy AdminId từ JWT nếu cần để log hoặc lưu vào UserRequest
-        // var adminIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        // Guid.TryParse(adminIdString, out var adminId); // Dùng adminId này trong command nếu muốn
-
-        var command = new AcceptDeviceChangeRequestCommand
+        var command = new HandleDeviceChangeRequestCommand
         {
             UserRequestId = userRequestId,
+            IsAccepted = true
+        };
+
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("change-request/{userRequestId:guid}/reject")]
+    [ProducesResponseType(typeof(ApiResponse<HandleDeviceChangeRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RejectDeviceChangeRequest(
+        Guid userRequestId,
+        CancellationToken cancellationToken)
+    {
+        var command = new HandleDeviceChangeRequestCommand
+        {
+            UserRequestId = userRequestId,
+            IsAccepted = false
         };
 
         try

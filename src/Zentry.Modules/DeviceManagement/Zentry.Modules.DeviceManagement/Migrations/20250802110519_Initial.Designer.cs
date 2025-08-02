@@ -12,7 +12,7 @@ using Zentry.Modules.DeviceManagement.Persistence;
 namespace Zentry.Modules.DeviceManagement.Migrations
 {
     [DbContext(typeof(DeviceDbContext))]
-    [Migration("20250728120054_Initial")]
+    [Migration("20250802110519_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

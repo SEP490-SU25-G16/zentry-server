@@ -148,4 +148,15 @@ public class Device : AggregateRoot<Guid>
     {
         return device.MacAddress.Value.Equals(macAddress, StringComparison.OrdinalIgnoreCase);
     }
+
+    public void UpdateStatus(DeviceStatus newStatus)
+    {
+        if (Equals(Status, newStatus))
+        {
+            return;
+        }
+
+        Status = newStatus;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }
