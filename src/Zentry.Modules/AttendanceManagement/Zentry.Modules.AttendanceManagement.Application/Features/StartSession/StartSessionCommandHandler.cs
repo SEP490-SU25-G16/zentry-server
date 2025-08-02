@@ -13,7 +13,7 @@ public class StartSessionCommandHandler(
     ISessionRepository sessionRepository,
     IRoundRepository roundRepository,
     IRedisService redisService,
-    IScanLogWhitelistRepository scanLogWhitelistRepository,
+    ISessionWhitelistRepository sessionWhitelistRepository,
     ILogger<StartSessionCommandHandler> logger)
     : ICommandHandler<StartSessionCommand, StartSessionResponse>
 {
@@ -97,7 +97,7 @@ public class StartSessionCommandHandler(
         }
 
         // --- 3. Tải Whitelist từ DocumentDB và cache vào Redis ---
-        var sessionWhitelist = await scanLogWhitelistRepository.GetBySessionIdAsync(session.Id, cancellationToken);
+        var sessionWhitelist = await sessionWhitelistRepository.GetBySessionIdAsync(session.Id, cancellationToken);
         if (sessionWhitelist != null)
         {
             var whitelistJson = JsonSerializer.Serialize(sessionWhitelist.WhitelistedDeviceIds);

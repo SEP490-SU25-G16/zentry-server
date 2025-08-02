@@ -41,7 +41,7 @@ public static class DependencyInjection
             });
 
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
-            services.AddScoped<IScanLogWhitelistRepository, MartenSessionWhitelistRepository>();
+            services.AddScoped<ISessionWhitelistRepository, MartenSessionWhitelistRepository>();
             services.AddScoped<IStudentTrackRepository, MartenStudentTrackRepository>();
             services.AddScoped<IRoundTrackRepository, MartenRoundTrackRepository>();
         }
@@ -67,7 +67,7 @@ public static class DependencyInjection
             });
 
             services.AddScoped<IScanLogRepository, MongoScanLogRepository>();
-            services.AddScoped<IScanLogWhitelistRepository, MongoSessionWhitelistRepository>();
+            services.AddScoped<ISessionWhitelistRepository, MongoSessionWhitelistRepository>();
         }
 
         services.AddScoped<IAttendanceRecordRepository, AttendanceRecordRepository>();

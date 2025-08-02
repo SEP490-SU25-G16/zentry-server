@@ -16,7 +16,7 @@ public class AttendanceDbSeeder(
     {
         using var scope = serviceProvider.CreateScope();
         var attendanceContext = scope.ServiceProvider.GetRequiredService<AttendanceDbContext>();
-        var whitelistRepository = scope.ServiceProvider.GetRequiredService<IScanLogWhitelistRepository>();
+        var whitelistRepository = scope.ServiceProvider.GetRequiredService<ISessionWhitelistRepository>();
 
         try
         {
@@ -80,7 +80,7 @@ public class AttendanceDbSeeder(
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AttendanceDbContext>();
-        var whitelistRepository = scope.ServiceProvider.GetRequiredService<IScanLogWhitelistRepository>();
+        var whitelistRepository = scope.ServiceProvider.GetRequiredService<ISessionWhitelistRepository>();
 
         logger.LogInformation("Clearing all Attendance Management data...");
 

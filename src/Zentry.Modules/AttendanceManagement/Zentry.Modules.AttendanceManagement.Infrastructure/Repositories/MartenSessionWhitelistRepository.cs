@@ -4,7 +4,7 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
-public class MartenSessionWhitelistRepository(IDocumentSession session) : IScanLogWhitelistRepository
+public class MartenSessionWhitelistRepository(IDocumentSession session) : ISessionWhitelistRepository
 {
     public async Task AddAsync(SessionWhitelist whitelist, CancellationToken cancellationToken = default)
     {

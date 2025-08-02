@@ -17,8 +17,7 @@ public class SubmitScanDataCommandHandler(
     IRedisService redisService,
     IRoundRepository roundRepository,
     ILogger<SubmitScanDataCommandHandler> logger,
-    IPublishEndpoint publishEndpoint
-    /*, IMediator mediator*/) // <-- Bỏ IMediator nếu không dùng nữa
+    IPublishEndpoint publishEndpoint)
     : ICommandHandler<SubmitScanDataCommand, SubmitScanDataResponse>
 {
     public async Task<SubmitScanDataResponse> Handle(SubmitScanDataCommand request, CancellationToken cancellationToken)

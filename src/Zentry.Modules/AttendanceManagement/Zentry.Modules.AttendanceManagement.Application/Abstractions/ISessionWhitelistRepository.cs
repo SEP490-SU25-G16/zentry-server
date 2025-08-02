@@ -2,7 +2,7 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
-public interface IScanLogWhitelistRepository
+public interface ISessionWhitelistRepository
 {
     Task AddAsync(SessionWhitelist whitelist, CancellationToken cancellationToken = default);
 

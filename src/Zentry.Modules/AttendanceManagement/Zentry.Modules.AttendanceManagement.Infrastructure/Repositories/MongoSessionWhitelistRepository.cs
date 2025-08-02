@@ -4,7 +4,7 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
-public class MongoSessionWhitelistRepository(IMongoDatabase database) : IScanLogWhitelistRepository
+public class MongoSessionWhitelistRepository(IMongoDatabase database) : ISessionWhitelistRepository
 {
     private readonly IMongoCollection<SessionWhitelist> _collection =
         database.GetCollection<SessionWhitelist>("SessionWhitelists"); // Tên collection

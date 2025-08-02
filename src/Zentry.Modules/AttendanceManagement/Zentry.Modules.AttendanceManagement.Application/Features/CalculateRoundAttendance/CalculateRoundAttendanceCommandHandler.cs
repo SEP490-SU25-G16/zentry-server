@@ -19,7 +19,7 @@ public class CalculateRoundAttendanceCommandHandler(
     IRedisService redisService,
     ISessionRepository sessionRepository,
     IRoundRepository roundRepository,
-    IScanLogWhitelistRepository scanLogWhitelistRepository,
+    ISessionWhitelistRepository sessionWhitelistRepository,
     IScanLogRepository scanLogRepository,
     IRoundTrackRepository roundTrackRepository,
     IStudentTrackRepository studentTrackRepository,
@@ -143,7 +143,7 @@ public class CalculateRoundAttendanceCommandHandler(
                 "Whitelist for Session {SessionId} not found in Redis cache or deserialization failed. Fetching from database.",
                 sessionId);
 
-            var whitelist = await scanLogWhitelistRepository.GetBySessionIdAsync(sessionId, cancellationToken);
+            var whitelist = await sessionWhitelistRepository.GetBySessionIdAsync(sessionId, cancellationToken);
 
             if (whitelist != null && whitelist.WhitelistedDeviceIds.Count != 0)
                 return [..whitelist.WhitelistedDeviceIds.Select(id => id.ToString())];

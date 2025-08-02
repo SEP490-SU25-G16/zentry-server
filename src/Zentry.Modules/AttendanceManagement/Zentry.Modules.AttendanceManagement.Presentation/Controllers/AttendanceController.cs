@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Application.Features.CalculateRoundAttendance;
+using Zentry.Modules.AttendanceManagement.Application.Features.GetRoundResult;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
@@ -19,6 +20,23 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 [Route("api/attendance")]
 public class AttendanceController(IMediator mediator) : BaseController
 {
+    [HttpGet("rounds/{roundId:guid}/result")]
+    [ProducesResponseType(typeof(ApiResponse<RoundResultDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetRoundResult(Guid roundId)
+    {
+        try
+        {
+            var query = new GetRoundResultQuery(roundId);
+            var response = await mediator.Send(query);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     [HttpPost("sessions/{sessionId}/rounds/{roundId}/calculate-attendance")]
     [ProducesResponseType(typeof(ApiResponse<CalculateRoundAttendanceResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

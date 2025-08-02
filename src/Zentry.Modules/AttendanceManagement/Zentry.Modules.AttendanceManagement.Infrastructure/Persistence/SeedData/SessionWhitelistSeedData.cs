@@ -17,7 +17,7 @@ public static class SessionWhitelistSeedData
 
     public static async Task SeedSessionWhitelistsAsync(
         AttendanceDbContext context,
-        IScanLogWhitelistRepository whitelistRepository,
+        ISessionWhitelistRepository whitelistRepository,
         IMediator mediator,
         List<SeededScheduleDto> seededScheduleDtos,
         List<SeededClassSectionDto> seededClassSectionDtos,

@@ -12,7 +12,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
 public class GenerateSessionWhitelistConsumer(
     ILogger<GenerateSessionWhitelistConsumer> logger,
-    IScanLogWhitelistRepository scanLogWhitelistRepository,
+    ISessionWhitelistRepository sessionWhitelistRepository,
     IMediator mediator)
     : IConsumer<GenerateSessionWhitelistMessage>
 {
@@ -26,7 +26,7 @@ public class GenerateSessionWhitelistConsumer(
         try
         {
             var existingWhitelist =
-                await scanLogWhitelistRepository.GetBySessionIdAsync(message.SessionId,
+                await sessionWhitelistRepository.GetBySessionIdAsync(message.SessionId,
                     consumeContext.CancellationToken);
             if (existingWhitelist != null)
                 logger.LogInformation("Whitelist already exists for Session {SessionId}. Updating existing whitelist.",
@@ -96,7 +96,7 @@ public class GenerateSessionWhitelistConsumer(
             {
                 // Giả định SessionWhitelist.Create chấp nhận List<Guid>
                 var newWhitelist = SessionWhitelist.Create(message.SessionId, finalWhitelistedDevices);
-                await scanLogWhitelistRepository.AddAsync(newWhitelist, consumeContext.CancellationToken);
+                await sessionWhitelistRepository.AddAsync(newWhitelist, consumeContext.CancellationToken);
                 logger.LogInformation(
                     "Successfully created new SessionWhitelist for Session {SessionId} with {DeviceCount} unique devices.",
                     message.SessionId, finalWhitelistedDevices.Count);
@@ -105,7 +105,7 @@ public class GenerateSessionWhitelistConsumer(
             {
                 // Giả định existingWhitelist.UpdateWhitelist chấp nhận List<Guid>
                 existingWhitelist.UpdateWhitelist(finalWhitelistedDevices);
-                await scanLogWhitelistRepository.UpdateAsync(existingWhitelist, consumeContext.CancellationToken);
+                await sessionWhitelistRepository.UpdateAsync(existingWhitelist, consumeContext.CancellationToken);
                 logger.LogInformation(
                     "Successfully updated existing SessionWhitelist for Session {SessionId} with {DeviceCount} unique devices.",
                     message.SessionId, finalWhitelistedDevices.Count);
