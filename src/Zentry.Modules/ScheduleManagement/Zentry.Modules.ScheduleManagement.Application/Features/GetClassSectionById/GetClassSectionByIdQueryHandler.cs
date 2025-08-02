@@ -18,15 +18,21 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
         if (cs is null || cs.IsDeleted)
             throw new NotFoundException("ClassSection", query.Id);
 
-        // --- Lấy thông tin Giảng viên từ UserManagement module ---
-        GetUserByIdAndRoleIntegrationResponse? lecturerInfo = null;
-        if (cs.LecturerId != Guid.Empty)
+        // --- 1. Lấy thông tin Giảng viên từ UserManagement module ---
+        var lecturerInfo =
+            await mediator.Send(new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId), ct);
+
+        // --- 2. Lấy danh sách StudentId từ Enrollments ---
+        var studentIds = cs.Enrollments?.Select(e => e.StudentId).ToList() ?? new List<Guid>();
+
+        // --- 3. Lấy thông tin chi tiết của tất cả sinh viên bằng Batch Query ---
+        var studentInfos = new Dictionary<Guid, BasicUserInfoDto>();
+        if (studentIds.Any())
         {
-            var getUserQuery = new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId);
-            lecturerInfo = await mediator.Send(getUserQuery, ct);
+            var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(studentIds), ct);
+            studentInfos = usersResponse.Users.ToDictionary(u => u.Id);
         }
 
-        // --- Tạo DTO trả về ---
         var response = new ClassSectionDto
         {
             Id = cs.Id,
@@ -36,7 +42,6 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
             LecturerId = cs.LecturerId,
             LecturerFullName = lecturerInfo?.FullName,
             LecturerEmail = lecturerInfo?.Email,
-
             SectionCode = cs.SectionCode,
             Semester = cs.Semester,
             CreatedAt = cs.CreatedAt,
@@ -54,13 +59,26 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
                     WeekDay = s.WeekDay.ToString()
                 })
                 .ToList(),
+            // Logic này giờ đã đúng kiểu dữ liệu
             Enrollments = cs.Enrollments?
-                .Select(e => new BasicEnrollmentDto
+                .Select(e => new EnrollmentDto
                 {
-                    Id = e.Id,
+                    EnrollmentId = e.Id,
+                    EnrollmentDate = e.EnrolledAt,
+                    Status = e.Status.ToString(),
                     StudentId = e.StudentId,
-                    EnrolledAt = e.EnrolledAt,
-                    Status = e.Status.ToString()
+                    StudentName = studentInfos.GetValueOrDefault(e.StudentId)?.FullName,
+
+                    ClassSectionId = cs.Id,
+                    ClassSectionCode = cs.SectionCode,
+                    ClassSectionSemester = cs.Semester,
+
+                    CourseId = cs.CourseId,
+                    CourseCode = cs.Course?.Code,
+                    CourseName = cs.Course?.Name,
+
+                    LecturerId = cs.LecturerId,
+                    LecturerName = lecturerInfo?.FullName
                 })
                 .ToList()
         };
