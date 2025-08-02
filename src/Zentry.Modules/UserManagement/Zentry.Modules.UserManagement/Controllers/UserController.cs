@@ -46,10 +46,6 @@ public class UserController(IMediator mediator) : BaseController
         {
             var response = await mediator.Send(query);
 
-            if (response == null)
-                return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound,
-                    $"User with ID '{id}' not found"));
-
             return HandleResult(response);
         }
         catch (Exception ex)
@@ -105,7 +101,8 @@ public class UserController(IMediator mediator) : BaseController
                     response.Message?.Contains("Account not found") == true)
                     return NotFound(ApiResponse.ErrorResult(ErrorCodes.AccountNotFound, response.Message));
 
-                return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message));
+                if (response.Message != null)
+                    return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message));
             }
 
             return HandleResult(response);
@@ -134,7 +131,8 @@ public class UserController(IMediator mediator) : BaseController
                 if (response.Message?.Contains("not found") == true)
                     return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound, response.Message));
 
-                return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message));
+                if (response.Message != null)
+                    return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message));
             }
 
             return HandleResult(response);
