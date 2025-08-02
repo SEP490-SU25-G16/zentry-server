@@ -89,9 +89,6 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("AttributeDefinitionId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("AttributeId")
                         .HasColumnType("uuid");
 
@@ -119,8 +116,6 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                         .HasColumnType("character varying(255)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AttributeDefinitionId");
 
                     b.HasIndex("AttributeId");
 
@@ -222,12 +217,8 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
 
             modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.Option", b =>
                 {
-                    b.HasOne("Zentry.Modules.ConfigurationManagement.Entities.AttributeDefinition", null)
-                        .WithMany("Options")
-                        .HasForeignKey("AttributeDefinitionId");
-
                     b.HasOne("Zentry.Modules.ConfigurationManagement.Entities.AttributeDefinition", "AttributeDefinition")
-                        .WithMany()
+                        .WithMany("Options")
                         .HasForeignKey("AttributeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

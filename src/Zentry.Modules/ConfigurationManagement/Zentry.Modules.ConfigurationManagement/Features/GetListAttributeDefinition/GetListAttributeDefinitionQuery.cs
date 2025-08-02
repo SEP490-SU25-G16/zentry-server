@@ -64,8 +64,8 @@ public class AttributeDefinitionListItemDto
     public string Key { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public DataType DataType { get; set; }
-    public List<ScopeType> AllowedScopeTypes { get; set; } = new();
+    public string DataType { get; set; }
+    public List<string> AllowedScopeTypes { get; set; } = new();
     public string? Unit { get; set; }
     public string? DefaultValue { get; set; }
     public bool IsDeletable { get; set; }

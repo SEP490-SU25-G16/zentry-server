@@ -84,7 +84,7 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt,
                 LastVerifiedAt = d.LastVerifiedAt,
-                Status = d.Status
+                Status = d.Status.ToString()
             })
             .ToListAsync(cancellationToken);
 

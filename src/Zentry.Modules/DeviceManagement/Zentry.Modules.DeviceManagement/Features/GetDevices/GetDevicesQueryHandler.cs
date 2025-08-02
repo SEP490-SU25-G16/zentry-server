@@ -29,7 +29,6 @@ public class GetDevicesQueryHandler(
             cancellationToken
         );
 
-        // Nếu không có thiết bị nào, trả về response rỗng ngay lập tức
         var deviceListItemDtos = devices.ToList();
         if (deviceListItemDtos.Count == 0)
         {
@@ -56,7 +55,7 @@ public class GetDevicesQueryHandler(
             deviceDto.UserFullName = user?.FullName;
             deviceDto.UserEmail = user?.Email;
             return deviceDto;
-        }).ToList(); // .ToList() để thực hiện truy vấn và có thể chỉnh sửa các đối tượng trong list
+        }).ToList();
 
         return new GetDevicesResponse
         {

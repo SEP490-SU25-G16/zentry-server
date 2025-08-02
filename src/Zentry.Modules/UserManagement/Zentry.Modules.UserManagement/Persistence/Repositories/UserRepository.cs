@@ -146,7 +146,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                 UserId = x.User.Id,
                 Email = x.Account.Email,
                 FullName = x.User.FullName,
-                Role = x.Account.Role,
+                Role = x.Account.Role.ToString(),
                 Status = x.Account.Status.ToString(),
                 CreatedAt = x.Account.CreatedAt
             })

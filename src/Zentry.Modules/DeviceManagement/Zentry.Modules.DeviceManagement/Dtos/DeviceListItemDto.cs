@@ -19,5 +19,5 @@ public class DeviceListItemDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? LastVerifiedAt { get; set; }
-    public DeviceStatus Status { get; set; }
+    public required string Status { get; set; }
 }
