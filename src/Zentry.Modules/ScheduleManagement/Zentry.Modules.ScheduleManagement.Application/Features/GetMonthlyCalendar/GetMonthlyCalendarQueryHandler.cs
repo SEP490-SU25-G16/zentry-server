@@ -20,7 +20,7 @@ public class GetMonthlyCalendarQueryHandler(
         var startDate = new DateTime(request.Year, request.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var endDate = startDate.AddMonths(1).AddDays(-1);
 
-        var dailySchedulesMap = new Dictionary<DateOnly, List<LecturerScheduleProjectionDto>>();
+        var dailySchedulesMap = new Dictionary<DateOnly, List<ScheduleProjectionDto>>();
         var sessionLookups = new List<ScheduleDateLookup>();
 
         // Bước 1: Thu thập tất cả Schedules cho tất cả các ngày trong tháng

@@ -8,6 +8,20 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
+    public async Task<List<Session>> GetSessionsByScheduleIdsAndDateAsync(
+        List<Guid> scheduleIds,
+        DateOnly date,
+        CancellationToken cancellationToken)
+    {
+        var utcDateStart = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
+        return await dbContext.Sessions
+            .AsNoTracking()
+            .Where(s => scheduleIds.Contains(s.ScheduleId) &&
+                        s.StartTime.Date == utcDateStart.Date)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Session>> GetSessionsByScheduleIdsAndDatesAsync(
         List<Guid> scheduleIds,
         List<DateTime> utcDates,

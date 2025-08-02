@@ -2,7 +2,7 @@ using Zentry.SharedKernel.Constants.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
 
-public class LecturerScheduleProjectionDto
+public class ScheduleProjectionDto
 {
     public Guid ScheduleId { get; set; }
     public TimeOnly StartTime { get; set; }

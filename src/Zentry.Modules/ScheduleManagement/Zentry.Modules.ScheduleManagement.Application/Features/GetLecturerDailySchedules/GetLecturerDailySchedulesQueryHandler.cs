@@ -9,15 +9,14 @@ using Zentry.SharedKernel.Contracts.Attendance;
 
 // Đảm bảo đã thêm
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailySchedules;
 
-public class GetLecturerDailyClassesQueryHandler(
+public class GetLecturerDailySchedulesQueryHandler(
     IScheduleRepository scheduleRepository,
-    IMediator mediator,
-    IUserScheduleService userScheduleService
-) : IQueryHandler<GetLecturerDailyClassesQuery, List<LecturerDailyClassDto>>
+    IMediator mediator
+) : IQueryHandler<GetLecturerDailySchedulesQuery, List<LecturerDailyClassDto>>
 {
-    public async Task<List<LecturerDailyClassDto>> Handle(GetLecturerDailyClassesQuery request,
+    public async Task<List<LecturerDailyClassDto>> Handle(GetLecturerDailySchedulesQuery request,
         CancellationToken cancellationToken)
     {
         var dayOfWeek = request.Date.DayOfWeek.ToWeekDayEnum();

@@ -1,0 +1,96 @@
+// File: Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailySchedules/GetStudentDailySchedulesQueryHandler.cs
+
+using MediatR;
+using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Helpers;
+using Zentry.Modules.ScheduleManagement.Application.Services;
+using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Contracts.Attendance;
+using Zentry.SharedKernel.Contracts.User;
+using System.Linq;
+
+namespace Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailySchedules;
+
+public class GetStudentDailySchedulesQueryHandler(
+    IEnrollmentRepository enrollmentRepository,
+    IScheduleRepository scheduleRepository,
+    IMediator mediator,
+    IUserScheduleService userScheduleService
+) : IQueryHandler<GetStudentDailySchedulesQuery, List<StudentDailyClassDto>>
+{
+    public async Task<List<StudentDailyClassDto>> Handle(GetStudentDailySchedulesQuery request,
+        CancellationToken cancellationToken)
+    {
+        var dayOfWeek = request.Date.DayOfWeek.ToWeekDayEnum();
+        var requestDateOnly = DateOnly.FromDateTime(request.Date);
+        var result = new List<StudentDailyClassDto>();
+
+        // 1. Lấy tất cả các lớp học mà sinh viên đã đăng ký
+        var enrollmentProjections =
+            await enrollmentRepository.GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
+                request.StudentId, cancellationToken);
+
+        var classSectionIds = enrollmentProjections.Select(e => e.ClassSectionId).ToList();
+
+        // 2. Lấy tất cả các schedule của các lớp đó trong ngày hôm nay
+        var schedulesForDay = await scheduleRepository.GetSchedulesByClassSectionIdsAndDateAsync(
+            classSectionIds, request.Date, dayOfWeek, cancellationToken);
+
+        var scheduleIds = schedulesForDay.Select(s => s.ScheduleId).ToList();
+
+        // 3. Lấy thông tin lecturer của các class section liên quan
+        var lecturerIds = enrollmentProjections.Select(e => e.LecturerId).Distinct().ToList();
+        var lecturerInfos = await mediator.Send(new GetUsersByIdsIntegrationQuery(lecturerIds), cancellationToken);
+        var lecturerDictionary = lecturerInfos.Users.ToDictionary(u => u.Id, u => u.FullName);
+
+        // 4. (Tối ưu hóa) Lấy thông tin sessions của tất cả schedules trong ngày bằng một lệnh gọi
+        var sessionsResponse = await mediator.Send(
+            new GetSessionsByScheduleIdsAndDateIntegrationQuery(scheduleIds, requestDateOnly),
+            cancellationToken);
+        var sessionInfos = sessionsResponse.SessionsByScheduleId;
+
+        // 5. Lấy trạng thái điểm danh của sinh viên
+        var studentAttendanceStatus = new Dictionary<Guid, string>();
+        // TODO: Gọi integration query để lấy trạng thái điểm danh theo batch
+        // Ví dụ: var attendanceResponses = await mediator.Send(new GetStudentAttendanceBySessionIdsIntegrationQuery(...));
+
+        // 6. Kết hợp dữ liệu và ánh xạ vào DTO
+        var enrollmentProjectionDictionary = enrollmentProjections.ToDictionary(e => e.ClassSectionId);
+
+        foreach (var scheduleProjection in schedulesForDay)
+        {
+            if (!enrollmentProjectionDictionary.TryGetValue(scheduleProjection.ClassSectionId,
+                    out var enrollmentProjection))
+                continue;
+
+            var currentSessionInfo = sessionInfos.GetValueOrDefault(scheduleProjection.ScheduleId);
+            var sessionStatus = currentSessionInfo?.Status ?? SessionStatus.Pending.ToString();
+            var sessionId = currentSessionInfo?.SessionId;
+
+            result.Add(new StudentDailyClassDto
+            {
+                ScheduleId = scheduleProjection.ScheduleId,
+                ClassSectionId = scheduleProjection.ClassSectionId,
+                CourseId = enrollmentProjection.CourseId,
+                CourseCode = enrollmentProjection.CourseCode,
+                CourseName = enrollmentProjection.CourseName,
+                SectionCode = enrollmentProjection.SectionCode,
+                LecturerId = enrollmentProjection.LecturerId,
+                LecturerName = lecturerDictionary.GetValueOrDefault(enrollmentProjection.LecturerId, "N/A"),
+                RoomId = scheduleProjection.RoomId,
+                RoomName = scheduleProjection.RoomName,
+                Building = scheduleProjection.Building,
+                StartTime = scheduleProjection.StartTime,
+                EndTime = scheduleProjection.EndTime,
+                Weekday = dayOfWeek.ToString(),
+                DateInfo = requestDateOnly,
+                SessionId = sessionId,
+                SessionStatus = sessionStatus,
+            });
+        }
+
+        return result.OrderBy(s => s.StartTime).ToList();
+    }
+}

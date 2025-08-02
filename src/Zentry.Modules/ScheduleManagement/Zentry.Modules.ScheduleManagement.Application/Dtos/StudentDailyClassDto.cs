@@ -1,5 +1,4 @@
-namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
-
+// File: Zentry.Modules.ScheduleManagement.Application.Dtos/StudentDailyClassDto.cs
 public class StudentDailyClassDto
 {
     public Guid ScheduleId { get; set; }
@@ -11,7 +10,7 @@ public class StudentDailyClassDto
 
     public string SectionCode { get; set; } = string.Empty;
 
-    public Guid LecturerId { get; set; } // Giảng viên của lớp học
+    public Guid LecturerId { get; set; }
     public string LecturerName { get; set; } = string.Empty;
 
     public Guid RoomId { get; set; }
@@ -23,10 +22,10 @@ public class StudentDailyClassDto
     public string Weekday { get; set; }
     public DateOnly DateInfo { get; set; }
 
-    // Thông tin về buổi học (sessions) của lớp này
-    public List<SessionInfoDto> Sessions { get; set; } = [];
+    // Thông tin về buổi học (session) của ngày hiện tại
+    public Guid? SessionId { get; set; } // Có thể null nếu chưa có session
+    public string SessionStatus { get; set; } = string.Empty;
 
-    // Có thể thêm các trường liên quan đến điểm danh, trạng thái điểm danh của sinh viên
-    public Guid StudentId { get; set; } // StudentId của sinh viên đang query
-    // Ví dụ: public string StudentAttendanceStatus { get; set; } // Trạng thái điểm danh của sinh viên cho buổi học này
+    // Trạng thái điểm danh của sinh viên cho session này
+    public string StudentAttendanceStatus { get; set; } = string.Empty; // Ví dụ: Present, Late, Absent, N/A
 }

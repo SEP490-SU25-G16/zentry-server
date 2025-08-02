@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Application.Features.CalculateRoundAttendance;
+using Zentry.Modules.AttendanceManagement.Application.Features.EndSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetRoundResult;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
@@ -116,7 +117,6 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    // Bắt đầu một session (Đã sửa URL)
     [HttpPost("sessions/{sessionId:guid}/start")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
@@ -138,6 +138,36 @@ public class AttendanceController(IMediator mediator) : BaseController
             };
             await mediator.Send(command, cancellationToken);
             return HandleResult("Session started successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("sessions/{sessionId:guid}/end")]
+    [ProducesResponseType(typeof(ApiResponse<EndSessionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> EndSession(Guid sessionId, [FromBody] EndSessionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return HandleValidationError();
+
+        if (request.UserId == Guid.Empty)
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "User ID is required to end a session."));
+
+        try
+        {
+            var command = new EndSessionCommand
+            {
+                SessionId = sessionId,
+                UserId = request.UserId
+            };
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response, "Session ended successfully.");
         }
         catch (Exception ex)
         {
