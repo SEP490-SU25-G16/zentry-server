@@ -2,6 +2,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
 
 public class LecturerDailyClassDto
 {
+    public Guid ScheduleId { get; set; }
     public Guid ClassSectionId { get; set; }
 
     public string CourseCode { get; set; } = string.Empty;

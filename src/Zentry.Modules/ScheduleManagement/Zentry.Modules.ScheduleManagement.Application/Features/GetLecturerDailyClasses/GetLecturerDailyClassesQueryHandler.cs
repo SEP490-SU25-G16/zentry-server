@@ -50,6 +50,7 @@ public class GetLecturerDailyClassesQueryHandler(
 
             result.Add(new LecturerDailyClassDto
             {
+                ScheduleId = scheduleProjection.ScheduleId,
                 ClassSectionId = scheduleProjection.ClassSectionId,
                 CourseCode = scheduleProjection.CourseCode,
                 CourseName = scheduleProjection.CourseName,

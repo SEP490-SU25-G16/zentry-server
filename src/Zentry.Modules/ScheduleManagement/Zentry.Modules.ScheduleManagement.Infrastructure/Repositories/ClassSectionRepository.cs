@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;

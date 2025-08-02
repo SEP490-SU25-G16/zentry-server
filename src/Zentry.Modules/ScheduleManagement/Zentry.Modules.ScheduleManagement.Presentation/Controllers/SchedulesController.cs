@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetMonthlyCalendar;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetScheduleDetail;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailyClasses;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -14,6 +17,61 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/schedules")]
 public class SchedulesController(IMediator mediator) : BaseController
 {
+    [HttpGet("student/daily-schedule")]
+    [ProducesResponseType(typeof(ApiResponse<List<StudentDailyClassDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetStudentDailyClasses([FromQuery] Guid studentId,
+        [FromQuery] DateTime? date = null)
+    {
+        try
+        {
+            var queryDate = date ?? DateTime.Today;
+            var query = new GetStudentDailyClassesQuery(studentId, queryDate);
+            var response = await mediator.Send(query);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("lecturer/daily-schedule")]
+    [ProducesResponseType(typeof(ApiResponse<List<LecturerDailyClassDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLecturerDailyClasses([FromQuery] Guid lecturerId,
+        [FromQuery] DateTime? date = null)
+    {
+        try
+        {
+            var queryDate = date ?? DateTime.Today;
+            var query = new GetLecturerDailyClassesQuery(lecturerId, queryDate);
+            var response = await mediator.Send(query);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("{scheduleId:guid}/detail")]
+    [ProducesResponseType(typeof(ApiResponse<ScheduleDetailDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClassDetail(Guid scheduleId)
+    {
+        try
+        {
+            var query = new GetScheduleDetailQuery(scheduleId);
+            var response = await mediator.Send(query);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     [HttpGet("lecturer/{lecturerId:guid}/monthly-calendar")]
     [ProducesResponseType(typeof(ApiResponse<MonthlyCalendarResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

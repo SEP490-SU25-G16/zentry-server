@@ -11,6 +11,34 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<ScheduleDetailsWithRelationsDto?> GetScheduleDetailsWithRelationsAsync(Guid scheduleId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => s.Id == scheduleId)
+            .Include(s => s.Room)
+            .Include(s => s.ClassSection)
+            .ThenInclude(cs => cs.Course)
+            .Select(s => new ScheduleDetailsWithRelationsDto
+            {
+                ScheduleId = s.Id,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                WeekDay = s.WeekDay,
+
+                ClassSectionId = s.ClassSectionId,
+                SectionCode = s.ClassSection.SectionCode,
+
+                CourseName = s.ClassSection.Course != null ? s.ClassSection.Course.Name : string.Empty,
+
+                RoomId = s.RoomId,
+                RoomName = s.Room != null ? s.Room.RoomName : string.Empty,
+                Building = s.Room != null ? s.Room.Building : string.Empty
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
     public async Task<List<LecturerDailyReportScheduleProjectionDto>> GetLecturerReportSchedulesForDateAsync(
         Guid lecturerId,
         DateTime date,

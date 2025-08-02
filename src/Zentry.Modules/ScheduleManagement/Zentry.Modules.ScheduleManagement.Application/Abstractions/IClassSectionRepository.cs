@@ -1,3 +1,4 @@
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
