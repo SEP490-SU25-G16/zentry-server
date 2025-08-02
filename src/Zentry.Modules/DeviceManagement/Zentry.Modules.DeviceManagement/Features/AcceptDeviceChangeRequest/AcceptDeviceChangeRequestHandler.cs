@@ -75,28 +75,26 @@ public class HandleDeviceChangeRequestHandler(
                 Message = "Yêu cầu thay đổi thiết bị đã được chấp nhận thành công."
             };
         }
-        else
+
+        // Logic từ chối (Reject)
+        // Lấy device đang pending và chuyển status sang Rejected (nếu cần, vì nó đã bị từ chối)
+        var pendingDevice =
+            await deviceRepository.GetPendingDeviceForUserAsync(userId, relatedDeviceId, cancellationToken);
+        if (pendingDevice is not null)
         {
-            // Logic từ chối (Reject)
-            // Lấy device đang pending và chuyển status sang Rejected (nếu cần, vì nó đã bị từ chối)
-            var pendingDevice =
-                await deviceRepository.GetPendingDeviceForUserAsync(userId, relatedDeviceId, cancellationToken);
-            if (pendingDevice is not null)
-            {
-                pendingDevice.UpdateStatus(DeviceStatus.Rejected);
-                await deviceRepository.UpdateAsync(pendingDevice, cancellationToken);
-                logger.LogInformation("Rejected device {DeviceId} for user {UserId}.", pendingDevice.Id, userId);
-            }
-
-            logger.LogInformation("UserRequest {UserRequestId} rejected successfully.", command.UserRequestId);
-
-            return new HandleDeviceChangeRequestResponse
-            {
-                UserRequestId = command.UserRequestId,
-                Message = "Yêu cầu thay đổi thiết bị đã bị từ chối.",
-                UpdatedDeviceId = relatedDeviceId,
-                DeactivatedDeviceId = null
-            };
+            pendingDevice.UpdateStatus(DeviceStatus.Rejected);
+            await deviceRepository.UpdateAsync(pendingDevice, cancellationToken);
+            logger.LogInformation("Rejected device {DeviceId} for user {UserId}.", pendingDevice.Id, userId);
         }
+
+        logger.LogInformation("UserRequest {UserRequestId} rejected successfully.", command.UserRequestId);
+
+        return new HandleDeviceChangeRequestResponse
+        {
+            UserRequestId = command.UserRequestId,
+            Message = "Yêu cầu thay đổi thiết bị đã bị từ chối.",
+            UpdatedDeviceId = relatedDeviceId,
+            DeactivatedDeviceId = null
+        };
     }
 }

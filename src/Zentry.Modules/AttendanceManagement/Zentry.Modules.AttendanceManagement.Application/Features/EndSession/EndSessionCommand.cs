@@ -16,4 +16,3 @@ public class EndSessionResponse
     public DateTime EndTime { get; set; } // Thời điểm kết thúc thực tế
     public DateTime? UpdatedAt { get; set; }
 }
-

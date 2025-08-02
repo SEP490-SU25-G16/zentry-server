@@ -50,7 +50,6 @@ public class GetSessionRoundsResultQueryHandler(
 
             var studentAttendances = new List<StudentAttendanceDto>();
             if (roundTrack != null && roundTrack.Students.Any())
-            {
                 studentAttendances.AddRange(roundTrack.Students.Select(s => new StudentAttendanceDto
                 {
                     StudentId = s.StudentId,
@@ -58,7 +57,6 @@ public class GetSessionRoundsResultQueryHandler(
                     AttendedTime = s.AttendedTime
                     // Thêm StudentName nếu có thể lấy từ integration query
                 }));
-            }
 
             roundsResult.Add(new RoundResultDto
             {

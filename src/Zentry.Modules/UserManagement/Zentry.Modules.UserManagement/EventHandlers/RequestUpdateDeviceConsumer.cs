@@ -19,11 +19,11 @@ public class RequestUpdateDeviceConsumer(
             message.RequestedByUserId, message.NewDeviceId);
 
         var userRequest = UserRequest.Create(
-            requestedByUserId: message.RequestedByUserId,
-            targetUserId: message.RequestedByUserId,
-            requestType: RequestType.FromName(message.RequestType),
-            relatedEntityId: message.NewDeviceId,
-            reason: message.Reason
+            message.RequestedByUserId,
+            message.RequestedByUserId,
+            RequestType.FromName(message.RequestType),
+            message.NewDeviceId,
+            message.Reason
         );
 
         await userRequestRepository.AddAsync(userRequest, context.CancellationToken);

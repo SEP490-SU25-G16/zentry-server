@@ -8,6 +8,7 @@ using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
+
 // <-- Thêm MediatR
 // Thêm nếu dùng ErrorMessages
 // <-- Thêm để truy cập GetDeviceByMacIntegrationQuery/Response

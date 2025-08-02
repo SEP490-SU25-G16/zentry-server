@@ -27,9 +27,7 @@ public class GetStudentFinalAttendanceQueryHandler(
         // 1. Lấy thông tin Session và tổng số rounds
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
         if (session is null)
-        {
             throw new NotFoundException("Session", $"Phiên học với ID '{request.SessionId}' không tìm thấy.");
-        }
 
         // Lấy trạng thái của session ngay sau khi tìm thấy
         var sessionStatus = session.Status.ToString();
@@ -74,10 +72,7 @@ public class GetStudentFinalAttendanceQueryHandler(
         foreach (var round in allRounds)
         {
             var isAttended = attendedRounds.TryGetValue(round.Id, out var participation) && participation.IsAttended;
-            if (isAttended)
-            {
-                attendedRoundsCount++;
-            }
+            if (isAttended) attendedRoundsCount++;
 
             roundDetails.Add(new RoundAttendanceDetailDto
             {

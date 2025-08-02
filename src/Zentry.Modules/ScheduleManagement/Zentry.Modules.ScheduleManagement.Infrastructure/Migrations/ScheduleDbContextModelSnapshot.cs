@@ -120,9 +120,6 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.Property<Guid>("ClassSectionId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ClassSectionId1")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("EnrolledAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -139,8 +136,6 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClassSectionId");
-
-                    b.HasIndex("ClassSectionId1");
 
                     b.HasIndex("StudentId");
 
@@ -266,14 +261,10 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
             modelBuilder.Entity("Zentry.Modules.ScheduleManagement.Domain.Entities.Enrollment", b =>
                 {
                     b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.ClassSection", "ClassSection")
-                        .WithMany()
+                        .WithMany("Enrollments")
                         .HasForeignKey("ClassSectionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Zentry.Modules.ScheduleManagement.Domain.Entities.ClassSection", null)
-                        .WithMany("Enrollments")
-                        .HasForeignKey("ClassSectionId1");
 
                     b.Navigation("ClassSection");
                 });

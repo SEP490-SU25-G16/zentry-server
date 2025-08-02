@@ -24,6 +24,7 @@ public interface ISessionRepository : IRepository<Session, Guid>
         List<Guid> scheduleIds,
         List<DateTime> utcDates,
         CancellationToken cancellationToken);
+
     Task<List<Session>> GetSessionsByScheduleIdsAndDateAsync(
         List<Guid> scheduleIds,
         DateOnly date,

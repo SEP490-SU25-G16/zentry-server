@@ -1,11 +1,11 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.User;
-using Microsoft.Extensions.Logging;
-using Zentry.Modules.AttendanceManagement.Application.Dtos;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.GetRoundResult;
 
@@ -82,12 +82,10 @@ public class GetRoundResultQueryHandler(
         // Tạo một lookup dictionary để kiểm tra nhanh
         var attendedStudentsMap = new Dictionary<Guid, (bool IsAttended, DateTime? AttendedTime)>();
         if (roundTrack != null && roundTrack.Students.Any())
-        {
             attendedStudentsMap = roundTrack.Students.ToDictionary(
                 s => s.StudentId,
                 s => (s.IsAttended, s.AttendedTime)
             );
-        }
 
         // 6. Kết hợp dữ liệu và tạo DTO trả về
         var studentsAttendance = allStudents.Select(student =>

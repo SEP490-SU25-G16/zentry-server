@@ -45,10 +45,7 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
     {
         IQueryable<Device> query = dbContext.Devices;
 
-        if (userId.HasValue)
-        {
-            query = query.Where(d => d.UserId == userId.Value);
-        }
+        if (userId.HasValue) query = query.Where(d => d.UserId == userId.Value);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -58,10 +55,7 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
                 d.MacAddress.Value.Contains(lowerSearchTerm));
         }
 
-        if (status != null)
-        {
-            query = query.Where(d => d.Status == status);
-        }
+        if (status != null) query = query.Where(d => d.Status == status);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

@@ -6,6 +6,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
+
 // Vẫn cần MediatR nếu các command/query khác trong module này sử dụng nó.
 // Nếu SubmitScanDataCommandHandler là handler duy nhất cần MediatR, có thể bỏ.
 

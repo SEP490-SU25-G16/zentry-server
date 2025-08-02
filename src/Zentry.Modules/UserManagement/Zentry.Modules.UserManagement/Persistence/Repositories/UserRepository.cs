@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Dtos;
 using Zentry.Modules.UserManagement.Entities;
-using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Constants.User;

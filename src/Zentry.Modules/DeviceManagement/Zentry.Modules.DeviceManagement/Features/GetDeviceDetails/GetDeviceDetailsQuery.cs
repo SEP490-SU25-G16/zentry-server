@@ -1,6 +1,4 @@
-using MediatR;
 using Zentry.SharedKernel.Abstractions.Application;
-using System;
 using Zentry.SharedKernel.Constants.Device;
 
 namespace Zentry.Modules.DeviceManagement.Features.GetDeviceDetails;

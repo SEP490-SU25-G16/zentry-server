@@ -1,13 +1,11 @@
-using Zentry.SharedKernel.Constants.Device;
-
 namespace Zentry.Modules.DeviceManagement.Dtos;
 
 public class DeviceListItemDto
 {
     public Guid DeviceId { get; set; }
     public Guid UserId { get; set; }
-    public string? UserFullName { get; set; } 
-    public string? UserEmail { get; set; }    
+    public string? UserFullName { get; set; }
+    public string? UserEmail { get; set; }
     public string DeviceName { get; set; } = string.Empty;
     public string MacAddress { get; set; } = string.Empty;
     public string? Platform { get; set; }

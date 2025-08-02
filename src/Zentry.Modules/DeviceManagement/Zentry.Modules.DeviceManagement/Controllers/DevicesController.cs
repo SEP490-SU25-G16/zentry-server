@@ -89,10 +89,8 @@ public class DevicesController(IMediator mediator) : BaseController
         CancellationToken cancellationToken)
     {
         if (pageNumber <= 0 || pageSize <= 0)
-        {
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR",
                 "PageNumber and PageSize must be greater than 0."));
-        }
 
         var query = new GetDevicesQuery(
             pageNumber,

@@ -22,6 +22,7 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
     Task BulkAddAsync(List<Enrollment> enrollments, CancellationToken cancellationToken);
     Task<List<Enrollment>> GetEnrollmentsByClassSectionAsync(Guid classSectionId, CancellationToken cancellationToken);
     Task<List<Enrollment>> GetEnrollmentsByStudentIdAsync(Guid studentId, CancellationToken cancellationToken);
+
     Task<List<EnrollmentProjectionDto>> GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
         Guid studentId,
         CancellationToken cancellationToken);

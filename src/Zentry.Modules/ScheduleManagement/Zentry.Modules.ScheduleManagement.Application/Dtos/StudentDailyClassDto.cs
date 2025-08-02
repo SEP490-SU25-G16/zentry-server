@@ -1,4 +1,5 @@
 // File: Zentry.Modules.ScheduleManagement.Application.Dtos/StudentDailyClassDto.cs
+
 public class StudentDailyClassDto
 {
     public Guid ScheduleId { get; set; }

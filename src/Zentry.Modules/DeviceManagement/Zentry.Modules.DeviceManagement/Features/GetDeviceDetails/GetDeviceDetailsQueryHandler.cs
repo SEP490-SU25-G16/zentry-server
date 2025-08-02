@@ -11,14 +11,12 @@ public class GetDeviceDetailsQueryHandler(
     IMediator mediator
 ) : IQueryHandler<GetDeviceDetailsQuery, GetDeviceDetailsResponse>
 {
-    public async Task<GetDeviceDetailsResponse> Handle(GetDeviceDetailsQuery request, CancellationToken cancellationToken)
+    public async Task<GetDeviceDetailsResponse> Handle(GetDeviceDetailsQuery request,
+        CancellationToken cancellationToken)
     {
         var device = await deviceRepository.GetByIdAsync(request.DeviceId, cancellationToken);
 
-        if (device is null)
-        {
-            throw new NotFoundException(nameof(GetDeviceDetailsQueryHandler), request.DeviceId);
-        }
+        if (device is null) throw new NotFoundException(nameof(GetDeviceDetailsQueryHandler), request.DeviceId);
 
         // too fucking lazy to create a new integration handler
         var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery([device.UserId]), cancellationToken);

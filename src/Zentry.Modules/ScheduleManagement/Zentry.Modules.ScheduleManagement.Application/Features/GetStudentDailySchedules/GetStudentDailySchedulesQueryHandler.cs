@@ -2,14 +2,12 @@
 
 using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.User;
-using System.Linq;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailySchedules;
 
@@ -87,7 +85,7 @@ public class GetStudentDailySchedulesQueryHandler(
                 Weekday = dayOfWeek.ToString(),
                 DateInfo = requestDateOnly,
                 SessionId = sessionId,
-                SessionStatus = sessionStatus,
+                SessionStatus = sessionStatus
             });
         }
 

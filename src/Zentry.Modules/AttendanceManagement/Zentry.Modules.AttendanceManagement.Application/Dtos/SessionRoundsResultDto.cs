@@ -10,5 +10,3 @@ public class SessionRoundsResultDto
 
     public List<RoundResultDto> Rounds { get; set; } = [];
 }
-
-

@@ -1,5 +1,5 @@
 // File: Zentry.Modules.AttendanceManagement.Application.Features.Integration/GetSessionsByScheduleIdsAndDateIntegrationHandler.cs
-using MediatR;
+
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
@@ -17,10 +17,10 @@ public class GetSessionsByScheduleIdsAndDateIntegrationHandler(
     {
         // Chuyển đổi DateOnly thành DateTime (UTC)
         var utcDateStart = request.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        
+
         // Gọi phương thức repository để lấy các sessions theo danh sách ScheduleId và một ngày duy nhất
         var sessions = await sessionRepository.GetSessionsByScheduleIdsAndDateAsync(
-            request.ScheduleIds, 
+            request.ScheduleIds,
             request.Date, // Truyền DateOnly trực tiếp
             cancellationToken);
 

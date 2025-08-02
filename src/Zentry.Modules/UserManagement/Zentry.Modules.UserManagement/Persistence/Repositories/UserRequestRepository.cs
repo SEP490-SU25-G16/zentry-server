@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Entities;
-using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Interfaces;
+using Zentry.Modules.UserManagement.Persistence.DbContext;
 
 namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
@@ -41,5 +41,4 @@ public class UserRequestRepository(UserDbContext dbContext) : IUserRequestReposi
     {
         await dbContext.SaveChangesAsync(cancellationToken);
     }
-
 }

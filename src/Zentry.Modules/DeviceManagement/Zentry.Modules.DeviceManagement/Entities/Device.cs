@@ -151,10 +151,7 @@ public class Device : AggregateRoot<Guid>
 
     public void UpdateStatus(DeviceStatus newStatus)
     {
-        if (Equals(Status, newStatus))
-        {
-            return;
-        }
+        if (Equals(Status, newStatus)) return;
 
         Status = newStatus;
         UpdatedAt = DateTime.UtcNow;

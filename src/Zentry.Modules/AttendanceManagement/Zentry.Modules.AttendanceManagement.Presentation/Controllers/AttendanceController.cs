@@ -122,7 +122,8 @@ public class AttendanceController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> StartSession(Guid sessionId, [FromBody] StartSessionRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> StartSession(Guid sessionId, [FromBody] StartSessionRequest request,
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return HandleValidationError();
 

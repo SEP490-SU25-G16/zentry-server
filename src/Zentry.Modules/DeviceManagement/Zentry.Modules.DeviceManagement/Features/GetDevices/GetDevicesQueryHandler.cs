@@ -15,10 +15,7 @@ public class GetDevicesQueryHandler(
     public async Task<GetDevicesResponse> Handle(GetDevicesQuery query, CancellationToken cancellationToken)
     {
         DeviceStatus? statusEnum = null;
-        if (!string.IsNullOrWhiteSpace(query.Status))
-        {
-            statusEnum = DeviceStatus.FromName(query.Status);
-        }
+        if (!string.IsNullOrWhiteSpace(query.Status)) statusEnum = DeviceStatus.FromName(query.Status);
 
         var (devices, totalCount) = await deviceRepository.GetDevicesAsync(
             query.PageNumber,
@@ -31,7 +28,6 @@ public class GetDevicesQueryHandler(
 
         var deviceListItemDtos = devices.ToList();
         if (deviceListItemDtos.Count == 0)
-        {
             return new GetDevicesResponse
             {
                 Devices = new List<DeviceListItemDto>(),
@@ -39,7 +35,6 @@ public class GetDevicesQueryHandler(
                 PageSize = query.PageSize,
                 TotalCount = totalCount
             };
-        }
 
         // Bước 2: Thu thập tất cả UserId duy nhất từ danh sách thiết bị
         var userIds = deviceListItemDtos.Select(d => d.UserId).Distinct().ToList();

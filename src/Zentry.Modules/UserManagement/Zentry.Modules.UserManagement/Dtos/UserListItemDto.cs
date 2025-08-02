@@ -1,6 +1,4 @@
-﻿using Zentry.SharedKernel.Constants.User;
-
-namespace Zentry.Modules.UserManagement.Dtos;
+﻿namespace Zentry.Modules.UserManagement.Dtos;
 
 public class UserListItemDto
 {

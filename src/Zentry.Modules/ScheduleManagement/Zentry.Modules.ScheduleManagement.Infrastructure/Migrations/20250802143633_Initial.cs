@@ -76,8 +76,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     StudentId = table.Column<Guid>(type: "uuid", nullable: false),
                     ClassSectionId = table.Column<Guid>(type: "uuid", nullable: false),
                     EnrolledAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    ClassSectionId1 = table.Column<Guid>(type: "uuid", nullable: true)
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,11 +87,6 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                         principalTable: "ClassSections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Enrollments_ClassSections_ClassSectionId1",
-                        column: x => x.ClassSectionId1,
-                        principalTable: "ClassSections",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -159,11 +153,6 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                 name: "IX_Enrollments_ClassSectionId",
                 table: "Enrollments",
                 column: "ClassSectionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Enrollments_ClassSectionId1",
-                table: "Enrollments",
-                column: "ClassSectionId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Enrollments_StudentId",

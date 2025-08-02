@@ -15,5 +15,5 @@ public class ClassSectionDto
     public DateTime UpdatedAt { get; set; }
 
     public List<ScheduleDto>? Schedules { get; set; }
-    public List<BasicEnrollmentDto>? Enrollments { get; set; }
+    public List<EnrollmentDto>? Enrollments { get; set; }
 }

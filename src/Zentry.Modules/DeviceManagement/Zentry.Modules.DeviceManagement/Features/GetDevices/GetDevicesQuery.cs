@@ -1,6 +1,5 @@
-using Zentry.SharedKernel.Abstractions.Application;
-using System;
 using Zentry.Modules.DeviceManagement.Dtos;
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.DeviceManagement.Features.GetDevices;
 
@@ -13,8 +12,8 @@ public class GetDevicesQuery : IQuery<GetDevicesResponse>
     public GetDevicesQuery(int? pageNumber, int? pageSize, string? searchTerm = null, Guid? userId = null,
         string? status = null)
     {
-        PageNumber = (int)(pageNumber <= 0 ? 10 : pageNumber ?? 1);
-        PageSize = (int)(pageSize <= 0 ? 10 : pageSize ?? 1);
+        PageNumber = pageNumber <= 0 ? 10 : pageNumber ?? 1;
+        PageSize = pageSize <= 0 ? 10 : pageSize ?? 1;
         SearchTerm = searchTerm?.Trim();
         UserId = userId;
         Status = status?.Trim();
