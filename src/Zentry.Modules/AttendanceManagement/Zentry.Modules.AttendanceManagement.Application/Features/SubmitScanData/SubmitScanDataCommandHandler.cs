@@ -4,6 +4,7 @@ using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
 
@@ -16,6 +17,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanDat
 
 public class SubmitScanDataCommandHandler(
     IRedisService redisService,
+    ISessionRepository sessionRepository,
     IRoundRepository roundRepository,
     ILogger<SubmitScanDataCommandHandler> logger,
     IPublishEndpoint publishEndpoint)
@@ -35,8 +37,23 @@ public class SubmitScanDataCommandHandler(
 
         if (!sessionExists)
         {
-            logger.LogWarning("SubmitScanData failed: Session {SessionId} not found or not active.",
-                request.SessionId);
+            var actualEndTime = await sessionRepository.GetActualEndTimeAsync(request.SessionId, cancellationToken);
+
+            if (actualEndTime.HasValue)
+            {
+                if (request.Timestamp > actualEndTime.Value)
+                {
+                    // Lỗi: Thời gian gửi sau thời gian kết thúc thực tế
+                    logger.LogWarning(
+                        "SubmitScanData rejected: Data timestamp {Timestamp} is after actual session end time {ActualEndTime} for Session {SessionId}.",
+                        request.Timestamp, actualEndTime, request.SessionId);
+
+                    // Ném ra exception mới thay vì trả về Response
+                    throw new SessionEndedException(ErrorMessages.Attendance.SessionEnded);
+                }
+            }
+
+            logger.LogWarning("SubmitScanData failed: Session {SessionId} not found or not active.", request.SessionId);
             throw new BusinessRuleException("SESSION_NOT_ACTIVE",
                 "Phiên điểm danh không còn hoạt động hoặc không tồn tại.");
         }

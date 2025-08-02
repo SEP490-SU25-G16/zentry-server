@@ -29,4 +29,5 @@ public interface ISessionRepository : IRepository<Session, Guid>
         List<Guid> scheduleIds,
         DateOnly date,
         CancellationToken cancellationToken);
+    Task<DateTime?> GetActualEndTimeAsync(Guid sessionId, CancellationToken cancellationToken);
 }

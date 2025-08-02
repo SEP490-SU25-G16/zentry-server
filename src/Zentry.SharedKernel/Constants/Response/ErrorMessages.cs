@@ -67,4 +67,9 @@ public static class ErrorMessages
         public const string PasswordResetRequired = "Yêu cầu đặt lại mật khẩu";
         public const string ServerError = "Có lỗi xảy ra phía server";
     }
+
+    public static class Attendance
+    {
+        public const string SessionEnded = "Phiên điểm danh đã kết thúc, dữ liệu quét không được chấp nhận.";
+    }
 }

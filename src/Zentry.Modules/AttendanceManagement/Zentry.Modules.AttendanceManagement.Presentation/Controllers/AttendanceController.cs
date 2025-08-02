@@ -192,8 +192,8 @@ public class AttendanceController(IMediator mediator) : BaseController
                 request.ScannedDevices,
                 utcTimestamp
             );
-            await mediator.Send(command);
-            return HandleResult("Scan data submitted successfully.");
+            var response = await mediator.Send(command);
+            return HandleResult(response.Message);
         }
         catch (Exception ex)
         {
@@ -201,7 +201,6 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    // Cập nhật trạng thái điểm danh của sinh viên (Đã sửa URL)
     [HttpPut("sessions/{sessionId:guid}/students/{studentId:guid}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

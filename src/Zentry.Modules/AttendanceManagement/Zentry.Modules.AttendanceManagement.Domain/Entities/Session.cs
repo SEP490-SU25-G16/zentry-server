@@ -33,6 +33,7 @@ public class Session : AggregateRoot<Guid>
     public SessionStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public DateTime? ActualEndTime { get; private set; }
 
     // Thêm thuộc tính SessionConfigs kiểu Value Object
     public SessionConfigSnapshot SessionConfigs { get; private set; }
@@ -112,6 +113,7 @@ public class Session : AggregateRoot<Guid>
                 "Không thể hoàn thành phiên khi trạng thái không phải Active.");
 
         Status = SessionStatus.Completed;
+        ActualEndTime = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 

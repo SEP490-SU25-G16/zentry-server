@@ -43,7 +43,7 @@ public class EndSessionCommandHandler(
         }
 
         // --- 1. Kết thúc Session trong DB ---
-        session.CompleteSession(); // Gọi phương thức mới trong Session entity
+        session.CompleteSession();
         await sessionRepository.UpdateAsync(session, cancellationToken);
         await sessionRepository.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Session {SessionId} status updated to Completed.", session.Id);

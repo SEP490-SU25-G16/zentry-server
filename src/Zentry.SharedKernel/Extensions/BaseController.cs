@@ -125,7 +125,8 @@ public abstract class BaseController : ControllerBase
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.SelectionOptionsRequired, ex.Message)),
             SettingAlreadyExistsException =>
                 Conflict(ApiResponse.ErrorResult(ErrorCodes.SettingAlreadyExists, ex.Message)),
-
+            SessionEndedException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.SessionEnded, ErrorMessages.Attendance.SessionEnded)),
             // General business logic exceptions
             BusinessLogicException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, ex.Message)),
