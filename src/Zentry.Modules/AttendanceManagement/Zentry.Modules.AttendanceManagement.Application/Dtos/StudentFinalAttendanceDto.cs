@@ -5,6 +5,7 @@ public class StudentFinalAttendanceDto
     public Guid StudentId { get; set; }
     public string? FullName { get; set; }
     public Guid SessionId { get; set; }
+    public required string SessionStatus { get; set; }
     public double FinalAttendancePercentage { get; set; }
     public int TotalRounds { get; set; }
     public int AttendedRoundsCount { get; set; }

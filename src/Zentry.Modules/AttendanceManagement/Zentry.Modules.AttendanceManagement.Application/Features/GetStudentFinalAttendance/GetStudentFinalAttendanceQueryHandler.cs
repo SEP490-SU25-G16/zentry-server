@@ -31,6 +31,9 @@ public class GetStudentFinalAttendanceQueryHandler(
             throw new NotFoundException("Session", $"Phiên học với ID '{request.SessionId}' không tìm thấy.");
         }
 
+        // Lấy trạng thái của session ngay sau khi tìm thấy
+        var sessionStatus = session.Status.ToString();
+
         var allRounds = await roundRepository.GetRoundsBySessionIdAsync(request.SessionId, cancellationToken);
         var totalRounds = allRounds.Count;
         if (totalRounds == 0)
@@ -39,7 +42,9 @@ public class GetStudentFinalAttendanceQueryHandler(
             return new StudentFinalAttendanceDto
             {
                 StudentId = request.StudentId,
+                FullName = "Student Not Found",
                 SessionId = request.SessionId,
+                SessionStatus = sessionStatus,
                 FinalAttendancePercentage = 0,
                 TotalRounds = 0,
                 AttendedRoundsCount = 0,
@@ -91,6 +96,7 @@ public class GetStudentFinalAttendanceQueryHandler(
             StudentId = request.StudentId,
             FullName = studentInfo.FullName,
             SessionId = request.SessionId,
+            SessionStatus = sessionStatus,
             FinalAttendancePercentage = finalPercentage,
             TotalRounds = totalRounds,
             AttendedRoundsCount = attendedRoundsCount,
