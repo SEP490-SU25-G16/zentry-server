@@ -4,6 +4,7 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
+using Zentry.SharedKernel.Extensions; // Import extension methods
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetMonthlyCalendar;
 
@@ -57,8 +58,12 @@ public class GetMonthlyCalendarQueryHandler(
             );
         }
 
+        // FIX: Tạo dictionary với key đúng - sử dụng Vietnam local date thay vì UTC date
         var sessionLookupDict = allSessionsForMonth
-            .ToDictionary(s => (s.ScheduleId, DateOnly.FromDateTime(s.StartTime.Date)), s => s.SessionId);
+            .ToDictionary(
+                s => (s.ScheduleId, DateOnly.FromDateTime(s.StartTime.ToVietnamLocalTime().Date)),
+                s => s.SessionId
+            );
 
         for (var currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
         {

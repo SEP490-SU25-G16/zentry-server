@@ -26,7 +26,7 @@ public class AttributeService(ConfigurationDbContext dbContext) : IAttributeServ
             throw new ArgumentException($"Attribute Definition with ID '{attributeId}' not found.");
 
         // So sánh DataType với các Smart Enum instances
-        if (attributeDefinition.DataType.Equals(DataType.String)) return true; // String luôn hợp lệ
+        if (attributeDefinition.DataType.Equals(DataType.String)) return true;
 
         if (attributeDefinition.DataType.Equals(DataType.Int)) return int.TryParse(value, out _);
 

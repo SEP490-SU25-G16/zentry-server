@@ -20,12 +20,25 @@ public class SchedulesController(IMediator mediator) : BaseController
     [HttpGet("student/daily-schedule")]
     [ProducesResponseType(typeof(ApiResponse<List<StudentDailyClassDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetStudentDailySchedules([FromQuery] Guid studentId,
-        [FromQuery] DateTime? date = null)
+    public async Task<IActionResult> GetStudentDailySchedules(
+        [FromQuery] Guid studentId,
+        [FromQuery] string? date = null) // Thay đổi thành string
     {
         try
         {
-            var queryDate = date ?? DateTime.Today;
+            DateOnly queryDate;
+            if (!string.IsNullOrEmpty(date))
+            {
+                if (!DateOnly.TryParseExact(date, "yyyy-MM-dd", out queryDate))
+                {
+                    return BadRequest(new ApiResponse { Success = false, Message = "Invalid date format. Use yyyy-MM-dd" });
+                }
+            }
+            else
+            {
+                queryDate = DateOnly.FromDateTime(DateTime.Today);
+            }
+
             var query = new GetStudentDailySchedulesQuery(studentId, queryDate);
             var response = await mediator.Send(query);
             return HandleResult(response);
@@ -35,7 +48,6 @@ public class SchedulesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
-
     [HttpGet("lecturer/daily-schedule")]
     [ProducesResponseType(typeof(ApiResponse<List<LecturerDailyClassDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

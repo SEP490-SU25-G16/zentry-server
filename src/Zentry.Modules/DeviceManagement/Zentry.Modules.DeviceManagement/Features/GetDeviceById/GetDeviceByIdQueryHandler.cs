@@ -4,19 +4,19 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
 
-namespace Zentry.Modules.DeviceManagement.Features.GetDeviceDetails;
+namespace Zentry.Modules.DeviceManagement.Features.GetDeviceById;
 
-public class GetDeviceDetailsQueryHandler(
+public class GetDeviceByIdQueryHandler(
     IDeviceRepository deviceRepository,
     IMediator mediator
-) : IQueryHandler<GetDeviceDetailsQuery, GetDeviceDetailsResponse>
+) : IQueryHandler<GetDeviceByIdQuery, GetDeviceDetailsResponse>
 {
-    public async Task<GetDeviceDetailsResponse> Handle(GetDeviceDetailsQuery request,
+    public async Task<GetDeviceDetailsResponse> Handle(GetDeviceByIdQuery request,
         CancellationToken cancellationToken)
     {
         var device = await deviceRepository.GetByIdAsync(request.DeviceId, cancellationToken);
 
-        if (device is null) throw new NotFoundException(nameof(GetDeviceDetailsQueryHandler), request.DeviceId);
+        if (device is null) throw new NotFoundException(nameof(GetDeviceByIdQueryHandler), request.DeviceId);
 
         // too fucking lazy to create a new integration handler
         var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery([device.UserId]), cancellationToken);
@@ -40,7 +40,7 @@ public class GetDeviceDetailsQueryHandler(
             CreatedAt = device.CreatedAt,
             UpdatedAt = device.UpdatedAt,
             LastVerifiedAt = device.LastVerifiedAt,
-            Status = device.Status
+            Status = device.Status.ToString()
         };
     }
 }

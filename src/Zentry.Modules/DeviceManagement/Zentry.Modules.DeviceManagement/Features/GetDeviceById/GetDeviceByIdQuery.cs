@@ -1,9 +1,8 @@
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Device;
 
-namespace Zentry.Modules.DeviceManagement.Features.GetDeviceDetails;
+namespace Zentry.Modules.DeviceManagement.Features.GetDeviceById;
 
-public record GetDeviceDetailsQuery(Guid DeviceId) : IQuery<GetDeviceDetailsResponse>;
+public record GetDeviceByIdQuery(Guid DeviceId) : IQuery<GetDeviceDetailsResponse>;
 
 public class GetDeviceDetailsResponse
 {
@@ -23,5 +22,5 @@ public class GetDeviceDetailsResponse
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? LastVerifiedAt { get; set; }
-    public DeviceStatus Status { get; set; }
+    public string Status { get; set; }
 }

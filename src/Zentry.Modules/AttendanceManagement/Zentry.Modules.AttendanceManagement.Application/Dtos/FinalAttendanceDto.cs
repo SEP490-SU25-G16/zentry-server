@@ -20,5 +20,4 @@ public class FinalAttendanceDto
     public DateTime SessionStartTime { get; set; }
 
     public Guid? LastAttendanceRecordId { get; set; }
-    public string? DetailedAttendanceStatus { get; set; }
 }

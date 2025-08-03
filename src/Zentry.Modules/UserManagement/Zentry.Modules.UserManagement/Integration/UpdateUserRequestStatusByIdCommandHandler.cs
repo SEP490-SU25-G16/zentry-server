@@ -7,12 +7,6 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Integration;
 
-// Cập nhật record để nhận IsAccepted
-public record UpdateUserRequestStatusIntegrationCommand(Guid UserRequestId, bool IsAccepted)
-    : ICommand<UpdateUserRequestStatusIntegrationResponse>;
-
-// Giữ nguyên Response
-
 public class UpdateUserRequestStatusByIdCommandHandler(
     IUserRequestRepository userRequestRepository,
     ILogger<UpdateUserRequestStatusByIdCommandHandler> logger)

@@ -11,20 +11,43 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<List<ScheduleWithRoomDto>> GetActiveSchedulesByClassSectionIdsAndDayAsync(
+        List<Guid> classSectionIds, WeekDayEnum dayOfWeek, DateOnly date, CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => classSectionIds.Contains(s.ClassSectionId) &&
+                        s.WeekDay == dayOfWeek &&
+                        s.StartDate <= date &&
+                        s.EndDate >= date)
+            .Include(s => s.Room)
+            .Select(s => new ScheduleWithRoomDto
+            {
+                Id = s.Id,
+                ClassSectionId = s.ClassSectionId,
+                RoomId = s.RoomId,
+                RoomName = s.Room!.RoomName,
+                Building = s.Room.Building,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                WeekDay = s.WeekDay,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate
+            })
+            .ToListAsync(cancellationToken);
+    }
     public async Task<List<ScheduleProjectionDto>> GetSchedulesByClassSectionIdsAndDateAsync(
         List<Guid> classSectionIds,
-        DateTime date,
+        DateOnly date,
         WeekDayEnum weekDay,
         CancellationToken cancellationToken)
     {
-        var dateOnly = DateOnly.FromDateTime(date);
-
         return await dbContext.Schedules
             .AsNoTracking()
             .Where(s => classSectionIds.Contains(s.ClassSectionId) &&
                         s.WeekDay == weekDay &&
-                        s.StartDate <= dateOnly &&
-                        s.EndDate >= dateOnly)
+                        s.StartDate <= date &&
+                        s.EndDate >= date)
             .Select(s => new ScheduleProjectionDto
             {
                 ScheduleId = s.Id,
@@ -38,7 +61,6 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             })
             .ToListAsync(cancellationToken);
     }
-
     public async Task<ScheduleDetailsWithRelationsDto?> GetScheduleDetailsWithRelationsAsync(Guid scheduleId,
         CancellationToken cancellationToken)
     {

@@ -10,6 +10,26 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepository
 {
+    public async Task<List<EnrollmentWithClassSectionDto>> GetActiveEnrollmentsByStudentIdAsync(
+        Guid studentId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Enrollments
+            .AsNoTracking()
+            .Where(e => e.StudentId == studentId &&
+                        e.Status == EnrollmentStatus.Active)
+            .Include(e => e.ClassSection)
+            .ThenInclude(cs => cs!.Course)
+            .Select(e => new EnrollmentWithClassSectionDto
+            {
+                ClassSectionId = e.ClassSectionId,
+                CourseId = e.ClassSection!.CourseId,
+                CourseCode = e.ClassSection.Course!.Code,
+                CourseName = e.ClassSection.Course.Name,
+                SectionCode = e.ClassSection.SectionCode,
+                LecturerId = e.ClassSection.LecturerId
+            })
+            .ToListAsync(cancellationToken);
+    }
     public async Task<List<EnrollmentProjectionDto>> GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
         Guid studentId,
         CancellationToken cancellationToken)

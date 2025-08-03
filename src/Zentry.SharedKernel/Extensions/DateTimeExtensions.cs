@@ -52,4 +52,35 @@ public static class DateTimeExtensions
         // và TimeZoneInfo cụ thể.
         return TimeZoneInfo.ConvertTimeToUtc(localDateTime, VietnamTimeZone);
     }
+
+    /// <summary>
+    /// Chuyển DateOnly (giờ local Việt Nam) thành UTC DateTime range để query database
+    /// Ví dụ: 2025-08-03 (VN) -> UTC: 2025-08-02 17:00:00.000 đến 2025-08-03 16:59:59.999
+    /// </summary>
+    /// <param name="localDate">Ngày theo múi giờ Việt Nam</param>
+    /// <returns>Tuple chứa UTC start và end DateTime</returns>
+    public static (DateTime utcStart, DateTime utcEnd) ToUtcRange(this DateOnly localDate)
+    {
+        // Tạo DateTime từ DateOnly (bắt đầu và kết thúc ngày theo múi giờ VN)
+        var localStartOfDay = localDate.ToDateTime(TimeOnly.MinValue); // 00:00:00
+        var localEndOfDay = localDate.ToDateTime(TimeOnly.MaxValue);   // 23:59:59.999
+
+        // Sử dụng extension method có sẵn để chuyển sang UTC
+        var utcStart = localStartOfDay.ToUtcFromVietnamLocalTime();
+        var utcEnd = localEndOfDay.ToUtcFromVietnamLocalTime();
+
+        return (utcStart, utcEnd);
+    }
+
+    /// <summary>
+    /// Kiểm tra xem một UTC DateTime có nằm trong ngày local Việt Nam hay không
+    /// </summary>
+    /// <param name="utcDateTime">UTC DateTime cần kiểm tra</param>
+    /// <param name="localDate">Ngày local Việt Nam</param>
+    /// <returns>True nếu UTC DateTime nằm trong ngày local</returns>
+    public static bool IsInVietnamLocalDate(this DateTime utcDateTime, DateOnly localDate)
+    {
+        var (utcStart, utcEnd) = localDate.ToUtcRange();
+        return utcDateTime >= utcStart && utcDateTime <= utcEnd;
+    }
 }

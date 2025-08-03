@@ -8,6 +8,8 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IScheduleRepository : IRepository<Schedule, Guid>
 {
+    Task<List<ScheduleWithRoomDto>> GetActiveSchedulesByClassSectionIdsAndDayAsync(
+        List<Guid> classSectionIds, WeekDayEnum dayOfWeek, DateOnly date, CancellationToken cancellationToken);
     Task<ScheduleDetailsWithRelationsDto?> GetScheduleDetailsWithRelationsAsync(Guid scheduleId,
         CancellationToken cancellationToken);
 
@@ -46,7 +48,7 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
 
     Task<List<ScheduleProjectionDto>> GetSchedulesByClassSectionIdsAndDateAsync(
         List<Guid> classSectionIds,
-        DateTime date,
+        DateOnly date,
         WeekDayEnum weekDay,
         CancellationToken cancellationToken);
 }

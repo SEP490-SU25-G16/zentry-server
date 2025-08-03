@@ -86,7 +86,7 @@ public class CreateScheduleCommandHandler(
             RoomId = schedule.RoomId,
             StartTime = schedule.StartTime,
             EndTime = schedule.EndTime,
-            WeekDay = schedule.WeekDay,
+            WeekDay = schedule.WeekDay.ToString(),
             StartDate = schedule.StartDate,
             EndDate = schedule.EndDate,
             CreatedAt = schedule.CreatedAt

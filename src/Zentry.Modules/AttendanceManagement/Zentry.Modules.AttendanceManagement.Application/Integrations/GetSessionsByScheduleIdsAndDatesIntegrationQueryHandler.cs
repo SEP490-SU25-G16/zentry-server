@@ -14,23 +14,19 @@ public class GetSessionsByScheduleIdsAndDatesIntegrationQueryHandler(ISessionRep
     {
         if (query.Lookups.Count == 0) return [];
 
-        // Tạo danh sách các cặp (ScheduleId, DateTime.Date (UTC)) để truy vấn
-        var lookupTuples = query.Lookups.Select(l =>
-        {
-            var utcDateStart = l.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-            return new { l.ScheduleId, UtcDate = utcDateStart.Date };
-        }).ToList();
+        var scheduleIds = query.Lookups.Select(x => x.ScheduleId).Distinct().ToList();
+        var dates = query.Lookups.Select(x => x.Date).Distinct().ToList();
 
         var sessions = await sessionRepository.GetSessionsByScheduleIdsAndDatesAsync(
-            lookupTuples.Select(x => x.ScheduleId).ToList(),
-            lookupTuples.Select(x => x.UtcDate).ToList(),
+            scheduleIds,
+            dates,
             cancellationToken
         );
 
-        // Ánh xạ kết quả sang DTO phản hồi. Cần lấy ScheduleId từ session entity.
+        // Ánh xạ kết quả sang DTO phản hồi.
         return sessions.Select(s => new GetSessionsByScheduleIdAndDateIntegrationResponse
         {
-            ScheduleId = s.ScheduleId, // <--- Gán ScheduleId từ entity
+            ScheduleId = s.ScheduleId,
             SessionId = s.Id,
             Status = s.Status.ToString(),
             StartTime = s.StartTime,

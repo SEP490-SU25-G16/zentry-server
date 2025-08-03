@@ -64,6 +64,6 @@ public class CreatedScheduleResponse
     public DateOnly EndDate { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
-    public WeekDayEnum? WeekDay { get; set; }
+    public string? WeekDay { get; set; }
     public DateTime CreatedAt { get; set; }
 }

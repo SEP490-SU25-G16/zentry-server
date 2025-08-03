@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
-using Zentry.Modules.DeviceManagement.Features.GetDeviceDetails;
+using Zentry.Modules.DeviceManagement.Features.GetDeviceById;
 using Zentry.Modules.DeviceManagement.Features.GetDevices;
 using Zentry.Modules.DeviceManagement.Features.RegisterDevice;
 using Zentry.Modules.DeviceManagement.Features.RequestDeviceChange;
@@ -121,7 +121,7 @@ public class DevicesController(IMediator mediator) : BaseController
     {
         try
         {
-            var query = new GetDeviceDetailsQuery(deviceId);
+            var query = new GetDeviceByIdQuery(deviceId);
             var response = await mediator.Send(query, cancellationToken);
             return HandleResult(response);
         }

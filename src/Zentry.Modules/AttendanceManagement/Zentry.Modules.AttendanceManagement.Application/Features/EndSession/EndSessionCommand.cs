@@ -12,7 +12,7 @@ public class EndSessionCommand : ICommand<EndSessionResponse>
 public class EndSessionResponse
 {
     public Guid SessionId { get; set; }
-    public SessionStatus Status { get; set; }
+    public string Status { get; set; }
     public DateTime EndTime { get; set; } // Thời điểm kết thúc thực tế
     public DateTime? UpdatedAt { get; set; }
 }

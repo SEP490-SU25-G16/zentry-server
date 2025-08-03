@@ -64,7 +64,7 @@ public class EndSessionCommandHandler(
         return new EndSessionResponse
         {
             SessionId = session.Id,
-            Status = session.Status,
+            Status = session.Status.ToString(),
             EndTime = session.EndTime,
             UpdatedAt = session.UpdatedAt
         };

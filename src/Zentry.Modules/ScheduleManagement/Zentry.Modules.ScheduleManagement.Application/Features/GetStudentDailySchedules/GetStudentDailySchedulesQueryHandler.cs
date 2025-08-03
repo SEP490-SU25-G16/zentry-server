@@ -1,6 +1,5 @@
-// File: Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailySchedules/GetStudentDailySchedulesQueryHandler.cs
-
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.Modules.ScheduleManagement.Application.Services;
@@ -14,21 +13,19 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDaily
 public class GetStudentDailySchedulesQueryHandler(
     IEnrollmentRepository enrollmentRepository,
     IScheduleRepository scheduleRepository,
-    IMediator mediator,
-    IUserScheduleService userScheduleService
+    IMediator mediator
 ) : IQueryHandler<GetStudentDailySchedulesQuery, List<StudentDailyClassDto>>
 {
-    public async Task<List<StudentDailyClassDto>> Handle(GetStudentDailySchedulesQuery request,
+    public async Task<List<StudentDailyClassDto>> Handle(
+        GetStudentDailySchedulesQuery request,
         CancellationToken cancellationToken)
     {
         var dayOfWeek = request.Date.DayOfWeek.ToWeekDayEnum();
-        var requestDateOnly = DateOnly.FromDateTime(request.Date);
         var result = new List<StudentDailyClassDto>();
 
         // 1. Lấy tất cả các lớp học mà sinh viên đã đăng ký
-        var enrollmentProjections =
-            await enrollmentRepository.GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
-                request.StudentId, cancellationToken);
+        var enrollmentProjections = await enrollmentRepository
+            .GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(request.StudentId, cancellationToken);
 
         var classSectionIds = enrollmentProjections.Select(e => e.ClassSectionId).ToList();
 
@@ -43,28 +40,23 @@ public class GetStudentDailySchedulesQueryHandler(
         var lecturerInfos = await mediator.Send(new GetUsersByIdsIntegrationQuery(lecturerIds), cancellationToken);
         var lecturerDictionary = lecturerInfos.Users.ToDictionary(u => u.Id, u => u.FullName);
 
-        // 4. (Tối ưu hóa) Lấy thông tin sessions của tất cả schedules trong ngày bằng một lệnh gọi
+        // 4. Lấy thông tin sessions - SỬ DỤNG MEDIATOR
         var sessionsResponse = await mediator.Send(
-            new GetSessionsByScheduleIdsAndDateIntegrationQuery(scheduleIds, requestDateOnly),
+            new GetSessionsByScheduleIdsAndDateIntegrationQuery(scheduleIds, request.Date),
             cancellationToken);
         var sessionInfos = sessionsResponse.SessionsByScheduleId;
 
-        // 5. Lấy trạng thái điểm danh của sinh viên
-        var studentAttendanceStatus = new Dictionary<Guid, string>();
-        // TODO: Gọi integration query để lấy trạng thái điểm danh theo batch
-        // Ví dụ: var attendanceResponses = await mediator.Send(new GetStudentAttendanceBySessionIdsIntegrationQuery(...));
-
-        // 6. Kết hợp dữ liệu và ánh xạ vào DTO
+        // 5. Kết hợp dữ liệu và ánh xạ vào DTO
         var enrollmentProjectionDictionary = enrollmentProjections.ToDictionary(e => e.ClassSectionId);
 
         foreach (var scheduleProjection in schedulesForDay)
         {
             if (!enrollmentProjectionDictionary.TryGetValue(scheduleProjection.ClassSectionId,
-                    out var enrollmentProjection))
+                out var enrollmentProjection))
                 continue;
 
             var currentSessionInfo = sessionInfos.GetValueOrDefault(scheduleProjection.ScheduleId);
-            var sessionStatus = currentSessionInfo?.Status ?? SessionStatus.Pending.ToString();
+            var sessionStatus = currentSessionInfo?.Status ?? "Pending";
             var sessionId = currentSessionInfo?.SessionId;
 
             result.Add(new StudentDailyClassDto
@@ -83,7 +75,7 @@ public class GetStudentDailySchedulesQueryHandler(
                 StartTime = scheduleProjection.StartTime,
                 EndTime = scheduleProjection.EndTime,
                 Weekday = dayOfWeek.ToString(),
-                DateInfo = requestDateOnly,
+                DateInfo = request.Date,
                 SessionId = sessionId,
                 SessionStatus = sessionStatus
             });

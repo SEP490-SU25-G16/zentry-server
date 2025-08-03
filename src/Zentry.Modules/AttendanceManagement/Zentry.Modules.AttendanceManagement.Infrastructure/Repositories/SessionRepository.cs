@@ -3,6 +3,7 @@ using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
@@ -18,41 +19,44 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
     }
     public async Task<List<Session>> GetSessionsByScheduleIdsAndDateAsync(
         List<Guid> scheduleIds,
-        DateOnly date,
+        DateOnly localDate,
         CancellationToken cancellationToken)
     {
-        var utcDateStart = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var (utcStart, utcEnd) = localDate.ToUtcRange();
 
         return await dbContext.Sessions
             .AsNoTracking()
             .Where(s => scheduleIds.Contains(s.ScheduleId) &&
-                        s.StartTime.Date == utcDateStart.Date)
+                        s.StartTime >= utcStart &&
+                        s.StartTime <= utcEnd)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Session>> GetSessionsByScheduleIdsAndDatesAsync(
         List<Guid> scheduleIds,
-        List<DateTime> utcDates,
+        List<DateOnly> localDates,
         CancellationToken cancellationToken)
     {
         var distinctScheduleIds = scheduleIds.Distinct().ToList();
-        var distinctUtcDates = utcDates.Distinct().ToList();
 
-        return await dbContext.Sessions
-            .Where(s => distinctScheduleIds.Contains(s.ScheduleId) &&
-                        distinctUtcDates.Contains(s.StartTime
-                            .Date))
+        var allSessions = await dbContext.Sessions
+            .AsNoTracking()
+            .Where(s => distinctScheduleIds.Contains(s.ScheduleId))
             .ToListAsync(cancellationToken);
+
+        return allSessions.Where(s => localDates.Any(localDate => s.StartTime.IsInVietnamLocalDate(localDate)))
+            .ToList();
     }
 
-    public async Task<Session?> GetSessionByScheduleIdAndDateAsync(Guid scheduleId, DateOnly date,
+    public async Task<Session?> GetSessionByScheduleIdAndDateAsync(Guid scheduleId, DateOnly localDate,
         CancellationToken cancellationToken)
     {
-        var utcDateStart = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var (utcStart, utcEnd) = localDate.ToUtcRange();
 
         return await dbContext.Sessions
             .Where(s => s.ScheduleId == scheduleId &&
-                        s.StartTime.Date == utcDateStart.Date)
+                        s.StartTime >= utcStart &&
+                        s.StartTime < utcEnd)
             .FirstOrDefaultAsync(cancellationToken);
     }
 

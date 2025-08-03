@@ -37,7 +37,7 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordH
             Email = account.Email,
             FullName = user.FullName,
             Role = account.Role.ToString(),
-            Status = account.Status,
+            Status = account.Status.ToString(),
             CreatedAt = account.CreatedAt
         };
     }
