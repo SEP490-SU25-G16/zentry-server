@@ -19,23 +19,31 @@ public class FinalAttendanceConsumer(
     public async Task Consume(ConsumeContext<SessionFinalAttendanceToProcess> context)
     {
         var sessionId = context.Message.SessionId;
-        logger.LogInformation(
-            "Received SessionFinalAttendanceToProcess for Session {SessionId} at {Timestamp}. Starting final attendance calculation.",
-            sessionId, context.Message.Timestamp);
+        var actualRoundsCount = context.Message.ActualRoundsCount;
 
-        var totalRoundsInSession =
-            await roundRepository.CountRoundsBySessionIdAsync(sessionId, context.CancellationToken);
-        if (totalRoundsInSession == 0)
+        logger.LogInformation(
+            "Received SessionFinalAttendanceToProcess for Session {SessionId} with {ActualRounds} actual rounds at {Timestamp}. Starting final attendance calculation.",
+            sessionId, actualRoundsCount, context.Message.Timestamp);
+
+        if (actualRoundsCount == 0)
         {
-            logger.LogWarning("No rounds found for Session {SessionId}. Skipping final attendance calculation.",
+            logger.LogWarning("No actual rounds completed for Session {SessionId}. Skipping final attendance calculation.",
                 sessionId);
             return;
         }
 
-        // Đảm bảo kiểu trả về là IReadOnlyList<StudentTrack> nếu bạn đã thay đổi trong interface
+        var completedRounds = await roundRepository.GetRoundsBySessionIdAsync(sessionId, context.CancellationToken);
+        var actualCompletedRounds = completedRounds.Where(r => Equals(r.Status, RoundStatus.Completed)).ToList();
+        var finalizedRounds = completedRounds.Where(r => Equals(r.Status, RoundStatus.Finalized)).ToList();
+
+        logger.LogInformation(
+            "Session {SessionId} status: {CompletedRounds} completed rounds, {FinalizedRounds} finalized rounds, {ActualRounds} rounds used for calculation",
+            sessionId, actualCompletedRounds.Count, finalizedRounds.Count, actualRoundsCount);
+
         IReadOnlyList<StudentTrack> relevantStudentTracks =
             await studentTrackRepository.GetStudentTracksBySessionIdAsync(sessionId,
                 context.CancellationToken);
+        if (relevantStudentTracks == null) throw new ArgumentNullException(nameof(relevantStudentTracks));
 
         if (relevantStudentTracks.Count == 0)
         {
@@ -49,12 +57,17 @@ public class FinalAttendanceConsumer(
 
         foreach (var studentTrack in relevantStudentTracks)
         {
-            var percentage = studentTrack.CalculatePercentageAttended(totalRoundsInSession);
+            var attendedCompletedRounds = studentTrack.Rounds
+                .Count(rp => actualCompletedRounds.Any(r => r.Id == rp.RoundId) && rp.IsAttended);
+
+            // THAY ĐỔI: tính % dựa trên actualRoundsCount thay vì totalRoundsInSession
+            var percentage = actualRoundsCount > 0
+                ? (double)attendedCompletedRounds / actualRoundsCount * 100.0
+                : 0.0;
 
             logger.LogDebug(
-                "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Total {TotalRounds} rounds).",
-                studentTrack.Id, sessionId, percentage, studentTrack.Rounds.Count(rp => rp.IsAttended),
-                totalRoundsInSession);
+                "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds). Excluded {FinalizedRounds} finalized rounds.",
+                studentTrack.Id, sessionId, percentage, attendedCompletedRounds, actualRoundsCount, finalizedRounds.Count);
 
             var existingAttendanceRecord =
                 await attendanceRecordRepository.GetByUserIdAndSessionIdAsync(studentTrack.Id, sessionId,
@@ -69,19 +82,19 @@ public class FinalAttendanceConsumer(
                 existingAttendanceRecord =
                     AttendanceRecord.Create(studentTrack.Id, sessionId, newStatus, false, percentage);
                 logger.LogInformation(
-                    "Creating new AttendanceRecord for Student {StudentId} in Session {SessionId}. Status: {Status}, Percentage: {Percentage:F2}%",
-                    studentTrack.Id, sessionId, newStatus, percentage);
+                    "Creating new AttendanceRecord for Student {StudentId} in Session {SessionId}. Status: {Status}, Percentage: {Percentage:F2}% (based on {ActualRounds} actual rounds)",
+                    studentTrack.Id, sessionId, newStatus, percentage, actualRoundsCount);
             }
             else
             {
-                if (existingAttendanceRecord.Status != newStatus ||
+                if (!Equals(existingAttendanceRecord.Status, newStatus) ||
                     Math.Abs(existingAttendanceRecord.PercentageAttended - percentage) > 0.01)
                 {
                     existingAttendanceRecord.Update(newStatus, false, null, percentage);
                     logger.LogInformation(
-                        "Updating existing AttendanceRecord for Student {StudentId} in Session {SessionId}. Old Status: {OldStatus}, New Status: {NewStatus}, Old Percentage: {OldPercentage:F2}%, New Percentage: {NewPercentage:F2}%",
+                        "Updating existing AttendanceRecord for Student {StudentId} in Session {SessionId}. Old Status: {OldStatus}, New Status: {NewStatus}, Old Percentage: {OldPercentage:F2}%, New Percentage: {NewPercentage:F2}% (based on {ActualRounds} actual rounds)",
                         studentTrack.Id, sessionId, existingAttendanceRecord.Status, newStatus,
-                        existingAttendanceRecord.PercentageAttended, percentage);
+                        existingAttendanceRecord.PercentageAttended, percentage, actualRoundsCount);
                 }
                 else
                 {
@@ -94,15 +107,13 @@ public class FinalAttendanceConsumer(
             attendanceRecordsToProcess.Add(existingAttendanceRecord);
         }
 
-        // Sử dụng AddOrUpdateAsync cho từng bản ghi
         foreach (var record in attendanceRecordsToProcess)
             await attendanceRecordRepository.AddOrUpdateAsync(record, context.CancellationToken);
 
-        // Chỉ gọi SaveChangesAsync một lần sau khi tất cả các thao tác Add/Update đã được thực hiện
         await attendanceRecordRepository.SaveChangesAsync(context.CancellationToken);
 
         logger.LogInformation(
-            "Finished processing final attendance for Session {SessionId}. Created/Updated {Count} attendance records.",
-            sessionId, attendanceRecordsToProcess.Count);
+            "Finished processing final attendance for Session {SessionId}. Created/Updated {Count} attendance records based on {ActualRounds} actual rounds (excluded {FinalizedRounds} finalized rounds).",
+            sessionId, attendanceRecordsToProcess.Count, actualRoundsCount, finalizedRounds.Count);
     }
 }
