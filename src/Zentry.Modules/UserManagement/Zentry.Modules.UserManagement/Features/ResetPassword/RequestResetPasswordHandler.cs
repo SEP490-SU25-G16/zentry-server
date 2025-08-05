@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;

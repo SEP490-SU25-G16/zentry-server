@@ -56,4 +56,8 @@ public static class ErrorCodes
     public const string EmailNotConfirmed = "EMAIL_NOT_CONFIRMED";
     public const string TwoFactorRequired = "TWO_FACTOR_REQUIRED";
     public const string PasswordResetRequired = "PASSWORD_RESET_REQUIRED";
+
+    // File
+    public const string InvalidInput = "INVALID_INPUT";
+    public const string InvalidFileFormat = "INVALID_FILE_FORMAT";
 }

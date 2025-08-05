@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Konscious.Security.Cryptography;
+using Zentry.Modules.UserManagement.Interfaces;
 
 namespace Zentry.Modules.UserManagement.Services;
 

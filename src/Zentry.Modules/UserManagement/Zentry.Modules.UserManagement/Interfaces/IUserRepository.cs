@@ -7,6 +7,8 @@ namespace Zentry.Modules.UserManagement.Interfaces;
 
 public interface IUserRepository : IRepository<User, Guid>
 {
+    Task AddRangeAsync(IEnumerable<Account> accounts, IEnumerable<User> users, CancellationToken cancellationToken);
+    Task<List<string>> GetExistingEmailsAsync(List<string> emails);
     Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken);
     Task AddAsync(Account account, User user, CancellationToken cancellationToken);
     Task<bool> ExistsByEmail(string email);

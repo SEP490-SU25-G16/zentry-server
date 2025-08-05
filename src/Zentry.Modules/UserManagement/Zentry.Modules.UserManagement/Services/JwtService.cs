@@ -17,7 +17,7 @@ public class JwtService(IConfiguration configuration) : IJwtService
     private readonly string _issuer = configuration["Jwt:Issuer"] ?? "Zentry"; // Default issuer
 
     private readonly string _secret =
-        configuration["Jwt:Secret"] ?? throw new ArgumentNullException("JWT Secret not configured.");
+        configuration["Jwt:Secret"] ?? throw new ArgumentNullException($"JWT Secret not configured.");
 
     public string GenerateToken(Guid userId, string email, string fullName, string role)
     {

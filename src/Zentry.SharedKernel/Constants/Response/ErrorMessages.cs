@@ -7,6 +7,10 @@ public static class ErrorMessages
     public const string InvalidDataFormat = "Định dạng dữ liệu không hợp lệ";
     public const string GuidFormatInvalid = "ID phải có định dạng hợp lệ (ví dụ: 12345678-1234-1234-1234-123456789abc)";
 
+    public const string InvalidInput = "Dữ liệu yêu cầu không hợp lệ.";
+    public const string InvalidFileFormat = "Định dạng file không hợp lệ.";
+
+
     // Setting specific messages
     public static class Settings
     {

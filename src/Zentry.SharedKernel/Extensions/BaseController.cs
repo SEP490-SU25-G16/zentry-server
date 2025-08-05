@@ -225,7 +225,6 @@ public abstract class BaseController : ControllerBase
         return BadRequest(ApiResponse.ErrorResult(errorCode, message));
     }
 
-    // Authentication specific helpers - SỬA LẠI ĐỂ SỬ DỤNG StatusCode thay vì Unauthorized
     protected IActionResult HandleInvalidCredentials()
     {
         return StatusCode(401, ApiResponse.ErrorResult(ErrorCodes.InvalidCredentials,
@@ -248,6 +247,16 @@ public abstract class BaseController : ControllerBase
     {
         return StatusCode(401, ApiResponse.ErrorResult(ErrorCodes.AccountLocked,
             ErrorMessages.Authentication.AccountLocked));
+    }
+
+    protected IActionResult HandlePartialSuccess<T>(T data, string? successMessage = null, string? failureMessage = null)
+    {
+        var message = successMessage ?? "Operation completed with partial success";
+        if (!string.IsNullOrWhiteSpace(failureMessage))
+        {
+            message += $". {failureMessage}";
+        }
+        return Ok(ApiResponse<T>.SuccessResult(data, message));
     }
 
     // Logging method (có thể override trong derived classes)

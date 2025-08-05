@@ -1,20 +1,24 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Zentry.Modules.UserManagement.Dtos;
 using Zentry.Modules.UserManagement.Features.CreateUser;
 using Zentry.Modules.UserManagement.Features.DeleteUser;
 using Zentry.Modules.UserManagement.Features.GetUser;
 using Zentry.Modules.UserManagement.Features.GetUsers;
+using Zentry.Modules.UserManagement.Features.ImportUsers;
 using Zentry.Modules.UserManagement.Features.UpdateUser;
+using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
+using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.UserManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController(IMediator mediator) : BaseController
+public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fileProcessor) : BaseController
 {
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<GetUsersResponse>), StatusCodes.Status200OK)]
@@ -136,6 +140,61 @@ public class UserController(IMediator mediator) : BaseController
             }
 
             return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("import")]
+    [ProducesResponseType(typeof(ApiResponse<ImportUsersResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ImportUsers([FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file.Length == 0)
+        {
+            return BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidInput, ErrorMessages.InvalidInput));
+        }
+
+        List<UserImportDto> usersToImport;
+        try
+        {
+            // Sử dụng service generic mới
+            usersToImport = await fileProcessor.ProcessFileAsync(file, cancellationToken);
+        }
+        catch (InvalidFileFormatException ex)
+        {
+            return BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidFileFormat, ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+
+        if (!usersToImport.Any())
+        {
+            return BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidInput, ErrorMessages.InvalidInput));
+        }
+
+        var command = new ImportUsersCommand(usersToImport);
+
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+
+            if (response.Success)
+            {
+                // Sử dụng HandleResult thay cho HandleCreated vì không tạo một resource mới duy nhất
+                return HandleResult(response, "Import successful.");
+            }
+            else
+            {
+                return HandlePartialSuccess(response,
+                    $"Imported {response.ImportedCount} users successfully.",
+                    $"There were {response.FailedCount} errors in the file input.");
+            }
         }
         catch (Exception ex)
         {

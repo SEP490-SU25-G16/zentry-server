@@ -10,6 +10,20 @@ namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
+    public async Task AddRangeAsync(IEnumerable<Account> accounts, IEnumerable<User> users, CancellationToken cancellationToken)
+    {
+        await dbContext.Accounts.AddRangeAsync(accounts, cancellationToken);
+        await dbContext.Users.AddRangeAsync(users, cancellationToken);
+        await SaveChangesAsync(cancellationToken);
+    }
+    public async Task<List<string>> GetExistingEmailsAsync(List<string> emails)
+    {
+        return await dbContext.Accounts
+            .Where(a => emails.Contains(a.Email))
+            .Select(a => a.Email)
+            .ToListAsync();
+    }
+
     public async Task<List<(Guid UserId, Role Role)>> GetUserRolesByUserIdsAsync(
         List<Guid> userIds, CancellationToken cancellationToken)
     {
