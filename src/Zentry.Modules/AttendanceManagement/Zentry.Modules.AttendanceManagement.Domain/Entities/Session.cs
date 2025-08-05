@@ -1,5 +1,6 @@
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Domain;
 using Zentry.SharedKernel.Exceptions;
 
@@ -108,8 +109,8 @@ public class Session : AggregateRoot<Guid>
 
     public void CompleteSession()
     {
-        if (Status != SessionStatus.Active)
-            throw new BusinessRuleException("SESSION_NOT_ACTIVE",
+        if (!Equals(Status, SessionStatus.Active))
+            throw new BusinessRuleException(ErrorCodes.SessionNotActive,
                 "Không thể hoàn thành phiên khi trạng thái không phải Active.");
 
         Status = SessionStatus.Completed;

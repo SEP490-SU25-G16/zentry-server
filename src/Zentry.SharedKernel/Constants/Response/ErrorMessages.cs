@@ -71,5 +71,7 @@ public static class ErrorMessages
     public static class Attendance
     {
         public const string SessionEnded = "Phiên điểm danh đã kết thúc, dữ liệu quét không được chấp nhận.";
+        public const string SessionNotActive = "Phiên điểm danh chưa ở trạng thái hoạt động.";
+        public const string SessionNotActiveOrComplete = "Phiên điểm danh chưa ở trạng thái hoạt động hoặc hoàn thành.";
     }
 }

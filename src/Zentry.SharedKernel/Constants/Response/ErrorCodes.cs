@@ -44,6 +44,8 @@ public static class ErrorCodes
     public const string SessionAlreadyStarted = "SESSION_ALREADY_STARTED";
     public const string AttendanceCalculationFailed = "ATTENDANCE_CALCULATION_FAILED";
     public const string SessionEnded = "SESSION_ENDED";
+    public const string SessionNotActiveOrComplete = "SESSION_NOT_ACTIVE_OR_COMPLETE";
+    public const string SessionNotActive = "SESSION_NOT_ACTIVE";
 
     public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string AccountInactive = "ACCOUNT_INACTIVE";
