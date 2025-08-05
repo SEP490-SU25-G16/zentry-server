@@ -9,13 +9,13 @@ public class Account : AggregateRoot<Guid>
     {
     }
 
-    private Account(Guid id, string email, string passwordHash, string passwordSalt, Role role) // Thay string bằng Role
+    private Account(Guid id, string email, string passwordHash, string passwordSalt, Role role)
         : base(id)
     {
         Email = email;
         PasswordHash = passwordHash;
         PasswordSalt = passwordSalt;
-        Role = role; // Gán Role Smart Enum
+        Role = role;
         CreatedAt = DateTime.UtcNow;
         Status = AccountStatus.Active;
     }
@@ -32,15 +32,15 @@ public class Account : AggregateRoot<Guid>
 
 
     public static Account
-        Create(string email, string passwordHash, string passwordSalt, Role role) // Thay string bằng Role
+        Create(string email, string passwordHash, string passwordSalt, Role role)
     {
         return new Account(Guid.NewGuid(), email, passwordHash, passwordSalt, role);
     }
 
-    public void UpdateAccount(string? email = null, Role? role = null) // Thay string bằng Role?
+    public void UpdateAccount(string? email = null, Role? role = null)
     {
         if (!string.IsNullOrWhiteSpace(email)) Email = email;
-        if (role != null) Role = role; // Gán Role Smart Enum nếu không null
+        if (role != null) Role = role;
         UpdatedAt = DateTime.UtcNow;
     }
 

@@ -8,7 +8,7 @@ public class RequestDeviceChangeCommand : ICommand<RequestDeviceChangeResponse>
     public string Reason { get; set; } = string.Empty;
 
     public string DeviceName { get; set; } = string.Empty;
-    public string MacAddress { get; set; } = string.Empty;
+    public string AndroidId { get; set; } = string.Empty;
     public string? Platform { get; set; }
     public string? OsVersion { get; set; }
     public string? Model { get; set; }

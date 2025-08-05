@@ -21,8 +21,8 @@ public class SubmitScanDataCommandHandler(
     public async Task<SubmitScanDataResponse> Handle(SubmitScanDataCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Received SubmitScanDataCommand for Session {SessionId}, SubmitterDeviceMac {SubmitterMac}",
-            request.SessionId, request.SubmitterDeviceMacAddress);
+            "Received SubmitScanDataCommand for Session {SessionId}, SubmitterDeviceAndroidId {SubmitterAndroidId}",
+            request.SessionId, request.SubmitterDeviceAndroidId);
 
         // Validate session exists and is active
         await ValidateSessionAsync(request.SessionId, request.Timestamp, cancellationToken);
@@ -32,10 +32,10 @@ public class SubmitScanDataCommandHandler(
 
         // Publish message - MassTransit sẽ tự động retry theo cấu hình
         var message = new SubmitScanDataMessage(
-            request.SubmitterDeviceMacAddress,
+            request.SubmitterDeviceAndroidId,
             request.SessionId,
             currentRoundId,
-            request.ScannedDevices.Select(sd => new ScannedDeviceContractForMessage(sd.MacAddress, sd.Rssi))
+            request.ScannedDevices.Select(sd => new ScannedDeviceContractForMessage(sd.AndroidId, sd.Rssi))
                 .ToList(),
             request.Timestamp
         );
@@ -43,8 +43,8 @@ public class SubmitScanDataCommandHandler(
         await publishEndpoint.Publish(message, cancellationToken);
 
         logger.LogInformation(
-            "Scan data message for Session {SessionId}, Submitter MAC {SubmitterMac} published successfully with RoundId {RoundId}",
-            request.SessionId, request.SubmitterDeviceMacAddress, currentRoundId);
+            "Scan data message for Session {SessionId}, Submitter Android ID {SubmitterAndroidId} published successfully with RoundId {RoundId}",
+            request.SessionId, request.SubmitterDeviceAndroidId, currentRoundId);
 
         return new SubmitScanDataResponse(true, "Dữ liệu quét đã được tiếp nhận và đưa vào hàng đợi xử lý.");
     }

@@ -62,8 +62,8 @@ public class AttendanceDbSeeder(
                 attendanceContext,
                 whitelistRepository,
                 mediator,
-                scheduleDataResponse.Schedules,
-                scheduleDataResponse.ClassSections,
+                scheduleDataResponse?.Schedules!,
+                scheduleDataResponse?.ClassSections!,
                 logger,
                 cancellationToken
             );

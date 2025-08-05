@@ -42,6 +42,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ActualEndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     SessionConfigs = table.Column<string>(type: "jsonb", nullable: false)
                 },
                 constraints: table =>

@@ -11,7 +11,7 @@ public class GetDeviceDetailsResponse
     public string? UserFullName { get; set; }
     public string? UserEmail { get; set; }
     public string DeviceName { get; set; } = string.Empty;
-    public string MacAddress { get; set; } = string.Empty;
+    public string AndroidId { get; set; } = string.Empty;
     public string DeviceToken { get; set; } = string.Empty; // Trả về DeviceToken
     public string? Platform { get; set; }
     public string? OsVersion { get; set; }

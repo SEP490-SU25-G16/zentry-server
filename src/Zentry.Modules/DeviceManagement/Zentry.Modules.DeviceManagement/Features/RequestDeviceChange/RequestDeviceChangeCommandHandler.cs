@@ -22,8 +22,8 @@ public class RequestDeviceChangeCommandHandler(
     public async Task<RequestDeviceChangeResponse> Handle(RequestDeviceChangeCommand command,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation("User {UserId} is requesting a device change for MAC address {MacAddress}.",
-            command.UserId, command.MacAddress);
+        logger.LogInformation("User {UserId} is requesting a device change for Android ID {AndroidId}.",
+            command.UserId, command.AndroidId);
 
         // TODO: Config MaxAllowedDevicesPerUser
         const int maxAllowedDevicesPerUser = 4; // Max N devices (active + inactive + pending)
@@ -53,44 +53,44 @@ public class RequestDeviceChangeCommandHandler(
             throw new BusinessRuleException("INVALID_DEVICE_NAME", $"Tên thiết bị không hợp lệ: {ex.Message}");
         }
 
-        MacAddress macAddressVo;
+        AndroidId androidIdVo;
         try
         {
-            macAddressVo = MacAddress.Create(command.MacAddress);
+            androidIdVo = AndroidId.Create(command.AndroidId);
         }
         catch (ArgumentException ex)
         {
             logger.LogWarning(
-                "Device change request failed for user {UserId}: Invalid MAC address '{MacAddress}'. Error: {Message}",
-                command.UserId, command.MacAddress, ex.Message);
-            throw new BusinessRuleException("INVALID_MAC_ADDRESS", $"Địa chỉ MAC không hợp lệ: {ex.Message}");
+                "Device change request failed for user {UserId}: Invalid Android ID '{AndroidId}'. Error: {Message}",
+                command.UserId, command.AndroidId, ex.Message);
+            throw new BusinessRuleException("INVALID_ANDROID_ID", $"Địa chỉ Android ID không hợp lệ: {ex.Message}");
         }
 
-        var existingDeviceByMac = await deviceRepository.GetByMacAddressAsync(command.MacAddress, cancellationToken);
-        if (existingDeviceByMac is not null)
+        var existingDeviceByAndroidId = await deviceRepository.GetByAndroidIdAsync(command.AndroidId, cancellationToken);
+        if (existingDeviceByAndroidId is not null)
         {
-            if (existingDeviceByMac.UserId == command.UserId)
+            if (existingDeviceByAndroidId.UserId == command.UserId)
             {
-                if (existingDeviceByMac.Status.Equals(DeviceStatus.Active)) // Sử dụng .Equals cho Enumeration
+                if (existingDeviceByAndroidId.Status.Equals(DeviceStatus.Active)) // Sử dụng .Equals cho Enumeration
                 {
                     logger.LogWarning(
-                        "Device change request failed for user {UserId}: MAC address {MacAddress} is already active for this user.",
-                        command.UserId, command.MacAddress);
+                        "Device change request failed for user {UserId}: Android ID {AndroidId} is already active for this user.",
+                        command.UserId, command.AndroidId);
                     throw new BusinessRuleException("DEVICE_ALREADY_ACTIVE_FOR_USER",
                         "Thiết bị này đã được đăng ký và đang hoạt động cho tài khoản của bạn.");
                 }
 
                 logger.LogWarning(
-                    "Device change request for user {UserId}: MAC address {MacAddress} already exists but is not active. A new record will be created as per policy.",
-                    command.UserId, command.MacAddress);
+                    "Device change request for user {UserId}: Android ID {AndroidId} already exists but is not active. A new record will be created as per policy.",
+                    command.UserId, command.AndroidId);
             }
             else
             {
                 logger.LogError(
-                    "Device change request for user {UserId}: MAC address {MacAddress} already exists for another user {ExistingUserId}. This indicates a potential data integrity issue.",
-                    command.UserId, command.MacAddress, existingDeviceByMac.UserId);
-                throw new BusinessRuleException("MAC_ADDRESS_TAKEN",
-                    "Địa chỉ MAC này đã được đăng ký bởi người dùng khác.");
+                    "Device change request for user {UserId}: Android ID {AndroidId} already exists for another user {ExistingUserId}. This indicates a potential data integrity issue.",
+                    command.UserId, command.AndroidId, existingDeviceByAndroidId.UserId);
+                throw new BusinessRuleException("ANDROID_ID_ADDRESS_TAKEN",
+                    "Địa chỉ Android ID này đã được đăng ký bởi người dùng khác.");
             }
         }
 
@@ -100,7 +100,7 @@ public class RequestDeviceChangeCommandHandler(
             command.UserId,
             deviceNameVo,
             deviceTokenVo,
-            macAddressVo,
+            androidIdVo,
             command.Platform,
             command.OsVersion,
             command.Model,
@@ -112,7 +112,7 @@ public class RequestDeviceChangeCommandHandler(
         newDevice.Update(
             deviceNameVo,
             DeviceStatus.Pending,
-            macAddressVo,
+            androidIdVo,
             command.Platform,
             command.OsVersion,
             command.Model,
@@ -124,8 +124,8 @@ public class RequestDeviceChangeCommandHandler(
         await deviceRepository.AddAsync(newDevice, cancellationToken);
         await deviceRepository.SaveChangesAsync(cancellationToken);
         logger.LogInformation(
-            "New device {NewDeviceId} with MAC {MacAddress} created with status Pending for user {UserId}.",
-            newDevice.Id, newDevice.MacAddress.Value, newDevice.UserId);
+            "New device {NewDeviceId} with Android ID {AndroidId} created with status Pending for user {UserId}.",
+            newDevice.Id, newDevice.AndroidId.Value, newDevice.UserId);
 
         var requestUpdateDeviceMessage = new RequestUpdateDeviceMessage(
             command.UserId,

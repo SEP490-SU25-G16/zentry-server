@@ -12,7 +12,7 @@ public class AttributeDefinition : AggregateRoot<Guid>
         Key = string.Empty;
         DisplayName = string.Empty;
         DataType = DataType.Int;
-        AllowedScopeTypes = new List<ScopeType> { ScopeType.Global };
+        AllowedScopeTypes = [ScopeType.Global];
         DefaultValue = string.Empty;
         IsDeletable = true;
         CreatedAt = DateTime.UtcNow;
@@ -46,7 +46,7 @@ public class AttributeDefinition : AggregateRoot<Guid>
     public string? Unit { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public bool IsDeletable { get; private set; } = true;
+    public bool IsDeletable { get; private set; }
 
     public static AttributeDefinition Create(string key, string displayName, string? description, DataType dataType,
         List<ScopeType> allowedScopeTypes, string? unit, string? defaultValue, bool isDeletable = true)

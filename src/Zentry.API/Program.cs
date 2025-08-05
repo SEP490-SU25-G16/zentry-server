@@ -41,7 +41,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.InvalidModelStateResponseFactory = context =>
     {
         var firstError = context.ModelState
-            .SelectMany(x => x.Value.Errors)
+            .SelectMany(x => x.Value?.Errors!)
             .FirstOrDefault();
 
         var message = firstError?.ErrorMessage ?? ErrorMessages.InvalidDataFormat;

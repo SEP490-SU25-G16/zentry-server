@@ -308,7 +308,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
     {
         var query = dbContext.Schedules
             .Include(s => s.ClassSection)
-            .ThenInclude(cs => cs.Course)
+            .ThenInclude(cs => cs!.Course)
             .Include(s => s.Room)
             .AsQueryable();
 

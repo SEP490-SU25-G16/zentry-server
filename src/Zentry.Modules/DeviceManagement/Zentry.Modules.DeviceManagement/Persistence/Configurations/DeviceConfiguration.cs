@@ -12,10 +12,8 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
     {
         builder.ToTable("Devices");
 
-        // Đặt thuộc tính Id kế thừa làm khóa chính
         builder.HasKey(d => d.Id);
 
-        // Cấu hình thuộc tính Id
         builder.Property(d => d.Id)
             .ValueGeneratedOnAdd();
 
@@ -31,27 +29,23 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
             .HasMaxLength(255)
             .IsRequired();
 
-        // Cấu hình MAC Address
-        builder.Property(d => d.MacAddress)
+        builder.Property(d => d.AndroidId)
             .HasConversion(
-                m => m.Value,
-                v => MacAddress.Create(v))
-            .HasMaxLength(17) // AA:BB:CC:DD:EE:FF = 17 characters
+                a => a.Value,
+                v => AndroidId.Create(v))
+            .HasMaxLength(255)
             .IsRequired();
 
-        // Index cho các trường quan trọng
         builder.HasIndex(d => d.DeviceToken).IsUnique();
-        builder.HasIndex(d => d.MacAddress).IsUnique(); // MAC address cũng phải unique
+        builder.HasIndex(d => d.AndroidId).IsUnique();
         builder.HasIndex(d => d.Status);
         builder.HasIndex(d => d.UserId);
 
-        // Composite index cho việc tìm kiếm theo user và MAC
-        builder.HasIndex(d => new { d.UserId, d.MacAddress })
-            .HasDatabaseName("IX_Devices_UserId_MacAddress");
+        builder.HasIndex(d => new { d.UserId, d.AndroidId })
+            .HasDatabaseName("IX_Devices_UserId_AndroidId");
 
-        // Composite index cho việc tìm kiếm theo MAC và status (cho bluetooth scanning)
-        builder.HasIndex(d => new { d.MacAddress, d.Status })
-            .HasDatabaseName("IX_Devices_MacAddress_Status");
+        builder.HasIndex(d => new { d.AndroidId, d.Status })
+            .HasDatabaseName("IX_Devices_AndroidId_Status");
 
         builder.Property(d => d.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         builder.Property(d => d.UpdatedAt)

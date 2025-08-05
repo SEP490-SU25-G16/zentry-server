@@ -2,15 +2,15 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.SharedKernel.Contracts.Device;
 
-public record GetDevicesByMacListIntegrationQuery(List<string> MacAddresses)
-    : IQuery<GetDevicesByMacListIntegrationResponse>;
+public record GetDevicesByAndroidIdListIntegrationQuery(List<string> AndroidIds)
+    : IQuery<GetDevicesByAndroidIdListIntegrationResponse>;
 
-public record GetDevicesByMacListIntegrationResponse(
-    List<DeviceMacMapping> DeviceMappings
+public record GetDevicesByAndroidIdListIntegrationResponse(
+    List<DeviceAndroidIdMapping> DeviceMappings
 );
 
-public record DeviceMacMapping(
+public record DeviceAndroidIdMapping(
     Guid DeviceId,
     Guid UserId,
-    string MacAddress
+    string AndroidId
 );

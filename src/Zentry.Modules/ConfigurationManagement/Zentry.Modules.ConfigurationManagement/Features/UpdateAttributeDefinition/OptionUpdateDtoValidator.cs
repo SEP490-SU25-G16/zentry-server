@@ -1,4 +1,5 @@
 using FluentValidation;
+using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.SharedKernel.Abstractions.Models;
 

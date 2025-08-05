@@ -33,8 +33,8 @@ public class DevicesController(IMediator mediator) : BaseController
         if (!ModelState.IsValid) return HandleValidationError();
 
         // Validate required fields
-        if (string.IsNullOrWhiteSpace(request.MacAddress))
-            return BadRequest("MAC address is required for device registration.");
+        if (string.IsNullOrWhiteSpace(request.AndroidId))
+            return BadRequest("Android ID is required for device registration.");
 
         // 1. Lấy UserId từ JWT (đã được middleware xác thực và gán vào HttpContext.User)
         // Đây là cách an toàn và chuẩn để lấy UserId của người dùng đã đăng nhập.
@@ -45,14 +45,13 @@ public class DevicesController(IMediator mediator) : BaseController
         //     // nhưng là một kiểm tra an toàn nếu JWT hợp lệ nhưng không có claim User ID.
         //     return Unauthorized("User ID claim not found or invalid in token."); // Có thể chuyển thành HandleError
         // }
-        var userId = request.UserId; // Sử dụng userId trực tiếp từ request như bạn đang làm cho testing
+        var userId = request.UserId;
 
-        // 2. Tạo RegisterDeviceCommand và gán UserId cùng với các thông tin thiết bị bổ sung bao gồm MAC address
         var command = new RegisterDeviceCommand
         {
             UserId = new Guid(userId),
             DeviceName = request.DeviceName,
-            MacAddress = request.MacAddress, // Thêm MAC address vào command
+            AndroidId = request.AndroidId,
             Platform = request.Platform,
             OsVersion = request.OsVersion,
             Model = request.Model,
@@ -146,8 +145,8 @@ public class DevicesController(IMediator mediator) : BaseController
 
         if (string.IsNullOrWhiteSpace(command.Reason))
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Lý do thay đổi là bắt buộc."));
-        if (string.IsNullOrWhiteSpace(command.MacAddress))
-            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Địa chỉ MAC của thiết bị mới là bắt buộc."));
+        if (string.IsNullOrWhiteSpace(command.AndroidId))
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Địa chỉ Android ID của thiết bị mới là bắt buộc."));
         if (string.IsNullOrWhiteSpace(command.DeviceName))
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Tên thiết bị là bắt buộc."));
 

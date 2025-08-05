@@ -19,7 +19,7 @@ namespace Zentry.Modules.DeviceManagement.Migrations
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     DeviceName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     DeviceToken = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    MacAddress = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    AndroidId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Platform = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     OsVersion = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Model = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -37,21 +37,21 @@ namespace Zentry.Modules.DeviceManagement.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Devices_AndroidId",
+                table: "Devices",
+                column: "AndroidId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Devices_AndroidId_Status",
+                table: "Devices",
+                columns: new[] { "AndroidId", "Status" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Devices_DeviceToken",
                 table: "Devices",
                 column: "DeviceToken",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Devices_MacAddress",
-                table: "Devices",
-                column: "MacAddress",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Devices_MacAddress_Status",
-                table: "Devices",
-                columns: new[] { "MacAddress", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Devices_Status",
@@ -64,9 +64,9 @@ namespace Zentry.Modules.DeviceManagement.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Devices_UserId_MacAddress",
+                name: "IX_Devices_UserId_AndroidId",
                 table: "Devices",
-                columns: new[] { "UserId", "MacAddress" });
+                columns: new[] { "UserId", "AndroidId" });
         }
 
         /// <inheritdoc />

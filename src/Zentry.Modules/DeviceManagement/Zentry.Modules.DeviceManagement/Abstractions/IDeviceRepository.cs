@@ -15,16 +15,16 @@ public interface IDeviceRepository : IRepository<Device, Guid>
     Task<List<Device>> GetUserIdsByDeviceIdsAsync(List<Guid> deviceIds, CancellationToken cancellationToken);
     Task AddAsync(Device device);
 
-    Task<Device?> GetByMacAddressAsync(string macAddress, CancellationToken cancellationToken);
+    Task<Device?> GetByAndroidIdAsync(string androidId, CancellationToken cancellationToken);
 
-    Task<(Guid DeviceId, Guid UserId)?> GetDeviceAndUserIdByMacAddressAsync(string macAddress,
+    Task<(Guid DeviceId, Guid UserId)?> GetDeviceAndUserIdByAndroidIdAsync(string androidId,
         CancellationToken cancellationToken);
 
-    Task<List<Device>> GetActiveDevicesByMacAddressesAsync(List<string> macAddresses,
+    Task<List<Device>> GetActiveDevicesByAndroidIdsAsync(List<string> androidIdes,
         CancellationToken cancellationToken);
 
-    Task<Dictionary<string, (Guid DeviceId, Guid UserId)>> GetDeviceAndUserIdsByMacAddressesAsync(
-        List<string> macAddresses, CancellationToken cancellationToken);
+    Task<Dictionary<string, (Guid DeviceId, Guid UserId)>> GetDeviceAndUserIdsByAndroidIdsAsync(
+        List<string> androidIdes, CancellationToken cancellationToken);
 
     Task<(IEnumerable<DeviceListItemDto> Devices, int TotalCount)> GetDevicesAsync(
         int pageNumber,

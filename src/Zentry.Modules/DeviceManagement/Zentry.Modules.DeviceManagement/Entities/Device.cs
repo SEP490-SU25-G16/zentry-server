@@ -7,18 +7,16 @@ namespace Zentry.Modules.DeviceManagement.Entities;
 
 public class Device : AggregateRoot<Guid>
 {
-    // Private constructor for EF Core and internal use
     private Device() : base(Guid.Empty)
     {
     }
 
-    // Domain-driven constructor
     private Device(
         Guid id,
         Guid userId,
         DeviceName deviceName,
         DeviceToken deviceToken,
-        MacAddress macAddress, // Thêm MAC address
+        AndroidId androidId,
         string? platform,
         string? osVersion,
         string? model,
@@ -29,12 +27,12 @@ public class Device : AggregateRoot<Guid>
     {
         Guard.AgainstNull(deviceName, nameof(deviceName));
         Guard.AgainstNull(deviceToken, nameof(deviceToken));
-        Guard.AgainstNull(macAddress, nameof(macAddress));
+        Guard.AgainstNull(androidId, nameof(androidId));
 
         UserId = userId;
         DeviceName = deviceName;
         DeviceToken = deviceToken;
-        MacAddress = macAddress; // Gán MAC address
+        AndroidId = androidId;
         Platform = platform;
         OsVersion = osVersion;
         Model = model;
@@ -49,9 +47,8 @@ public class Device : AggregateRoot<Guid>
     public Guid UserId { get; private set; }
     public DeviceName DeviceName { get; private set; }
     public DeviceToken DeviceToken { get; }
-    public MacAddress MacAddress { get; private set; } // Thêm property MAC address
+    public AndroidId AndroidId { get; private set; }
 
-    // Các trường bổ sung
     public string? Platform { get; private set; }
     public string? OsVersion { get; private set; }
     public string? Model { get; private set; }
@@ -64,12 +61,11 @@ public class Device : AggregateRoot<Guid>
     public DateTime? LastVerifiedAt { get; private set; } = DateTime.UtcNow;
     public DeviceStatus Status { get; private set; }
 
-    // Factory method to create a new Device
     public static Device Create(
         Guid userId,
         DeviceName deviceName,
         DeviceToken deviceToken,
-        MacAddress macAddress, // Thêm MAC address parameter
+        AndroidId androidId,
         string? platform = null,
         string? osVersion = null,
         string? model = null,
@@ -83,7 +79,7 @@ public class Device : AggregateRoot<Guid>
             userId,
             deviceName,
             deviceToken,
-            macAddress,
+            androidId,
             platform,
             osVersion,
             model,
@@ -97,7 +93,7 @@ public class Device : AggregateRoot<Guid>
     public void Update(
         DeviceName deviceName,
         DeviceStatus status,
-        MacAddress? macAddress = null,
+        AndroidId? androidId = null,
         string? platform = null,
         string? osVersion = null,
         string? model = null,
@@ -110,7 +106,7 @@ public class Device : AggregateRoot<Guid>
         DeviceName = deviceName;
         Status = status;
 
-        if (macAddress != null) MacAddress = macAddress;
+        if (androidId != null) AndroidId = androidId;
         if (platform != null) Platform = platform;
         if (osVersion != null) OsVersion = osVersion;
         if (model != null) Model = model;
@@ -136,17 +132,15 @@ public class Device : AggregateRoot<Guid>
         return true;
     }
 
-    // Thêm method để verify MAC address
-    public bool VerifyMacAddress(string macAddress)
+    public bool VerifyAndroidId(string androidId)
     {
-        Guard.AgainstNullOrEmpty(macAddress, nameof(macAddress));
-        return MacAddress.Value.Equals(macAddress, StringComparison.OrdinalIgnoreCase);
+        Guard.AgainstNullOrEmpty(androidId, nameof(androidId));
+        return AndroidId.Value.Equals(androidId, StringComparison.OrdinalIgnoreCase);
     }
 
-    // Method để tìm device theo MAC address
-    public static bool IsSameMacAddress(Device device, string macAddress)
+    public static bool IsSameAndroidId(Device device, string androidId)
     {
-        return device.MacAddress.Value.Equals(macAddress, StringComparison.OrdinalIgnoreCase);
+        return device.AndroidId.Value.Equals(androidId, StringComparison.OrdinalIgnoreCase);
     }
 
     public void UpdateStatus(DeviceStatus newStatus)

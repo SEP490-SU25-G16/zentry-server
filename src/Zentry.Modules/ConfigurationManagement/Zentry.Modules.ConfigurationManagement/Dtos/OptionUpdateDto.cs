@@ -1,4 +1,4 @@
-namespace Zentry.Modules.ConfigurationManagement.Entities;
+namespace Zentry.Modules.ConfigurationManagement.Dtos;
 
 public class OptionUpdateDto
 {

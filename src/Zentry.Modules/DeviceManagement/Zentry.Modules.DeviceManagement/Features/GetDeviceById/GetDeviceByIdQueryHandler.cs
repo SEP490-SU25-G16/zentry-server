@@ -29,7 +29,7 @@ public class GetDeviceByIdQueryHandler(
             UserFullName = userInfo?.FullName,
             UserEmail = userInfo?.Email,
             DeviceName = device.DeviceName.Value,
-            MacAddress = device.MacAddress.Value,
+            AndroidId = device.AndroidId.Value,
             DeviceToken = device.DeviceToken.Value,
             Platform = device.Platform,
             OsVersion = device.OsVersion,

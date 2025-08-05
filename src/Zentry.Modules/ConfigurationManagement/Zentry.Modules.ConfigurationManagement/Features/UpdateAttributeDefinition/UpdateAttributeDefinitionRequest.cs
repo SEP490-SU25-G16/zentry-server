@@ -1,3 +1,4 @@
+using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.UpdateAttributeDefinition;

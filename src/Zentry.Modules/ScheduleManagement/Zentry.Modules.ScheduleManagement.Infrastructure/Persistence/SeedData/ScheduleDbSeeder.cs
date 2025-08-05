@@ -13,7 +13,7 @@ public class ScheduleDbSeeder(IServiceProvider serviceProvider, ILogger<Schedule
     {
         using var scope = serviceProvider.CreateScope();
         var scheduleContext = scope.ServiceProvider.GetRequiredService<ScheduleDbContext>();
-        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>(); // Vẫn cần để lấy Lecturer/Student IDs
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         try
         {

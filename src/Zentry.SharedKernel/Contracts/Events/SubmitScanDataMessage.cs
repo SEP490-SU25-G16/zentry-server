@@ -1,7 +1,7 @@
 ﻿namespace Zentry.SharedKernel.Contracts.Events;
 
 public record SubmitScanDataMessage(
-    string SubmitterDeviceMacAddress,
+    string SubmitterDeviceAndroidId,
     Guid SessionId,
     Guid RoundId,
     List<ScannedDeviceContractForMessage> ScannedDevices,
@@ -9,6 +9,6 @@ public record SubmitScanDataMessage(
 );
 
 public record ScannedDeviceContractForMessage(
-    string MacAddress,
+    string AndroidId,
     int Rssi
 );

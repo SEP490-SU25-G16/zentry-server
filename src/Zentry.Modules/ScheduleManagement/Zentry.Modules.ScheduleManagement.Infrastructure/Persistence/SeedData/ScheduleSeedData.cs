@@ -18,10 +18,9 @@ public static class ScheduleSeedData
     private const int MaxAttemptsForUniqueSchedule = 10;
     private const int NumEnrollmentsToGenerate = 500;
 
-    // Cấu hình cho continuous scheduling
-    private const int ScheduleDurationHours = 1; // Mỗi schedule kéo dài 1 tiếng
-    private const int GapBetweenSchedulesHours = 2; // Khoảng cách giữa các schedule (2-3 tiếng random)
-    private const int MaxGapBetweenSchedulesHours = 2;
+    // Cấu hình lịch trình mới: 30 phút mỗi schedule, cách nhau 15 phút
+    private const int ScheduleDurationMinutes = 30;
+    private const int GapBetweenSchedulesMinutes = 15;
 
     private static List<Course> SeededCourses { get; set; } = [];
     private static List<Room> SeededRooms { get; set; } = [];
@@ -209,7 +208,7 @@ public static class ScheduleSeedData
             }
 
             SeededClassSections = classSectionsToAdd;
-            await context.ClassSections.AddRangeAsync(SeededClassSections, cancellationToken);
+            await context.ClassSections.AddRangeAsync(classSectionsToAdd, cancellationToken);
             logger?.LogInformation($"Added {SeededClassSections.Count} ClassSections.");
         }
         catch (Exception ex)
@@ -250,48 +249,38 @@ public static class ScheduleSeedData
 
             var schedulesToAdd = new List<Schedule>();
 
-            // Bắt đầu từ thời điểm hiện tại, làm tròn đến giờ gần nhất
-            var currentDateTime = DateTime.Now;
-            var startDateTime = new DateTime(currentDateTime.Year, currentDateTime.Month, currentDateTime.Day,
-                currentDateTime.Hour, 0, 0, DateTimeKind.Local);
-
-            // Nếu đã qua nửa giờ thì chuyển sang giờ tiếp theo
-            if (currentDateTime.Minute >= 30) startDateTime = startDateTime.AddHours(1);
+            // Bắt đầu từ ngày hiện tại
+            var startDate = DateTime.Now.Date;
+            var maxDaysAhead = 30; // Tạo lịch trình trong vòng 30 ngày tới
 
             var weekdays = Enumeration.GetAll<WeekDayEnum>().ToList();
-            var scheduleCounter = 0;
-
-            logger?.LogInformation($"Starting continuous scheduling from: {startDateTime}");
 
             foreach (var classSection in SeededClassSections)
             {
                 var numSchedules = faker.Random.Number(MinSchedulesPerClassSection, MaxSchedulesPerClassSection);
                 var randomRoom = faker.PickRandom(SeededRooms);
 
-                // Tính toán thời gian bắt đầu cho class section này
-                var classSectionStartTime = startDateTime.AddHours(scheduleCounter *
-                                                                   (ScheduleDurationHours +
-                                                                    faker.Random.Number(GapBetweenSchedulesHours,
-                                                                        MaxGapBetweenSchedulesHours)));
+                // Chọn một ngày ngẫu nhiên trong 30 ngày tới
+                var scheduleDate = startDate.AddDays(faker.Random.Int(0, maxDaysAhead));
+
+                // Chọn một giờ bắt đầu ngẫu nhiên trong khung giờ làm việc (ví dụ: 8h - 17h)
+                // và làm tròn đến các mốc 15 phút.
+                var randomStartHour = faker.Random.Int(8, 17);
+                var randomStartMinute = faker.Random.Int(0, 3) * 15;
+                var currentStartTime = new TimeOnly(randomStartHour, randomStartMinute);
 
                 for (var i = 0; i < numSchedules; i++)
                 {
-                    // Tính thời gian cho schedule này
-                    var scheduleStartTime = classSectionStartTime.AddHours(i *
-                                                                           (ScheduleDurationHours +
-                                                                            faker.Random.Number(
-                                                                                GapBetweenSchedulesHours,
-                                                                                MaxGapBetweenSchedulesHours)));
-                    var scheduleEndTime = scheduleStartTime.AddHours(ScheduleDurationHours);
+                    var startTime = currentStartTime;
+                    var endTime = startTime.AddMinutes(ScheduleDurationMinutes);
 
-                    // Chuyển đổi sang DateOnly và TimeOnly
-                    var scheduleDate = DateOnly.FromDateTime(scheduleStartTime);
-                    var startTimeOnly = TimeOnly.FromDateTime(scheduleStartTime);
-                    var endTimeOnly = TimeOnly.FromDateTime(scheduleEndTime);
+                    // Kiểm tra nếu end time vượt quá 17:00 thì ngắt
+                    if (endTime.Hour > 17 || (endTime.Hour == 17 && endTime.Minute > 0))
+                    {
+                        break;
+                    }
 
-                    // Xác định ngày trong tuần
-                    var dayOfWeek = scheduleStartTime.DayOfWeek;
-                    var weekDayEnum = weekdays.FirstOrDefault(w => (DayOfWeek)w.Id == dayOfWeek)
+                    var weekDayEnum = weekdays.FirstOrDefault(w => (DayOfWeek)w.Id == scheduleDate.DayOfWeek)
                                       ?? weekdays.First();
 
                     try
@@ -299,10 +288,10 @@ public static class ScheduleSeedData
                         var newSchedule = Schedule.Create(
                             classSection.Id,
                             randomRoom.Id,
-                            scheduleDate,
-                            scheduleDate, // Single day schedule
-                            startTimeOnly,
-                            endTimeOnly,
+                            DateOnly.FromDateTime(scheduleDate),
+                            DateOnly.FromDateTime(scheduleDate), // Single day schedule
+                            startTime,
+                            endTime,
                             weekDayEnum
                         );
 
@@ -310,26 +299,24 @@ public static class ScheduleSeedData
                     }
                     catch (Exception ex)
                     {
-                        logger?.LogWarning($"Failed to create schedule for {classSection.SectionCode}: {ex.Message}");
+                        logger?.LogWarning(
+                            $"Failed to create schedule for {classSection.SectionCode} on {scheduleDate}: {ex.Message}");
                     }
-                }
 
-                scheduleCounter++;
+                    // Cập nhật thời gian bắt đầu cho schedule tiếp theo
+                    currentStartTime = endTime.AddMinutes(GapBetweenSchedulesMinutes);
+                }
             }
 
             if (schedulesToAdd.Count > 0)
             {
-                SeededSchedules = schedulesToAdd;
-                await context.Schedules.AddRangeAsync(SeededSchedules, cancellationToken);
-                logger?.LogInformation(
-                    $"Added {SeededSchedules.Count} continuous Schedules starting from {startDateTime}.");
+                var validSchedules = schedulesToAdd
+                    .Where(s => s.EndTime > s.StartTime)
+                    .ToList();
 
-                // Log thời gian của schedule cuối cùng
-                if (schedulesToAdd.Any())
-                {
-                    var lastSchedule = schedulesToAdd.OrderBy(s => s.StartDate).ThenBy(s => s.StartTime).Last();
-                    logger?.LogInformation($"Last schedule ends at: {lastSchedule.StartDate} {lastSchedule.EndTime}");
-                }
+                SeededSchedules = validSchedules;
+                await context.Schedules.AddRangeAsync(SeededSchedules, cancellationToken);
+                logger?.LogInformation($"Added {SeededSchedules.Count} Schedules.");
             }
             else
             {
@@ -397,7 +384,7 @@ public static class ScheduleSeedData
             if (enrollmentsToAdd.Count > 0)
             {
                 SeededEnrollments = enrollmentsToAdd;
-                await context.Enrollments.AddRangeAsync(SeededEnrollments, cancellationToken);
+                await context.Enrollments.AddRangeAsync(enrollmentsToAdd, cancellationToken);
                 logger?.LogInformation($"Added {SeededEnrollments.Count} Enrollments.");
             }
             else

@@ -210,7 +210,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         {
             var utcTimestamp = request.Timestamp.ToUtcFromVietnamLocalTime();
             var command = new SubmitScanDataCommand(
-                request.SubmitterDeviceMacAddress,
+                request.SubmitterDeviceAndroidId,
                 request.SessionId,
                 request.ScannedDevices,
                 utcTimestamp

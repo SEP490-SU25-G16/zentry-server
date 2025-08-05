@@ -28,6 +28,11 @@ namespace Zentry.Modules.DeviceManagement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AndroidId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<string>("AppVersion")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -49,11 +54,6 @@ namespace Zentry.Modules.DeviceManagement.Migrations
 
                     b.Property<DateTime?>("LastVerifiedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("MacAddress")
-                        .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
 
                     b.Property<string>("Manufacturer")
                         .HasMaxLength(100)
@@ -91,21 +91,21 @@ namespace Zentry.Modules.DeviceManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeviceToken")
+                    b.HasIndex("AndroidId")
                         .IsUnique();
 
-                    b.HasIndex("MacAddress")
+                    b.HasIndex("DeviceToken")
                         .IsUnique();
 
                     b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("MacAddress", "Status")
-                        .HasDatabaseName("IX_Devices_MacAddress_Status");
+                    b.HasIndex("AndroidId", "Status")
+                        .HasDatabaseName("IX_Devices_AndroidId_Status");
 
-                    b.HasIndex("UserId", "MacAddress")
-                        .HasDatabaseName("IX_Devices_UserId_MacAddress");
+                    b.HasIndex("UserId", "AndroidId")
+                        .HasDatabaseName("IX_Devices_UserId_AndroidId");
 
                     b.ToTable("Devices", (string)null);
                 });

@@ -8,34 +8,29 @@ public class RequestDeviceChangeCommandValidator : BaseValidator<RequestDeviceCh
 {
     public RequestDeviceChangeCommandValidator()
     {
-        // Rule for UserId (assuming it's a Guid and should not be empty)
         RuleFor(x => x.UserId)
             .NotEmpty()
             .WithMessage("ID người dùng là bắt buộc.");
 
-        // Rule for Reason
         RuleFor(x => x.Reason)
             .NotEmpty()
             .WithMessage("Lý do thay đổi là bắt buộc.")
-            .MaximumLength(500) // Ví dụ: giới hạn độ dài lý do
+            .MaximumLength(500)
             .WithMessage("Lý do thay đổi không được vượt quá 500 ký tự.");
 
-        // Rule for DeviceName
         RuleFor(x => x.DeviceName)
             .NotEmpty()
             .WithMessage("Tên thiết bị là bắt buộc.")
-            .MaximumLength(100) // Ví dụ: giới hạn độ dài tên thiết bị
+            .MaximumLength(100)
             .WithMessage("Tên thiết bị không được vượt quá 100 ký tự.");
 
-        // Rule for MacAddress
-        RuleFor(x => x.MacAddress)
+        RuleFor(x => x.AndroidId)
             .NotEmpty()
-            .WithMessage("Địa chỉ MAC của thiết bị mới là bắt buộc.")
-            .Must(mac =>
-                !string.IsNullOrEmpty(mac) && MacAddress.IsValidMacAddress(mac)) // Sử dụng IsValidFormat từ ValueObject
-            .WithMessage("Địa chỉ MAC không hợp lệ. Vui lòng kiểm tra định dạng.");
+            .WithMessage("Android ID của thiết bị mới là bắt buộc.")
+            .Must(androidId =>
+                !string.IsNullOrEmpty(androidId) && AndroidId.Create(androidId) != null)
+            .WithMessage("Android ID không hợp lệ. Vui lòng kiểm tra định dạng.");
 
-        // Optional: Rules for other nullable fields if they have specific constraints
         RuleFor(x => x.Platform)
             .MaximumLength(50)
             .When(x => !string.IsNullOrEmpty(x.Platform))
