@@ -13,6 +13,7 @@ public class GetRoundResultQueryHandler(
     IRoundRepository roundRepository,
     IRoundTrackRepository roundTrackRepository,
     ISessionWhitelistRepository sessionWhitelistRepository,
+    ISessionRepository sessionRepository,
     IMediator mediator,
     ILogger<GetRoundResultQueryHandler> logger)
     : IQueryHandler<GetRoundResultQuery, RoundResultDto>
@@ -29,9 +30,10 @@ public class GetRoundResultQueryHandler(
             throw new NotFoundException("Round", $"Vòng điểm danh với ID '{request.RoundId}' không tìm thấy.");
         }
 
+        var lectureId = await sessionRepository.GetLecturerIdBySessionId(round.SessionId, cancellationToken);
         // 2. Lấy danh sách whitelistedDeviceIds từ SessionWhitelist
         var sessionWhitelist = await sessionWhitelistRepository.GetBySessionIdAsync(round.SessionId, cancellationToken);
-        if (sessionWhitelist == null || !sessionWhitelist.WhitelistedDeviceIds.Any())
+        if (sessionWhitelist == null || sessionWhitelist.WhitelistedDeviceIds.Count == 0)
         {
             logger.LogWarning("No whitelist found for SessionId: {SessionId}. Returning empty result.",
                 round.SessionId);
@@ -53,9 +55,11 @@ public class GetRoundResultQueryHandler(
             new GetUserIdsByDevicesIntegrationQuery(deviceIds),
             cancellationToken);
 
-        var userIds = userIdsByDevicesResponse.UserDeviceMap.Values.ToList();
+        var userIds = userIdsByDevicesResponse.UserDeviceMap.Values
+            .Where(id => !Equals(id, lectureId))
+            .ToList();
 
-        if (!userIds.Any())
+        if (userIds.Count == 0)
         {
             logger.LogInformation("No user IDs found for the whitelisted devices. Returning empty result.");
             return new RoundResultDto
@@ -79,9 +83,8 @@ public class GetRoundResultQueryHandler(
         // 5. Lấy kết quả điểm danh của round từ Marten (RoundTrack)
         var roundTrack = await roundTrackRepository.GetByIdAsync(request.RoundId, cancellationToken);
 
-        // Tạo một lookup dictionary để kiểm tra nhanh
         var attendedStudentsMap = new Dictionary<Guid, (bool IsAttended, DateTime? AttendedTime)>();
-        if (roundTrack != null && roundTrack.Students.Any())
+        if (roundTrack != null && roundTrack.Students.Count != 0)
             attendedStudentsMap = roundTrack.Students.ToDictionary(
                 s => s.StudentId,
                 s => (s.IsAttended, s.AttendedTime)

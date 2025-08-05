@@ -102,7 +102,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    // Lấy danh sách các round trong một session (Đã sửa URL)
+    // Lấy danh sách các round trong một session
     [HttpGet("sessions/{sessionId:guid}/rounds")]
     [ProducesResponseType(typeof(ApiResponse<List<RoundAttendanceDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -121,7 +121,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    // Lấy kết quả điểm danh cuối cùng của toàn bộ session (Đã sửa URL)
+    // Lấy kết quả điểm danh cuối cùng của toàn bộ session
     [HttpGet("sessions/{sessionId:guid}/final")]
     [ProducesResponseType(typeof(ApiResponse<List<FinalAttendanceDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]

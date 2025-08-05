@@ -22,8 +22,8 @@ public class GetAttendanceSummaryIntegrationQueryHandler(
         var attendanceRecords =
             await attendanceRecordRepository.GetAttendanceRecordsBySessionIdAsync(session.Id, cancellationToken);
 
-        var presentCount = attendanceRecords.Count(r => r.Status == AttendanceStatus.Present);
-        var absentCount = attendanceRecords.Count(r => r.Status == AttendanceStatus.Absent);
+        var presentCount = attendanceRecords.Count(r => Equals(r.Status, AttendanceStatus.Present));
+        var absentCount = attendanceRecords.Count(r => Equals(r.Status, AttendanceStatus.Absent));
 
         return new AttendanceSummaryIntegrationResponse
         {

@@ -2,6 +2,7 @@ using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
 
@@ -44,25 +45,19 @@ public class GetSessionRoundsQueryHandler(
         var allAttendanceRecords = await attendanceRecordRepository.GetAttendanceRecordsBySessionIdAsync(
             request.SessionId, cancellationToken);
 
-        var result = new List<RoundAttendanceDto>();
-
-        foreach (var round in rounds)
+        var result = (from round in rounds
+        let attendedCount = allAttendanceRecords.Count(ar => Equals(ar.Status, AttendanceStatus.Present))
+        select new RoundAttendanceDto
         {
-            var attendedCount = allAttendanceRecords
-                .Count(ar => ar.CreatedAt >= round.StartTime && ar.CreatedAt <= round.EndTime);
-
-            result.Add(new RoundAttendanceDto
-            {
-                RoundId = round.Id,
-                SessionId = request.SessionId,
-                RoundNumber = round.RoundNumber,
-                StartTime = round.StartTime,
-                EndTime = round.EndTime,
-                AttendedCount = attendedCount,
-                TotalStudents = totalStudentsCountResponse.TotalStudents,
-                Status = round.Status.ToString()
-            });
-        }
+            RoundId = round.Id,
+            SessionId = request.SessionId,
+            RoundNumber = round.RoundNumber,
+            StartTime = round.StartTime,
+            EndTime = round.EndTime,
+            AttendedCount = attendedCount,
+            TotalStudents = totalStudentsCountResponse.TotalStudents,
+            Status = round.Status.ToString()
+        }).ToList();
 
         return result.OrderBy(r => r.RoundNumber).ToList();
     }

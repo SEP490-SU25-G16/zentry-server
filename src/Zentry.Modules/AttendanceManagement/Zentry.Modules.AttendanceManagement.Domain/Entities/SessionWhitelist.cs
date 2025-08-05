@@ -7,7 +7,7 @@ public class SessionWhitelist
         WhitelistedDeviceIds = new List<Guid>();
     }
 
-    public SessionWhitelist(Guid id, Guid sessionId, List<Guid> whitelistedDeviceIds)
+    private SessionWhitelist(Guid id, Guid sessionId, List<Guid> whitelistedDeviceIds)
     {
         Id = id;
         SessionId = sessionId;

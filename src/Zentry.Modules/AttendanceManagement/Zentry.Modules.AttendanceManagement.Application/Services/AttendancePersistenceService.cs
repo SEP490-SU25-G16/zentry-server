@@ -11,6 +11,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Services;
 public class AttendancePersistenceService(
     IRoundTrackRepository roundTrackRepository,
     IStudentTrackRepository studentTrackRepository,
+    ISessionRepository sessionRepository,
     IMediator mediator,
     ILogger<AttendancePersistenceService> logger) : IAttendancePersistenceService
 {
@@ -24,6 +25,8 @@ public class AttendancePersistenceService(
 
         logger.LogInformation("Persisting attendance result for Round {RoundId}: {Count} devices from BFS results.",
             roundId, attendedDeviceIds.Count);
+
+        var lecturerId = await sessionRepository.GetLecturerIdBySessionId(sessionId, cancellationToken);
 
         var attendedDeviceGuids = attendedDeviceIds
             .Where(id => Guid.TryParse(id, out _))
@@ -45,7 +48,7 @@ public class AttendancePersistenceService(
         roundTrack.ProcessedAt = DateTime.Now;
 
         var deviceToUserMap = new Dictionary<Guid, Guid>();
-        if (attendedDeviceGuids.Any())
+        if (attendedDeviceGuids.Count != 0)
         {
             var getUserIdsByDevicesQuery = new GetUserIdsByDevicesIntegrationQuery(attendedDeviceGuids);
             var getUserIdsByDevicesResponse = await mediator.Send(getUserIdsByDevicesQuery, cancellationToken);
@@ -57,10 +60,12 @@ public class AttendancePersistenceService(
         foreach (var existingStudent in roundTrack.Students)
             mergedStudentsInRoundTrack[existingStudent.StudentId] = existingStudent;
 
+
         var studentTracksToUpdate = new List<StudentTrack>();
 
         foreach (var (deviceId, userId) in deviceToUserMap)
         {
+            if (userId == lecturerId) continue;
             const bool isAttended = true;
             var attendedTime = DateTime.UtcNow;
             var usedDeviceIdString = deviceId.ToString();
