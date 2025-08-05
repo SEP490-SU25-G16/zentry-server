@@ -26,5 +26,5 @@ public record SeededClassSectionDto
 {
     public Guid Id { get; init; }
     public Guid CourseId { get; init; }
-    public Guid LecturerId { get; init; } // Cần để tạo Session (UserId)
+    public Guid? LecturerId { get; init; }
 }

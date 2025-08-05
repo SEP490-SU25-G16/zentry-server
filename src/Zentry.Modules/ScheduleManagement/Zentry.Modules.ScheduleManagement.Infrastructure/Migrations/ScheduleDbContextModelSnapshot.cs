@@ -39,7 +39,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("LecturerId")
+                    b.Property<Guid?>("LecturerId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("SectionCode")

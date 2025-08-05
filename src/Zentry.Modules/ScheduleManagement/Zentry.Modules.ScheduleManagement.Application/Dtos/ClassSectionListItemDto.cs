@@ -10,7 +10,7 @@ public class ClassSectionListItemDto
     public string? CourseCode { get; set; }
     public string? CourseName { get; set; }
 
-    public Guid LecturerId { get; set; }
+    public Guid? LecturerId { get; set; }
     public string? LecturerFullName { get; set; }
 
     public int NumberOfStudents { get; set; }

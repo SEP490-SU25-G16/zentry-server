@@ -10,11 +10,10 @@ public class ClassSection : AggregateRoot<Guid>
         Enrollments = new List<Enrollment>();
     }
 
-    private ClassSection(Guid id, Guid courseId, Guid lecturerId, string sectionCode, string semester)
+    private ClassSection(Guid id, Guid courseId, string sectionCode, string semester)
         : base(id)
     {
         CourseId = courseId;
-        LecturerId = lecturerId;
         SectionCode = sectionCode;
         Semester = semester;
         CreatedAt = DateTime.UtcNow;
@@ -27,7 +26,7 @@ public class ClassSection : AggregateRoot<Guid>
 
     public Guid CourseId { get; private set; }
     public virtual Course? Course { get; private set; }
-    public Guid LecturerId { get; private set; }
+    public Guid? LecturerId { get; private set; }
     public string SectionCode { get; private set; }
     public string Semester { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -38,9 +37,9 @@ public class ClassSection : AggregateRoot<Guid>
     public virtual ICollection<Enrollment> Enrollments { get; private set; }
     // --------------------------------------------------------------------------------
 
-    public static ClassSection Create(Guid courseId, Guid lecturerId, string sectionCode, string semester)
+    public static ClassSection Create(Guid courseId, string sectionCode, string semester)
     {
-        return new ClassSection(Guid.NewGuid(), courseId, lecturerId, sectionCode, semester);
+        return new ClassSection(Guid.NewGuid(), courseId, sectionCode, semester);
     }
 
     public void Update(string? sectionCode = null, string? semester = null)

@@ -11,8 +11,8 @@ public class StudentDailyClassDto
 
     public string SectionCode { get; set; } = string.Empty;
 
-    public Guid LecturerId { get; set; }
-    public string LecturerName { get; set; } = string.Empty;
+    public Guid? LecturerId { get; set; }
+    public string? LecturerName { get; set; } = string.Empty;
 
     public Guid RoomId { get; set; }
     public string RoomName { get; set; } = string.Empty;

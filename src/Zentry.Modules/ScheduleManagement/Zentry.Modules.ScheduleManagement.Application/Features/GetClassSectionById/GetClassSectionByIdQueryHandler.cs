@@ -1,3 +1,5 @@
+// File: Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById/GetClassSectionByIdQueryHandler.cs
+
 using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
@@ -14,13 +16,23 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
     public async Task<ClassSectionDto> Handle(GetClassSectionByIdQuery query, CancellationToken ct)
     {
         var cs = await classSectionRepository.GetByIdAsync(query.Id, ct);
-
         if (cs is null || cs.IsDeleted)
             throw new NotFoundException("ClassSection", query.Id);
 
         // --- 1. Lấy thông tin Giảng viên từ UserManagement module ---
-        var lecturerInfo =
-            await mediator.Send(new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId), ct);
+        // Xử lý trường hợp LecturerId có thể là null
+        GetUserByIdAndRoleIntegrationResponse? lecturerInfo = null;
+        if (cs.LecturerId.HasValue)
+        {
+            try
+            {
+                lecturerInfo =
+                    await mediator.Send(new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId.Value), ct);
+            }
+            catch (NotFoundException)
+            {
+            }
+        }
 
         // --- 2. Lấy danh sách StudentId từ Enrollments ---
         var studentIds = cs.Enrollments?.Select(e => e.StudentId).ToList() ?? new List<Guid>();
@@ -40,7 +52,7 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
             CourseCode = cs.Course?.Code,
             CourseName = cs.Course?.Name,
             LecturerId = cs.LecturerId,
-            LecturerFullName = lecturerInfo?.FullName,
+            LecturerFullName = lecturerInfo?.FullName ?? "Unassigned Lecturer",
             LecturerEmail = lecturerInfo?.Email,
             SectionCode = cs.SectionCode,
             Semester = cs.Semester,
@@ -50,6 +62,8 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
                 .Select(s => new ScheduleDto
                 {
                     Id = s.Id,
+                    ClassSectionId = cs.Id,
+                    ClassSectionCode = cs.SectionCode,
                     RoomId = s.RoomId,
                     RoomName = s.Room?.RoomName,
                     StartDate = s.StartDate,
@@ -59,7 +73,6 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
                     WeekDay = s.WeekDay.ToString()
                 })
                 .ToList(),
-            // Logic này giờ đã đúng kiểu dữ liệu
             Enrollments = cs.Enrollments?
                 .Select(e => new EnrollmentDto
                 {
@@ -67,7 +80,7 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
                     EnrollmentDate = e.EnrolledAt,
                     Status = e.Status.ToString(),
                     StudentId = e.StudentId,
-                    StudentName = studentInfos.GetValueOrDefault(e.StudentId)?.FullName,
+                    StudentName = studentInfos.GetValueOrDefault(e.StudentId)?.FullName ?? "Unknown Student",
 
                     ClassSectionId = cs.Id,
                     ClassSectionCode = cs.SectionCode,
@@ -78,7 +91,7 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
                     CourseName = cs.Course?.Name,
 
                     LecturerId = cs.LecturerId,
-                    LecturerName = lecturerInfo?.FullName
+                    LecturerName = lecturerInfo?.FullName ?? "Unassigned Lecturer"
                 })
                 .ToList()
         };

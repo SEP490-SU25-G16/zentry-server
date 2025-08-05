@@ -83,7 +83,6 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         {
             var command = new CreateClassSectionCommand(
                 new Guid(request.CourseId),
-                new Guid(request.LecturerId),
                 request.SectionCode,
                 request.Semester
             );

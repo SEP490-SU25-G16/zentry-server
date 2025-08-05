@@ -36,7 +36,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ScheduleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LecturerId = table.Column<Guid>(type: "uuid", nullable: true),
                     StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
@@ -113,6 +113,11 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 column: "StartTime");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Sessions_LecturerId",
+                table: "Sessions",
+                column: "LecturerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sessions_ScheduleId",
                 table: "Sessions",
                 column: "ScheduleId");
@@ -121,11 +126,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 name: "IX_Sessions_StartTime",
                 table: "Sessions",
                 column: "StartTime");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Sessions_UserId",
-                table: "Sessions",
-                column: "UserId");
         }
 
         /// <inheritdoc />

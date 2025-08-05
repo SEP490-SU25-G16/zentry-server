@@ -32,34 +32,9 @@ public class GenerateSessionWhitelistConsumer(
                 logger.LogInformation("Whitelist already exists for Session {SessionId}. Updating existing whitelist.",
                     message.SessionId);
 
-            // --- 1. Lấy danh sách các thiết bị được phép (giảng viên + sinh viên) ---
+            // --- 1. Lấy danh sách các thiết bị được phép
             var whitelistedDeviceIds =
-                new HashSet<Guid>(); // Sử dụng HashSet<Guid> để đảm bảo DeviceId là duy nhất và kiểu đúng
-
-            // Lấy DeviceId của giảng viên (chỉ có 1 active device)
-            try
-            {
-                var getLecturerDeviceQuery = new GetDeviceByUserIntegrationQuery(message.LecturerId);
-                var lecturerDeviceResponse =
-                    await mediator.Send(getLecturerDeviceQuery, consumeContext.CancellationToken);
-                whitelistedDeviceIds.Add(lecturerDeviceResponse.DeviceId);
-                logger.LogInformation("Added lecturer's active device {DeviceId} to whitelist.",
-                    lecturerDeviceResponse.DeviceId);
-            }
-            catch (NotFoundException ex)
-            {
-                logger.LogWarning(ex,
-                    "Lecturer with ID {LecturerId} does not have an active device. Skipping lecturer's device for whitelist.",
-                    message.LecturerId);
-                // Không throw lỗi, chỉ log cảnh báo nếu giảng viên không có thiết bị active.
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex,
-                    "Error getting active device for lecturer {LecturerId}. Whitelist might be incomplete.",
-                    message.LecturerId);
-                // Xử lý các lỗi khác nếu cần
-            }
+                new HashSet<Guid>();
 
             // Lấy StudentIds trong ClassSection
             var getStudentIdsQuery = new GetStudentIdsByClassSectionIdIntegrationQuery(message.ClassSectionId);
@@ -116,7 +91,7 @@ public class GenerateSessionWhitelistConsumer(
             logger.LogError(ex,
                 "MassTransit Consumer: Error generating whitelist for Session {SessionId}. Message will be retried or moved to error queue.",
                 message.SessionId);
-            throw; // Re-throw để MassTransit có thể xử lý retry/move to error queue
+            throw;
         }
     }
 }

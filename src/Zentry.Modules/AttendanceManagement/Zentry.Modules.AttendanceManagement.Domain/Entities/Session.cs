@@ -13,12 +13,12 @@ public class Session : AggregateRoot<Guid>
         SessionConfigs = new SessionConfigSnapshot();
     }
 
-    private Session(Guid id, Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime, SessionStatus status,
+    private Session(Guid id, Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime, SessionStatus status,
         SessionConfigSnapshot sessionConfigs)
         : base(id)
     {
         ScheduleId = scheduleId;
-        UserId = userId;
+        LecturerId = lecturerId;
         StartTime = startTime;
         EndTime = endTime;
         Status = status;
@@ -27,7 +27,7 @@ public class Session : AggregateRoot<Guid>
     }
 
     public Guid ScheduleId { get; private set; }
-    public Guid UserId { get; private set; }
+    public Guid? LecturerId { get; private set; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public SessionStatus Status { get; private set; }
@@ -42,7 +42,7 @@ public class Session : AggregateRoot<Guid>
     public int AbsentReportGracePeriodHours => SessionConfigs.AbsentReportGracePeriodHours;
     public int ManualAdjustmentGracePeriodHours => SessionConfigs.ManualAdjustmentGracePeriodHours;
 
-    public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
+    public static Session Create(Guid scheduleId, Guid? userId, DateTime startTime, DateTime endTime,
         Dictionary<string, string> configs)
     {
         var sessionConfigs = SessionConfigSnapshot.FromDictionary(configs);
@@ -50,11 +50,19 @@ public class Session : AggregateRoot<Guid>
             sessionConfigs);
     }
 
-    public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
+    // Create method mới
+    public static Session Create(Guid scheduleId, Guid? userId, DateTime startTime, DateTime endTime,
         SessionConfigSnapshot sessionConfigs)
     {
         return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, SessionStatus.Pending,
             sessionConfigs);
+    }
+
+    public void AssignLecturer(Guid lecturerId)
+    {
+        if (LecturerId.HasValue && LecturerId.Value == lecturerId) return;
+        LecturerId = lecturerId;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void Update(DateTime? startTime = null, DateTime? endTime = null)
@@ -148,7 +156,7 @@ public class Session : AggregateRoot<Guid>
         return adjustmentTime <= gracePeriodEnd;
     }
 
-    public T GetConfig<T>(string key, T defaultValue = default)
+    public T GetConfig<T>(string key, T defaultValue)
     {
         var value = SessionConfigs[key];
         if (value == null) return defaultValue;

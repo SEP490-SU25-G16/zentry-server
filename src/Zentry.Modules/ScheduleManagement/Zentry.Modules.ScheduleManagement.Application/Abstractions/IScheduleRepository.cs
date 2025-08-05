@@ -20,8 +20,8 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
     Task<bool> IsLecturerAvailableAsync(Guid lecturerId, WeekDayEnum weekDay, TimeOnly startTime, TimeOnly endTime,
         CancellationToken cancellationToken);
 
-    Task<bool> IsRoomAvailableAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime, TimeOnly endTime,
-        CancellationToken cancellationToken);
+    Task<bool> IsRoomAvailableAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime,
+        TimeOnly endTime, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken);
 
     Task<Tuple<List<Schedule>, int>> GetPagedSchedulesAsync(ScheduleListCriteria criteria,
         CancellationToken cancellationToken);

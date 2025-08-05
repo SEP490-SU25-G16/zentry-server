@@ -12,7 +12,7 @@ public class LecturerDailyReportScheduleProjectionDto
     // From ClassSection
     public Guid ClassSectionId { get; set; }
     public string SectionCode { get; set; } = string.Empty;
-    public Guid LecturerId { get; set; }
+    public Guid? LecturerId { get; set; }
 
     // From Course
     public Guid CourseId { get; set; }

@@ -9,7 +9,7 @@ public class GetScheduleByIdIntegrationResponse
     public Guid Id { get; set; }
     public Guid CourseId { get; set; }
     public Guid RoomId { get; set; }
-    public Guid LecturerId { get; set; }
+    public Guid? LecturerId { get; set; }
     public DateOnly ScheduledStartDate { get; set; }
     public DateOnly ScheduledEndDate { get; set; }
     public TimeOnly ScheduledStartTime { get; set; }

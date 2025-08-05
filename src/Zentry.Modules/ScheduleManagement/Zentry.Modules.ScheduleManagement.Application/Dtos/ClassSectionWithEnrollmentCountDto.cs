@@ -6,7 +6,7 @@ public class ClassSectionWithEnrollmentCountDto
     public Guid CourseId { get; set; }
     public string CourseCode { get; set; } = string.Empty;
     public string CourseName { get; set; } = string.Empty;
-    public Guid LecturerId { get; set; }
+    public Guid? LecturerId { get; set; }
     public string SectionCode { get; set; } = string.Empty;
     public string Semester { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }

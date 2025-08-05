@@ -6,7 +6,7 @@ public class ClassSectionDto
     public Guid CourseId { get; set; }
     public string? CourseCode { get; set; }
     public string? CourseName { get; set; }
-    public Guid LecturerId { get; set; }
+    public Guid? LecturerId { get; set; }
     public string? LecturerFullName { get; set; }
     public string? LecturerEmail { get; set; }
     public string SectionCode { get; set; }

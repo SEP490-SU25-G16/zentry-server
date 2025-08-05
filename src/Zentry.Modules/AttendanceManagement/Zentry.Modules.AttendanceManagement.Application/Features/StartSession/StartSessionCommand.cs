@@ -13,7 +13,7 @@ public class StartSessionResponse
 {
     public Guid SessionId { get; set; }
     public Guid ScheduleId { get; set; }
-    public Guid UserId { get; set; }
+    public Guid? LecturerId { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public DateTime CreatedAt { get; set; }

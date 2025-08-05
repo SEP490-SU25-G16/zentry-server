@@ -135,6 +135,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("LecturerId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
 
@@ -149,16 +152,13 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("LecturerId");
 
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StartTime");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Sessions", null, t =>
                         {

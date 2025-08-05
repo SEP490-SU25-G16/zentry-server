@@ -50,7 +50,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CourseId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LecturerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LecturerId = table.Column<Guid>(type: "uuid", nullable: true),
                     SectionCode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Semester = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),

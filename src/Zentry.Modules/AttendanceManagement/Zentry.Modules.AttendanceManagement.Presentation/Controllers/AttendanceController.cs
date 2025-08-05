@@ -185,7 +185,7 @@ public class AttendanceController(IMediator mediator) : BaseController
             var command = new EndSessionCommand
             {
                 SessionId = sessionId,
-                UserId = request.UserId
+                LecturerId = request.UserId
             };
             var response = await mediator.Send(command, cancellationToken);
             return HandleResult(response, "Session ended successfully.");

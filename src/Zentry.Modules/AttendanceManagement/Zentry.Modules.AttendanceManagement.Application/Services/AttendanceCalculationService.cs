@@ -28,7 +28,7 @@ public class AttendanceCalculationService(
         var session = await sessionRepository.GetByIdAsync(sessionId, cancellationToken);
         if (session is null) throw new NotFoundException(nameof(AttendanceCalculationService), sessionId);
 
-        var lecturerId = session.UserId.ToString();
+        var lecturerId = session.LecturerId.ToString();
 
 
         // 1. Get whitelist

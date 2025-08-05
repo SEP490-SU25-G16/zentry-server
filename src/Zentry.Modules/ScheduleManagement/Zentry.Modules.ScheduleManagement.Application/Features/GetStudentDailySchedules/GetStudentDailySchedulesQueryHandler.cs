@@ -33,7 +33,10 @@ public class GetStudentDailySchedulesQueryHandler(
         var scheduleIds = schedulesForDay.Select(s => s.ScheduleId).ToList();
 
         // 3. Lấy thông tin lecturer của các class section liên quan
-        var lecturerIds = enrollmentProjections.Select(e => e.LecturerId).Distinct().ToList();
+        var lecturerIds = enrollmentProjections
+            .Where(e => e.LecturerId != null)
+            .Select(e => e.LecturerId).Distinct()
+            .Select(e => (Guid)e!).ToList();
         var lecturerInfos = await mediator.Send(new GetUsersByIdsIntegrationQuery(lecturerIds), cancellationToken);
         var lecturerDictionary = lecturerInfos.Users.ToDictionary(u => u.Id, u => u.FullName);
 
@@ -65,7 +68,9 @@ public class GetStudentDailySchedulesQueryHandler(
                 CourseName = enrollmentProjection.CourseName,
                 SectionCode = enrollmentProjection.SectionCode,
                 LecturerId = enrollmentProjection.LecturerId,
-                LecturerName = lecturerDictionary.GetValueOrDefault(enrollmentProjection.LecturerId, "N/A"),
+                LecturerName = enrollmentProjection.LecturerId != null
+                    ? lecturerDictionary!.GetValueOrDefault<Guid, string>((Guid)enrollmentProjection.LecturerId, "N/A")
+                    : null,
                 RoomId = scheduleProjection.RoomId,
                 RoomName = scheduleProjection.RoomName,
                 Building = scheduleProjection.Building,

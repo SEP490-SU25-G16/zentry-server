@@ -20,8 +20,7 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.Property(s => s.ScheduleId)
             .IsRequired();
 
-        builder.Property(s => s.UserId)
-            .IsRequired();
+        builder.Property(s => s.LecturerId);
 
         builder.Property(s => s.StartTime)
             .IsRequired();
@@ -45,7 +44,7 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
             .IsRequired(false); // Có thể null
 
         builder.HasIndex(s => s.ScheduleId);
-        builder.HasIndex(s => s.UserId);
+        builder.HasIndex(s => s.LecturerId);
         builder.HasIndex(s => s.StartTime);
 
         builder.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime",

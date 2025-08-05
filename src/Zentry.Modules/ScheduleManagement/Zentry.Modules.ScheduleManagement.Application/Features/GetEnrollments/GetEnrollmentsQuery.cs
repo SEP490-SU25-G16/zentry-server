@@ -4,7 +4,7 @@ using Zentry.SharedKernel.Constants.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 
-public class GetEnrollmentsQuery : ICommand<GetEnrollmentsResponse>
+public class GetEnrollmentsQuery : IQuery<GetEnrollmentsResponse>
 {
     public GetEnrollmentsQuery(GetEnrollmentsRequest request)
     {

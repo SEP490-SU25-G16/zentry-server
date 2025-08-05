@@ -7,5 +7,5 @@ public class EnrollmentWithClassSectionDto
     public string CourseCode { get; set; } = string.Empty;
     public string CourseName { get; set; } = string.Empty;
     public string SectionCode { get; set; } = string.Empty;
-    public Guid LecturerId { get; set; }
+    public Guid? LecturerId { get; set; }
 }

@@ -12,7 +12,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250805103221_Initial")]
+    [Migration("20250805160325_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -138,6 +138,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("LecturerId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
 
@@ -152,16 +155,13 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("LecturerId");
 
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StartTime");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Sessions", null, t =>
                         {

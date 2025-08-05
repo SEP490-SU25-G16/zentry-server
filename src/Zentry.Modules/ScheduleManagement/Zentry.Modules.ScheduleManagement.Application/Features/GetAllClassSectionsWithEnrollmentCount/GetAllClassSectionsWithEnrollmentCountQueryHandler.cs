@@ -1,65 +1,78 @@
+// File: Zentry.Modules.ScheduleManagement.Application.Features.GetAllClassSectionsWithEnrollmentCount/GetAllClassSectionsWithEnrollmentCountQueryHandler.cs
+
+using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.User;
-
-// Để lấy thông tin User/Lecturer Name
-// For EnrollmentStatus
-
-// For Role
+using Zentry.SharedKernel.Constants.Schedule;
+using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetAllClassSectionsWithEnrollmentCount;
 
 public class GetAllClassSectionsWithEnrollmentCountQueryHandler(
     IClassSectionRepository classSectionRepository,
-    IEnrollmentRepository enrollmentRepository, // Cần để đếm số sinh viên
-    IUserScheduleService userScheduleService // Để lấy tên giảng viên
+    IEnrollmentRepository enrollmentRepository,
+    IMediator mediator
 ) : IQueryHandler<GetAllClassSectionsWithEnrollmentCountQuery, List<ClassSectionWithEnrollmentCountDto>>
 {
     public async Task<List<ClassSectionWithEnrollmentCountDto>> Handle(
         GetAllClassSectionsWithEnrollmentCountQuery request,
         CancellationToken cancellationToken)
     {
-        // Lấy tất cả các ClassSection
-        // Cần đảm bảo ClassSectionRepository.GetAllAsync() include Course và Enrollments (hoặc là nó sẽ join sau)
-        // Hiện tại GetAllAsync() của bạn chỉ Include(cs => cs.Course), cần thêm Include(cs => cs.Enrollments)
+        // Lấy tất cả ClassSection và đảm bảo include Course và Enrollment
         var classSections = await classSectionRepository.GetAllAsync(cancellationToken);
 
-        var result = new List<ClassSectionWithEnrollmentCountDto>();
+        // Lọc ra các ClassSection đã xóa
+        var activeClassSections = classSections.Where(cs => !cs.IsDeleted).ToList();
 
-        foreach (var cs in classSections)
+        if (!activeClassSections.Any())
         {
-            // Bỏ qua các class section đã bị xóa mềm
-            if (cs.IsDeleted) continue;
+            return new List<ClassSectionWithEnrollmentCountDto>();
+        }
 
-            // Lấy tổng số sinh viên đang hoạt động trong ClassSection này
-            // Sử dụng EnrollmentRepository để lấy số lượng sinh viên đang hoạt động
-            var enrolledStudentsCount = await enrollmentRepository.GetActiveStudentIdsByClassSectionIdAsync(
-                cs.Id, cancellationToken);
+        // 1. Thu thập tất cả LecturerId cần tra cứu
+        var lecturerIds = activeClassSections
+            .Where(cs => cs.LecturerId.HasValue)
+            .Select(cs => cs.LecturerId!.Value)
+            .Distinct()
+            .ToList();
 
-            // Lấy thông tin giảng viên (nếu cần)
-            var lecturer =
-                await userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, cs.LecturerId, cancellationToken);
-            var lecturerName = lecturer?.FullName ?? "N/A";
+        // 2. Tra cứu tất cả giảng viên cùng một lúc bằng IMediator
+        var lecturers = new Dictionary<Guid, BasicUserInfoDto>();
+        if (lecturerIds.Any())
+        {
+            var lecturerLookupResponse =
+                await mediator.Send(new GetUsersByIdsIntegrationQuery(lecturerIds), cancellationToken);
+            lecturers = lecturerLookupResponse.Users.ToDictionary(u => u.Id, u => u);
+        }
 
+        // 3. Ánh xạ DTO một cách hiệu quả
+        var result = activeClassSections.Select(cs =>
+        {
+            BasicUserInfoDto? lecturerInfo = null;
+            if (cs.LecturerId.HasValue)
+            {
+                lecturers.TryGetValue(cs.LecturerId.Value, out lecturerInfo);
+            }
 
-            result.Add(new ClassSectionWithEnrollmentCountDto
+            return new ClassSectionWithEnrollmentCountDto
             {
                 Id = cs.Id,
                 CourseId = cs.CourseId,
-                CourseCode = cs.Course?.Code ?? "N/A", // Đảm bảo Course không null
-                CourseName = cs.Course?.Name ?? "N/A", // Đảm bảo Course không null
+                CourseCode = cs.Course?.Code ?? "N/A",
+                CourseName = cs.Course?.Name ?? "N/A",
                 LecturerId = cs.LecturerId,
-                LecturerName = lecturerName,
+                LecturerName = lecturerInfo?.FullName ?? "Unassigned Lecturer",
                 SectionCode = cs.SectionCode,
                 Semester = cs.Semester,
                 CreatedAt = cs.CreatedAt,
                 UpdatedAt = cs.UpdatedAt,
-                EnrolledStudentsCount = enrolledStudentsCount.Count // Số lượng sinh viên
-            });
-        }
+                EnrolledStudentsCount =
+                    cs.Enrollments?.Count(e => e.Status == EnrollmentStatus.Active) ??
+                    0 // Đếm sinh viên có status "Active"
+            };
+        }).OrderBy(dto => dto.SectionCode).ToList();
 
-        return result.OrderBy(dto => dto.SectionCode).ToList();
+        return result;
     }
 }

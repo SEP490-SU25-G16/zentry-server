@@ -3,6 +3,7 @@ using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
@@ -71,10 +72,20 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
 
     public async Task<Guid> GetLecturerIdBySessionId(Guid sessionId, CancellationToken cancellationToken)
     {
-        return await dbContext.Sessions
+        var session = await dbContext.Sessions
             .Where(s => s.Id == sessionId)
-            .Select(s => s.UserId)
             .FirstOrDefaultAsync(cancellationToken);
+        if (session is null)
+        {
+            throw new ResourceNotFoundException("Session not found");
+        }
+
+        if (session.LecturerId is null)
+        {
+            throw new ResourceNotFoundException("Lecturer not found");
+        }
+
+        return (Guid)session.LecturerId;
     }
 
     public async Task<List<Session>> GetSessionsByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken)

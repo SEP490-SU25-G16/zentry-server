@@ -4,7 +4,6 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSect
 
 public record CreateClassSectionCommand(
     Guid CourseId,
-    Guid LecturerId,
     string SectionCode,
     string Semester
 ) : ICommand<CreateClassSectionResponse>;

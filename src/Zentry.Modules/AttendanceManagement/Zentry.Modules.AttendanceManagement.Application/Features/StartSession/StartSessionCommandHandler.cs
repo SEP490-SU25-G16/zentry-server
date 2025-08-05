@@ -29,8 +29,7 @@ public class StartSessionCommandHandler(
             throw new NotFoundException(nameof(Session), request.SessionId);
         }
 
-        // Kiểm tra giảng viên có quyền start session này không
-        if (session.UserId != request.UserId)
+        if (session.LecturerId != request.UserId)
         {
             logger.LogWarning("StartSession failed: Lecturer {LecturerId} is not assigned to session {SessionId}.",
                 request.UserId, request.SessionId);
@@ -142,7 +141,7 @@ public class StartSessionCommandHandler(
         {
             SessionId = session.Id,
             ScheduleId = session.ScheduleId,
-            UserId = session.UserId,
+            LecturerId = session.LecturerId,
             StartTime = session.StartTime,
             EndTime = session.EndTime,
             CreatedAt = session.CreatedAt,

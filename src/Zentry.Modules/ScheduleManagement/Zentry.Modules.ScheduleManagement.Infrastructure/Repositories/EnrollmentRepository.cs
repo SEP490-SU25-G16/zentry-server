@@ -44,7 +44,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
             .Select(e => new EnrollmentProjectionDto
             {
                 ClassSectionId = e.ClassSectionId,
-                LecturerId = e.ClassSection!.LecturerId,
+                LecturerId = e.ClassSection.LecturerId,
                 CourseId = e.ClassSection.CourseId,
                 CourseCode = e.ClassSection.Course!.Code,
                 CourseName = e.ClassSection.Course.Name,

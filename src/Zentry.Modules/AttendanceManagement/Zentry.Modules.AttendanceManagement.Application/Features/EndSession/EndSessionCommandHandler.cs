@@ -20,7 +20,7 @@ public class EndSessionCommandHandler(
     public async Task<EndSessionResponse> Handle(EndSessionCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation("Attempting to end session {SessionId} by user {UserId}.",
-            request.SessionId, request.UserId);
+            request.SessionId, request.LecturerId);
 
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
         if (session is null)
@@ -29,10 +29,10 @@ public class EndSessionCommandHandler(
             throw new NotFoundException(nameof(EndSessionCommandHandler), request.SessionId);
         }
 
-        if (session.UserId != request.UserId)
+        if (session.LecturerId != request.LecturerId)
         {
             logger.LogWarning("EndSession failed: Lecturer {LecturerId} is not assigned to session {SessionId}.",
-                request.UserId, request.SessionId);
+                request.LecturerId, request.SessionId);
             throw new BusinessRuleException("LECTURER_NOT_ASSIGNED", "Giảng viên không được phân công cho phiên này.");
         }
 
@@ -56,7 +56,7 @@ public class EndSessionCommandHandler(
             {
                 SessionId = session.Id,
                 ActiveRoundId = activeRound.Id,
-                UserId = request.UserId,
+                UserId = request.LecturerId,
                 PendingRoundIds = pendingRounds.Select(pr => pr.Id).ToList()
             };
 

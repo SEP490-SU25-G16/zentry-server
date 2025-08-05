@@ -242,13 +242,14 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
     }
 
     public async Task<bool> IsRoomAvailableAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime,
-        TimeOnly endTime, CancellationToken cancellationToken)
+        TimeOnly endTime, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
     {
         var overlap = await dbContext.Schedules
             .AnyAsync(s => s.RoomId == roomId &&
                            s.WeekDay == weekDay &&
                            s.StartTime < endTime &&
-                           s.EndTime > startTime,
+                           s.EndTime > startTime &&
+                           (s.StartDate < endDate || s.EndDate > startDate),
                 cancellationToken);
 
         return !overlap;
