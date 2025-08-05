@@ -10,6 +10,13 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
+    public async Task<List<Session>> GetSessionsByScheduleIdsAsync(List<Guid> scheduleIds, CancellationToken cancellationToken)
+    {
+        return await dbContext.Sessions
+            .Where(s => scheduleIds.Contains(s.ScheduleId))
+            .OrderBy(s => s.StartTime)
+            .ToListAsync(cancellationToken);
+    }
     public async Task<DateTime?> GetActualEndTimeAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         return await dbContext.Sessions

@@ -54,4 +54,10 @@ public class ClassSection : AggregateRoot<Guid>
         IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
     }
+    public void AssignLecturer(Guid lecturerId)
+    {
+        if (LecturerId == lecturerId) return;
+        LecturerId = lecturerId;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

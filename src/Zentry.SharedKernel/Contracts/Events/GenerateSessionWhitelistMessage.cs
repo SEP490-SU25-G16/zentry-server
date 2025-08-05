@@ -3,5 +3,6 @@ namespace Zentry.SharedKernel.Contracts.Events;
 public record GenerateSessionWhitelistMessage(
     Guid SessionId,
     Guid ScheduleId,
-    Guid ClassSectionId
+    Guid ClassSectionId,
+    Guid? LecturerId = null
 );

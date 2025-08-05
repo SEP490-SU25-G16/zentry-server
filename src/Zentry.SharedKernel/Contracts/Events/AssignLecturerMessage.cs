@@ -1,6 +1,6 @@
 namespace Zentry.SharedKernel.Contracts.Events;
 
 public record AssignLecturerMessage(
-    Guid ScheduleId,
+    Guid ClassSectionId,
     Guid LecturerId
 );

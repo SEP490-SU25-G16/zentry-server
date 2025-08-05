@@ -11,6 +11,15 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<List<Schedule>> GetSchedulesByClassSectionIdAsync(Guid classSectionId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => s.ClassSectionId == classSectionId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<ScheduleWithRoomDto>> GetActiveSchedulesByClassSectionIdsAndDayAsync(
         List<Guid> classSectionIds, WeekDayEnum dayOfWeek, DateOnly date, CancellationToken cancellationToken)
     {

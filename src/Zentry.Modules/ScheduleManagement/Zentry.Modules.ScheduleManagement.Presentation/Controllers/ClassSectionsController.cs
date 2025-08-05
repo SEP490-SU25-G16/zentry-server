@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Features.AssignLecturer;
 using Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.DeleteClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetAllClassSectionsWithEnrollmentCount;
@@ -19,7 +20,20 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/class-sections")]
 public class ClassSectionsController(IMediator mediator) : BaseController
 {
-    [HttpGet("all-with-enrollment-count")] // Endpoint mới
+    [HttpPost("{classSectionId:guid}/lecturers/{lecturerId:guid}")]
+    [ProducesResponseType(typeof(AssignLecturerResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AssignLecturer(
+        [FromRoute] Guid classSectionId,
+        [FromRoute] Guid lecturerId,
+        CancellationToken cancellationToken)
+    {
+        var command = new AssignLecturerCommand(classSectionId, lecturerId);
+        var result = await mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet("all-with-enrollment-count")]
     [ProducesResponseType(typeof(ApiResponse<List<ClassSectionWithEnrollmentCountDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAllClassSectionsWithEnrollmentCount()

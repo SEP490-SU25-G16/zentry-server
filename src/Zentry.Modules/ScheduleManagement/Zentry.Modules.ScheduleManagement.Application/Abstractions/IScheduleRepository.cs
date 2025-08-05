@@ -8,6 +8,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IScheduleRepository : IRepository<Schedule, Guid>
 {
+    Task<List<Schedule>> GetSchedulesByClassSectionIdAsync(Guid classSectionId, CancellationToken cancellationToken);
     Task<List<ScheduleWithRoomDto>> GetActiveSchedulesByClassSectionIdsAndDayAsync(
         List<Guid> classSectionIds, WeekDayEnum dayOfWeek, DateOnly date, CancellationToken cancellationToken);
 
