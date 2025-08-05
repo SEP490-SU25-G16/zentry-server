@@ -146,7 +146,8 @@ public class DevicesController(IMediator mediator) : BaseController
         if (string.IsNullOrWhiteSpace(command.Reason))
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Lý do thay đổi là bắt buộc."));
         if (string.IsNullOrWhiteSpace(command.AndroidId))
-            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Địa chỉ Android ID của thiết bị mới là bắt buộc."));
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR",
+                "Địa chỉ Android ID của thiết bị mới là bắt buộc."));
         if (string.IsNullOrWhiteSpace(command.DeviceName))
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Tên thiết bị là bắt buộc."));
 

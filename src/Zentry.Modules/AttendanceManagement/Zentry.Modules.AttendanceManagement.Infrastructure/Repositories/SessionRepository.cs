@@ -17,6 +17,7 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
             .Select(s => s.ActualEndTime)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
     public async Task<List<Session>> GetSessionsByScheduleIdsAndDateAsync(
         List<Guid> scheduleIds,
         DateOnly localDate,

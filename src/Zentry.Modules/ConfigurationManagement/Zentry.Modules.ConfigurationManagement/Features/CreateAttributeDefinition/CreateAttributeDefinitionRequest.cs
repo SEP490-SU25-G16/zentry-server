@@ -1,5 +1,4 @@
 using Zentry.Modules.ConfigurationManagement.Dtos;
-using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition;
 

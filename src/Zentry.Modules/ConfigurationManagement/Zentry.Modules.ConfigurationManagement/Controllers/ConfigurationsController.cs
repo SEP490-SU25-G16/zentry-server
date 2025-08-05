@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
-using Zentry.Modules.ConfigurationManagement.Features.UpdateAttributeDefinition;
-using Zentry.Modules.ConfigurationManagement.Features.UpdateSetting;
 using Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
+using Zentry.Modules.ConfigurationManagement.Features.UpdateAttributeDefinition;
+using Zentry.Modules.ConfigurationManagement.Features.UpdateSetting;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 

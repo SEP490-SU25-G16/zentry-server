@@ -31,16 +31,12 @@ public class ProcessActiveRoundForEndSessionConsumer(
         {
             var session = await sessionRepository.GetByIdAsync(message.SessionId, context.CancellationToken);
             if (session is null)
-            {
                 throw new NotFoundException(nameof(ProcessActiveRoundForEndSessionConsumer), message.SessionId);
-            }
 
             // Get the active round
             var activeRound = await roundRepository.GetByIdAsync(message.ActiveRoundId, context.CancellationToken);
             if (activeRound is null)
-            {
                 throw new NotFoundException(nameof(ProcessActiveRoundForEndSessionConsumer), message.ActiveRoundId);
-            }
 
             // Calculate attendance for active round - this will throw if scan data doesn't exist
             logger.LogInformation("Calculating attendance for active round {RoundId}", activeRound.Id);

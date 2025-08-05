@@ -10,6 +10,7 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
 {
     Task<List<ScheduleWithRoomDto>> GetActiveSchedulesByClassSectionIdsAndDayAsync(
         List<Guid> classSectionIds, WeekDayEnum dayOfWeek, DateOnly date, CancellationToken cancellationToken);
+
     Task<ScheduleDetailsWithRelationsDto?> GetScheduleDetailsWithRelationsAsync(Guid scheduleId,
         CancellationToken cancellationToken);
 

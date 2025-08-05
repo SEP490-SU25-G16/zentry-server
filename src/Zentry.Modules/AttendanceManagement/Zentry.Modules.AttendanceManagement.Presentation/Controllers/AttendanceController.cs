@@ -28,10 +28,7 @@ public class AttendanceController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionsByScheduleId(Guid scheduleId, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid)
-        {
-            return HandleValidationError();
-        }
+        if (!ModelState.IsValid) return HandleValidationError();
 
         try
         {

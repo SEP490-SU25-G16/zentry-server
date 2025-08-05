@@ -23,7 +23,7 @@ public class UpdateAttributeDefinitionCommandHandler(
         try
         {
             var request = command.Details;
-            bool settingsWereDeleted = false;
+            var settingsWereDeleted = false;
 
             // Lấy AttributeDefinition hiện tại
             var attributeDefinition = await dbContext.AttributeDefinitions
@@ -50,7 +50,6 @@ public class UpdateAttributeDefinitionCommandHandler(
 
             // Parse DataType và ScopeTypes nếu được cung cấp
             if (!string.IsNullOrWhiteSpace(request.DataType))
-            {
                 try
                 {
                     newDataType = DataType.FromName(request.DataType);
@@ -61,10 +60,8 @@ public class UpdateAttributeDefinitionCommandHandler(
                     throw new InvalidAttributeDefinitionTypeException(ErrorMessages.Settings
                         .InvalidAttributeDefinitionDataTypeOrScopeType);
                 }
-            }
 
             if (request.AllowedScopeTypes != null && request.AllowedScopeTypes.Any())
-            {
                 try
                 {
                     newAllowedScopeTypes = request.AllowedScopeTypes.Select(ScopeType.FromName).ToList();
@@ -75,10 +72,9 @@ public class UpdateAttributeDefinitionCommandHandler(
                     throw new InvalidAttributeDefinitionTypeException(ErrorMessages.Settings
                         .InvalidAttributeDefinitionDataTypeOrScopeType);
                 }
-            }
 
             // Kiểm tra nếu DataType thay đổi
-            bool dataTypeChanged = newDataType != null && !Equals(originalDataType, newDataType);
+            var dataTypeChanged = newDataType != null && !Equals(originalDataType, newDataType);
 
             if (dataTypeChanged)
             {
@@ -103,13 +99,13 @@ public class UpdateAttributeDefinitionCommandHandler(
 
             // Cập nhật AttributeDefinition
             attributeDefinition.Update(
-                displayName: request.DisplayName,
-                description: request.Description,
-                dataType: newDataType,
-                allowedScopeTypes: newAllowedScopeTypes,
-                unit: request.Unit,
-                defaultValue: request.DefaultValue,
-                isDeletable: request.IsDeletable
+                request.DisplayName,
+                request.Description,
+                newDataType,
+                newAllowedScopeTypes,
+                request.Unit,
+                request.DefaultValue,
+                request.IsDeletable
             );
 
             // Xử lý Options
@@ -122,10 +118,7 @@ public class UpdateAttributeDefinitionCommandHandler(
                 if (Equals(originalDataType, DataType.Selection))
                 {
                     var oldOptions = attributeDefinition.Options.ToList();
-                    foreach (var oldOption in oldOptions)
-                    {
-                        dbContext.Options.Remove(oldOption);
-                    }
+                    foreach (var oldOption in oldOptions) dbContext.Options.Remove(oldOption);
 
                     attributeDefinition.SetOptions(new List<Option>());
                 }
@@ -231,10 +224,7 @@ public class UpdateAttributeDefinitionCommandHandler(
                     var existingOptions = attributeDefinition.Options.ToList();
                     if (existingOptions.Any())
                     {
-                        foreach (var option in existingOptions)
-                        {
-                            dbContext.Options.Remove(option);
-                        }
+                        foreach (var option in existingOptions) dbContext.Options.Remove(option);
 
                         attributeDefinition.SetOptions(new List<Option>());
                     }

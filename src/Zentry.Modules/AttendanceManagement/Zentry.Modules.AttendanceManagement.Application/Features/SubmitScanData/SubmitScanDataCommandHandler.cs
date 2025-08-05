@@ -73,7 +73,8 @@ public class SubmitScanDataCommandHandler(
         }
     }
 
-    private async Task<Guid> DetermineCurrentRoundAsync(Guid sessionId, DateTime timestamp, CancellationToken cancellationToken)
+    private async Task<Guid> DetermineCurrentRoundAsync(Guid sessionId, DateTime timestamp,
+        CancellationToken cancellationToken)
     {
         try
         {

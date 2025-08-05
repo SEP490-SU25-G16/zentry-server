@@ -18,7 +18,6 @@ public class UserRequestRepository(UserDbContext dbContext) : IUserRequestReposi
         var query = dbContext.UserRequests.AsNoTracking();
 
         if (!string.IsNullOrEmpty(status))
-        {
             try
             {
                 var requestStatus = RequestStatus.FromName(status);
@@ -27,11 +26,9 @@ public class UserRequestRepository(UserDbContext dbContext) : IUserRequestReposi
             catch (InvalidOperationException)
             {
             }
-        }
 
         // Lọc theo loại yêu cầu
         if (!string.IsNullOrEmpty(requestType))
-        {
             try
             {
                 var requestTypeName = RequestType.FromName(requestType);
@@ -41,7 +38,6 @@ public class UserRequestRepository(UserDbContext dbContext) : IUserRequestReposi
             {
                 // Bỏ qua lọc nếu requestType không hợp lệ
             }
-        }
 
         var totalCount = await query.Where(ur => ur.Status == RequestStatus.Pending).CountAsync(cancellationToken);
 

@@ -30,6 +30,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
             })
             .ToListAsync(cancellationToken);
     }
+
     public async Task<List<EnrollmentProjectionDto>> GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
         Guid studentId,
         CancellationToken cancellationToken)

@@ -1,10 +1,9 @@
-using System.Text.RegularExpressions;
 using Zentry.SharedKernel.Common;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.DeviceManagement.ValueObjects;
 
-public partial class AndroidId : ValueObject
+public class AndroidId : ValueObject
 {
     private AndroidId(string value)
     {
@@ -17,10 +16,7 @@ public partial class AndroidId : ValueObject
     {
         Guard.AgainstNullOrEmpty(androidId, nameof(androidId));
 
-        if (androidId.Length > 255)
-        {
-            throw new ArgumentException("Android ID is too long.", nameof(androidId));
-        }
+        if (androidId.Length > 255) throw new ArgumentException("Android ID is too long.", nameof(androidId));
 
         return new AndroidId(androidId);
     }

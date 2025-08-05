@@ -46,18 +46,18 @@ public class GetSessionRoundsQueryHandler(
             request.SessionId, cancellationToken);
 
         var result = (from round in rounds
-        let attendedCount = allAttendanceRecords.Count(ar => Equals(ar.Status, AttendanceStatus.Present))
-        select new RoundAttendanceDto
-        {
-            RoundId = round.Id,
-            SessionId = request.SessionId,
-            RoundNumber = round.RoundNumber,
-            StartTime = round.StartTime,
-            EndTime = round.EndTime,
-            AttendedCount = attendedCount,
-            TotalStudents = totalStudentsCountResponse.TotalStudents,
-            Status = round.Status.ToString()
-        }).ToList();
+            let attendedCount = allAttendanceRecords.Count(ar => Equals(ar.Status, AttendanceStatus.Present))
+            select new RoundAttendanceDto
+            {
+                RoundId = round.Id,
+                SessionId = request.SessionId,
+                RoundNumber = round.RoundNumber,
+                StartTime = round.StartTime,
+                EndTime = round.EndTime,
+                AttendedCount = attendedCount,
+                TotalStudents = totalStudentsCountResponse.TotalStudents,
+                Status = round.Status.ToString()
+            }).ToList();
 
         return result.OrderBy(r => r.RoundNumber).ToList();
     }

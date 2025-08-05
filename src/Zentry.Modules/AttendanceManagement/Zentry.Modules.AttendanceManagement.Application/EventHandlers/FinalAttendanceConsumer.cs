@@ -27,7 +27,8 @@ public class FinalAttendanceConsumer(
 
         if (actualRoundsCount == 0)
         {
-            logger.LogWarning("No actual rounds completed for Session {SessionId}. Skipping final attendance calculation.",
+            logger.LogWarning(
+                "No actual rounds completed for Session {SessionId}. Skipping final attendance calculation.",
                 sessionId);
             return;
         }
@@ -67,7 +68,8 @@ public class FinalAttendanceConsumer(
 
             logger.LogDebug(
                 "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds). Excluded {FinalizedRounds} finalized rounds.",
-                studentTrack.Id, sessionId, percentage, attendedCompletedRounds, actualRoundsCount, finalizedRounds.Count);
+                studentTrack.Id, sessionId, percentage, attendedCompletedRounds, actualRoundsCount,
+                finalizedRounds.Count);
 
             var existingAttendanceRecord =
                 await attendanceRecordRepository.GetByUserIdAndSessionIdAsync(studentTrack.Id, sessionId,

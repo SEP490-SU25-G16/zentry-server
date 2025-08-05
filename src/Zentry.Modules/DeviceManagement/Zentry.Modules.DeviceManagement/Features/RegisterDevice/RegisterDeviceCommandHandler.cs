@@ -21,7 +21,8 @@ public class RegisterDeviceCommandHandler(
             throw new UserNotFoundException("User not found.");
 
         // 2. Check if Android ID already exists (Android IDs should be unique across all devices)
-        var existingDeviceByAndroidId = await deviceRepository.GetByAndroidIdAsync(command.AndroidId, cancellationToken);
+        var existingDeviceByAndroidId =
+            await deviceRepository.GetByAndroidIdAsync(command.AndroidId, cancellationToken);
         if (existingDeviceByAndroidId is not null)
             throw new DeviceAlreadyRegisteredException($"Device with Android ID {command.AndroidId} already exists.");
 

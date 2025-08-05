@@ -93,7 +93,7 @@ public class ConfigurationDbSeeder(IServiceProvider serviceProvider, ILogger<Con
             new SettingFaker(SeedGuids.AbsentReportGracePeriodHoursAttrId, ScopeType.Global, Guid.Empty, "24")
                 .Generate(),
             new SettingFaker(SeedGuids.ManualAdjustmentGracePeriodHoursAttrId, ScopeType.Global, Guid.Empty,
-                "48").Generate(),
+                "48").Generate()
         };
 
         await context.Settings.AddRangeAsync(settings);

@@ -36,6 +36,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             })
             .ToListAsync(cancellationToken);
     }
+
     public async Task<List<ScheduleProjectionDto>> GetSchedulesByClassSectionIdsAndDateAsync(
         List<Guid> classSectionIds,
         DateOnly date,
@@ -61,6 +62,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             })
             .ToListAsync(cancellationToken);
     }
+
     public async Task<ScheduleDetailsWithRelationsDto?> GetScheduleDetailsWithRelationsAsync(Guid scheduleId,
         CancellationToken cancellationToken)
     {

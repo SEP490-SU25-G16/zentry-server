@@ -7,7 +7,8 @@ namespace Zentry.Modules.DeviceManagement.Integration;
 public class GetDevicesByAndroidIdListQueryHandler(IDeviceRepository repository)
     : IQueryHandler<GetDevicesByAndroidIdListIntegrationQuery, GetDevicesByAndroidIdListIntegrationResponse>
 {
-    public async Task<GetDevicesByAndroidIdListIntegrationResponse> Handle(GetDevicesByAndroidIdListIntegrationQuery request,
+    public async Task<GetDevicesByAndroidIdListIntegrationResponse> Handle(
+        GetDevicesByAndroidIdListIntegrationQuery request,
         CancellationToken cancellationToken)
     {
         if (request.AndroidIds.Count == 0)

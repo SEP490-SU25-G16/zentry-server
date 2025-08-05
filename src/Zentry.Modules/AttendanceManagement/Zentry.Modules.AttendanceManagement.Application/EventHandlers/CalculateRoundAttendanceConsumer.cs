@@ -59,12 +59,10 @@ public class CalculateRoundAttendanceConsumer(
 
             // Check if this is the final round and trigger final processing
             if (message.IsFinalRound)
-            {
                 await TriggerFinalAttendanceProcessing(
                     message.SessionId,
                     message.TotalRounds,
                     context.CancellationToken);
-            }
         }
         catch (Exception ex)
         {
@@ -83,10 +81,7 @@ public class CalculateRoundAttendanceConsumer(
         CancellationToken cancellationToken)
     {
         var session = await sessionRepository.GetByIdAsync(sessionId, cancellationToken);
-        if (session is null)
-        {
-            throw new NotFoundException(nameof(CalculateRoundAttendanceConsumer), sessionId);
-        }
+        if (session is null) throw new NotFoundException(nameof(CalculateRoundAttendanceConsumer), sessionId);
 
 
         //

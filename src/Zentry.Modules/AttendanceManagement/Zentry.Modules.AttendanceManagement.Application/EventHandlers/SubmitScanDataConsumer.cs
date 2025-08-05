@@ -43,14 +43,16 @@ public class SubmitScanDataConsumer(
             Guid submitterUserId;
             try
             {
-                var getSubmitterDeviceQuery = new GetDeviceByAndroidIdIntegrationQuery(message.SubmitterDeviceAndroidId);
+                var getSubmitterDeviceQuery =
+                    new GetDeviceByAndroidIdIntegrationQuery(message.SubmitterDeviceAndroidId);
                 var submitterDeviceResponse =
                     await mediator.Send(getSubmitterDeviceQuery, consumeContext.CancellationToken);
 
                 submitterDeviceId = submitterDeviceResponse.DeviceId;
                 submitterUserId = submitterDeviceResponse.UserId;
 
-                logger.LogInformation("Submitter Device (Android ID: {AndroidId}) mapped to DeviceId: {DeviceId}, UserId: {UserId}",
+                logger.LogInformation(
+                    "Submitter Device (Android ID: {AndroidId}) mapped to DeviceId: {DeviceId}, UserId: {UserId}",
                     message.SubmitterDeviceAndroidId, submitterDeviceId, submitterUserId);
             }
             catch (NotFoundException ex)

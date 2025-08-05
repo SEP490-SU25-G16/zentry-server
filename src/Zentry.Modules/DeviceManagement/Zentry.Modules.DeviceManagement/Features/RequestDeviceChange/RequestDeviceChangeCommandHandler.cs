@@ -66,7 +66,8 @@ public class RequestDeviceChangeCommandHandler(
             throw new BusinessRuleException("INVALID_ANDROID_ID", $"Địa chỉ Android ID không hợp lệ: {ex.Message}");
         }
 
-        var existingDeviceByAndroidId = await deviceRepository.GetByAndroidIdAsync(command.AndroidId, cancellationToken);
+        var existingDeviceByAndroidId =
+            await deviceRepository.GetByAndroidIdAsync(command.AndroidId, cancellationToken);
         if (existingDeviceByAndroidId is not null)
         {
             if (existingDeviceByAndroidId.UserId == command.UserId)

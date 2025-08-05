@@ -9,6 +9,7 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
 {
     Task<List<EnrollmentWithClassSectionDto>> GetActiveEnrollmentsByStudentIdAsync(
         Guid studentId, CancellationToken cancellationToken);
+
     Task<bool> ExistsAsync(Guid studentId, Guid scheduleId, CancellationToken cancellationToken);
 
     Task<(List<Enrollment> Enrollments, int TotalCount)> GetPagedEnrollmentsAsync(

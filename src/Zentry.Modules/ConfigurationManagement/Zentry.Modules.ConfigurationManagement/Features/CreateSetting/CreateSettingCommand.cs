@@ -1,5 +1,4 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 

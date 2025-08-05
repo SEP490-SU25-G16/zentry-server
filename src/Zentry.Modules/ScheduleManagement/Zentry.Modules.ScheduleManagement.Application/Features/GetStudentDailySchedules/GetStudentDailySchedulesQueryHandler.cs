@@ -1,10 +1,7 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
-using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.User;
 
@@ -52,7 +49,7 @@ public class GetStudentDailySchedulesQueryHandler(
         foreach (var scheduleProjection in schedulesForDay)
         {
             if (!enrollmentProjectionDictionary.TryGetValue(scheduleProjection.ClassSectionId,
-                out var enrollmentProjection))
+                    out var enrollmentProjection))
                 continue;
 
             var currentSessionInfo = sessionInfos.GetValueOrDefault(scheduleProjection.ScheduleId);

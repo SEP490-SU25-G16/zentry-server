@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.Modules.ConfigurationManagement.Persistence;
@@ -63,9 +62,9 @@ public class
         {
             var lowerSearchTerm = query.SearchTerm.ToLower();
             settingsQuery = settingsQuery.Where(c =>
-                ((c.AttributeDefinition.Key.ToLower().Contains(lowerSearchTerm) ||
-                  c.AttributeDefinition.DisplayName.ToLower()
-                      .Contains(lowerSearchTerm))) ||
+                c.AttributeDefinition.Key.ToLower().Contains(lowerSearchTerm) ||
+                c.AttributeDefinition.DisplayName.ToLower()
+                    .Contains(lowerSearchTerm) ||
                 c.Value.ToLower().Contains(lowerSearchTerm));
         }
 

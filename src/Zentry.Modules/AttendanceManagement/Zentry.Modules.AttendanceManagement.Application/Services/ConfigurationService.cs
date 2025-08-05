@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.SharedKernel.Contracts.Configuration;
 

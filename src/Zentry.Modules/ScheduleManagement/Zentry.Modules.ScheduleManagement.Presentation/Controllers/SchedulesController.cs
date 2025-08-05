@@ -30,9 +30,8 @@ public class SchedulesController(IMediator mediator) : BaseController
             if (!string.IsNullOrEmpty(date))
             {
                 if (!DateOnly.TryParseExact(date, "yyyy-MM-dd", out queryDate))
-                {
-                    return BadRequest(new ApiResponse { Success = false, Message = "Invalid date format. Use yyyy-MM-dd" });
-                }
+                    return BadRequest(new ApiResponse
+                        { Success = false, Message = "Invalid date format. Use yyyy-MM-dd" });
             }
             else
             {
@@ -48,6 +47,7 @@ public class SchedulesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpGet("lecturer/daily-schedule")]
     [ProducesResponseType(typeof(ApiResponse<List<LecturerDailyClassDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

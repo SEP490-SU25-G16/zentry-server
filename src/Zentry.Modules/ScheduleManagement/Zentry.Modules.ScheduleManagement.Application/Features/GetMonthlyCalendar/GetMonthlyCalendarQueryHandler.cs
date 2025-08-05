@@ -4,7 +4,9 @@ using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Helpers;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
-using Zentry.SharedKernel.Extensions; // Import extension methods
+using Zentry.SharedKernel.Extensions;
+
+// Import extension methods
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetMonthlyCalendar;
 

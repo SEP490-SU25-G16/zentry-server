@@ -75,7 +75,6 @@ public class UpdateAttributeDefinitionRequestValidator : BaseValidator<UpdateAtt
         if (scopeTypes == null || !scopeTypes.Any()) return true;
 
         foreach (var scopeTypeName in scopeTypes)
-        {
             try
             {
                 ScopeType.FromName(scopeTypeName);
@@ -84,7 +83,6 @@ public class UpdateAttributeDefinitionRequestValidator : BaseValidator<UpdateAtt
             {
                 return false;
             }
-        }
 
         return true;
     }

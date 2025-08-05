@@ -1,5 +1,4 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 

@@ -21,7 +21,6 @@ public class GetUserRequestsQueryHandler(
             cancellationToken);
 
         if (!userRequests.Any())
-        {
             return new GetUserRequestsResponse
             {
                 UserRequests = new List<UserRequestDto>(),
@@ -29,14 +28,13 @@ public class GetUserRequestsQueryHandler(
                 PageSize = query.PageSize,
                 TotalCount = totalCount
             };
-        }
 
 
         var userIds = userRequests.Select(ur => ur.RequestedByUserId)
-                                  .Union(userRequests.Select(ur => ur.TargetUserId))
-                                  .Distinct()
-                                  .ToList();
-        
+            .Union(userRequests.Select(ur => ur.TargetUserId))
+            .Distinct()
+            .ToList();
+
         var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(userIds), cancellationToken);
         var usersDictionary = usersResponse.Users.ToDictionary(u => u.Id, u => u);
 

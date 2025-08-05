@@ -26,10 +26,7 @@ public class AttendanceCalculationService(
         logger.LogInformation("Starting attendance calculation for Round {RoundId}", roundId);
 
         var session = await sessionRepository.GetByIdAsync(sessionId, cancellationToken);
-        if (session is null)
-        {
-            throw new NotFoundException(nameof(AttendanceCalculationService), sessionId);
-        }
+        if (session is null) throw new NotFoundException(nameof(AttendanceCalculationService), sessionId);
 
         var lecturerId = session.UserId.ToString();
 

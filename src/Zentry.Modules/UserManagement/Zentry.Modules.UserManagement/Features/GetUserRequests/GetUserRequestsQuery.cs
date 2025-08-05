@@ -1,13 +1,13 @@
 using Zentry.Modules.UserManagement.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Abstractions.Models;
-using System.Collections.Generic;
 
 namespace Zentry.Modules.UserManagement.Features.GetUserRequests;
 
 public class GetUserRequestsQuery : IQuery<GetUserRequestsResponse>
 {
-    public GetUserRequestsQuery() { }
+    public GetUserRequestsQuery()
+    {
+    }
 
     public GetUserRequestsQuery(int pageNumber, int pageSize, string? status = null, string? requestType = null)
     {

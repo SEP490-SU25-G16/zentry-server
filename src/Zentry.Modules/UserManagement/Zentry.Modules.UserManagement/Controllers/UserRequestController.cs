@@ -15,7 +15,8 @@ public class UserRequestController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse<GetUserRequestsResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetUserRequests([FromQuery] GetUserRequestsQuery query, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUserRequests([FromQuery] GetUserRequestsQuery query,
+        CancellationToken cancellationToken)
     {
         try
         {

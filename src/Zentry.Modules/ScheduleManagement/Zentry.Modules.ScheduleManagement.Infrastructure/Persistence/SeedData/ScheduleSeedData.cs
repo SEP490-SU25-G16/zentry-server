@@ -275,10 +275,7 @@ public static class ScheduleSeedData
                     var endTime = startTime.AddMinutes(ScheduleDurationMinutes);
 
                     // Kiểm tra nếu end time vượt quá 17:00 thì ngắt
-                    if (endTime.Hour > 17 || (endTime.Hour == 17 && endTime.Minute > 0))
-                    {
-                        break;
-                    }
+                    if (endTime.Hour > 17 || (endTime.Hour == 17 && endTime.Minute > 0)) break;
 
                     var weekDayEnum = weekdays.FirstOrDefault(w => (DayOfWeek)w.Id == scheduleDate.DayOfWeek)
                                       ?? weekdays.First();
