@@ -42,7 +42,8 @@ public class CreateSettingCommandHandler(
             catch (InvalidOperationException ex)
             {
                 logger.LogWarning(ex, "Invalid ScopeType provided for Setting: {Message}", ex.Message);
-                throw new InvalidSettingValueException(ErrorMessages.Settings.InvalidSettingValue);
+                throw new InvalidSettingScopeException(ErrorMessages.Settings.InvalidSettingScope,
+                    command.SettingDetails.ScopeType);
             }
 
             if (!attributeDefinition.AllowedScopeTypes.Contains(settingScopeType))
@@ -113,9 +114,9 @@ public class CreateSettingCommandHandler(
                 AttributeId = attributeDefinition.Id,
                 AttributeKey = attributeDefinition.Key,
                 AttributeDisplayName = attributeDefinition.DisplayName,
-                DataType = attributeDefinition.DataType,
+                DataType = attributeDefinition.DataType.ToString(),
                 Unit = attributeDefinition.Unit,
-                SettingScopeType = newSetting.ScopeType,
+                SettingScopeType = newSetting.ScopeType.ToString(),
                 ScopeId = newSetting.ScopeId,
                 Value = newSetting.Value,
                 CreatedAt = newSetting.CreatedAt,

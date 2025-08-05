@@ -23,7 +23,8 @@ public static class ErrorMessages
         public const string InvalidAttributeDefinitionDataTypeOrScopeType =
             "Kiểu dữ liệu hoặc loại phạm vi định nghĩa thuộc tính không hợp lệ.";
 
-        public const string InvalidSettingValue = "Phạm vi định nghĩa cho setting không hợp lệ.";
+        public const string InvalidSettingScope = "Phạm vi định nghĩa cho setting không hợp lệ.";
+        public const string InvalidSettingValue = "Giá trị cho setting không hợp lệ.";
         public const string AttributeDefinitionKeyAlreadyExists = "Định nghĩa thuộc tính với Key '{0}' đã tồn tại.";
 
         public const string InvalidSettingValueForAttribute =

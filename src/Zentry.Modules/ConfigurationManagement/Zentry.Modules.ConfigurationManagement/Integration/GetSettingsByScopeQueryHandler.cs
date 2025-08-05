@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Zentry.Infrastructure.Caching;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Configuration;

@@ -1,4 +1,4 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 public class SelectionDataTypeRequiresOptionsException()
-    : BusinessLogicException("Attribute Definition with DataType 'Selection' must have options provided.");
+    : BusinessLogicException("Kiểu dữ liệu 'Selection' yêu cầu phải có ít nhất một tùy chọn (Option).");

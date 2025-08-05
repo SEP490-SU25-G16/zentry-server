@@ -121,6 +121,8 @@ public abstract class BaseController : ControllerBase
                 Conflict(ApiResponse.ErrorResult(ErrorCodes.AttributeDefinitionKeyExists, ex.Message)),
             InvalidSettingValueException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidSettingValue, ex.Message)),
+            InvalidSettingScopeException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidSettingScope, ex.Message)),
             SelectionDataTypeRequiresOptionsException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.SelectionOptionsRequired, ex.Message)),
             SettingAlreadyExistsException =>

@@ -5,7 +5,8 @@ namespace Zentry.SharedKernel.Exceptions;
 /// </summary>
 public class SettingNotFoundException : Exception
 {
-    public SettingNotFoundException(string settingName) : base($"Setting '{settingName}' not found")
+    public SettingNotFoundException(string settingIdentifier)
+        : base($"Setting với identifier '{settingIdentifier}' không tồn tại.")
     {
     }
 

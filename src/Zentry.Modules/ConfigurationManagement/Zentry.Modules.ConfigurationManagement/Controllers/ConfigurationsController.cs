@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
+using Zentry.Modules.ConfigurationManagement.Features.UpdateAttributeDefinition;
+using Zentry.Modules.ConfigurationManagement.Features.UpdateSetting;
 using Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
-// Namespace mới
-using CreateSettingRequest = Zentry.Modules.ConfigurationManagement.Features.CreateSetting.CreateSettingRequest;
 
 namespace Zentry.Modules.ConfigurationManagement.Controllers;
 
@@ -18,7 +18,9 @@ namespace Zentry.Modules.ConfigurationManagement.Controllers;
 public class ConfigurationsController(
     IMediator mediator,
     IValidator<CreateAttributeDefinitionRequest> createAttributeDefinitionValidator,
-    IValidator<CreateSettingRequest> createSettingValidator)
+    IValidator<CreateSettingRequest> createSettingValidator,
+    IValidator<UpdateAttributeDefinitionRequest> updateAttributeDefinitionValidator,
+    IValidator<UpdateSettingRequest> updateSettingValidator)
     : BaseController
 {
     [HttpGet("settings")]
@@ -42,9 +44,8 @@ public class ConfigurationsController(
     [HttpGet("definitions")]
     [ProducesResponseType(typeof(ApiResponse<GetListAttributeDefinitionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    // [ValidateQueryParameters] // Có thể thêm filter này nếu bạn có cho các query params
     public async Task<IActionResult> GetListAttributeDefinition(
-        [FromQuery] GetListAttributeDefinitionQuery query, // Sử dụng Query DTO trực tiếp làm FromQuery
+        [FromQuery] GetListAttributeDefinitionQuery query,
         CancellationToken cancellationToken)
     {
         try
@@ -58,6 +59,8 @@ public class ConfigurationsController(
         }
     }
 
+    #region Create Operations
+
     [HttpPost("definitions")]
     [ProducesResponseType(typeof(ApiResponse<CreateAttributeDefinitionResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
@@ -68,15 +71,10 @@ public class ConfigurationsController(
         var validationError = ValidateRequest(request, createAttributeDefinitionValidator);
         if (validationError != null) return validationError;
 
-        var command = new CreateAttributeDefinitionCommand
-        {
-            Details = request
-        };
-
+        var command = new CreateAttributeDefinitionCommand { Details = request };
         var response = await mediator.Send(command, cancellationToken);
         return HandleCreated(response, nameof(CreateAttributeDefinition), new { id = response.AttributeId });
     }
-
 
     [HttpPost("settings")]
     [ProducesResponseType(typeof(ApiResponse<CreateSettingResponse>), StatusCodes.Status201Created)]
@@ -88,12 +86,54 @@ public class ConfigurationsController(
         var validationError = ValidateRequest(request, createSettingValidator);
         if (validationError != null) return validationError;
 
-        var command = new CreateSettingCommand
-        {
-            SettingDetails = request
-        };
-
+        var command = new CreateSettingCommand { SettingDetails = request };
         var response = await mediator.Send(command, cancellationToken);
         return HandleCreated(response, nameof(CreateSetting), new { id = response.SettingId });
     }
+
+    #endregion
+
+    #region Update Operations
+
+    [HttpPut("definitions/{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<UpdateAttributeDefinitionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateAttributeDefinition(
+        [FromRoute] Guid id,
+        [FromBody] UpdateAttributeDefinitionRequest request,
+        CancellationToken cancellationToken)
+    {
+        // Set AttributeId from route
+        request.AttributeId = id;
+
+        var validationError = ValidateRequest(request, updateAttributeDefinitionValidator);
+        if (validationError != null) return validationError;
+
+        var command = new UpdateAttributeDefinitionCommand { Details = request };
+        var response = await mediator.Send(command, cancellationToken);
+        return HandleResult(response);
+    }
+
+    [HttpPut("settings/{id:guid}")]
+    [ProducesResponseType(typeof(ApiResponse<UpdateSettingResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSetting(
+        [FromRoute] Guid id,
+        [FromBody] UpdateSettingRequest request,
+        CancellationToken cancellationToken)
+    {
+        // Set SettingId from route
+        request.SettingId = id;
+
+        var validationError = ValidateRequest(request, updateSettingValidator);
+        if (validationError != null) return validationError;
+
+        var command = new UpdateSettingCommand { SettingDetails = request };
+        var response = await mediator.Send(command, cancellationToken);
+        return HandleResult(response);
+    }
+
+    #endregion
 }

@@ -39,7 +39,7 @@ public class
             }
             catch (InvalidOperationException ex)
             {
-                throw new InvalidSettingValueException(ErrorMessages.Settings.InvalidSettingValue);
+                throw new InvalidSettingScopeException(ErrorMessages.Settings.InvalidSettingScope, query.ScopeType);
             }
 
         if (!string.IsNullOrWhiteSpace(query.ScopeId))
