@@ -9,11 +9,4 @@ public static class SeedGuids
 
     public static readonly Guid ManualAdjustmentGracePeriodHoursAttrId =
         Guid.Parse("D4E5F6A7-B8C9-0123-4567-890ABCDEFABC");
-
-    public static readonly Guid MinRssiThresholdAttrId = Guid.Parse("E5F6A7B8-C9D0-1234-5678-90ABCDEFABCD");
-    public static readonly Guid MaxHopDistanceAttrId = Guid.Parse("F6A7B8C9-D0E1-2345-6789-0ABCDEFABCDE");
-
-    // Sample Scope Guids (for Course and Session, you'd use real ones)
-    public static readonly Guid SampleCourseId = Guid.Parse("12345678-ABCD-EF01-2345-67890ABCDEF0");
-    public static readonly Guid SampleScheduleId = Guid.Parse("98765432-FEDC-BA09-8765-43210FEDCBA9");
 }

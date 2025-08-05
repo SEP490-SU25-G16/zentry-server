@@ -37,11 +37,6 @@ public class GetSettingsByScopeQueryHandler(
         }
     }
 
-    private static string GenerateCacheKey(ScopeType requestedScopeType)
-    {
-        return $"Settings:integration:all_by_scope:{requestedScopeType}";
-    }
-
     private async Task<GetSettingsByScopeIntegrationResponse> ExecuteQueryAsync(
         ScopeType requestedScopeType,
         CancellationToken cancellationToken)

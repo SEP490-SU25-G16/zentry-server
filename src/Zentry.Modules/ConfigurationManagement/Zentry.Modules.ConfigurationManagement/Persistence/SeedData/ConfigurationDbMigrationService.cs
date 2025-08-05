@@ -20,7 +20,7 @@ public class ConfigurationDbMigrationService(
 
             var retryPolicy = Policy
                 .Handle<Exception>()
-                .WaitAndRetryAsync(2, // Thử lại 2 lần
+                .WaitAndRetryAsync(2,
                     retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), // Thời gian đợi lũy thừa
                     (exception, timeSpan, retryCount, context) =>
                     {

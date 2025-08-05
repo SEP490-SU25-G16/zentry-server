@@ -33,17 +33,14 @@ public class GetMultipleSettingsIntegrationQueryHandler(
                 continue;
             }
 
-            var cacheKey = GenerateCacheKey(parsedScopeType, request.ScopeId); // Cache key bao gồm ScopeId
-            logger.LogDebug("Integration Cache miss for key: {CacheKey}. Marking for DB fetch.", cacheKey);
             scopeTypesToFetchFromDb.Add(parsedScopeType); // Đánh dấu để fetch từ DB
         }
 
-        if (scopeTypesToFetchFromDb.Count != 0)
+        if (scopeTypesToFetchFromDb.Count == 0) return new GetMultipleSettingsIntegrationResponse(settingsByScopeType);
         {
             logger.LogInformation("Fetching settings for {ScopeTypes} from DB.",
                 string.Join(", ", scopeTypesToFetchFromDb));
 
-            // Xây dựng truy vấn để lấy TẤT CẢ settings cho các ScopeType đã đánh dấu
             var dbQuery = dbContext.Settings
                 .Include(s => s.AttributeDefinition)
                 .Where(s => scopeTypesToFetchFromDb.Contains(s.ScopeType))
@@ -51,7 +48,6 @@ public class GetMultipleSettingsIntegrationQueryHandler(
 
             var allFetchedSettings = await dbQuery.ToListAsync(cancellationToken);
 
-            // Phân loại kết quả và xử lý cache
             foreach (var requestedScope in query.Requests)
             {
                 var parsedScopeType =
@@ -79,18 +75,7 @@ public class GetMultipleSettingsIntegrationQueryHandler(
                 settingsByScopeType[requestedScope.ScopeType] = filteredSettings;
             }
         }
-        else
-        {
-            logger.LogInformation("All requested settings were found in cache. No DB fetch needed.");
-        }
 
         return new GetMultipleSettingsIntegrationResponse(settingsByScopeType);
-    }
-
-    private static string GenerateCacheKey(ScopeType requestedScopeType, Guid? scopeId)
-    {
-        // Cache key bây giờ phải bao gồm cả ScopeId để phân biệt cài đặt GLOBAL với GLOBAL của một Course/Session cụ thể (nếu có)
-        // Ví dụ: "Settings:integration:GLOBAL:null", "Settings:integration:COURSE:{courseId}", "Settings:integration:SESSION:{sessionId}"
-        return $"Settings:integration:{requestedScopeType}:{scopeId?.ToString() ?? "null"}";
     }
 }
