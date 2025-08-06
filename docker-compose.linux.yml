@@ -17,6 +17,7 @@
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
+      - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       - Redis_ConnectionString=redis:6379
       - UseMarten=true
       - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
