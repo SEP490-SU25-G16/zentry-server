@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
@@ -18,8 +19,15 @@ public class Room : AggregateRoot<Guid>
         IsDeleted = false;
     }
 
+    [Required]
+    [StringLength(100)]
     public string RoomName { get; private set; }
+
+    [Required]
+    [StringLength(100)]
     public string Building { get; private set; }
+
+    [Range(0, 1000)]
     public int Capacity { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

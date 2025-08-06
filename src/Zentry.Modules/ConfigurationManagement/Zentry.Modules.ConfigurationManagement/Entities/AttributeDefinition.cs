@@ -1,5 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Domain;
+using DataType = Zentry.SharedKernel.Constants.Configuration.DataType;
 
 // Thêm namespace này
 
@@ -36,10 +38,21 @@ public class AttributeDefinition : AggregateRoot<Guid>
         Options = new List<Option>();
     }
 
+    [Required]
+    [StringLength(100)] // Giới hạn độ dài của key
     public string Key { get; private set; }
+
+    [Required]
+    [StringLength(255)] // Giới hạn độ dài của DisplayName
     public string DisplayName { get; private set; }
+
+    [StringLength(1000)] // Giới hạn độ dài của mô tả
     public string? Description { get; private set; }
+
+    [Required]
     public DataType DataType { get; private set; }
+
+    [StringLength(500)] // Giới hạn độ dài của giá trị mặc định
     public string? DefaultValue { get; private set; }
     public List<ScopeType> AllowedScopeTypes { get; private set; }
     public virtual ICollection<Option> Options { get; private set; }

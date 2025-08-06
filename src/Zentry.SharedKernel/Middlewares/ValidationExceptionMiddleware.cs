@@ -95,8 +95,8 @@ public class ValidationExceptionMiddleware(RequestDelegate next, ILogger<Validat
             // Bad Request / Business Logic errors (HTTP 400) - specific
             AttendanceCalculationFailedException =>
                 (400, ApiResponse.ErrorResult(ErrorCodes.AttendanceCalculationFailed, exception.Message)),
-            BusinessRuleException ruleEx => // Handle BusinessRuleException with its custom code
-                (400, ApiResponse.ErrorResult(ruleEx.Code, ruleEx.Message)),
+            BusinessRuleException =>
+                (400, ApiResponse.ErrorResult(ErrorCodes.BusinessRuleError, exception.Message)),
             // Server Errors (HTTP 500)
             ConfigurationException => // Specific configuration issues are internal server errors
                 (500, ApiResponse.ErrorResult(ErrorCodes.ConfigurationError, exception.Message)),

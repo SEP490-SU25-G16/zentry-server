@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ConfigurationManagement.Entities;
@@ -23,8 +24,15 @@ public class Option : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
     }
 
+    [Required]
     public Guid AttributeId { get; private set; }
+
+    [Required]
+    [StringLength(255)] // Giới hạn độ dài của giá trị
     public string Value { get; private set; }
+
+    [Required]
+    [StringLength(255)] // Giới hạn độ dài của nhãn hiển thị
     public string DisplayLabel { get; private set; }
     public int SortOrder { get; private set; }
     public DateTime CreatedAt { get; private set; }

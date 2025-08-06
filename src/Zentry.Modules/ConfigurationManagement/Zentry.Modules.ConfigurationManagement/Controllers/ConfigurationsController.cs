@@ -1,4 +1,3 @@
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +14,7 @@ namespace Zentry.Modules.ConfigurationManagement.Controllers;
 
 [ApiController]
 [Route("api/configurations")]
-public class ConfigurationsController(
-    IMediator mediator,
-    IValidator<CreateAttributeDefinitionRequest> createAttributeDefinitionValidator,
-    IValidator<CreateSettingRequest> createSettingValidator,
-    IValidator<UpdateAttributeDefinitionRequest> updateAttributeDefinitionValidator,
-    IValidator<UpdateSettingRequest> updateSettingValidator)
-    : BaseController
+public class ConfigurationsController(IMediator mediator) : BaseController
 {
     [HttpGet("settings")]
     [ProducesResponseType(typeof(ApiResponse<GetSettingsResponse>), StatusCodes.Status200OK)]
@@ -68,9 +61,6 @@ public class ConfigurationsController(
         [FromBody] CreateAttributeDefinitionRequest request,
         CancellationToken cancellationToken)
     {
-        var validationError = ValidateRequest(request, createAttributeDefinitionValidator);
-        if (validationError != null) return validationError;
-
         var command = new CreateAttributeDefinitionCommand { Details = request };
         var response = await mediator.Send(command, cancellationToken);
         return HandleCreated(response, nameof(CreateAttributeDefinition), new { id = response.AttributeId });
@@ -83,9 +73,6 @@ public class ConfigurationsController(
         [FromBody] CreateSettingRequest request,
         CancellationToken cancellationToken)
     {
-        var validationError = ValidateRequest(request, createSettingValidator);
-        if (validationError != null) return validationError;
-
         var command = new CreateSettingCommand { SettingDetails = request };
         var response = await mediator.Send(command, cancellationToken);
         return HandleCreated(response, nameof(CreateSetting), new { id = response.SettingId });
@@ -104,12 +91,7 @@ public class ConfigurationsController(
         [FromBody] UpdateAttributeDefinitionRequest request,
         CancellationToken cancellationToken)
     {
-        // Set AttributeId from route
         request.AttributeId = id;
-
-        var validationError = ValidateRequest(request, updateAttributeDefinitionValidator);
-        if (validationError != null) return validationError;
-
         var command = new UpdateAttributeDefinitionCommand { Details = request };
         var response = await mediator.Send(command, cancellationToken);
         return HandleResult(response);
@@ -124,12 +106,7 @@ public class ConfigurationsController(
         [FromBody] UpdateSettingRequest request,
         CancellationToken cancellationToken)
     {
-        // Set SettingId from route
         request.SettingId = id;
-
-        var validationError = ValidateRequest(request, updateSettingValidator);
-        if (validationError != null) return validationError;
-
         var command = new UpdateSettingCommand { SettingDetails = request };
         var response = await mediator.Send(command, cancellationToken);
         return HandleResult(response);

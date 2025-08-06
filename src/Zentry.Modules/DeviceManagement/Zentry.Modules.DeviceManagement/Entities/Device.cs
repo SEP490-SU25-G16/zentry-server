@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.Modules.DeviceManagement.ValueObjects;
 using Zentry.SharedKernel.Common;
 using Zentry.SharedKernel.Constants.Device;
@@ -44,16 +45,28 @@ public class Device : AggregateRoot<Guid>
         Status = DeviceStatus.Active;
     }
 
+    [Required]
     public Guid UserId { get; private set; }
     public DeviceName DeviceName { get; private set; }
     public DeviceToken DeviceToken { get; }
     public AndroidId AndroidId { get; private set; }
 
+    [StringLength(50)] // Giới hạn độ dài của Platform
     public string? Platform { get; private set; }
+
+    [StringLength(50)] // Giới hạn độ dài của OsVersion
     public string? OsVersion { get; private set; }
+
+    [StringLength(50)] // Giới hạn độ dài của Model
     public string? Model { get; private set; }
+
+    [StringLength(50)] // Giới hạn độ dài của Manufacturer
     public string? Manufacturer { get; private set; }
+
+    [StringLength(50)] // Giới hạn độ dài của AppVersion
     public string? AppVersion { get; private set; }
+
+    [StringLength(255)] // Giới hạn độ dài của PushNotificationToken
     public string? PushNotificationToken { get; private set; }
 
     public DateTime CreatedAt { get; private set; }

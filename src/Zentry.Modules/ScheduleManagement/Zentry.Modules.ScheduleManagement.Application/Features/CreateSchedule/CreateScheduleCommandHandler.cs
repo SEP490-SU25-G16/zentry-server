@@ -24,11 +24,11 @@ public class CreateScheduleCommandHandler(
 
         var section = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
         if (section is null)
-            throw new NotFoundException("ClassSection", $"ID '{command.ClassSectionId}' not found.");
+            throw new ResourceNotFoundException("ClassSection", $"ID '{command.ClassSectionId}' not found.");
 
         var room = await roomRepository.GetByIdAsync(command.RoomId, cancellationToken);
         if (room is null)
-            throw new NotFoundException("Room", $"ID '{command.RoomId}' not found.");
+            throw new ResourceNotFoundException("Room", $"ID '{command.RoomId}' not found.");
 
         if (!await scheduleRepository.IsRoomAvailableAsync(command.RoomId, command.WeekDay, command.StartTime,
                 command.EndTime, command.StartDate, command.EndDate, cancellationToken))

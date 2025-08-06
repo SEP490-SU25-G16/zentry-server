@@ -1,4 +1,7 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using MassTransit;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Polly;
@@ -31,12 +34,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ nguyên tùy chọn này nếu bạn muốn PascalCase
-        // THÊM CÁC CONVERTER DATETIME TẠI ĐÂY
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
         options.JsonSerializerOptions.Converters.Add(new DateTimeToLocalConverter());
         options.JsonSerializerOptions.Converters.Add(new NullableDateTimeToLocalConverter());
     });
 
+builder.Services.AddFluentValidationAutoValidation(config => { config.DisableDataAnnotationsValidation = true; });
+builder.Services.AddFluentValidationClientsideAdapters();
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // ===== CẤU HÌNH MODEL VALIDATION =====
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -56,6 +62,14 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(Zentry.SharedKernel.Helpers.ValidationBehavior<,>));
+});
+builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
+
+
 // ===== CẤU HÌNH CORS =====
 builder.Services.AddCors(options =>
 {
@@ -68,14 +82,13 @@ builder.Services.AddAuthorization();
 // --- Thêm health check ---
 builder.Services.AddHealthChecks();
 
-
 // --- Cấu hình MassTransit chung ---
 // ===== CẤU HÌNH MASSTRANSIT =====
 builder.Services.AddMassTransit(x =>
 {
     x.AddAttendanceMassTransitConsumers();
     x.AddUserMassTransitConsumers();
-    x.AddNotificationMassTransitConsumers(); 
+    x.AddNotificationMassTransitConsumers();
     x.UsingRabbitMq((context, cfg) =>
     {
         var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];

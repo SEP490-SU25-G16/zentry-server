@@ -132,6 +132,8 @@ public abstract class BaseController : ControllerBase
                 Conflict(ApiResponse.ErrorResult(ErrorCodes.SettingAlreadyExists, ex.Message)),
             SessionEndedException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.SessionEnded, ErrorMessages.Attendance.SessionEnded)),
+            BusinessRuleException businessEx =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessRuleError, businessEx.Message)),
             // General business logic exceptions
             BusinessLogicException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, ex.Message)),
@@ -152,9 +154,6 @@ public abstract class BaseController : ControllerBase
             FileNotFoundException =>
                 NotFound(ApiResponse.ErrorResult(ErrorCodes.ResourceNotFound, ex.Message)),
 
-            // SỬA LẠI: Không có BadHttpRequestException trong .NET standard, thay bằng InvalidOperationException
-            // BadHttpRequestException httpEx =>
-            //     StatusCode(500, ApiResponse.ErrorResult(ErrorCodes.InternalServerError, ErrorMessages.Authentication.ServerError)),
 
             // Default case
             _ => StatusCode(500,

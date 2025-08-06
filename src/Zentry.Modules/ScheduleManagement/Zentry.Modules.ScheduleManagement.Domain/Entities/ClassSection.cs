@@ -1,5 +1,7 @@
 using Zentry.SharedKernel.Domain;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
@@ -25,16 +27,28 @@ public class ClassSection : AggregateRoot<Guid>
         Enrollments = new HashSet<Enrollment>();
     }
 
+    [Required]
     public Guid CourseId { get; private set; }
     public virtual Course? Course { get; private set; }
+
     public Guid? LecturerId { get; private set; }
+
+    [Required]
+    [StringLength(50)]
     public string SectionCode { get; private set; }
+
+    [Required]
+    [StringLength(4, MinimumLength = 4)]
     public Semester Semester { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public bool IsDeleted { get; private set; }
+
+    [InverseProperty("ClassSection")]
     public virtual ICollection<Schedule> Schedules { get; private set; }
 
+    [InverseProperty("ClassSection")]
     public virtual ICollection<Enrollment> Enrollments { get; private set; }
     // --------------------------------------------------------------------------------
 
@@ -53,12 +67,13 @@ public class ClassSection : AggregateRoot<Guid>
         }
         UpdatedAt = DateTime.UtcNow;
     }
-    
+
     public void Delete()
     {
         IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void AssignLecturer(Guid lecturerId)
     {
         if (LecturerId == lecturerId) return;

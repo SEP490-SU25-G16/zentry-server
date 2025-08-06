@@ -16,31 +16,11 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/courses")]
 public class CoursesController(IMediator mediator) : BaseController
 {
-    [HttpPost]
-    [ProducesResponseType(typeof(ApiResponse<CourseCreatedResponse>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request,
-        CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return HandleValidationError();
-
-        try
-        {
-            var response = await mediator.Send(request, cancellationToken);
-            return HandleCreated(response, nameof(CreateCourse), new { id = response.Id });
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex);
-        }
-    }
-
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<GetCoursesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetCourses([FromQuery] GetCoursesQuery query, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var response = await mediator.Send(query, cancellationToken);
@@ -57,7 +37,6 @@ public class CoursesController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCourseById(Guid id, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var query = new GetCourseByIdQuery(id);
@@ -70,14 +49,28 @@ public class CoursesController(IMediator mediator) : BaseController
         }
     }
 
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<CourseCreatedResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await mediator.Send(request, cancellationToken);
+            return HandleCreated(response, nameof(CreateCourse), new { id = response.Id });
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<CourseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var command = new UpdateCourseCommand(id, request);
@@ -95,7 +88,6 @@ public class CoursesController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCourse(Guid id, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var command = new DeleteCourseCommand(id);

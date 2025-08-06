@@ -11,8 +11,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
 public class EnrollStudentCommandHandler(
     IEnrollmentRepository enrollmentRepository,
     IClassSectionRepository classSectionRepository,
-    IUserScheduleService userLookupService,
-    IMediator mediator)
+    IUserScheduleService userLookupService)
     : ICommandHandler<EnrollStudentCommand, EnrollmentResponse>
 {
     public async Task<EnrollmentResponse> Handle(EnrollStudentCommand command, CancellationToken cancellationToken)
@@ -20,16 +19,16 @@ public class EnrollStudentCommandHandler(
         var studentUser =
             await userLookupService.GetUserByIdAndRoleAsync(Role.Student, command.StudentId, cancellationToken);
         if (studentUser == null)
-            throw new NotFoundException("Student", command.StudentId);
+            throw new ResourceNotFoundException("STUDENT", command.StudentId);
 
         var classSection = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
         if (classSection is null)
-            throw new NotFoundException("ClassSection", command.ClassSectionId);
+            throw new ResourceNotFoundException("ClassSection", command.ClassSectionId);
 
         var alreadyEnrolled =
             await enrollmentRepository.ExistsAsync(command.StudentId, command.ClassSectionId, cancellationToken);
         if (alreadyEnrolled)
-            throw new UserAlreadyExistsException("Student already enrolled in this class section.");
+            throw new UserAlreadyExistsException(command.StudentId.ToString());
 
         var enrollment = Enrollment.Create(command.StudentId, command.ClassSectionId);
 

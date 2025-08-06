@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Constants.Schedule;
 using Zentry.SharedKernel.Domain;
 
@@ -18,9 +19,15 @@ public class Enrollment : AggregateRoot<Guid>
         Status = EnrollmentStatus.Active;
     }
 
+    [Required]
     public Guid StudentId { get; private set; }
+
+    [Required]
     public Guid ClassSectionId { get; private set; }
+
     public DateTime EnrolledAt { get; private set; }
+
+    [Required]
     public EnrollmentStatus Status { get; private set; }
 
     public virtual ClassSection? ClassSection { get; private set; }

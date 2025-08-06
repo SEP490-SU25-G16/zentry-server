@@ -12,7 +12,7 @@ using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(ScheduleDbContext))]
-    [Migration("20250806034938_Initial")]
+    [Migration("20250806115737_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

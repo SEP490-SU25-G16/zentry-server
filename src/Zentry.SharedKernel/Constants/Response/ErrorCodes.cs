@@ -18,6 +18,7 @@ public static class ErrorCodes
     public const string AccountNotFound = "ACCOUNT_NOT_FOUND";
 
     // Business logic
+    public const string BusinessRuleError = "BUSINESS_RULE_ERROR";
     public const string BusinessLogicError = "BUSINESS_LOGIC_ERROR";
     public const string InvalidOperation = "INVALID_OPERATION";
 

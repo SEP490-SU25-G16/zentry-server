@@ -5,7 +5,7 @@ namespace Zentry.SharedKernel.Exceptions;
 /// </summary>
 public class AccountInactiveException : BusinessLogicException
 {
-    public AccountInactiveException() : base("Account is inactive.")
+    public AccountInactiveException(Guid id) : base($"Account with ID {id} is inactive.")
     {
     }
 

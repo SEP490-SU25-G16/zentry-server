@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Domain;
 
@@ -20,10 +21,18 @@ public class Round : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
     }
 
+    [Required]
     public Guid SessionId { get; private set; }
+
     public int RoundNumber { get; private set; }
+
+    [Required]
     public DateTime StartTime { get; private set; }
+
+    [Required]
     public DateTime EndTime { get; private set; }
+
+    [Required]
     public RoundStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }

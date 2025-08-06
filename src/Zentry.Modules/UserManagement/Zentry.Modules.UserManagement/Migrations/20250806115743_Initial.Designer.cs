@@ -12,7 +12,7 @@ using Zentry.Modules.UserManagement.Persistence.DbContext;
 namespace Zentry.Modules.UserManagement.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20250806005313_Initial")]
+    [Migration("20250806115743_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

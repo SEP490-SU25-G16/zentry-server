@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Domain;
 
@@ -20,16 +21,29 @@ public class Account : AggregateRoot<Guid>
         Status = AccountStatus.Active;
     }
 
+    [Required]
+    [EmailAddress] // Kiểm tra định dạng email
+    [StringLength(255)] // Giới hạn độ dài của email
     public string Email { get; private set; }
+
+    [Required]
+    [StringLength(128)] // Độ dài của PasswordHash
     public string PasswordHash { get; private set; }
+
+    [Required]
+    [StringLength(64)] // Độ dài của PasswordSalt
     public string PasswordSalt { get; private set; }
+
+    [Required]
     public Role Role { get; private set; }
+
+    [StringLength(255)] // Giới hạn độ dài của ResetToken
+    public string? ResetToken { get; private set; }
+
+    public AccountStatus Status { get; private set; }
+    public DateTime? ResetTokenExpiryTime { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public AccountStatus Status { get; private set; }
-    public string? ResetToken { get; private set; }
-    public DateTime? ResetTokenExpiryTime { get; private set; }
-
 
     public static Account
         Create(string email, string passwordHash, string passwordSalt, Role role)

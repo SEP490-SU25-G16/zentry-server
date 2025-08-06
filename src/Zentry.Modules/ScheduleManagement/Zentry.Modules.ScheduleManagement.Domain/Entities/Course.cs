@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
@@ -21,10 +22,18 @@ public class Course : AggregateRoot<Guid>
         ClassSections = new List<ClassSection>();
     }
 
+    [Required]
+    [StringLength(50)]
     public string Code { get; private set; }
+
+    [Required]
+    [StringLength(255)]
     public string Name { get; private set; }
+
+    [StringLength(1000)]
     public string Description { get; private set; }
-    public ICollection<ClassSection> ClassSections { get; set; }
+
+    public virtual ICollection<ClassSection> ClassSections { get; set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public bool IsDeleted { get; private set; }

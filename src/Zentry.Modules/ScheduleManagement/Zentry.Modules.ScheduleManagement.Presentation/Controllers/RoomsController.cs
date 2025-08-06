@@ -16,32 +16,11 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/rooms")]
 public class RoomsController(IMediator mediator) : BaseController
 {
-    [HttpPost]
-    [ProducesResponseType(typeof(ApiResponse<CreateRoomResponse>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return HandleValidationError();
-        try
-        {
-            var response =
-                await mediator.Send(new CreateRoomCommand(request.RoomName, request.Building, request.Capacity),
-                    cancellationToken);
-            return HandleCreated(response, nameof(CreateRoom), new { id = response.Id });
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex);
-        }
-    }
-
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<GetRoomsResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetRooms([FromQuery] GetRoomsQuery query, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var response = await mediator.Send(query, cancellationToken);
@@ -58,7 +37,6 @@ public class RoomsController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRoomById(Guid id, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var query = new GetRoomByIdQuery(id);
@@ -73,14 +51,30 @@ public class RoomsController(IMediator mediator) : BaseController
         }
     }
 
+    [HttpPost]
+    [ProducesResponseType(typeof(ApiResponse<CreateRoomResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response =
+                await mediator.Send(new CreateRoomCommand(request.RoomName, request.Building, request.Capacity),
+                    cancellationToken);
+            return HandleCreated(response, nameof(CreateRoom), new { id = response.Id });
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<RoomDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var command = new UpdateRoomCommand(id, request);
@@ -98,7 +92,6 @@ public class RoomsController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteRoom(Guid id, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var command = new DeleteRoomCommand(id);

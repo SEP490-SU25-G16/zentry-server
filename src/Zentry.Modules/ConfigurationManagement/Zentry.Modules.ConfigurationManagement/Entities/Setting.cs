@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Domain;
 
@@ -24,9 +25,16 @@ public class Setting : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
     }
 
+    [Required]
     public Guid AttributeId { get; private set; }
+
+    [Required]
     public ScopeType ScopeType { get; private set; }
+
+    [Required]
     public Guid ScopeId { get; private set; }
+
+    [StringLength(255)] // Giới hạn độ dài của giá trị cài đặt
     public string Value { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; }

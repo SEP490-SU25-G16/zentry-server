@@ -5,7 +5,7 @@ namespace Zentry.SharedKernel.Exceptions;
 /// </summary>
 public class AccountLockedException : BusinessLogicException
 {
-    public AccountLockedException() : base("Account is locked.")
+    public AccountLockedException(Guid id) : base($"Account with ID {id} is locked.")
     {
     }
 

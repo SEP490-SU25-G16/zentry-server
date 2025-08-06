@@ -1,6 +1,15 @@
 ﻿namespace Zentry.SharedKernel.Exceptions;
 
-public class BusinessRuleException(string code, string message) : Exception(message)
+/// <summary>
+///     Represents an exception thrown when a business rule is violated.
+/// </summary>
+public class BusinessRuleException : BusinessLogicException
 {
-    public string Code { get; } = code;
+    public BusinessRuleException(string code, string message) : base(message, code)
+    {
+    }
+
+    public BusinessRuleException(string code, string message, Exception innerException) : base(code, innerException, message)
+    {
+    }
 }

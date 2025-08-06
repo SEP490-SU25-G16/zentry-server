@@ -1,5 +1,3 @@
-// File: Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection/CreateClassSectionCommandHandler.cs
-
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects; // Thêm Value Object Semester
@@ -8,7 +6,7 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection;
 
-public class CreateClassSectionCommandHandler(IClassSectionRepository repository)
+public class CreateClassSectionCommandHandler(IClassSectionRepository classSectionRepository, ICourseRepository courseRepository)
     : ICommandHandler<CreateClassSectionCommand, CreateClassSectionResponse>
 {
     public async Task<CreateClassSectionResponse> Handle(CreateClassSectionCommand request,
@@ -16,11 +14,17 @@ public class CreateClassSectionCommandHandler(IClassSectionRepository repository
     {
         var semester = Semester.Create(request.Semester);
         
-        var existingSection = await repository.GetBySectionCodeAndSemesterAsync(request.SectionCode, semester, cancellationToken);
+        var existingSection = await classSectionRepository.GetBySectionCodeAndSemesterAsync(request.SectionCode, semester, cancellationToken);
         
         if (existingSection is not null)
         {
             throw new BusinessRuleException("SECTION_CODE_DUPLICATE", $"Section Code '{request.SectionCode}' đã tồn tại trong học kỳ '{request.Semester}'.");
+        }
+        
+        var course = await courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
+        if (course is null)
+        {
+            throw new ResourceNotFoundException("COURSE", request.CourseId);
         }
 
         var newSection = ClassSection.Create(
@@ -29,8 +33,8 @@ public class CreateClassSectionCommandHandler(IClassSectionRepository repository
             semester
         );
 
-        await repository.AddAsync(newSection, cancellationToken);
-        await repository.SaveChangesAsync(cancellationToken);
+        await classSectionRepository.AddAsync(newSection, cancellationToken);
+        await classSectionRepository.SaveChangesAsync(cancellationToken);
 
         return new CreateClassSectionResponse(newSection.Id);
     }
