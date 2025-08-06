@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
-namespace Zentry.Modules.NotificationService.Infrastructure.Hubs;
+namespace Zentry.Modules.NotificationService.Hubs;
 
 /// <summary>
 /// SignalR Hub cho real-time notifications

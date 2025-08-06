@@ -7,7 +7,6 @@ using Zentry.Modules.AttendanceManagement.Application.Features.EndSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetRoundResult;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
-using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionsByScheduleId;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetStudentFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
@@ -23,25 +22,6 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 [Route("api/attendance")]
 public class AttendanceController(IMediator mediator) : BaseController
 {
-    [HttpGet("schedules/{scheduleId:guid}/sessions")]
-    [ProducesResponseType(typeof(ApiResponse<List<SessionDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetSessionsByScheduleId(Guid scheduleId, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return HandleValidationError();
-
-        try
-        {
-            var query = new GetSessionsByScheduleIdQuery(scheduleId);
-            var result = await mediator.Send(query, cancellationToken);
-            return HandleResult(result, "Sessions retrieved successfully.");
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex);
-        }
-    }
-
     // Lấy kết quả điểm danh cuối cùng của một sinh viên trong một session
     [HttpGet("sessions/{sessionId:guid}/students/{studentId:guid}/final-result")]
     [ProducesResponseType(typeof(ApiResponse<StudentFinalAttendanceDto>), StatusCodes.Status200OK)]

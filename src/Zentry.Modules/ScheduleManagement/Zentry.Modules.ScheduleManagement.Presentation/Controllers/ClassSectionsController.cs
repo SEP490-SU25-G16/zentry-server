@@ -10,6 +10,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerHome;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetSessionsByClassSectionId;
 using Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
@@ -20,6 +21,25 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/class-sections")]
 public class ClassSectionsController(IMediator mediator) : BaseController
 {
+    [HttpGet("{classSectionId:guid}/sessions")]
+    [ProducesResponseType(typeof(ApiResponse<List<SessionDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSessionsByScheduleId(Guid classSectionId, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+
+        try
+        {
+            var query = new GetSessionsByClassSectionIdQuery(classSectionId);
+            var result = await mediator.Send(query, cancellationToken);
+            return HandleResult(result, "Sessions retrieved successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     [HttpPost("{classSectionId:guid}/lecturers/{lecturerId:guid}")]
     [ProducesResponseType(typeof(AssignLecturerResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

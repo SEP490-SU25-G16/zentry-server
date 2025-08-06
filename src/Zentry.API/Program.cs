@@ -23,7 +23,7 @@ using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Helpers;
 using Zentry.SharedKernel.Middlewares;
 using Zentry.Modules.FaceId;
-using Zentry.Modules.NotificationService.Infrastructure.Hubs;
+using Zentry.Modules.NotificationService.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 

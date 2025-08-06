@@ -18,6 +18,7 @@ public class GetSessionsByScheduleIdIntegrationQueryHandler(ISessionRepository s
         var response = sessions.Select(s => new GetSessionsByScheduleIdIntegrationResponse
         {
             SessionId = s.Id,
+            ScheduleId = s.ScheduleId,
             Status = s.Status.ToString(),
             StartTime = s.StartTime,
             EndTime = s.EndTime
