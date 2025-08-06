@@ -33,6 +33,7 @@ public static class ErrorCodes
 
     // Schedule management
     public const string ScheduleConflict = "SCHEDULE_CONFLICT";
+    public const string CourseCannotBeDeleted = "COURSE_CAN_NOT_BE_DELETED";
     public const string ClassSectionNotFound = "CLASS_SECTION_NOT_FOUND";
     public const string RoomNotAvailable = "ROOM_NOT_AVAILABLE";
 

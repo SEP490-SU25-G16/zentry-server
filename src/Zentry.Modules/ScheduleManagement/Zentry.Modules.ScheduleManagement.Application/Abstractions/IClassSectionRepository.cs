@@ -14,4 +14,5 @@ public interface IClassSectionRepository : IRepository<ClassSection, Guid>
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken);
     public Task<List<ClassSection>> GetLecturerClassSectionsAsync(Guid lecturerId, CancellationToken cancellationToken);
     Task<ClassSection?> GetByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken);
+    Task<bool> IsExistClassSectionByCourseIdAsync(Guid courseId, CancellationToken cancellationToken);
 }

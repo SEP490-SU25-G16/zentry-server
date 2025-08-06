@@ -23,7 +23,7 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
     {
         var course = await dbContext.Courses.FindAsync([id], cancellationToken);
 
-        if (course != null)
+        if (course is not null)
         {
             course.Delete();
             dbContext.Courses.Update(course);

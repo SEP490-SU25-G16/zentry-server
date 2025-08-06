@@ -15,6 +15,12 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             .FirstOrDefaultAsync(cs => cs.Schedules.Any(s => s.Id == scheduleId), cancellationToken);
     }
 
+    public async Task<bool> IsExistClassSectionByCourseIdAsync(Guid courseId, CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .AnyAsync(cs => cs.CourseId == courseId, cancellationToken: cancellationToken);
+    }
+
     public async Task<List<ClassSection>> GetLecturerClassSectionsAsync(Guid lecturerId,
         CancellationToken cancellationToken)
     {

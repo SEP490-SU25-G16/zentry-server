@@ -85,6 +85,9 @@ public abstract class BaseController : ControllerBase
             ScheduleConflictException =>
                 Conflict(ApiResponse.ErrorResult(ErrorCodes.ScheduleConflict, ex.Message)),
 
+            ResourceCannotBeDeletedException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.CourseCannotBeDeleted, ex.Message)),
+
             ClassSectionNotFoundException =>
                 NotFound(ApiResponse.ErrorResult(ErrorCodes.ClassSectionNotFound, ex.Message)),
 
@@ -249,13 +252,15 @@ public abstract class BaseController : ControllerBase
             ErrorMessages.Authentication.AccountLocked));
     }
 
-    protected IActionResult HandlePartialSuccess<T>(T data, string? successMessage = null, string? failureMessage = null)
+    protected IActionResult HandlePartialSuccess<T>(T data, string? successMessage = null,
+        string? failureMessage = null)
     {
         var message = successMessage ?? "Operation completed with partial success";
         if (!string.IsNullOrWhiteSpace(failureMessage))
         {
             message += $". {failureMessage}";
         }
+
         return Ok(ApiResponse<T>.SuccessResult(data, message));
     }
 

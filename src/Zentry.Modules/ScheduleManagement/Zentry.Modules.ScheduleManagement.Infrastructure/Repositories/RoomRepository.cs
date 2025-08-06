@@ -40,6 +40,18 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
         return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName, cancellationToken);
     }
 
+    public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var room = await dbContext.Rooms.FindAsync([id], cancellationToken);
+
+        if (room is not null)
+        {
+            room.Delete();
+            dbContext.Rooms.Update(room);
+            await SaveChangesAsync(cancellationToken);
+        }
+    }
+
     public async Task DeleteAsync(Room entity, CancellationToken cancellationToken)
     {
         dbContext.Rooms.Remove(entity);

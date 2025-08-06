@@ -11,6 +11,12 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<bool> IsBookedScheduleByRoomIdAsync(Guid roomId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AnyAsync(s => s.RoomId == roomId, cancellationToken);
+    }
+
     public async Task<List<Schedule>> GetSchedulesByClassSectionIdAsync(Guid classSectionId,
         CancellationToken cancellationToken)
     {

@@ -10,6 +10,5 @@ public interface ICourseRepository : IRepository<Course, Guid>
 
     Task<Tuple<List<Course>, int>> GetPagedCoursesAsync(CourseListCriteria criteria,
         CancellationToken cancellationToken);
-
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken);
 }
