@@ -10,6 +10,7 @@ using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -19,9 +20,9 @@ public class CreateSessionConsumer(
     IConfigurationService configService,
     IPublishEndpoint publishEndpoint,
     IMediator mediator)
-    : IConsumer<CreateSesssionMessage>
+    : IConsumer<ScheduleCreatedMessage>
 {
-    public async Task Consume(ConsumeContext<CreateSesssionMessage> context)
+    public async Task Consume(ConsumeContext<ScheduleCreatedMessage> context)
     {
         var message = context.Message;
         logger.LogInformation(
@@ -122,7 +123,7 @@ public class CreateSessionConsumer(
 
                     var session = Session.Create(
                         message.ScheduleId,
-                        message.LecturerId,
+                        null,
                         todaySessionStartUtc,
                         todaySessionEndUtc,
                         finalConfigDictionary
@@ -148,13 +149,11 @@ public class CreateSessionConsumer(
 
                     if (currentSessionConfigSnapshot.TotalAttendanceRounds > 0)
                     {
-                        // Lưu ý: session.StartTime và session.EndTime giờ đây đã là UTC khi được lưu trong DB
-                        // và cũng là UTC khi được lấy ra từ session object.
                         var createRoundsMessage = new CreateRoundsMessage(
                             session.Id,
                             currentSessionConfigSnapshot.TotalAttendanceRounds,
-                            session.StartTime, // Đây là UTC
-                            session.EndTime // Đây là UTC
+                            session.StartTime,
+                            session.EndTime
                         );
                         await publishEndpoint.Publish(createRoundsMessage, context.CancellationToken);
                         logger.LogInformation("Published CreateSessionRoundsMessage for SessionId: {SessionId}.",
@@ -167,14 +166,12 @@ public class CreateSessionConsumer(
                             session.Id);
                     }
 
-                    var generateWhitelistMessage = new GenerateSessionWhitelistMessage(
-                        session.Id,
+                    var generateWhitelistMessage = new GenerateScheduleWhitelistMessage(
                         message.ScheduleId,
-                        message.LecturerId,
                         message.ClassSectionId
                     );
                     await publishEndpoint.Publish(generateWhitelistMessage, context.CancellationToken);
-                    logger.LogInformation("Published GenerateSessionWhitelistMessage for SessionId: {SessionId}.",
+                    logger.LogInformation("Published GenerateScheduleWhitelistMessage for SessionId: {SessionId}.",
                         session.Id);
                 }
             }

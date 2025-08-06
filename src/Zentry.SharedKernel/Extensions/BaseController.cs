@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Exceptions;
@@ -122,11 +121,14 @@ public abstract class BaseController : ControllerBase
                 Conflict(ApiResponse.ErrorResult(ErrorCodes.AttributeDefinitionKeyExists, ex.Message)),
             InvalidSettingValueException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidSettingValue, ex.Message)),
+            InvalidSettingScopeException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidSettingScope, ex.Message)),
             SelectionDataTypeRequiresOptionsException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.SelectionOptionsRequired, ex.Message)),
             SettingAlreadyExistsException =>
                 Conflict(ApiResponse.ErrorResult(ErrorCodes.SettingAlreadyExists, ex.Message)),
-
+            SessionEndedException =>
+                BadRequest(ApiResponse.ErrorResult(ErrorCodes.SessionEnded, ErrorMessages.Attendance.SessionEnded)),
             // General business logic exceptions
             BusinessLogicException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, ex.Message)),
@@ -223,7 +225,6 @@ public abstract class BaseController : ControllerBase
         return BadRequest(ApiResponse.ErrorResult(errorCode, message));
     }
 
-    // Authentication specific helpers - SỬA LẠI ĐỂ SỬ DỤNG StatusCode thay vì Unauthorized
     protected IActionResult HandleInvalidCredentials()
     {
         return StatusCode(401, ApiResponse.ErrorResult(ErrorCodes.InvalidCredentials,
@@ -246,6 +247,16 @@ public abstract class BaseController : ControllerBase
     {
         return StatusCode(401, ApiResponse.ErrorResult(ErrorCodes.AccountLocked,
             ErrorMessages.Authentication.AccountLocked));
+    }
+
+    protected IActionResult HandlePartialSuccess<T>(T data, string? successMessage = null, string? failureMessage = null)
+    {
+        var message = successMessage ?? "Operation completed with partial success";
+        if (!string.IsNullOrWhiteSpace(failureMessage))
+        {
+            message += $". {failureMessage}";
+        }
+        return Ok(ApiResponse<T>.SuccessResult(data, message));
     }
 
     // Logging method (có thể override trong derived classes)

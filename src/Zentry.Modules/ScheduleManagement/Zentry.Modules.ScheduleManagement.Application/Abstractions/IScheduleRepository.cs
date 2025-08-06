@@ -1,3 +1,4 @@
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
@@ -7,11 +8,21 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IScheduleRepository : IRepository<Schedule, Guid>
 {
+    Task<List<Schedule>> GetSchedulesByClassSectionIdAsync(Guid classSectionId, CancellationToken cancellationToken);
+    Task<List<ScheduleWithRoomDto>> GetActiveSchedulesByClassSectionIdsAndDayAsync(
+        List<Guid> classSectionIds, WeekDayEnum dayOfWeek, DateOnly date, CancellationToken cancellationToken);
+
+    Task<ScheduleDetailsWithRelationsDto?> GetScheduleDetailsWithRelationsAsync(Guid scheduleId,
+        CancellationToken cancellationToken);
+
+    Task<ClassDetailProjectionDto?> GetScheduleDetailsForClassSectionAsync(Guid classSectionId,
+        CancellationToken cancellationToken);
+
     Task<bool> IsLecturerAvailableAsync(Guid lecturerId, WeekDayEnum weekDay, TimeOnly startTime, TimeOnly endTime,
         CancellationToken cancellationToken);
 
-    Task<bool> IsRoomAvailableAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime, TimeOnly endTime,
-        CancellationToken cancellationToken);
+    Task<bool> IsRoomAvailableAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime,
+        TimeOnly endTime, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken);
 
     Task<Tuple<List<Schedule>, int>> GetPagedSchedulesAsync(ScheduleListCriteria criteria,
         CancellationToken cancellationToken);
@@ -22,7 +33,7 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
 
     Task<Schedule?> GetByIdWithClassSectionAsync(Guid id, CancellationToken cancellationToken);
 
-    public Task<List<Schedule>> GetLecturerSchedulesForDateAsync(
+    Task<List<ScheduleProjectionDto>> GetLecturerSchedulesForDateAsync(
         Guid lecturerId,
         DateTime date,
         WeekDayEnum weekDay,
@@ -30,4 +41,16 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
 
     Task<List<Schedule>> GetSchedulesByClassSectionIdAndDateAsync(Guid classSectionId, DateTime date,
         WeekDayEnum weekDay, CancellationToken cancellationToken);
+
+    Task<List<LecturerDailyReportScheduleProjectionDto>> GetLecturerReportSchedulesForDateAsync(
+        Guid lecturerId,
+        DateTime date,
+        WeekDayEnum weekDay,
+        CancellationToken cancellationToken);
+
+    Task<List<ScheduleProjectionDto>> GetSchedulesByClassSectionIdsAndDateAsync(
+        List<Guid> classSectionIds,
+        DateOnly date,
+        WeekDayEnum weekDay,
+        CancellationToken cancellationToken);
 }

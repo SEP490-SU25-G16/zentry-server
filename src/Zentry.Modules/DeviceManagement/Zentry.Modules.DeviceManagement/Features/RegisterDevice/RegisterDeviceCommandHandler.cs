@@ -13,8 +13,6 @@ public class RegisterDeviceCommandHandler(
     IMediator mediator)
     : ICommandHandler<RegisterDeviceCommand, RegisterDeviceResponse>
 {
-    private readonly IMediator _mediator = mediator; // For publishing domain events if needed
-
     public async Task<RegisterDeviceResponse> Handle(RegisterDeviceCommand command, CancellationToken cancellationToken)
     {
         // 1. Validate UserId existence (from Identity Module)
@@ -22,10 +20,11 @@ public class RegisterDeviceCommandHandler(
         if (!userExists)
             throw new UserNotFoundException("User not found.");
 
-        // 2. Check if MAC address already exists (MAC addresses should be unique across all devices)
-        var existingDeviceByMac = await deviceRepository.GetByMacAddressAsync(command.MacAddress, cancellationToken);
-        if (existingDeviceByMac != null)
-            throw new DeviceAlreadyRegisteredException($"Device with MAC address {command.MacAddress} already exists.");
+        // 2. Check if Android ID already exists (Android IDs should be unique across all devices)
+        var existingDeviceByAndroidId =
+            await deviceRepository.GetByAndroidIdAsync(command.AndroidId, cancellationToken);
+        if (existingDeviceByAndroidId is not null)
+            throw new DeviceAlreadyRegisteredException($"Device with Android ID {command.AndroidId} already exists.");
 
         // 3. Check if user already has an active device
         var existingDevice = await deviceRepository.GetActiveDeviceByUserIdAsync(command.UserId, cancellationToken);
@@ -43,27 +42,26 @@ public class RegisterDeviceCommandHandler(
             throw new ArgumentException($"Invalid device name: {ex.Message}");
         }
 
-        // 5. Create MacAddress ValueObject with validation
-        MacAddress macAddressVo;
+        // 5. Create AndroidId ValueObject with validation
+        AndroidId androidIdVo;
         try
         {
-            macAddressVo = MacAddress.Create(command.MacAddress);
+            androidIdVo = AndroidId.Create(command.AndroidId);
         }
         catch (ArgumentException ex)
         {
-            throw new ArgumentException($"Invalid MAC address: {ex.Message}");
+            throw new ArgumentException($"Invalid Android ID: {ex.Message}");
         }
 
         // 6. Generate DeviceToken ValueObject
         var deviceTokenVo = DeviceToken.Create();
 
         // 7. Create the new Device entity using the factory method
-        //    Truyền tất cả các trường bao gồm MAC address từ command vào phương thức Create của entity Device
         var newDevice = Device.Create(
             command.UserId,
             deviceNameVo,
             deviceTokenVo,
-            macAddressVo, // Thêm MAC address vào
+            androidIdVo,
             command.Platform,
             command.OsVersion,
             command.Model,
@@ -88,18 +86,14 @@ public class RegisterDeviceCommandHandler(
         //     newDevice.ClearDomainEvents();
         // }
 
-        // 11. Return response DTO với MAC address đã được normalize
+        // 11. Return response DTO với Android ID đã được normalize
         return new RegisterDeviceResponse
         {
             DeviceId = newDevice.Id,
             UserId = newDevice.UserId,
-            DeviceToken = newDevice.DeviceToken.Value, // Return the string value of the token
-            MacAddress = newDevice.MacAddress.Value, // Return normalized MAC address
+            DeviceToken = newDevice.DeviceToken.Value,
+            AndroidId = newDevice.AndroidId.Value,
             CreatedAt = newDevice.CreatedAt
-            // Nếu muốn, bạn có thể trả về các thông tin optional đã lưu vào DB
-            // Platform = newDevice.Platform,
-            // OSVersion = newDevice.OSVersion,
-            // ...
         };
     }
 }

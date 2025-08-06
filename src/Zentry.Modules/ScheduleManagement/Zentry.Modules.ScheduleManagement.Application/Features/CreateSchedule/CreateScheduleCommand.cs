@@ -6,7 +6,6 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
 public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
 {
     public CreateScheduleCommand(
-        Guid lecturerId,
         Guid classSectionId,
         Guid roomId,
         DateOnly startDate,
@@ -15,7 +14,6 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
         TimeOnly endTime,
         string weekDayString)
     {
-        LecturerId = lecturerId;
         ClassSectionId = classSectionId;
         RoomId = roomId;
         StartDate = startDate;
@@ -28,7 +26,6 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
     public CreateScheduleCommand(
         CreateScheduleRequest request)
     {
-        LecturerId = request.LecturerId;
         ClassSectionId = request.ClassSectionId;
         RoomId = request.RoomId;
 
@@ -39,7 +36,6 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
         WeekDay = WeekDayEnum.FromName(request.WeekDay);
     }
 
-    public Guid LecturerId { get; set; }
     public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
     public DateOnly StartDate { get; private set; }
@@ -57,13 +53,12 @@ public class CreateScheduleCommand : ICommand<CreatedScheduleResponse>
 public class CreatedScheduleResponse
 {
     public Guid Id { get; set; }
-    public Guid LecturerId { get; set; }
     public Guid ClassSectionId { get; set; }
     public Guid RoomId { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
-    public WeekDayEnum? WeekDay { get; set; }
+    public string? WeekDay { get; set; }
     public DateTime CreatedAt { get; set; }
 }

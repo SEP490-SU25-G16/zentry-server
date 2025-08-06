@@ -1,6 +1,4 @@
-﻿using Zentry.Modules.ConfigurationManagement.Dtos;
-using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Configuration;
+﻿using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 
@@ -15,9 +13,9 @@ public class CreateSettingResponse
     public Guid AttributeId { get; set; }
     public string AttributeKey { get; set; } = string.Empty;
     public string AttributeDisplayName { get; set; } = string.Empty;
-    public DataType DataType { get; set; }
+    public required string DataType { get; set; }
     public string? Unit { get; set; }
-    public ScopeType SettingScopeType { get; set; }
+    public required string SettingScopeType { get; set; }
     public Guid ScopeId { get; set; }
     public string Value { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }

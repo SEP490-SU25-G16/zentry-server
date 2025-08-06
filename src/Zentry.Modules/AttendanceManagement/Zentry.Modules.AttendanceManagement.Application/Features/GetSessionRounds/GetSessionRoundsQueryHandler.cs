@@ -2,6 +2,7 @@ using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
 
@@ -26,23 +27,17 @@ public class GetSessionRoundsQueryHandler(
         if (session is null)
             throw new NotFoundException("Session", request.SessionId);
 
-        // Lấy thông tin ClassSection từ Schedule module
         var classSectionResponse =
             await mediator.Send(
-                new GetClassSectionByScheduleIdIntegrationQuery(session
-                    .ScheduleId), // <-- Sửa Query để lấy cả ClassSection info
+                new GetClassSectionByScheduleIdIntegrationQuery(session.ScheduleId),
                 cancellationToken);
 
         if (classSectionResponse == null || classSectionResponse.ClassSectionId == Guid.Empty)
-            throw new NotFoundException("ClassSection", $"corresponding to ScheduleId {session.ScheduleId}");
+            throw new BusinessRuleException("CLASS_SECTION_NOT_FOUND",
+                "Không tìm thấy thông tin lớp học cho buổi học này.");
 
         var classSectionId = classSectionResponse.ClassSectionId;
-        var courseId = classSectionResponse.CourseId; // <-- Lấy CourseId
-        var courseCode = classSectionResponse.CourseCode; // <-- Lấy CourseCode
-        var courseName = classSectionResponse.CourseName; // <-- Lấy CourseName
-        var sectionCode = classSectionResponse.SectionCode; // <-- Lấy SectionCode
 
-        // Lấy tổng số sinh viên đăng ký
         var totalStudentsCountResponse = await mediator.Send(
             new CountActiveStudentsByClassSectionIdIntegrationQuery(classSectionId),
             cancellationToken);
@@ -50,36 +45,19 @@ public class GetSessionRoundsQueryHandler(
         var allAttendanceRecords = await attendanceRecordRepository.GetAttendanceRecordsBySessionIdAsync(
             request.SessionId, cancellationToken);
 
-        var result = new List<RoundAttendanceDto>();
-
-        foreach (var round in rounds)
-        {
-            var attendedCount = allAttendanceRecords
-                .Count(ar =>
-                    ar.CreatedAt >= round.StartTime && (round.EndTime == null || ar.CreatedAt <= round.EndTime));
-
-            result.Add(new RoundAttendanceDto
+        var result = (from round in rounds
+            let attendedCount = allAttendanceRecords.Count(ar => Equals(ar.Status, AttendanceStatus.Present))
+            select new RoundAttendanceDto
             {
-                RoundId = round.Id, // <-- Gán RoundId
-                SessionId = request.SessionId, // <-- Gán SessionId
-
+                RoundId = round.Id,
+                SessionId = request.SessionId,
                 RoundNumber = round.RoundNumber,
                 StartTime = round.StartTime,
                 EndTime = round.EndTime,
                 AttendedCount = attendedCount,
                 TotalStudents = totalStudentsCountResponse.TotalStudents,
-                Status = round.Status.ToString(),
-                CreatedAt = round.CreatedAt,
-                UpdatedAt = round.UpdatedAt,
-
-                CourseId = courseId, // <-- Gán CourseId
-                CourseCode = courseCode, // <-- Gán CourseCode
-                CourseName = courseName, // <-- Gán CourseName
-
-                ClassSectionId = classSectionId, // <-- Gán ClassSectionId
-                SectionCode = sectionCode // <-- Gán SectionCode
-            });
-        }
+                Status = round.Status.ToString()
+            }).ToList();
 
         return result.OrderBy(r => r.RoundNumber).ToList();
     }

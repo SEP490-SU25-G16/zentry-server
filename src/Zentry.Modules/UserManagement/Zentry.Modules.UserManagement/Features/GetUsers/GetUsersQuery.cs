@@ -1,4 +1,5 @@
-﻿using Zentry.SharedKernel.Abstractions.Application;
+﻿using Zentry.Modules.UserManagement.Dtos;
+using Zentry.SharedKernel.Abstractions.Application;
 
 // Đảm bảo using này có mặt
 

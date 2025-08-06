@@ -8,7 +8,7 @@ public record GetSessionsByScheduleIdIntegrationQuery(Guid ScheduleId)
 public class GetSessionsByScheduleIdIntegrationResponse
 {
     public Guid SessionId { get; set; }
-    public string Status { get; set; }
+    public required string Status { get; set; }
     public DateTime StartTime { get; set; }
 
     public DateTime EndTime { get; set; }

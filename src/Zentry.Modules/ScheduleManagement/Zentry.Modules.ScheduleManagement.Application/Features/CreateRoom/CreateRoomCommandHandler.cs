@@ -12,7 +12,8 @@ public class CreateRoomCommandHandler(IRoomRepository roomRepository)
     {
         // 1. Business Rule: RoomName phải là duy nhất
         var isRoomNameUnique = await roomRepository.IsRoomNameUniqueAsync(command.RoomName, cancellationToken);
-        if (!isRoomNameUnique) throw new ResourceAlreadyExistsException($"Room with name '{command.RoomName}' already exists.");
+        if (!isRoomNameUnique)
+            throw new ResourceAlreadyExistsException($"Room with name '{command.RoomName}' already exists.");
 
         // 2. Tạo đối tượng Room Domain Entity
         var room = Room.Create(

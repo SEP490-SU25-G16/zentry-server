@@ -1,15 +1,20 @@
 ﻿using MassTransit;
-using MediatR; // <-- Thêm MediatR
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Constants.Attendance;
-using Zentry.SharedKernel.Constants.Response; // Thêm nếu dùng ErrorMessages
+using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
-using Zentry.SharedKernel.Contracts.Device; // <-- Thêm để truy cập GetDeviceByMacIntegrationQuery/Response
-using Zentry.SharedKernel.Contracts.Attendance; // Để truy cập ScannedDeviceContract (nếu không có)
-using Zentry.SharedKernel.Exceptions; // Thêm nếu dùng NotFoundException
+using Zentry.SharedKernel.Exceptions;
+
+// <-- Thêm MediatR
+// Thêm nếu dùng ErrorMessages
+// <-- Thêm để truy cập GetDeviceByAndroidIdIntegrationQuery/Response
+// Để truy cập ScannedDeviceContract (nếu không có)
+
+// Thêm nếu dùng NotFoundException
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -24,79 +29,74 @@ public class SubmitScanDataConsumer(
     {
         var message = consumeContext.Message;
         logger.LogInformation(
-            "MassTransit Consumer: Received scan data for SessionId: {SessionId}, Submitter MAC: {SubmitterMac}",
-            message.SessionId, message.SubmitterDeviceMacAddress);
+            "MassTransit Consumer: Received scan data for SessionId: {SessionId}, Submitter Android ID: {SubmitterAndroidId}",
+            message.SessionId, message.SubmitterDeviceAndroidId);
 
         try
         {
             logger.LogInformation(
-                "Processing Bluetooth scan data for Session {SessionId}, Submitter MAC {SubmitterMac}",
-                message.SessionId, message.SubmitterDeviceMacAddress);
+                "Processing Bluetooth scan data for Session {SessionId}, Submitter Android ID {SubmitterAndroidId}",
+                message.SessionId, message.SubmitterDeviceAndroidId);
 
-            // --- BƯỚC A: Lấy DeviceId và UserId của thiết bị gửi request (Submitter) từ MAC Address ---
+            // --- BƯỚC A: Lấy DeviceId và UserId của thiết bị gửi request (Submitter) từ Android ID ---
             Guid submitterDeviceId;
             Guid submitterUserId;
             try
             {
-                var getSubmitterDeviceQuery = new GetDeviceByMacIntegrationQuery(message.SubmitterDeviceMacAddress);
+                var getSubmitterDeviceQuery =
+                    new GetDeviceByAndroidIdIntegrationQuery(message.SubmitterDeviceAndroidId);
                 var submitterDeviceResponse =
                     await mediator.Send(getSubmitterDeviceQuery, consumeContext.CancellationToken);
 
                 submitterDeviceId = submitterDeviceResponse.DeviceId;
                 submitterUserId = submitterDeviceResponse.UserId;
 
-                logger.LogInformation("Submitter Device (MAC: {Mac}) mapped to DeviceId: {DeviceId}, UserId: {UserId}",
-                    message.SubmitterDeviceMacAddress, submitterDeviceId, submitterUserId);
+                logger.LogInformation(
+                    "Submitter Device (Android ID: {AndroidId}) mapped to DeviceId: {DeviceId}, UserId: {UserId}",
+                    message.SubmitterDeviceAndroidId, submitterDeviceId, submitterUserId);
             }
             catch (NotFoundException ex)
             {
                 logger.LogError(ex,
-                    "SubmitScanData failed in Consumer: Submitter device not found or inactive for MAC: {MacAddress}. Skipping.",
-                    message.SubmitterDeviceMacAddress);
+                    "SubmitScanData failed in Consumer: Submitter device not found or inactive for Android ID: {AndroidId}. Skipping.",
+                    message.SubmitterDeviceAndroidId);
                 // Quyết định: Khi lỗi ở Consumer, không throw để message không bị retry vô hạn nếu đó là lỗi data.
                 // Log lỗi và kết thúc xử lý cho message này.
                 return;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting submitter device info for MAC: {MacAddress} in Consumer.",
-                    message.SubmitterDeviceMacAddress);
+                logger.LogError(ex, "Error getting submitter device info for Android ID: {AndroidId} in Consumer.",
+                    message.SubmitterDeviceAndroidId);
                 // Nếu đây là lỗi tạm thời (ví dụ: DB down), bạn có thể cân nhắc throw lại để message được retry.
                 // Tuy nhiên, với NotFoundException, thường không retry.
                 throw; // Throw lại để MassTransit xử lý retry/move to error queue nếu đây là lỗi hệ thống.
             }
 
-            // --- BƯỚC B: Ánh xạ MAC Address của các thiết bị được quét thành DeviceId ---
-            var scannedMacAddresses = message.ScannedDevices.Select(sd => sd.MacAddress).ToList();
-            List<ScannedDevice> finalScannedDevicesForLog = new List<ScannedDevice>(); // Hoặc dùng [] trong C# 9+
+            // --- BƯỚC B: Ánh xạ Android ID của các thiết bị được quét thành DeviceId ---
+            var scannedAndroidIds = message.ScannedDevices.Select(sd => sd.AndroidId).ToList();
+            var finalScannedDevicesForLog = new List<ScannedDevice>(); // Hoặc dùng [] trong C# 9+
 
-            if (scannedMacAddresses.Any())
+            if (scannedAndroidIds.Count != 0)
             {
-                var getScannedDevicesQuery = new GetDevicesByMacListIntegrationQuery(scannedMacAddresses);
+                var getScannedDevicesQuery = new GetDevicesByAndroidIdListIntegrationQuery(scannedAndroidIds);
                 var scannedDevicesResponse =
                     await mediator.Send(getScannedDevicesQuery, consumeContext.CancellationToken);
 
-                var macToDeviceUserMap = scannedDevicesResponse.DeviceMappings.ToDictionary(
-                    m => m.MacAddress,
+                var androidIdToDeviceUserMap = scannedDevicesResponse.DeviceMappings.ToDictionary(
+                    m => m.AndroidId,
                     m => (m.DeviceId, m.UserId),
                     StringComparer.OrdinalIgnoreCase
                 );
 
                 foreach (var scannedDeviceFromMsg in message.ScannedDevices)
-                {
-                    if (macToDeviceUserMap.TryGetValue(scannedDeviceFromMsg.MacAddress, out var mappedInfo))
-                    {
-                        // SỬA ĐỔI DÒNG NÀY: Thêm 'new' trước ScannedDevice
+                    if (androidIdToDeviceUserMap.TryGetValue(scannedDeviceFromMsg.AndroidId, out var mappedInfo))
                         finalScannedDevicesForLog.Add(
                             new ScannedDevice(mappedInfo.DeviceId.ToString(), scannedDeviceFromMsg.Rssi));
-                    }
                     else
-                    {
                         logger.LogWarning(
-                            "Scanned device with MAC {ScannedMac} not found or inactive during consumer processing, skipping.",
-                            scannedDeviceFromMsg.MacAddress);
-                    }
-                }
+                            "Scanned device with Android ID {ScannedAndroidId} not found or inactive during consumer processing, skipping.",
+                            scannedDeviceFromMsg.AndroidId);
             }
 
             // Nếu không có thiết bị hợp lệ nào được quét (ví dụ: tất cả đều không đăng ký)

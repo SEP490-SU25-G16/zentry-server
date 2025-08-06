@@ -1,7 +1,10 @@
 using FluentValidation;
-using Zentry.SharedKernel.Abstractions.Models; // Assuming BaseValidator uses this
+using Zentry.SharedKernel.Abstractions.Models;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateCourse; // Hoặc một namespace phù hợp khác
+// Assuming BaseValidator uses this
+
+namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateCourse;
+// Hoặc một namespace phù hợp khác
 
 public class CreateCourseCommandValidator : BaseValidator<CreateCourseCommand>
 {

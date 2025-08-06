@@ -47,7 +47,7 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
             .IsUnique();
 
         builder.HasOne(o => o.AttributeDefinition)
-            .WithMany()
+            .WithMany(ad => ad.Options)
             .HasForeignKey(o => o.AttributeId)
             .IsRequired();
     }

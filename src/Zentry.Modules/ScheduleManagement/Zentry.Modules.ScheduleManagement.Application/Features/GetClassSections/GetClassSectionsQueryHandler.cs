@@ -1,15 +1,14 @@
+using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 
 public class GetClassSectionsQueryHandler(
     IClassSectionRepository classSectionRepository,
-    IUserScheduleService userScheduleService
+    IMediator mediator
 ) : IQueryHandler<GetClassSectionsQuery, GetClassSectionsResponse>
 {
     public async Task<GetClassSectionsResponse> Handle(GetClassSectionsQuery query, CancellationToken cancellationToken)
@@ -29,29 +28,40 @@ public class GetClassSectionsQueryHandler(
         var (classSections, totalCount) =
             await classSectionRepository.GetPagedClassSectionsAsync(criteria, cancellationToken);
 
+        if (totalCount == 0)
+        {
+            return new GetClassSectionsResponse
+            {
+                Items = new List<ClassSectionListItemDto>(),
+                TotalCount = 0,
+                PageNumber = query.PageNumber,
+                PageSize = query.PageSize
+            };
+        }
+
+        // Lấy danh sách LecturerId một cách an toàn và hiệu quả
         var lecturerIds = classSections
-            .Select(cs => cs.LecturerId)
+            .Where(cs => cs.LecturerId.HasValue)
+            .Select(cs => cs.LecturerId!.Value)
             .Distinct()
             .ToList();
 
-        var lecturerLookupTasks = lecturerIds
-            .Select<Guid, Task<GetUserByIdAndRoleIntegrationResponse?>>(id =>
-                userScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, id, cancellationToken))
-            .ToList();
-
-        await Task.WhenAll(lecturerLookupTasks);
-
-        var lecturers = lecturerLookupTasks
-            .Where(t => t.Result != null)
-            .Select(t => t.Result!)
-            .ToDictionary<GetUserByIdAndRoleIntegrationResponse, Guid, GetUserByIdAndRoleIntegrationResponse>(
-                t => t.UserId,
-                t => t
-            );
+        // Tra cứu tất cả giảng viên cùng một lúc
+        var lecturers = new Dictionary<Guid, BasicUserInfoDto>();
+        if (lecturerIds.Any())
+        {
+            var lecturerLookupResponse =
+                await mediator.Send(new GetUsersByIdsIntegrationQuery(lecturerIds), cancellationToken);
+            lecturers = lecturerLookupResponse.Users.ToDictionary(u => u.Id, u => u);
+        }
 
         var classSectionDtos = classSections.Select(cs =>
         {
-            lecturers.TryGetValue(cs.LecturerId, out var lecturerInfo);
+            BasicUserInfoDto? lecturerInfo = null;
+            if (cs.LecturerId.HasValue)
+            {
+                lecturers.TryGetValue(cs.LecturerId.Value, out lecturerInfo);
+            }
 
             return new ClassSectionListItemDto
             {
@@ -62,7 +72,7 @@ public class GetClassSectionsQueryHandler(
                 CourseCode = cs.Course?.Code,
                 CourseName = cs.Course?.Name,
                 LecturerId = cs.LecturerId,
-                LecturerFullName = lecturerInfo?.FullName,
+                LecturerFullName = lecturerInfo?.FullName ?? "Unassigned Lecturer",
                 NumberOfStudents = cs.Enrollments?.Count ?? 0
             };
         }).ToList();

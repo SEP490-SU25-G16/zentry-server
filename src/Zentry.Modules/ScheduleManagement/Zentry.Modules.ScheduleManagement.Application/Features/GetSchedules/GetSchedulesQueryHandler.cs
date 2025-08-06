@@ -1,15 +1,18 @@
-﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+﻿// File: Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules/GetSchedulesQueryHandler.cs
+using MediatR;
+using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 
 public class GetSchedulesQueryHandler(
     IScheduleRepository scheduleRepository,
-    IUserScheduleService lecturerLookupService
+    IMediator mediator
 ) : IQueryHandler<GetSchedulesQuery, GetSchedulesResponse>
 {
     public async Task<GetSchedulesResponse> Handle(GetSchedulesQuery query, CancellationToken cancellationToken)
@@ -30,40 +33,50 @@ public class GetSchedulesQueryHandler(
         var (schedules, totalCount) =
             await scheduleRepository.GetPagedSchedulesWithIncludesAsync(criteria, cancellationToken);
 
+        // Cải thiện logic lấy lecturerIds
         var lecturerIds = schedules
-            .Where(s => s.ClassSection?.LecturerId != null) // Lọc các Schedule có ClassSection và LecturerId
-            .Select(s => s.ClassSection!.LecturerId)
+            .Where(s => s.ClassSection?.LecturerId.HasValue == true) // Kiểm tra HasValue để an toàn hơn
+            .Select(s => s.ClassSection!.LecturerId!.Value) // Lấy giá trị của Guid
             .Distinct()
             .ToList();
 
-        var lecturerLookupTasks = lecturerIds
-            .Select(id => lecturerLookupService.GetUserByIdAndRoleAsync(Role.Lecturer, id, cancellationToken))
-            .ToList();
+        // Xử lý trường hợp không có giảng viên nào để tra cứu
+        var lecturers = new Dictionary<Guid, BasicUserInfoDto>();
+        if (lecturerIds.Any())
+        {
+            try
+            {
+                var lecturerLookupResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(lecturerIds), cancellationToken);
 
-        await Task.WhenAll(lecturerLookupTasks);
-
-        // Xử lý kết quả lookup để tạo dictionary
-        // Specify type arguments explicitly for ToDictionary
-        var lecturers = lecturerLookupTasks
-            .Where(t => t.Result != null)
-            .Select(t => t.Result!) // Khẳng định Result không null
-            .ToDictionary<GetUserByIdAndRoleIntegrationResponse, Guid, GetUserByIdAndRoleIntegrationResponse>(
-                t => t.UserId,
-                t => t
-            );
+                lecturers = lecturerLookupResponse.Users
+                    .ToDictionary(u => u.Id, u => u);
+            }
+            catch (Exception ex)
+            {
+            }
+        }
 
         var scheduleDtos = schedules.Select(s =>
         {
-            lecturers.TryGetValue(s.ClassSection?.LecturerId ?? Guid.Empty, out var lecturerInfo);
+            // Lấy LecturerId từ ClassSection
+            var lecturerId = s.ClassSection?.LecturerId;
+            BasicUserInfoDto? lecturerInfo = null;
+            if (lecturerId.HasValue)
+            {
+                lecturers.TryGetValue(lecturerId.Value, out lecturerInfo);
+            }
 
             return new ScheduleDto
             {
                 Id = s.Id,
                 ClassSectionId = s.ClassSectionId,
                 ClassSectionCode = s.ClassSection?.SectionCode,
-                LecturerId = s.ClassSection?.LecturerId ?? Guid.Empty,
+
+                // Gán LecturerId và Name
+                LecturerId = lecturerId,
                 LecturerName = lecturerInfo?.FullName ?? "Unknown Lecturer",
-                CourseId = s.ClassSection?.CourseId ?? Guid.Empty,
+
+                CourseId = s.ClassSection?.CourseId, // Dùng Guid? để an toàn hơn
                 CourseCode = s.ClassSection?.Course?.Code,
                 CourseName = s.ClassSection?.Course?.Name ?? "Unknown Course",
                 RoomId = s.RoomId,

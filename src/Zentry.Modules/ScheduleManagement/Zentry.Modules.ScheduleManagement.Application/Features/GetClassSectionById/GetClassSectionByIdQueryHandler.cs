@@ -1,3 +1,5 @@
+// File: Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById/GetClassSectionByIdQueryHandler.cs
+
 using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
@@ -14,19 +16,35 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
     public async Task<ClassSectionDto> Handle(GetClassSectionByIdQuery query, CancellationToken ct)
     {
         var cs = await classSectionRepository.GetByIdAsync(query.Id, ct);
-
         if (cs is null || cs.IsDeleted)
             throw new NotFoundException("ClassSection", query.Id);
 
-        // --- Lấy thông tin Giảng viên từ UserManagement module ---
+        // --- 1. Lấy thông tin Giảng viên từ UserManagement module ---
+        // Xử lý trường hợp LecturerId có thể là null
         GetUserByIdAndRoleIntegrationResponse? lecturerInfo = null;
-        if (cs.LecturerId != Guid.Empty)
+        if (cs.LecturerId.HasValue)
         {
-            var getUserQuery = new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId);
-            lecturerInfo = await mediator.Send(getUserQuery, ct);
+            try
+            {
+                lecturerInfo =
+                    await mediator.Send(new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId.Value), ct);
+            }
+            catch (NotFoundException)
+            {
+            }
         }
 
-        // --- Tạo DTO trả về ---
+        // --- 2. Lấy danh sách StudentId từ Enrollments ---
+        var studentIds = cs.Enrollments?.Select(e => e.StudentId).ToList() ?? new List<Guid>();
+
+        // --- 3. Lấy thông tin chi tiết của tất cả sinh viên bằng Batch Query ---
+        var studentInfos = new Dictionary<Guid, BasicUserInfoDto>();
+        if (studentIds.Any())
+        {
+            var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(studentIds), ct);
+            studentInfos = usersResponse.Users.ToDictionary(u => u.Id);
+        }
+
         var response = new ClassSectionDto
         {
             Id = cs.Id,
@@ -34,9 +52,8 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
             CourseCode = cs.Course?.Code,
             CourseName = cs.Course?.Name,
             LecturerId = cs.LecturerId,
-            LecturerFullName = lecturerInfo?.FullName,
+            LecturerFullName = lecturerInfo?.FullName ?? "Unassigned Lecturer",
             LecturerEmail = lecturerInfo?.Email,
-
             SectionCode = cs.SectionCode,
             Semester = cs.Semester,
             CreatedAt = cs.CreatedAt,
@@ -45,6 +62,8 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
                 .Select(s => new ScheduleDto
                 {
                     Id = s.Id,
+                    ClassSectionId = cs.Id,
+                    ClassSectionCode = cs.SectionCode,
                     RoomId = s.RoomId,
                     RoomName = s.Room?.RoomName,
                     StartDate = s.StartDate,
@@ -55,12 +74,24 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
                 })
                 .ToList(),
             Enrollments = cs.Enrollments?
-                .Select(e => new BasicEnrollmentDto
+                .Select(e => new EnrollmentDto
                 {
-                    Id = e.Id,
+                    EnrollmentId = e.Id,
+                    EnrollmentDate = e.EnrolledAt,
+                    Status = e.Status.ToString(),
                     StudentId = e.StudentId,
-                    EnrolledAt = e.EnrolledAt,
-                    Status = e.Status.ToString()
+                    StudentName = studentInfos.GetValueOrDefault(e.StudentId)?.FullName ?? "Unknown Student",
+
+                    ClassSectionId = cs.Id,
+                    ClassSectionCode = cs.SectionCode,
+                    ClassSectionSemester = cs.Semester,
+
+                    CourseId = cs.CourseId,
+                    CourseCode = cs.Course?.Code,
+                    CourseName = cs.Course?.Name,
+
+                    LecturerId = cs.LecturerId,
+                    LecturerName = lecturerInfo?.FullName ?? "Unassigned Lecturer"
                 })
                 .ToList()
         };

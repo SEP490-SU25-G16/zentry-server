@@ -31,6 +31,8 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
     {
         return await dbContext.ClassSections
             .Include(cs => cs.Course)
+            .Include(cs => cs.Enrollments)
+            .Where(cs => !cs.IsDeleted)
             .ToListAsync(cancellationToken);
     }
 

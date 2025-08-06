@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when a specific resource is not found.
+///     Represents an exception thrown when a specific resource is not found.
 /// </summary>
 public class ResourceNotFoundException : BusinessLogicException
 {

@@ -1,7 +1,7 @@
 using FluentValidation;
 using Zentry.SharedKernel.Abstractions.Models;
-using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Constants.Configuration;
+using Zentry.SharedKernel.Constants.Response;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition;
 
@@ -76,13 +76,9 @@ public class CreateAttributeDefinitionRequestValidator : BaseValidator<CreateAtt
 
     private bool BeValidScopeTypes(List<string> scopeTypes)
     {
-        if (scopeTypes == null || !scopeTypes.Any())
-        {
-            return false;
-        }
+        if (scopeTypes == null || !scopeTypes.Any()) return false;
 
         foreach (var scopeTypeName in scopeTypes)
-        {
             try
             {
                 ScopeType.FromName(scopeTypeName);
@@ -91,7 +87,6 @@ public class CreateAttributeDefinitionRequestValidator : BaseValidator<CreateAtt
             {
                 return false;
             }
-        }
 
         return true;
     }

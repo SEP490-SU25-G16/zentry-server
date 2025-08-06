@@ -1,5 +1,6 @@
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Domain;
 using Zentry.SharedKernel.Exceptions;
 
@@ -7,18 +8,17 @@ namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 public class Session : AggregateRoot<Guid>
 {
-    // Private constructor cho EF Core
     private Session() : base(Guid.Empty)
     {
         SessionConfigs = new SessionConfigSnapshot();
     }
 
-    private Session(Guid id, Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime, SessionStatus status,
+    private Session(Guid id, Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime, SessionStatus status,
         SessionConfigSnapshot sessionConfigs)
         : base(id)
     {
         ScheduleId = scheduleId;
-        UserId = userId;
+        LecturerId = lecturerId;
         StartTime = startTime;
         EndTime = endTime;
         Status = status;
@@ -27,42 +27,44 @@ public class Session : AggregateRoot<Guid>
     }
 
     public Guid ScheduleId { get; private set; }
-    public Guid UserId { get; private set; }
+    public Guid? LecturerId { get; private set; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
     public SessionStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
+    public DateTime? ActualEndTime { get; private set; }
 
-    // Thêm thuộc tính SessionConfigs kiểu Value Object
     public SessionConfigSnapshot SessionConfigs { get; private set; }
 
-    // Các property shortcuts cho config thông dụng (để dễ sử dụng)
     public int AttendanceWindowMinutes => SessionConfigs.AttendanceWindowMinutes;
     public int TotalAttendanceRounds => SessionConfigs.TotalAttendanceRounds;
     public int AbsentReportGracePeriodHours => SessionConfigs.AbsentReportGracePeriodHours;
     public int ManualAdjustmentGracePeriodHours => SessionConfigs.ManualAdjustmentGracePeriodHours;
 
-    // Factory method để tạo Session từ dictionary configs
-    public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
+    public static Session Create(Guid scheduleId, Guid? userId, DateTime startTime, DateTime endTime,
         Dictionary<string, string> configs)
     {
         var sessionConfigs = SessionConfigSnapshot.FromDictionary(configs);
-        // Mặc định tạo là Pending
         return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, SessionStatus.Pending,
             sessionConfigs);
     }
 
-    // Factory method để tạo Session từ SessionConfigSnapshot (backward compatibility)
-    public static Session Create(Guid scheduleId, Guid userId, DateTime startTime, DateTime endTime,
+    // Create method mới
+    public static Session Create(Guid scheduleId, Guid? userId, DateTime startTime, DateTime endTime,
         SessionConfigSnapshot sessionConfigs)
     {
-        // Mặc định tạo là Pending
         return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, SessionStatus.Pending,
             sessionConfigs);
     }
 
-    // Đã có hàm Update cho StartTime/EndTime
+    public void AssignLecturer(Guid lecturerId)
+    {
+        if (LecturerId.HasValue && LecturerId.Value == lecturerId) return;
+        LecturerId = lecturerId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Update(DateTime? startTime = null, DateTime? endTime = null)
     {
         if (startTime.HasValue && startTime.Value != StartTime)
@@ -78,7 +80,6 @@ public class Session : AggregateRoot<Guid>
         }
     }
 
-    // Update config method - cho phép cập nhật config sau khi tạo session
     public void UpdateConfig(string key, string value)
     {
         var newConfigs = SessionConfigs.ToDictionary();
@@ -87,17 +88,15 @@ public class Session : AggregateRoot<Guid>
         UpdatedAt = DateTime.UtcNow; // Cập nhật UpdatedAt khi config thay đổi
     }
 
-    // Update multiple configs
     public void UpdateConfigs(Dictionary<string, string> configs)
     {
         SessionConfigs = SessionConfigs.Merge(configs);
-        UpdatedAt = DateTime.UtcNow; // Cập nhật UpdatedAt khi config thay đổi
+        UpdatedAt = DateTime.UtcNow;
     }
 
-    // --- Các hành vi nghiệp vụ thay đổi trạng thái ---
     public void ActivateSession()
     {
-        if (Status != SessionStatus.Pending)
+        if (!Equals(Status, SessionStatus.Pending))
             throw new BusinessRuleException("SESSION_NOT_PENDING",
                 "Không thể kích hoạt phiên khi trạng thái không phải Pending.");
 
@@ -107,29 +106,27 @@ public class Session : AggregateRoot<Guid>
 
     public void CompleteSession()
     {
-        if (Status != SessionStatus.Active)
-            throw new BusinessRuleException("SESSION_NOT_ACTIVE",
+        if (!Equals(Status, SessionStatus.Active))
+            throw new BusinessRuleException(ErrorCodes.SessionNotActive,
                 "Không thể hoàn thành phiên khi trạng thái không phải Active.");
 
         Status = SessionStatus.Completed;
+        ActualEndTime = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void CancelSession()
     {
-        // Có thể thêm logic kiểm tra nếu session đã ACTIVE thì cần xác nhận đặc biệt
-        // Hoặc có thể hủy bỏ một phiên ACTIVE nếu cần
         Status = SessionStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void ArchiveSession()
+    public void MissedSession()
     {
-        Status = SessionStatus.Archived;
+        Status = SessionStatus.Missed;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    // --- Các hành vi nghiệp vụ sử dụng SessionConfigs ---
 
     public bool IsWithinAttendanceWindow(DateTime currentTime)
     {
@@ -159,8 +156,7 @@ public class Session : AggregateRoot<Guid>
         return adjustmentTime <= gracePeriodEnd;
     }
 
-    // Helper methods để truy cập config dễ dàng
-    public T GetConfig<T>(string key, T defaultValue = default)
+    public T GetConfig<T>(string key, T defaultValue)
     {
         var value = SessionConfigs[key];
         if (value == null) return defaultValue;

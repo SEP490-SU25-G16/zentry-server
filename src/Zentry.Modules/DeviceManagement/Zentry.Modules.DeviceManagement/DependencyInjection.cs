@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IUserDeviceService, UserDeviceService>();
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+
         return services;
     }
 }

@@ -10,9 +10,6 @@ public class CreateClassSectionRequestValidator : BaseValidator<CreateClassSecti
         RuleFor(x => x.CourseId)
             .NotEmpty().WithMessage("Course ID là bắt buộc.");
 
-        RuleFor(x => x.LecturerId)
-            .NotEmpty().WithMessage("Lecturer ID là bắt buộc.");
-
         RuleFor(x => x.SectionCode)
             .NotEmpty().WithMessage("Section Code là bắt buộc.");
 

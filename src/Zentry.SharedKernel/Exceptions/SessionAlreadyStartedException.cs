@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when an attendance session has already started.
+///     Represents an exception thrown when an attendance session has already started.
 /// </summary>
 public class SessionAlreadyStartedException : BusinessLogicException
 {

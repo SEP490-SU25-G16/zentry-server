@@ -20,7 +20,6 @@ public class CreateClassSectionCommandHandler(IClassSectionRepository repository
 
         var newSection = ClassSection.Create(
             request.CourseId,
-            request.LecturerId,
             request.SectionCode,
             request.Semester
         );

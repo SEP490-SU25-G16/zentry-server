@@ -85,11 +85,7 @@ public class GetSessionFinalAttendanceQueryHandler(
                 ScheduleId = session.ScheduleId,
                 CourseId = courseId,
                 ClassInfo = classInfo,
-                SessionStartTime = session.StartTime,
-
-                LastAttendanceRecordId = lastAttendanceRecord?.Id,
-                DetailedAttendanceStatus = attendanceStatus.ToString(),
-                LastAttendanceTime = lastAttendanceRecord?.CreatedAt ?? session.StartTime
+                SessionStartTime = session.StartTime
             });
         }
 

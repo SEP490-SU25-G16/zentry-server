@@ -18,8 +18,7 @@ public class ClassSectionConfiguration : IEntityTypeConfiguration<ClassSection>
         builder.Property(cs => cs.CourseId)
             .IsRequired();
 
-        builder.Property(cs => cs.LecturerId)
-            .IsRequired();
+        builder.Property(cs => cs.LecturerId);
 
         builder.Property(cs => cs.SectionCode)
             .HasMaxLength(50)

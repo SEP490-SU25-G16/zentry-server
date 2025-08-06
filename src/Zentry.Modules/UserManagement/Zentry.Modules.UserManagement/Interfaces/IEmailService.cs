@@ -1,4 +1,4 @@
-namespace Zentry.Modules.UserManagement.Services;
+namespace Zentry.Modules.UserManagement.Interfaces;
 
 public interface IEmailService
 {

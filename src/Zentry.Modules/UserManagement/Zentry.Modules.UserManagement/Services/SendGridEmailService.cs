@@ -3,6 +3,7 @@
 using Microsoft.Extensions.Configuration;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using Zentry.Modules.UserManagement.Interfaces;
 
 namespace Zentry.Modules.UserManagement.Services;
 

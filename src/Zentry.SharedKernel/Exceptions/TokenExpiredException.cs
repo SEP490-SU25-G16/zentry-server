@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when an authentication token has expired.
+///     Represents an exception thrown when an authentication token has expired.
 /// </summary>
 public class TokenExpiredException : BusinessLogicException
 {

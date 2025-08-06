@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
-using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.SeedData;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure;
@@ -23,10 +22,6 @@ public static class DependencyInjection
         services.AddScoped<IRoomRepository, RoomRepository>();
         services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
         services.AddScoped<IClassSectionRepository, ClassSectionRepository>();
-
-        services.AddScoped<ScheduleDbSeeder>();
-        services.AddHostedService<ScheduleDbMigrationService>();
-
         return services;
     }
 }

@@ -21,22 +21,18 @@ public class SignInHandler(UserDbContext dbContext, IJwtService jwtService, IPas
             throw new AccountNotFoundException("Account not found.");
 
         if (!Equals(account.Status, AccountStatus.Active))
-        {
             throw account.Status.Id switch
             {
                 2 => new AccountInactiveException("Account is inactive."),
                 3 => new AccountLockedException("Account is locked."),
                 _ => new AccountDisabledException("Account is disabled.")
             };
-        }
 
         // Kiểm tra password
         if (string.IsNullOrEmpty(account.PasswordHash) ||
             string.IsNullOrEmpty(account.PasswordSalt) ||
             !passwordHasher.VerifyHashedPassword(account.PasswordHash, account.PasswordSalt, request.Password))
-        {
             throw new InvalidCredentialsException("Invalid email or password.");
-        }
 
         // Tìm user
         var user = await dbContext.Users

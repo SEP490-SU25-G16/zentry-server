@@ -8,4 +8,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Zentry.Modules.ScheduleManagement.Application\Zentry.Modules.ScheduleManagement.Application.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="EPPlus" Version="8.0.8" />
+    </ItemGroup>
 </Project>

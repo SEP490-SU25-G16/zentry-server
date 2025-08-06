@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when an account is locked.
+///     Represents an exception thrown when an account is locked.
 /// </summary>
 public class AccountLockedException : BusinessLogicException
 {

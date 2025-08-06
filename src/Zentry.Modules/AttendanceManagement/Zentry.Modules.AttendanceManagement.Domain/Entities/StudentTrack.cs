@@ -8,9 +8,9 @@ public class StudentTrack
     {
     }
 
-    public StudentTrack(Guid sesionId, Guid studentId, string deviceId)
+    public StudentTrack(Guid sessionId, Guid studentId, string deviceId)
     {
-        SessionId = sesionId;
+        SessionId = sessionId;
         Id = studentId;
         DeviceId = deviceId;
     }
@@ -30,7 +30,6 @@ public class StudentTrack
     {
         if (totalRoundsInSession == 0) return 0;
 
-        // Đếm số round mà sinh viên này đã tham gia
         var attendedRoundsCount = Rounds.Count(rp => rp.IsAttended);
 
         return (double)attendedRoundsCount / totalRoundsInSession * 100;

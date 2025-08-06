@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Zentry.Modules.UserManagement.Dtos;
 using Zentry.Modules.UserManagement.Entities;
-using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Constants.User;
@@ -10,6 +10,20 @@ namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
+    public async Task AddRangeAsync(IEnumerable<Account> accounts, IEnumerable<User> users, CancellationToken cancellationToken)
+    {
+        await dbContext.Accounts.AddRangeAsync(accounts, cancellationToken);
+        await dbContext.Users.AddRangeAsync(users, cancellationToken);
+        await SaveChangesAsync(cancellationToken);
+    }
+    public async Task<List<string>> GetExistingEmailsAsync(List<string> emails)
+    {
+        return await dbContext.Accounts
+            .Where(a => emails.Contains(a.Email))
+            .Select(a => a.Email)
+            .ToListAsync();
+    }
+
     public async Task<List<(Guid UserId, Role Role)>> GetUserRolesByUserIdsAsync(
         List<Guid> userIds, CancellationToken cancellationToken)
     {
@@ -145,7 +159,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
                 UserId = x.User.Id,
                 Email = x.Account.Email,
                 FullName = x.User.FullName,
-                Role = x.Account.Role,
+                Role = x.Account.Role.ToString(),
                 Status = x.Account.Status.ToString(),
                 CreatedAt = x.Account.CreatedAt
             })

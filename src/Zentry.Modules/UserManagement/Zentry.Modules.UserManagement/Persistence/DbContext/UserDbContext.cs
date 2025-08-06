@@ -7,6 +7,7 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : Microsoft.
 {
     public DbSet<Account> Accounts { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<UserRequest> UserRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

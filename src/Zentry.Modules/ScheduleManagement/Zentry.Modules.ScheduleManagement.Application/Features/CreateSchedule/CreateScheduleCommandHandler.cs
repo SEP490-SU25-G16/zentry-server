@@ -1,10 +1,8 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
 
@@ -14,7 +12,6 @@ public class CreateScheduleCommandHandler(
     IScheduleRepository scheduleRepository,
     IClassSectionRepository classSectionRepository,
     IRoomRepository roomRepository,
-    IUserScheduleService lecturerScheduleService,
     IPublishEndpoint publishEndpoint,
     ILogger<CreateScheduleCommandHandler> logger)
     : ICommandHandler<CreateScheduleCommand, CreatedScheduleResponse>
@@ -33,37 +30,27 @@ public class CreateScheduleCommandHandler(
         if (room is null)
             throw new NotFoundException("Room", $"ID '{command.RoomId}' not found.");
 
-        var lecturer =
-            await lecturerScheduleService.GetUserByIdAndRoleAsync(Role.Lecturer, command.LecturerId, cancellationToken);
-        if (lecturer is null)
-            throw new NotFoundException(Role.Lecturer.ToString(), $"ID '{command.LecturerId}' not found or invalid.");
-
-        if (!await scheduleRepository.IsLecturerAvailableAsync(command.LecturerId, command.WeekDay, command.StartTime,
-                command.EndTime, cancellationToken))
-            throw new BusinessRuleException("LECTURER_BUSY",
-                $"Giảng viên {lecturer.FullName} đã bận vào {command.WeekDay} từ {command.StartTime} đến {command.EndTime}.");
-
         if (!await scheduleRepository.IsRoomAvailableAsync(command.RoomId, command.WeekDay, command.StartTime,
-                command.EndTime, cancellationToken))
+                command.EndTime, command.StartDate, command.EndDate, cancellationToken))
             throw new BusinessRuleException("ROOM_BOOKED",
-                $"Phòng đã được đặt vào {command.WeekDay} từ {command.StartTime} đến {command.EndTime}.");
-
+                $"Phòng đã được đặt vào {command.WeekDay} từ {command.StartTime} đến {command.EndTime} trong khoảng thời gian này.");
         var schedule = Schedule.Create(
             section.Id,
             command.RoomId,
-            weekDay: command.WeekDay,
-            startTime: command.StartTime,
-            endTime: command.EndTime,
-            startDate: command.StartDate,
-            endDate: command.EndDate
+            command.StartDate,
+            command.EndDate,
+            command.StartTime,
+            command.EndTime,
+            command.WeekDay
         );
 
         await scheduleRepository.AddAsync(schedule, cancellationToken);
         await scheduleRepository.SaveChangesAsync(cancellationToken);
 
-        var scheduleCreatedEvent = new CreateSesssionMessage(
+        logger.LogInformation("Schedule {ScheduleId} created successfully. Publishing event.", schedule.Id);
+
+        var scheduleCreatedEvent = new ScheduleCreatedMessage(
             schedule.Id,
-            command.LecturerId,
             schedule.ClassSectionId,
             schedule.RoomId,
             schedule.WeekDay.ToString(),
@@ -76,17 +63,16 @@ public class CreateScheduleCommandHandler(
         );
 
         await publishEndpoint.Publish(scheduleCreatedEvent, cancellationToken);
-        logger.LogInformation("ScheduleCreatedEvent published for ScheduleId: {ScheduleId}.", schedule.Id);
+        logger.LogInformation("ScheduleCreatedMessage published for ScheduleId: {ScheduleId}.", schedule.Id);
 
         return new CreatedScheduleResponse
         {
             Id = schedule.Id,
-            LecturerId = command.LecturerId,
             ClassSectionId = schedule.ClassSectionId,
             RoomId = schedule.RoomId,
             StartTime = schedule.StartTime,
             EndTime = schedule.EndTime,
-            WeekDay = schedule.WeekDay,
+            WeekDay = schedule.WeekDay.ToString(),
             StartDate = schedule.StartDate,
             EndDate = schedule.EndDate,
             CreatedAt = schedule.CreatedAt

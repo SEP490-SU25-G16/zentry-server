@@ -2,14 +2,14 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Features.AssignLecturer;
 using Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.DeleteClassSection;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetAllClassSectionsWithEnrollmentCount;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSectionById;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyClasses;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerHome;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailyClasses;
 using Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
@@ -20,35 +20,27 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 [Route("api/class-sections")]
 public class ClassSectionsController(IMediator mediator) : BaseController
 {
-    [HttpGet("student/daily-schedule")]
-    [ProducesResponseType(typeof(ApiResponse<List<StudentDailyClassDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetStudentDailyClasses([FromQuery] Guid studentId,
-        [FromQuery] DateTime? date = null)
+    [HttpPost("{classSectionId:guid}/lecturers/{lecturerId:guid}")]
+    [ProducesResponseType(typeof(AssignLecturerResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AssignLecturer(
+        [FromRoute] Guid classSectionId,
+        [FromRoute] Guid lecturerId,
+        CancellationToken cancellationToken)
     {
-        try
-        {
-            var queryDate = date ?? DateTime.Today;
-            var query = new GetStudentDailyClassesQuery(studentId, queryDate);
-            var response = await mediator.Send(query);
-            return HandleResult(response);
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex);
-        }
+        var command = new AssignLecturerCommand(classSectionId, lecturerId);
+        var result = await mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 
-    [HttpGet("lecturer/daily-schedule")]
-    [ProducesResponseType(typeof(ApiResponse<List<LecturerDailyClassDto>>), StatusCodes.Status200OK)]
+    [HttpGet("all-with-enrollment-count")]
+    [ProducesResponseType(typeof(ApiResponse<List<ClassSectionWithEnrollmentCountDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetLecturerDailyClasses([FromQuery] Guid lecturerId,
-        [FromQuery] DateTime? date = null)
+    public async Task<IActionResult> GetAllClassSectionsWithEnrollmentCount()
     {
         try
         {
-            var queryDate = date ?? DateTime.Today;
-            var query = new GetLecturerDailyClassesQuery(lecturerId, queryDate);
+            var query = new GetAllClassSectionsWithEnrollmentCountQuery();
             var response = await mediator.Send(query);
             return HandleResult(response);
         }
@@ -105,7 +97,6 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         {
             var command = new CreateClassSectionCommand(
                 new Guid(request.CourseId),
-                new Guid(request.LecturerId),
                 request.SectionCode,
                 request.Semester
             );

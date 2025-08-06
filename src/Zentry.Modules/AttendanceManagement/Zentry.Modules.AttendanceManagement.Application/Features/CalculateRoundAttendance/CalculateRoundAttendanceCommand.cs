@@ -5,4 +5,4 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.CalculateRoun
 public record CalculateRoundAttendanceCommand(Guid SessionId, Guid RoundId)
     : ICommand<CalculateRoundAttendanceResponse>;
 
-public record CalculateRoundAttendanceResponse(bool Success, string Message, int AttendedCount = 0);
+public record CalculateRoundAttendanceResponse(bool Success, string Message);

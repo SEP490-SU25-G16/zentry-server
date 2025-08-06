@@ -9,4 +9,8 @@
     <ItemGroup>
         <ProjectReference Include="..\Zentry.Modules.AttendanceManagement.Application\Zentry.Modules.AttendanceManagement.Application.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="EPPlus" Version="8.0.8" />
+    </ItemGroup>
 </Project>

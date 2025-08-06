@@ -1,5 +1,4 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
@@ -28,6 +27,6 @@ public class CreateUserResponse
     public string Email { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
-    public AccountStatus Status { get; set; }
+    public string Status { get; set; }
     public DateTime CreatedAt { get; set; }
 }

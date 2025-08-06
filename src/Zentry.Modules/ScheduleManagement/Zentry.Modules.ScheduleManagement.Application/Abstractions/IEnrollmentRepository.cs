@@ -1,12 +1,15 @@
-﻿using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
+﻿using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
-using Zentry.SharedKernel.Constants.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
 {
+    Task<List<EnrollmentWithClassSectionDto>> GetActiveEnrollmentsByStudentIdAsync(
+        Guid studentId, CancellationToken cancellationToken);
+
     Task<bool> ExistsAsync(Guid studentId, Guid scheduleId, CancellationToken cancellationToken);
 
     Task<(List<Enrollment> Enrollments, int TotalCount)> GetPagedEnrollmentsAsync(
@@ -22,4 +25,8 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
     Task BulkAddAsync(List<Enrollment> enrollments, CancellationToken cancellationToken);
     Task<List<Enrollment>> GetEnrollmentsByClassSectionAsync(Guid classSectionId, CancellationToken cancellationToken);
     Task<List<Enrollment>> GetEnrollmentsByStudentIdAsync(Guid studentId, CancellationToken cancellationToken);
+
+    Task<List<EnrollmentProjectionDto>> GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
+        Guid studentId,
+        CancellationToken cancellationToken);
 }

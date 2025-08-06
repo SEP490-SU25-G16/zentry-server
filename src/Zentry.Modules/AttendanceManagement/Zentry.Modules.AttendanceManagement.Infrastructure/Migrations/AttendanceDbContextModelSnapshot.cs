@@ -79,7 +79,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<DateTime?>("EndTime")
+                    b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("RoundNumber")
@@ -124,6 +124,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ActualEndTime")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -131,6 +134,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LecturerId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
@@ -146,71 +152,18 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("LecturerId");
 
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StartTime");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("Sessions", null, t =>
                         {
                             t.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                         });
-                });
-
-            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.UserRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Reason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid>("RelatedEntityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("RequestType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<Guid>("RequestedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<Guid>("TargetUserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RequestType");
-
-                    b.HasIndex("RequestedByUserId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("TargetUserId");
-
-                    b.ToTable("UserRequests", (string)null);
                 });
 
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", b =>

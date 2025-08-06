@@ -27,6 +27,7 @@ public static class ErrorCodes
     public const string InvalidAttributeDefinitionType = "INVALID_ATTRIBUTE_DEFINITION_TYPE";
     public const string AttributeDefinitionKeyExists = "ATTRIBUTE_DEFINITION_KEY_EXISTS";
     public const string InvalidSettingValue = "INVALID_SETTING_VALUE";
+    public const string InvalidSettingScope = "INVALID_SETTING_SCOPE";
     public const string SelectionOptionsRequired = "SELECTION_OPTIONS_REQUIRED";
     public const string SettingAlreadyExists = "SETTING_ALREADY_EXISTS";
 
@@ -43,7 +44,9 @@ public static class ErrorCodes
     public const string SessionNotFound = "SESSION_NOT_FOUND";
     public const string SessionAlreadyStarted = "SESSION_ALREADY_STARTED";
     public const string AttendanceCalculationFailed = "ATTENDANCE_CALCULATION_FAILED";
-
+    public const string SessionEnded = "SESSION_ENDED";
+    public const string SessionNotActiveOrComplete = "SESSION_NOT_ACTIVE_OR_COMPLETE";
+    public const string SessionNotActive = "SESSION_NOT_ACTIVE";
 
     public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string AccountInactive = "ACCOUNT_INACTIVE";
@@ -53,4 +56,8 @@ public static class ErrorCodes
     public const string EmailNotConfirmed = "EMAIL_NOT_CONFIRMED";
     public const string TwoFactorRequired = "TWO_FACTOR_REQUIRED";
     public const string PasswordResetRequired = "PASSWORD_RESET_REQUIRED";
+
+    // File
+    public const string InvalidInput = "INVALID_INPUT";
+    public const string InvalidFileFormat = "INVALID_FILE_FORMAT";
 }

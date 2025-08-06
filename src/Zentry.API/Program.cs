@@ -1,4 +1,3 @@
-using FluentValidation;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +20,7 @@ using Zentry.Modules.UserManagement;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
+using Zentry.SharedKernel.Helpers;
 using Zentry.SharedKernel.Middlewares;
 using Zentry.Modules.FaceId;
 using Zentry.Modules.NotificationService.Infrastructure.Hubs;
@@ -29,7 +29,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ===== CẤU HÌNH CONTROLLERS VÀ JSON =====
 builder.Services.AddControllers()
-    .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = null; });
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ nguyên tùy chọn này nếu bạn muốn PascalCase
+        // THÊM CÁC CONVERTER DATETIME TẠI ĐÂY
+        options.JsonSerializerOptions.Converters.Add(new DateTimeToLocalConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableDateTimeToLocalConverter());
+    });
 
 
 // ===== CẤU HÌNH MODEL VALIDATION =====
@@ -38,15 +44,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.InvalidModelStateResponseFactory = context =>
     {
         var firstError = context.ModelState
-            .SelectMany(x => x.Value.Errors)
+            .SelectMany(x => x.Value?.Errors!)
             .FirstOrDefault();
 
         var message = firstError?.ErrorMessage ?? ErrorMessages.InvalidDataFormat;
 
-        if (IsGuidFormatError(firstError?.ErrorMessage))
-        {
-            message = ErrorMessages.GuidFormatInvalid;
-        }
+        if (IsGuidFormatError(firstError?.ErrorMessage)) message = ErrorMessages.GuidFormatInvalid;
 
         var apiResponse = ApiResponse.ErrorResult(ErrorCodes.ValidationError, message);
         return new BadRequestObjectResult(apiResponse);
@@ -71,8 +74,8 @@ builder.Services.AddHealthChecks();
 builder.Services.AddMassTransit(x =>
 {
     x.AddAttendanceMassTransitConsumers();
-    x.AddNotificationMassTransitConsumers(); // ← Thêm vào module
-
+    x.AddUserMassTransitConsumers();
+    x.AddNotificationMassTransitConsumers(); 
     x.UsingRabbitMq((context, cfg) =>
     {
         var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
@@ -82,6 +85,7 @@ builder.Services.AddMassTransit(x =>
         cfg.Host(new Uri(rabbitMqConnectionString));
 
         cfg.ConfigureAttendanceReceiveEndpoints(context);
+        cfg.ConfigureUserReceiveEndpoints(context);
         cfg.ConfigureNotificationReceiveEndpoints(context);
     });
 });
@@ -155,7 +159,6 @@ static async Task RunDatabaseMigrationsAsync(WebApplication app)
     };
 
     foreach (var (contextType, contextName) in migrations)
-    {
         await retryPolicy.ExecuteAsync(async () =>
         {
             var dbContext = (DbContext)serviceProvider.GetRequiredService(contextType);
@@ -163,5 +166,4 @@ static async Task RunDatabaseMigrationsAsync(WebApplication app)
             await dbContext.Database.MigrateAsync();
             logger.LogInformation("{ContextName} migrations applied successfully.", contextName);
         });
-    }
 }

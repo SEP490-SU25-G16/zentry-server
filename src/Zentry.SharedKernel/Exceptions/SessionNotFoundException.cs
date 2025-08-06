@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when an attendance session is not found.
+///     Represents an exception thrown when an attendance session is not found.
 /// </summary>
 public class SessionNotFoundException : BusinessLogicException
 {

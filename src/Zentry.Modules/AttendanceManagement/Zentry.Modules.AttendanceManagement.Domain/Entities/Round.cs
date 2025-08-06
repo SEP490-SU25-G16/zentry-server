@@ -23,7 +23,7 @@ public class Round : AggregateRoot<Guid>
     public Guid SessionId { get; private set; }
     public int RoundNumber { get; private set; }
     public DateTime StartTime { get; private set; }
-    public DateTime? EndTime { get; private set; }
+    public DateTime EndTime { get; private set; }
     public RoundStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -9,6 +10,49 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepository
 {
+    public async Task<List<EnrollmentWithClassSectionDto>> GetActiveEnrollmentsByStudentIdAsync(
+        Guid studentId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Enrollments
+            .AsNoTracking()
+            .Where(e => e.StudentId == studentId &&
+                        e.Status == EnrollmentStatus.Active)
+            .Include(e => e.ClassSection)
+            .ThenInclude(cs => cs!.Course)
+            .Select(e => new EnrollmentWithClassSectionDto
+            {
+                ClassSectionId = e.ClassSectionId,
+                CourseId = e.ClassSection!.CourseId,
+                CourseCode = e.ClassSection.Course!.Code,
+                CourseName = e.ClassSection.Course.Name,
+                SectionCode = e.ClassSection.SectionCode,
+                LecturerId = e.ClassSection.LecturerId
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<EnrollmentProjectionDto>> GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
+        Guid studentId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Enrollments
+            .AsNoTracking()
+            .Where(e => e.StudentId == studentId &&
+                        e.Status == EnrollmentStatus.Active &&
+                        e.ClassSection != null &&
+                        e.ClassSection.Course != null)
+            .Select(e => new EnrollmentProjectionDto
+            {
+                ClassSectionId = e.ClassSectionId,
+                LecturerId = e.ClassSection.LecturerId,
+                CourseId = e.ClassSection.CourseId,
+                CourseCode = e.ClassSection.Course!.Code,
+                CourseName = e.ClassSection.Course.Name,
+                SectionCode = e.ClassSection.SectionCode
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Enrollment>> GetEnrollmentsByStudentIdAsync(Guid studentId,
         CancellationToken cancellationToken)
     {

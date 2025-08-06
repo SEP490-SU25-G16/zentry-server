@@ -35,7 +35,7 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
             .IsRequired();
 
         builder.HasOne(e => e.ClassSection)
-            .WithMany()
+            .WithMany(cs => cs.Enrollments)
             .HasForeignKey(e => e.ClassSectionId)
             .OnDelete(DeleteBehavior.Restrict);
 

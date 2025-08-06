@@ -27,7 +27,7 @@ public class RoundConfiguration : IEntityTypeConfiguration<Round>
             .IsRequired();
 
         builder.Property(r => r.EndTime)
-            .IsRequired(false);
+            .IsRequired();
 
         builder.Property(ar => ar.Status)
             .HasConversion(

@@ -7,6 +7,10 @@ public static class ErrorMessages
     public const string InvalidDataFormat = "Định dạng dữ liệu không hợp lệ";
     public const string GuidFormatInvalid = "ID phải có định dạng hợp lệ (ví dụ: 12345678-1234-1234-1234-123456789abc)";
 
+    public const string InvalidInput = "Dữ liệu yêu cầu không hợp lệ.";
+    public const string InvalidFileFormat = "Định dạng file không hợp lệ.";
+
+
     // Setting specific messages
     public static class Settings
     {
@@ -19,12 +23,22 @@ public static class ErrorMessages
         public const string SettingScopeTypeRequired = "Loại phạm vi cài đặt là bắt buộc";
         public const string ScopeIdRequired = "ID phạm vi là bắt buộc";
         public const string ValueRequired = "Giá trị cài đặt là bắt buộc";
-        public const string InvalidAttributeDefinitionDataTypeOrScopeType = "Kiểu dữ liệu hoặc loại phạm vi định nghĩa thuộc tính không hợp lệ.";
-        public const string InvalidSettingValue = "Phạm vi định nghĩa cho setting không hợp lệ.";
+
+        public const string InvalidAttributeDefinitionDataTypeOrScopeType =
+            "Kiểu dữ liệu hoặc loại phạm vi định nghĩa thuộc tính không hợp lệ.";
+
+        public const string InvalidSettingScope = "Phạm vi định nghĩa cho setting không hợp lệ.";
+        public const string InvalidSettingValue = "Giá trị cho setting không hợp lệ.";
         public const string AttributeDefinitionKeyAlreadyExists = "Định nghĩa thuộc tính với Key '{0}' đã tồn tại.";
-        public const string InvalidSettingValueForAttribute = "Giá trị '{0}' không hợp lệ cho thuộc tính '{1}' (Kiểu dữ liệu: {2}).";
-        public const string SelectionDataTypeRequiresOptions = "Định nghĩa thuộc tính với Kiểu dữ liệu 'Selection' yêu cầu phải có tùy chọn.";
-        public const string SettingExistsForAttributeScope = "Cài đặt cho thuộc tính '{0}' với phạm vi '{1}' và ID '{2}' đã tồn tại.";
+
+        public const string InvalidSettingValueForAttribute =
+            "Giá trị '{0}' không hợp lệ cho thuộc tính '{1}' (Kiểu dữ liệu: {2}).";
+
+        public const string SelectionDataTypeRequiresOptions =
+            "Định nghĩa thuộc tính với Kiểu dữ liệu 'Selection' yêu cầu phải có tùy chọn.";
+
+        public const string SettingExistsForAttributeScope =
+            "Cài đặt cho thuộc tính '{0}' với phạm vi '{1}' và ID '{2}' đã tồn tại.";
     }
 
     // User specific messages
@@ -57,5 +71,12 @@ public static class ErrorMessages
         public const string TwoFactorRequired = "Yêu cầu xác thực hai yếu tố";
         public const string PasswordResetRequired = "Yêu cầu đặt lại mật khẩu";
         public const string ServerError = "Có lỗi xảy ra phía server";
+    }
+
+    public static class Attendance
+    {
+        public const string SessionEnded = "Phiên điểm danh đã kết thúc, dữ liệu quét không được chấp nhận.";
+        public const string SessionNotActive = "Phiên điểm danh chưa ở trạng thái hoạt động.";
+        public const string SessionNotActiveOrComplete = "Phiên điểm danh chưa ở trạng thái hoạt động hoặc hoàn thành.";
     }
 }

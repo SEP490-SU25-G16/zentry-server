@@ -107,14 +107,14 @@ public class CreateAttributeDefinitionCommandHandler(
                 Key = attributeDefinition.Key,
                 DisplayName = attributeDefinition.DisplayName,
                 Description = attributeDefinition.Description,
-                DataType = attributeDefinition.DataType,
-                AllowedScopeTypes = attributeDefinition.AllowedScopeTypes,
+                DataType = attributeDefinition.DataType.ToString(),
+                AllowedScopeTypes = attributeDefinition.AllowedScopeTypes.Select(st => st.ToString()).ToList(),
                 Unit = attributeDefinition.Unit,
                 DefaultValue = attributeDefinition.DefaultValue,
                 IsDeletable = attributeDefinition.IsDeletable,
                 CreatedAt = attributeDefinition.CreatedAt,
                 UpdatedAt = attributeDefinition.UpdatedAt,
-                Options = optionDtos.Any() ? optionDtos : null
+                Options = optionDtos.Count != 0 ? optionDtos : null
             };
         }
         catch (BusinessLogicException)

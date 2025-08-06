@@ -9,7 +9,6 @@ public class AttendanceRecord : AggregateRoot<Guid>
     {
     }
 
-    // Cập nhật constructor để bao gồm percentageAttended
     private AttendanceRecord(Guid id, Guid userId, Guid sessionId, AttendanceStatus status, bool isManual,
         double percentageAttended)
         : base(id)
@@ -18,9 +17,9 @@ public class AttendanceRecord : AggregateRoot<Guid>
         SessionId = sessionId;
         Status = status;
         IsManual = isManual;
-        PercentageAttended = percentageAttended; // Gán giá trị
+        PercentageAttended = percentageAttended;
         CreatedAt = DateTime.UtcNow;
-        ExpiredAt = DateTime.UtcNow; // Vẫn giữ nếu bạn có lý do cụ thể
+        ExpiredAt = DateTime.UtcNow;
     }
 
     public Guid UserId { get; private set; }
@@ -28,19 +27,17 @@ public class AttendanceRecord : AggregateRoot<Guid>
     public AttendanceStatus Status { get; private set; }
     public bool IsManual { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime ExpiredAt { get; private set; } // Xem xét lại việc sử dụng field này
+    public DateTime ExpiredAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    public double PercentageAttended { get; private set; } // THÊM FIELD NÀY
+    public double PercentageAttended { get; private set; }
 
-    // Cập nhật phương thức Create
     public static AttendanceRecord Create(Guid userId, Guid sessionId, AttendanceStatus status, bool isManual,
         double percentageAttended)
     {
         return new AttendanceRecord(Guid.NewGuid(), userId, sessionId, status, isManual, percentageAttended);
     }
 
-    // Cập nhật phương thức Update để có thể thay đổi percentage
     public void Update(AttendanceStatus? status = null, bool? isManual = null, DateTime? expiredAt = null,
         double? percentageAttended = null)
     {

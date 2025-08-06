@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -10,6 +11,147 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<List<Schedule>> GetSchedulesByClassSectionIdAsync(Guid classSectionId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => s.ClassSectionId == classSectionId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<ScheduleWithRoomDto>> GetActiveSchedulesByClassSectionIdsAndDayAsync(
+        List<Guid> classSectionIds, WeekDayEnum dayOfWeek, DateOnly date, CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => classSectionIds.Contains(s.ClassSectionId) &&
+                        s.WeekDay == dayOfWeek &&
+                        s.StartDate <= date &&
+                        s.EndDate >= date)
+            .Include(s => s.Room)
+            .Select(s => new ScheduleWithRoomDto
+            {
+                Id = s.Id,
+                ClassSectionId = s.ClassSectionId,
+                RoomId = s.RoomId,
+                RoomName = s.Room!.RoomName,
+                Building = s.Room.Building,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                WeekDay = s.WeekDay,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<ScheduleProjectionDto>> GetSchedulesByClassSectionIdsAndDateAsync(
+        List<Guid> classSectionIds,
+        DateOnly date,
+        WeekDayEnum weekDay,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => classSectionIds.Contains(s.ClassSectionId) &&
+                        s.WeekDay == weekDay &&
+                        s.StartDate <= date &&
+                        s.EndDate >= date)
+            .Select(s => new ScheduleProjectionDto
+            {
+                ScheduleId = s.Id,
+                ClassSectionId = s.ClassSectionId,
+                RoomId = s.RoomId,
+                RoomName = s.Room!.RoomName,
+                Building = s.Room.Building,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                WeekDay = s.WeekDay
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<ScheduleDetailsWithRelationsDto?> GetScheduleDetailsWithRelationsAsync(Guid scheduleId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => s.Id == scheduleId)
+            .Include(s => s.Room)
+            .Include(s => s.ClassSection)
+            .ThenInclude(cs => cs.Course)
+            .Select(s => new ScheduleDetailsWithRelationsDto
+            {
+                ScheduleId = s.Id,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                WeekDay = s.WeekDay,
+
+                ClassSectionId = s.ClassSectionId,
+                SectionCode = s.ClassSection.SectionCode,
+
+                CourseName = s.ClassSection.Course != null ? s.ClassSection.Course.Name : string.Empty,
+
+                RoomId = s.RoomId,
+                RoomName = s.Room != null ? s.Room.RoomName : string.Empty,
+                Building = s.Room != null ? s.Room.Building : string.Empty
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<List<LecturerDailyReportScheduleProjectionDto>> GetLecturerReportSchedulesForDateAsync(
+        Guid lecturerId,
+        DateTime date,
+        WeekDayEnum weekDay,
+        CancellationToken cancellationToken)
+    {
+        var dateOnly = DateOnly.FromDateTime(date);
+
+        return await dbContext.Schedules
+            .Where(s => s.ClassSection!.LecturerId == lecturerId
+                        && s.WeekDay == weekDay
+                        && s.StartDate <= dateOnly
+                        && s.EndDate >= dateOnly)
+            .Select(s => new LecturerDailyReportScheduleProjectionDto
+            {
+                ScheduleId = s.Id,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                WeekDay = s.WeekDay,
+
+                ClassSectionId = s.ClassSection!.Id,
+                SectionCode = s.ClassSection.SectionCode,
+                LecturerId = s.ClassSection.LecturerId,
+
+                CourseId = s.ClassSection.Course!.Id,
+                CourseCode = s.ClassSection.Course.Code,
+                CourseName = s.ClassSection.Course.Name,
+
+                RoomId = s.Room!.Id,
+                RoomName = s.Room.RoomName,
+                Building = s.Room.Building
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<ClassDetailProjectionDto?> GetScheduleDetailsForClassSectionAsync(Guid classSectionId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .Where(s => s.ClassSectionId == classSectionId)
+            .Select(s => new ClassDetailProjectionDto
+            {
+                CourseName = s.ClassSection!.Course!.Name,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                Building = s.Room!.Building
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<List<Schedule>> GetSchedulesByClassSectionIdAndDateAsync(Guid classSectionId, DateTime date,
         WeekDayEnum weekDay, CancellationToken cancellationToken)
     {
@@ -24,7 +166,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<Schedule>> GetLecturerSchedulesForDateAsync(
+    public async Task<List<ScheduleProjectionDto>> GetLecturerSchedulesForDateAsync(
         Guid lecturerId,
         DateTime date,
         WeekDayEnum weekDay,
@@ -33,13 +175,25 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         var dateOnly = DateOnly.FromDateTime(date);
 
         return await dbContext.Schedules
-            .Include(s => s.ClassSection!)
-            .ThenInclude(cs => cs.Course)
-            .Include(s => s.Room)
             .Where(s => s.ClassSection!.LecturerId == lecturerId
                         && s.WeekDay == weekDay
                         && s.StartDate <= dateOnly
                         && s.EndDate >= dateOnly)
+            .Select(s => new ScheduleProjectionDto
+            {
+                ScheduleId = s.Id,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                WeekDay = s.WeekDay,
+                ClassSectionId = s.ClassSection!.Id,
+                SectionCode = s.ClassSection.SectionCode,
+                CourseId = s.ClassSection.Course!.Id,
+                CourseCode = s.ClassSection.Course.Code,
+                CourseName = s.ClassSection.Course.Name,
+                RoomId = s.Room!.Id,
+                RoomName = s.Room.RoomName,
+                Building = s.Room.Building
+            })
             .ToListAsync(cancellationToken);
     }
 
@@ -97,13 +251,14 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
     }
 
     public async Task<bool> IsRoomAvailableAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime,
-        TimeOnly endTime, CancellationToken cancellationToken)
+        TimeOnly endTime, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
     {
         var overlap = await dbContext.Schedules
             .AnyAsync(s => s.RoomId == roomId &&
                            s.WeekDay == weekDay &&
                            s.StartTime < endTime &&
-                           s.EndTime > startTime,
+                           s.EndTime > startTime &&
+                           (s.StartDate < endDate || s.EndDate > startDate),
                 cancellationToken);
 
         return !overlap;
@@ -165,7 +320,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
     {
         var query = dbContext.Schedules
             .Include(s => s.ClassSection)
-            .ThenInclude(cs => cs.Course)
+            .ThenInclude(cs => cs!.Course)
             .Include(s => s.Room)
             .AsQueryable();
 

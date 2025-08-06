@@ -18,8 +18,4 @@ public class FinalAttendanceDto
     public Guid CourseId { get; set; }
     public string? ClassInfo { get; set; } // lop_hoc (kết hợp mã môn và mã lớp, ví dụ: "CS101 - SE1701")
     public DateTime SessionStartTime { get; set; }
-
-    public Guid? LastAttendanceRecordId { get; set; }
-    public string? DetailedAttendanceStatus { get; set; }
-    public DateTime? LastAttendanceTime { get; set; }
 }

@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents a general exception related to configuration issues.
+///     Represents a general exception related to configuration issues.
 /// </summary>
 public class ConfigurationException : BusinessLogicException
 {

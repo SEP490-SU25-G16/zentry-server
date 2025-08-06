@@ -10,7 +10,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttendanceRecordRepository
 {
-    // Phương thức bạn yêu cầu: Lấy bản ghi điểm danh theo UserId và SessionId
     public async Task<AttendanceRecord?> GetByUserIdAndSessionIdAsync(Guid userId, Guid sessionId,
         CancellationToken cancellationToken)
     {
@@ -18,7 +17,6 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
             .FirstOrDefaultAsync(ar => ar.UserId == userId && ar.SessionId == sessionId, cancellationToken);
     }
 
-    // Phương thức tiện ích để thêm hoặc cập nhật
     public async Task AddOrUpdateAsync(AttendanceRecord entity, CancellationToken cancellationToken)
     {
         var existingEntity = await dbContext.AttendanceRecords
@@ -68,8 +66,6 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
 
     public Task UpdateAsync(AttendanceRecord entity, CancellationToken cancellationToken)
     {
-        // EF Core sẽ theo dõi thay đổi nếu entity được load từ cùng context và thay đổi properties
-        // Nếu entity đến từ ngoài context, bạn cần Attach hoặc dùng Update.
         dbContext.AttendanceRecords.Update(entity);
         return Task.CompletedTask;
     }

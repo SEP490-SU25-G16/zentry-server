@@ -1,7 +1,7 @@
 namespace Zentry.SharedKernel.Exceptions;
 
 /// <summary>
-/// Represents an exception thrown when a schedule conflict occurs.
+///     Represents an exception thrown when a schedule conflict occurs.
 /// </summary>
 public class ScheduleConflictException : BusinessLogicException
 {

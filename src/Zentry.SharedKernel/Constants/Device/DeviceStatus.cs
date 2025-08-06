@@ -6,6 +6,8 @@ public class DeviceStatus : Enumeration
 {
     public static readonly DeviceStatus Active = new(1, nameof(Active));
     public static readonly DeviceStatus Inactive = new(2, nameof(Inactive));
+    public static readonly DeviceStatus Pending = new(3, nameof(Pending));
+    public static readonly DeviceStatus Rejected = new(4, nameof(Rejected));
 
     private DeviceStatus(int id, string name) : base(id, name)
     {

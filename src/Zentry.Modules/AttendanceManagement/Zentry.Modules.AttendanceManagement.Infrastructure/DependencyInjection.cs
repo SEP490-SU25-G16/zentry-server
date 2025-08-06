@@ -9,7 +9,6 @@ using MongoDB.Driver;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
-using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.SeedData;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure;
@@ -36,11 +35,12 @@ public static class DependencyInjection
             {
                 options.Connection(connectionString);
                 options.Schema.For<ScanLog>().Identity(r => r.Id);
-                options.Schema.For<SessionWhitelist>().Identity(r => r.Id);
+                options.Schema.For<ScheduleWhitelist>()
+                    .Index(x => x.ScheduleId, x => x.IsUnique = true);
             });
 
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
-            services.AddScoped<IScanLogWhitelistRepository, MartenSessionWhitelistRepository>();
+            services.AddScoped<IScheduleWhitelistRepository, MartenScheduleWhitelistRepository>();
             services.AddScoped<IStudentTrackRepository, MartenStudentTrackRepository>();
             services.AddScoped<IRoundTrackRepository, MartenRoundTrackRepository>();
         }
@@ -66,14 +66,11 @@ public static class DependencyInjection
             });
 
             services.AddScoped<IScanLogRepository, MongoScanLogRepository>();
-            services.AddScoped<IScanLogWhitelistRepository, MongoSessionWhitelistRepository>();
         }
 
         services.AddScoped<IAttendanceRecordRepository, AttendanceRecordRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<IRoundRepository, RoundRepository>();
-        services.AddScoped<AttendanceDbSeeder>();
-        services.AddHostedService<AttendanceDbMigrationService>();
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
