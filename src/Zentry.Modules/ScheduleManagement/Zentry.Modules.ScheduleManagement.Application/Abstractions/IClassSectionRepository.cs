@@ -11,7 +11,7 @@ public interface IClassSectionRepository : IRepository<ClassSection, Guid>
         ClassSectionListCriteria criteria,
         CancellationToken cancellationToken);
 
-    Task<ClassSection?> GetBySectionCodeAsync(string sectionCode, string semester, CancellationToken cancellationToken);
+    Task<List<ClassSection>> GetBySectionCodesAsync(List<string> sectionCodes, CancellationToken cancellationToken);
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken);
     public Task<List<ClassSection>> GetLecturerClassSectionsAsync(Guid lecturerId, CancellationToken cancellationToken);
     Task<ClassSection?> GetByScheduleIdAsync(Guid scheduleId, CancellationToken cancellationToken);

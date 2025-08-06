@@ -8,15 +8,71 @@ using Zentry.Modules.ScheduleManagement.Application.Features.GetMonthlyCalendar;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetScheduleDetail;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailySchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.ImportSchedules;
+using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/schedules")]
-public class SchedulesController(IMediator mediator) : BaseController
+public class SchedulesController(
+    IMediator mediator,
+    IFileProcessor<ScheduleImportDto> fileProcessor) : BaseController
 {
+    [HttpPost("import")]
+    [ProducesResponseType(typeof(ApiResponse<ImportSchedulesResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ImportSchedules([FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file.Length == 0)
+        {
+            return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không được rỗng."));
+        }
+
+        List<ScheduleImportDto> schedulesToImport;
+        try
+        {
+            schedulesToImport = await fileProcessor.ProcessFileAsync(file, cancellationToken);
+        }
+        catch (InvalidFileFormatException ex)
+        {
+            return BadRequest(ApiResponse.ErrorResult("INVALID_FILE_FORMAT", ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+
+        if (!schedulesToImport.Any())
+        {
+            return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không chứa dữ liệu hợp lệ."));
+        }
+
+        var command = new ImportSchedulesCommand(schedulesToImport);
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+            if (response.Success)
+            {
+                return HandleResult(response, $"Import thành công {response.ImportedCount} lịch học.");
+            }
+            else
+            {
+                return HandlePartialSuccess(response,
+                    $"Đã import thành công {response.ImportedCount} lịch học.",
+                    $"Có {response.FailedCount} lỗi trong file.");
+            }
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     [HttpGet("student/daily-schedule")]
     [ProducesResponseType(typeof(ApiResponse<List<StudentDailyClassDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

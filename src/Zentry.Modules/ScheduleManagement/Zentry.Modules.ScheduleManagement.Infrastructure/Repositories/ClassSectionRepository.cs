@@ -133,7 +133,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
                     ? query.OrderByDescending(cs => cs.SectionCode)
                     : query.OrderBy(cs => cs.SectionCode),
                 "coursename" => criteria.SortOrder?.ToLower() == "desc"
-                    ? query.OrderByDescending(cs => cs.Course!.Name) // Vẫn có thể null nếu Course không được Include
+                    ? query.OrderByDescending(cs => cs.Course!.Name)
                     : query.OrderBy(cs => cs.Course!.Name),
                 _ => query.OrderBy(cs => cs.SectionCode)
             };
@@ -148,15 +148,11 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         return (items, totalCount);
     }
 
-    public async Task<ClassSection?> GetBySectionCodeAsync(string sectionCode, string semester,
+    public async Task<List<ClassSection>> GetBySectionCodesAsync(List<string> sectionCodes,
         CancellationToken cancellationToken)
     {
-        return await dbContext.ClassSections
-            .Include(cs => cs.Course)
-            .FirstOrDefaultAsync(cs =>
-                    cs.SectionCode == sectionCode &&
-                    cs.Semester == semester,
-                cancellationToken);
+        return await dbContext.ClassSections.Where(cs => sectionCodes.Contains(cs.SectionCode))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken)
