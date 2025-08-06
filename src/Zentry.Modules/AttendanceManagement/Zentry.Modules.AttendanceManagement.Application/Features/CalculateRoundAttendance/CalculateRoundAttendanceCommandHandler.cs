@@ -29,11 +29,9 @@ public class CalculateRoundAttendanceCommandHandler(
                 return new CalculateRoundAttendanceResponse(false, "Round not found");
             }
 
-            // Check if this is the final round
             var totalRounds = await roundRepository.CountRoundsBySessionIdAsync(request.SessionId, cancellationToken);
             var isFinalRound = round.RoundNumber == totalRounds;
 
-            // Publish message for async processing with retry capability
             var message = new CalculateRoundAttendanceMessage
             {
                 SessionId = request.SessionId,

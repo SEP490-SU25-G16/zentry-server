@@ -9,7 +9,7 @@ public static class AttendanceMassTransitExtensions
     {
         configurator.AddConsumer<CreateRoundsConsumer>();
         configurator.AddConsumer<CreateSessionConsumer>();
-        configurator.AddConsumer<GenerateSessionWhitelistConsumer>();
+        configurator.AddConsumer<GenerateScheduleWhitelistConsumer>();
         configurator.AddConsumer<SubmitScanDataConsumer>();
         configurator.AddConsumer<FinalAttendanceConsumer>();
         configurator.AddConsumer<CalculateRoundAttendanceConsumer>();
@@ -25,7 +25,7 @@ public static class AttendanceMassTransitExtensions
         {
             e.ConfigureConsumer<CreateRoundsConsumer>(context);
             e.ConfigureConsumer<CreateSessionConsumer>(context);
-            e.ConfigureConsumer<GenerateSessionWhitelistConsumer>(context);
+            e.ConfigureConsumer<GenerateScheduleWhitelistConsumer>(context);
             e.ConfigureConsumer<SubmitScanDataConsumer>(context);
             e.ConfigureConsumer<FinalAttendanceConsumer>(context);
             e.ConfigureConsumer<AssignLecturerConsumer>(context);

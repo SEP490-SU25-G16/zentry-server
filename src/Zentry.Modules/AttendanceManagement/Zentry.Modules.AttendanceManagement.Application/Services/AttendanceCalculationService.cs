@@ -1,19 +1,16 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
-
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public class AttendanceCalculationService(
     ILogger<AttendanceCalculationService> logger,
-    IRedisService redisService,
-    ISessionWhitelistRepository sessionWhitelistRepository,
+    IScheduleWhitelistRepository scheduleWhitelistRepository,
     IScanLogRepository scanLogRepository,
     ISessionRepository sessionRepository,
     IMediator mediator) : IAttendanceCalculationService
@@ -30,15 +27,23 @@ public class AttendanceCalculationService(
 
         var lecturerId = session.LecturerId.ToString();
 
-
-        // 1. Get whitelist
-        var whitelist = await GetSessionWhitelist(sessionId, cancellationToken);
+        // 1. Get whitelist (bây giờ lấy từ Schedule)
+        var whitelist = await GetScheduleWhitelist(session.ScheduleId, cancellationToken);
+        if (!whitelist.Any())
+        {
+            logger.LogWarning("No whitelist found for Session {SessionId}. Calculation cannot proceed.", sessionId);
+            return new AttendanceCalculationResult
+            {
+                AttendedDeviceIds = [],
+                LecturerId = lecturerId
+            };
+        }
 
         // 2. Get scan logs for round
-        var scanLogs = await GetRoundScanLogs(sessionId, roundId, cancellationToken);
+        var scanLogs = await GetRoundScanLogs(roundId, cancellationToken);
 
         // 3. Apply BFS multi-hop algorithm
-        var attendedDeviceIds = await CalculateAttendance(whitelist, scanLogs);
+        var attendedDeviceIds = await CalculateAttendance(whitelist, scanLogs, cancellationToken);
 
         logger.LogInformation(
             "Successfully calculated attendance for Round {RoundId}: {Count} devices attended",
@@ -51,57 +56,31 @@ public class AttendanceCalculationService(
         };
     }
 
-    private async Task<HashSet<string>> GetSessionWhitelist(Guid sessionId, CancellationToken cancellationToken)
+    private async Task<HashSet<string>> GetScheduleWhitelist(Guid scheduleId, CancellationToken cancellationToken)
     {
-        var cacheKey = $"session_whitelist:{sessionId}";
         logger.LogInformation(
-            "Attempting to retrieve whitelist for Session {SessionId} from Redis cache (key: {CacheKey}).",
-            sessionId, cacheKey);
+            "Attempting to retrieve whitelist for Schedule {ScheduleId} from repository.",
+            scheduleId);
         try
         {
-            var cachedWhitelist = await redisService.GetAsync<List<string>>(cacheKey);
-
-            if (cachedWhitelist != null)
-            {
-                if (cachedWhitelist.Count > 0)
-                {
-                    logger.LogInformation(
-                        "Whitelist for Session {SessionId} found in Redis cache. Total devices: {Count}.",
-                        sessionId, cachedWhitelist.Count);
-                    return [..cachedWhitelist];
-                }
-
-                logger.LogWarning(
-                    "Whitelist for Session {SessionId} found in Redis cache but is empty. Proceeding to DB or returning empty set.",
-                    sessionId);
-                return [];
-            }
-
-            logger.LogInformation(
-                "Whitelist for Session {SessionId} not found in Redis cache or deserialization failed. Fetching from database.",
-                sessionId);
-
-            var whitelist = await sessionWhitelistRepository.GetBySessionIdAsync(sessionId, cancellationToken);
+            var whitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(scheduleId, cancellationToken);
 
             if (whitelist != null && whitelist.WhitelistedDeviceIds.Count != 0)
             {
-                await redisService.SetAsync(cacheKey,
-                    whitelist.WhitelistedDeviceIds.Select(id => id.ToString()).ToList(), TimeSpan.FromHours(24));
                 return [..whitelist.WhitelistedDeviceIds.Select(id => id.ToString())];
             }
 
-            logger.LogWarning("No whitelist found or whitelist is empty for Session {SessionId}.", sessionId);
+            logger.LogWarning("No whitelist found or whitelist is empty for Schedule {ScheduleId}.", scheduleId);
             return [];
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error fetching whitelist for Session {SessionId}.", sessionId);
+            logger.LogError(ex, "Error fetching whitelist for Schedule {ScheduleId}.", scheduleId);
             throw;
         }
     }
 
-    private async Task<List<ScanLog>> GetRoundScanLogs(Guid sessionId, Guid roundId,
-        CancellationToken cancellationToken)
+    private async Task<List<ScanLog>> GetRoundScanLogs(Guid roundId, CancellationToken cancellationToken)
     {
         logger.LogInformation("Querying scan logs for Round {RoundId} using IScanLogRepository.", roundId);
 
@@ -126,20 +105,18 @@ public class AttendanceCalculationService(
     }
 
     private async Task<List<string>> CalculateAttendance(HashSet<string> whitelist,
-        List<ScanLog> scanLogs)
+        List<ScanLog> scanLogs, CancellationToken cancellationToken)
     {
         logger.LogInformation("Applying BFS multi-hop attendance algorithm with whitelist of {Count} devices",
             whitelist.Count);
-
-        logger.LogInformation("Whitelist keys: {WhitelistKeys}", string.Join(", ", whitelist));
 
         // 1. Filter submissions from registered devices only
         var filteredScanLogs = FilterWhitelistSubmissions(scanLogs, whitelist);
 
         // 2. Build neighbor records for each device
-        var deviceRecords = await BuildDeviceRecords(filteredScanLogs, whitelist);
+        var deviceRecords = await BuildDeviceRecords(filteredScanLogs, whitelist, cancellationToken);
 
-        // 3. Find lecturer as BFS root - THAY ĐỔI: truyền lecturerId vào
+        // 3. Find lecturer as BFS root
         var lecturerDeviceId = FindLecturerRoot(deviceRecords);
 
         // 4. Apply BFS algorithm
@@ -160,18 +137,10 @@ public class AttendanceCalculationService(
         logger.LogInformation("Filtered {Original} submissions to {Filtered} from whitelisted devices",
             scanLogs.Count, filtered.Count);
 
-        foreach (var scanLog in filtered)
-        {
-            var scannedDeviceIds = scanLog.ScannedDevices.Select(d => d.DeviceId);
-            logger.LogInformation("Submission from {SubmitterId}, scanned: {ScannedDevices}",
-                scanLog.DeviceId,
-                string.Join(", ", scannedDeviceIds));
-        }
-
         return filtered;
     }
 
-    private async Task<List<DeviceRecord>> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist)
+    private async Task<List<DeviceRecord>> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist, CancellationToken cancellationToken)
     {
         logger.LogInformation("Building device records with neighbor scan lists");
 
@@ -181,24 +150,17 @@ public class AttendanceCalculationService(
 
         var records = new List<DeviceRecord>();
 
-        var allUniqueDeviceIdGuids = groupedScanLogs
-            .Select(g => Guid.Parse(g.Key))
-            .ToList();
+        var allUniqueDeviceIdStrings = groupedScanLogs.Select(g => g.Key).ToList();
+        var allUniqueDeviceIdGuids = allUniqueDeviceIdStrings.Select(Guid.Parse).ToList();
 
         var deviceRolesMap = new Dictionary<Guid, string>();
         if (allUniqueDeviceIdGuids.Count != 0)
-            try
-            {
-                var getDeviceRolesQuery = new GetUserRolesByDevicesIntegrationQuery(allUniqueDeviceIdGuids);
-                var response = await mediator.Send(getDeviceRolesQuery);
-                deviceRolesMap = response.DeviceRolesMap;
-                logger.LogInformation("Fetched roles for {Count} devices in batch query.", deviceRolesMap.Count);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex,
-                    "Error fetching device roles in batch. Individual lookups may fail. Defaulting to 'Unknown' for affected devices.");
-            }
+        {
+            var getDeviceRolesQuery = new GetUserRolesByDevicesIntegrationQuery(allUniqueDeviceIdGuids);
+            var response = await mediator.Send(getDeviceRolesQuery, cancellationToken);
+            deviceRolesMap = response.DeviceRolesMap;
+            logger.LogInformation("Fetched roles for {Count} devices in batch query.", deviceRolesMap.Count);
+        }
 
         foreach (var g in groupedScanLogs)
         {
@@ -234,13 +196,6 @@ public class AttendanceCalculationService(
         }
 
         logger.LogInformation("Successfully built {RecordCount} device records", records.Count);
-
-        foreach (var record in records)
-            logger.LogInformation("Device {DeviceId} ({Role}) → Neighbors: [{Neighbors}]",
-                record.DeviceId,
-                record.Role,
-                record.ScanList.Count != 0 ? string.Join(", ", record.ScanList) : "No neighbors");
-
         return records;
     }
 
@@ -259,6 +214,7 @@ public class AttendanceCalculationService(
     private HashSet<string> ApplyBfsAlgorithm(List<DeviceRecord> deviceRecords, string lecturerId,
         HashSet<string> whitelist)
     {
+        // ... (Logic không thay đổi) ...
         logger.LogInformation("Starting BFS traversal from lecturer {LecturerId}", lecturerId);
 
         var scanMap = deviceRecords.ToDictionary(r => r.DeviceId, r => r.ScanList);
@@ -283,6 +239,7 @@ public class AttendanceCalculationService(
     private HashSet<string> ApplyFillInPhase(List<DeviceRecord> deviceRecords, HashSet<string> attendance,
         HashSet<string> whitelist)
     {
+        // ... (Logic không thay đổi) ...
         logger.LogInformation("Applying fill-in phase");
 
         var finalAttendance = new HashSet<string>(attendance);
@@ -305,7 +262,6 @@ public class AttendanceCalculationService(
         return finalAttendance;
     }
 
-    // Internal DTO for algorithm processing
     private class DeviceRecord
     {
         public string DeviceId { get; set; }
@@ -317,5 +273,5 @@ public class AttendanceCalculationService(
 public class AttendanceCalculationResult
 {
     public List<string> AttendedDeviceIds { get; set; } = new();
-    public string LecturerId { get; set; } = string.Empty;
+    public string? LecturerId { get; set; } = string.Empty;
 }

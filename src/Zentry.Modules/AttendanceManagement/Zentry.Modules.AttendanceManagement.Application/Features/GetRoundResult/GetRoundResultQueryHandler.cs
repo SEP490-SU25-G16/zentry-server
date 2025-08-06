@@ -12,7 +12,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.GetRoundResul
 public class GetRoundResultQueryHandler(
     IRoundRepository roundRepository,
     IRoundTrackRepository roundTrackRepository,
-    ISessionWhitelistRepository sessionWhitelistRepository,
+    IScheduleWhitelistRepository scheduleWhitelistRepository,
     ISessionRepository sessionRepository,
     IMediator mediator,
     ILogger<GetRoundResultQueryHandler> logger)
@@ -22,7 +22,7 @@ public class GetRoundResultQueryHandler(
     {
         logger.LogInformation("Handling GetRoundResultQuery for RoundId: {RoundId}", request.RoundId);
 
-        // 1. Lấy thông tin Round để có SessionId
+        // 1. Lấy thông tin Round và Session
         var round = await roundRepository.GetByIdAsync(request.RoundId, cancellationToken);
         if (round is null)
         {
@@ -30,13 +30,23 @@ public class GetRoundResultQueryHandler(
             throw new NotFoundException("Round", $"Vòng điểm danh với ID '{request.RoundId}' không tìm thấy.");
         }
 
-        var lectureId = await sessionRepository.GetLecturerIdBySessionId(round.SessionId, cancellationToken);
-        // 2. Lấy danh sách whitelistedDeviceIds từ SessionWhitelist
-        var sessionWhitelist = await sessionWhitelistRepository.GetBySessionIdAsync(round.SessionId, cancellationToken);
-        if (sessionWhitelist == null || sessionWhitelist.WhitelistedDeviceIds.Count == 0)
+        var session = await sessionRepository.GetByIdAsync(round.SessionId, cancellationToken);
+        if (session is null)
         {
-            logger.LogWarning("No whitelist found for SessionId: {SessionId}. Returning empty result.",
-                round.SessionId);
+            logger.LogWarning("Session with ID {SessionId} not found.", round.SessionId);
+            throw new NotFoundException("Session", $"Phiên với ID '{round.SessionId}' không tìm thấy.");
+        }
+
+        var lecturerId = session.LecturerId;
+
+
+        // 2. Lấy danh sách whitelistedDeviceIds từ ScheduleWhitelist (thay vì SessionWhitelist)
+        var scheduleWhitelist =
+            await scheduleWhitelistRepository.GetByScheduleIdAsync(session.ScheduleId, cancellationToken);
+        if (scheduleWhitelist == null || scheduleWhitelist.WhitelistedDeviceIds.Count == 0)
+        {
+            logger.LogWarning("No whitelist found for ScheduleId: {ScheduleId}. Returning empty result.",
+                session.ScheduleId);
             return new RoundResultDto
             {
                 RoundId = round.Id,
@@ -48,7 +58,7 @@ public class GetRoundResultQueryHandler(
             };
         }
 
-        var deviceIds = sessionWhitelist.WhitelistedDeviceIds;
+        var deviceIds = scheduleWhitelist.WhitelistedDeviceIds;
 
         // 3. Lấy danh sách UserIds từ DeviceIds (qua Device module)
         var userIdsByDevicesResponse = await mediator.Send(
@@ -56,9 +66,8 @@ public class GetRoundResultQueryHandler(
             cancellationToken);
 
         var userIds = userIdsByDevicesResponse.UserDeviceMap.Values
-            .Where(id => !Equals(id, lectureId))
+            .Where(id => lecturerId.HasValue && !Equals(id, lecturerId.Value))
             .ToList();
-
         if (userIds.Count == 0)
         {
             logger.LogInformation("No user IDs found for the whitelisted devices. Returning empty result.");
@@ -73,14 +82,11 @@ public class GetRoundResultQueryHandler(
             };
         }
 
-        // 4. Lấy thông tin cơ bản của User từ UserManagement module
         var usersResponse = await mediator.Send(
             new GetUsersByIdsIntegrationQuery(userIds),
             cancellationToken);
 
         var allStudents = usersResponse.Users;
-
-        // 5. Lấy kết quả điểm danh của round từ Marten (RoundTrack)
         var roundTrack = await roundTrackRepository.GetByIdAsync(request.RoundId, cancellationToken);
 
         var attendedStudentsMap = new Dictionary<Guid, (bool IsAttended, DateTime? AttendedTime)>();
@@ -90,7 +96,6 @@ public class GetRoundResultQueryHandler(
                 s => (s.IsAttended, s.AttendedTime)
             );
 
-        // 6. Kết hợp dữ liệu và tạo DTO trả về
         var studentsAttendance = allStudents.Select(student =>
         {
             var (isAttended, attendedTime) = attendedStudentsMap.GetValueOrDefault(student.Id, (false, null));
@@ -104,7 +109,6 @@ public class GetRoundResultQueryHandler(
             };
         }).ToList();
 
-        // 7. Ánh xạ và trả về DTO cuối cùng
         return new RoundResultDto
         {
             RoundId = round.Id,

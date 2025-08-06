@@ -4,22 +4,22 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
-public class MartenSessionWhitelistRepository(IDocumentSession session) : ISessionWhitelistRepository
+public class MartenScheduleWhitelistRepository(IDocumentSession session) : IScheduleWhitelistRepository
 {
-    public async Task AddAsync(SessionWhitelist whitelist, CancellationToken cancellationToken = default)
+    public async Task AddAsync(ScheduleWhitelist whitelist, CancellationToken cancellationToken = default)
     {
         session.Store(whitelist);
         await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<SessionWhitelist?> GetBySessionIdAsync(Guid sessionId,
+    public async Task<ScheduleWhitelist?> GetByScheduleIdAsync(Guid scheduleId,
         CancellationToken cancellationToken = default)
     {
-        return await session.Query<SessionWhitelist>()
-            .FirstOrDefaultAsync(w => w.SessionId == sessionId, cancellationToken);
+        return await session.Query<ScheduleWhitelist>()
+            .FirstOrDefaultAsync(w => w.ScheduleId == scheduleId, cancellationToken);
     }
 
-    public async Task UpdateAsync(SessionWhitelist whitelist, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(ScheduleWhitelist whitelist, CancellationToken cancellationToken = default)
     {
         session.Store(whitelist);
         await SaveChangesAsync(cancellationToken);
@@ -27,17 +27,17 @@ public class MartenSessionWhitelistRepository(IDocumentSession session) : ISessi
 
     public async Task<bool> AnyAsync(CancellationToken cancellationToken = default)
     {
-        return await session.Query<SessionWhitelist>()
+        return await session.Query<ScheduleWhitelist>()
             .AnyAsync(cancellationToken);
     }
 
-    public async Task<List<SessionWhitelist>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<List<ScheduleWhitelist>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return (List<SessionWhitelist>)await session.Query<SessionWhitelist>()
+        return (List<ScheduleWhitelist>)await session.Query<ScheduleWhitelist>()
             .ToListAsync(cancellationToken);
     }
 
-    public async Task AddRangeAsync(IEnumerable<SessionWhitelist> whitelists,
+    public async Task AddRangeAsync(IEnumerable<ScheduleWhitelist> whitelists,
         CancellationToken cancellationToken = default)
     {
         session.StoreObjects(whitelists);
@@ -46,7 +46,7 @@ public class MartenSessionWhitelistRepository(IDocumentSession session) : ISessi
 
     public async Task DeleteAllAsync(CancellationToken cancellationToken = default)
     {
-        session.DeleteWhere<SessionWhitelist>(w => true);
+        session.DeleteWhere<ScheduleWhitelist>(w => true);
         await SaveChangesAsync(cancellationToken);
     }
 

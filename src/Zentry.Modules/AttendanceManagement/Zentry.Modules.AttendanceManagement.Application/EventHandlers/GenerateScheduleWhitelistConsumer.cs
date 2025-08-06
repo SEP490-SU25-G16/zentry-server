@@ -6,31 +6,35 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
-public class GenerateSessionWhitelistConsumer(
-    ILogger<GenerateSessionWhitelistConsumer> logger,
-    ISessionWhitelistRepository sessionWhitelistRepository,
+public class GenerateScheduleWhitelistConsumer(
+    ILogger<GenerateScheduleWhitelistConsumer> logger,
+    IScheduleWhitelistRepository scheduleWhitelistRepository,
     IMediator mediator)
-    : IConsumer<GenerateSessionWhitelistMessage>
+    : IConsumer<GenerateScheduleWhitelistMessage>
 {
-    public async Task Consume(ConsumeContext<GenerateSessionWhitelistMessage> consumeContext)
+    public async Task Consume(ConsumeContext<GenerateScheduleWhitelistMessage> consumeContext)
     {
         var message = consumeContext.Message;
         logger.LogInformation(
-            "MassTransit Consumer: Received request to generate/update whitelist for Session: {SessionId}.",
-            message.SessionId);
+            "MassTransit Consumer: Received request to generate/update whitelist for Schedule: {ScheduleId}.",
+            message.ScheduleId);
 
         try
         {
-            var existingWhitelist = await sessionWhitelistRepository.GetBySessionIdAsync(message.SessionId, consumeContext.CancellationToken);
+            var existingWhitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(message.ScheduleId, consumeContext.CancellationToken);
             var whitelistedDeviceIds = new HashSet<Guid>();
 
             if (existingWhitelist != null)
             {
+                // Whitelist đã tồn tại, chỉ cần thêm device của giảng viên.
                 whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
-                logger.LogInformation("Whitelist already exists for Session {SessionId}. Adding lecturer device.", message.SessionId);
+                logger.LogInformation("Whitelist already exists for Schedule {ScheduleId}. Adding lecturer device.", message.ScheduleId);
 
                 if (message.LecturerId.HasValue && message.LecturerId.Value != Guid.Empty)
                 {
@@ -44,12 +48,13 @@ public class GenerateSessionWhitelistConsumer(
                 }
 
                 existingWhitelist.UpdateWhitelist(whitelistedDeviceIds.ToList());
-                await sessionWhitelistRepository.UpdateAsync(existingWhitelist, consumeContext.CancellationToken);
-                logger.LogInformation("Successfully updated existing SessionWhitelist for Session {SessionId} with {DeviceCount} unique devices.", message.SessionId, whitelistedDeviceIds.Count);
+                await scheduleWhitelistRepository.UpdateAsync(existingWhitelist, consumeContext.CancellationToken);
+                logger.LogInformation("Successfully updated existing ScheduleWhitelist for Schedule {ScheduleId} with {DeviceCount} unique devices.", message.ScheduleId, whitelistedDeviceIds.Count);
             }
             else
             {
-                logger.LogInformation("Whitelist does not exist for Session {SessionId}. Creating a new one.", message.SessionId);
+                // Whitelist chưa tồn tại, tạo mới hoàn toàn.
+                logger.LogInformation("Whitelist does not exist for Schedule {ScheduleId}. Creating a new one.", message.ScheduleId);
 
                 var getStudentIdsQuery = new GetStudentIdsByClassSectionIdIntegrationQuery(message.ClassSectionId);
                 var studentIdsResponse = await mediator.Send(getStudentIdsQuery, consumeContext.CancellationToken);
@@ -77,14 +82,14 @@ public class GenerateSessionWhitelistConsumer(
                     logger.LogInformation("Added lecturer's device to new whitelist.");
                 }
 
-                var newWhitelist = SessionWhitelist.Create(message.SessionId, whitelistedDeviceIds.ToList());
-                await sessionWhitelistRepository.AddAsync(newWhitelist, consumeContext.CancellationToken);
-                logger.LogInformation("Successfully created new SessionWhitelist for Session {SessionId} with {DeviceCount} unique devices.", message.SessionId, whitelistedDeviceIds.Count);
+                var newWhitelist = ScheduleWhitelist.Create(message.ScheduleId, whitelistedDeviceIds.ToList());
+                await scheduleWhitelistRepository.AddAsync(newWhitelist, consumeContext.CancellationToken);
+                logger.LogInformation("Successfully created new ScheduleWhitelist for Schedule {ScheduleId} with {DeviceCount} unique devices.", message.ScheduleId, whitelistedDeviceIds.Count);
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "MassTransit Consumer: Error generating/updating whitelist for Session {SessionId}.", message.SessionId);
+            logger.LogError(ex, "MassTransit Consumer: Error generating/updating whitelist for Schedule {ScheduleId}.", message.ScheduleId);
             throw;
         }
     }

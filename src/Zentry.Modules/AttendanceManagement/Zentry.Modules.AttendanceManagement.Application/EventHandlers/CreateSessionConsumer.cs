@@ -166,13 +166,12 @@ public class CreateSessionConsumer(
                             session.Id);
                     }
 
-                    var generateWhitelistMessage = new GenerateSessionWhitelistMessage(
-                        session.Id,
+                    var generateWhitelistMessage = new GenerateScheduleWhitelistMessage(
                         message.ScheduleId,
                         message.ClassSectionId
                     );
                     await publishEndpoint.Publish(generateWhitelistMessage, context.CancellationToken);
-                    logger.LogInformation("Published GenerateSessionWhitelistMessage for SessionId: {SessionId}.",
+                    logger.LogInformation("Published GenerateScheduleWhitelistMessage for SessionId: {SessionId}.",
                         session.Id);
                 }
             }

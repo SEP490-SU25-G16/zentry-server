@@ -35,12 +35,12 @@ public static class DependencyInjection
             {
                 options.Connection(connectionString);
                 options.Schema.For<ScanLog>().Identity(r => r.Id);
-                options.Schema.For<SessionWhitelist>()
-                    .Index(x => x.SessionId, x => x.IsUnique = true);
+                options.Schema.For<ScheduleWhitelist>()
+                    .Index(x => x.ScheduleId, x => x.IsUnique = true);
             });
 
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();
-            services.AddScoped<ISessionWhitelistRepository, MartenSessionWhitelistRepository>();
+            services.AddScoped<IScheduleWhitelistRepository, MartenScheduleWhitelistRepository>();
             services.AddScoped<IStudentTrackRepository, MartenStudentTrackRepository>();
             services.AddScoped<IRoundTrackRepository, MartenRoundTrackRepository>();
         }
@@ -66,7 +66,6 @@ public static class DependencyInjection
             });
 
             services.AddScoped<IScanLogRepository, MongoScanLogRepository>();
-            services.AddScoped<ISessionWhitelistRepository, MongoSessionWhitelistRepository>();
         }
 
         services.AddScoped<IAttendanceRecordRepository, AttendanceRecordRepository>();

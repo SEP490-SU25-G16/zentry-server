@@ -39,8 +39,7 @@ public class AssignLecturerConsumer(
             session.AssignLecturer(message.LecturerId);
             await sessionRepository.UpdateAsync(session, context.CancellationToken);
 
-            await publishEndpoint.Publish(new GenerateSessionWhitelistMessage(
-                session.Id,
+            await publishEndpoint.Publish(new GenerateScheduleWhitelistMessage(
                 session.ScheduleId,
                 message.ClassSectionId,
                 message.LecturerId
