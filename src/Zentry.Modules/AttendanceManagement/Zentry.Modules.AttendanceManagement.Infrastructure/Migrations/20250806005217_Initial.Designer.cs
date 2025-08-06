@@ -12,7 +12,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250805160325_Initial")]
+    [Migration("20250806005217_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

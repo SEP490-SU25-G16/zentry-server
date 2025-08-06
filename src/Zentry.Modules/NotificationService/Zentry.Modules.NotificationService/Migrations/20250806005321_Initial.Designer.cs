@@ -5,15 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Pgvector;
-using Zentry.Modules.FaceId.Persistence;
+using Zentry.Modules.NotificationService.Persistence.Repository;
 
 #nullable disable
 
-namespace Zentry.Modules.FaceId.Migrations
+namespace Zentry.Modules.NotificationService.Migrations
 {
-    [DbContext(typeof(FaceIdDbContext))]
-    [Migration("20250728195645_Initial")]
+    [DbContext(typeof(NotificationDbContext))]
+    [Migration("20250806005321_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -26,35 +25,38 @@ namespace Zentry.Modules.FaceId.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Zentry.Modules.FaceId.Entities.FaceEmbedding", b =>
+            modelBuilder.Entity("Zentry.Modules.NotificationService.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Vector>("Embedding")
+                    b.Property<string>("Body")
                         .IsRequired()
-                        .HasColumnType("vector(512)");
+                        .HasColumnType("text");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<string>("Data")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("RecipientUserId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("RecipientUserId");
 
-                    b.ToTable("FaceEmbeddings", (string)null);
+                    b.ToTable("Notifications");
                 });
 #pragma warning restore 612, 618
         }

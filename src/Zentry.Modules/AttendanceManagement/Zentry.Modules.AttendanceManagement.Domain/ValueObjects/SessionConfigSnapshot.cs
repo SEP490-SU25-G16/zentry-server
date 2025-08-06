@@ -43,7 +43,7 @@ public record SessionConfigSnapshot
 
     public int TotalAttendanceRounds
     {
-        get => GetInt("TotalAttendanceRounds", 10);
+        get => GetInt("TotalAttendanceRounds", 3);
         set => SetInt("TotalAttendanceRounds", value);
     }
 

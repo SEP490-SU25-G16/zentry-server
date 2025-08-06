@@ -31,7 +31,7 @@ public class StartRoundCommandHandler(
             throw new NotFoundException(nameof(Session), request.SessionId);
         }
 
-        if (session.UserId != request.LecturerId)
+        if (session.LecturerId != request.LecturerId)
         {
             throw new BusinessRuleException("LECTURER_NOT_ASSIGNED", "Giảng viên không được phân công cho phiên này.");
         }
