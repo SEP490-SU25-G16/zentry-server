@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
+using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
@@ -19,6 +20,14 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
     {
         return await dbContext.ClassSections
             .AnyAsync(cs => cs.CourseId == courseId, cancellationToken: cancellationToken);
+    }
+
+    public async Task<ClassSection?> GetBySectionCodeAndSemesterAsync(string sectionCode, Semester semester,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.ClassSections
+            .Where(cs => cs.SectionCode == sectionCode && cs.Semester == semester)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<List<ClassSection>> GetLecturerClassSectionsAsync(Guid lecturerId,

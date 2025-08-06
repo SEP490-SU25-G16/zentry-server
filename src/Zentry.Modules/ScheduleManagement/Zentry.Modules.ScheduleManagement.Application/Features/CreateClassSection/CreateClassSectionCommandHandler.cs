@@ -1,5 +1,8 @@
+// File: Zentry.Modules.ScheduleManagement.Application.Features.CreateClassSection/CreateClassSectionCommandHandler.cs
+
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
+using Zentry.Modules.ScheduleManagement.Domain.ValueObjects; // Thêm Value Object Semester
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Exceptions;
 
@@ -11,17 +14,19 @@ public class CreateClassSectionCommandHandler(IClassSectionRepository repository
     public async Task<CreateClassSectionResponse> Handle(CreateClassSectionCommand request,
         CancellationToken cancellationToken)
     {
-        // Check uniqueness of SectionCode in the same semester
-        var existingSections =
-            await repository.GetBySectionCodeAsync(request.SectionCode, request.Semester, cancellationToken);
-
-        if (existingSections is not null)
-            throw new BusinessRuleException("SECTION_CODE_DUPLICATE", "Section code đã tồn tại trong học kỳ này.");
+        var semester = Semester.Create(request.Semester);
+        
+        var existingSection = await repository.GetBySectionCodeAndSemesterAsync(request.SectionCode, semester, cancellationToken);
+        
+        if (existingSection is not null)
+        {
+            throw new BusinessRuleException("SECTION_CODE_DUPLICATE", $"Section Code '{request.SectionCode}' đã tồn tại trong học kỳ '{request.Semester}'.");
+        }
 
         var newSection = ClassSection.Create(
             request.CourseId,
             request.SectionCode,
-            request.Semester
+            semester
         );
 
         await repository.AddAsync(newSection, cancellationToken);

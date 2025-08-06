@@ -1,4 +1,5 @@
 using Zentry.SharedKernel.Domain;
+using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 
 namespace Zentry.Modules.ScheduleManagement.Domain.Entities;
 
@@ -10,7 +11,7 @@ public class ClassSection : AggregateRoot<Guid>
         Enrollments = new List<Enrollment>();
     }
 
-    private ClassSection(Guid id, Guid courseId, string sectionCode, string semester)
+    private ClassSection(Guid id, Guid courseId, string sectionCode, Semester semester)
         : base(id)
     {
         CourseId = courseId;
@@ -28,7 +29,7 @@ public class ClassSection : AggregateRoot<Guid>
     public virtual Course? Course { get; private set; }
     public Guid? LecturerId { get; private set; }
     public string SectionCode { get; private set; }
-    public string Semester { get; private set; }
+    public Semester Semester { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public bool IsDeleted { get; private set; }
@@ -37,18 +38,22 @@ public class ClassSection : AggregateRoot<Guid>
     public virtual ICollection<Enrollment> Enrollments { get; private set; }
     // --------------------------------------------------------------------------------
 
-    public static ClassSection Create(Guid courseId, string sectionCode, string semester)
+    public static ClassSection Create(Guid courseId, string sectionCode, string semesterString)
     {
+        var semester = Semester.Create(semesterString);
         return new ClassSection(Guid.NewGuid(), courseId, sectionCode, semester);
     }
 
-    public void Update(string? sectionCode = null, string? semester = null)
+    public void Update(string? sectionCode = null, string? semesterString = null)
     {
         if (!string.IsNullOrWhiteSpace(sectionCode)) SectionCode = sectionCode;
-        if (!string.IsNullOrWhiteSpace(semester)) Semester = semester;
+        if (!string.IsNullOrWhiteSpace(semesterString))
+        {
+            Semester = Semester.Create(semesterString);
+        }
         UpdatedAt = DateTime.UtcNow;
     }
-
+    
     public void Delete()
     {
         IsDeleted = true;

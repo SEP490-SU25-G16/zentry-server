@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
+using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Persistence.Configurations;
 
@@ -24,7 +25,9 @@ public class ClassSectionConfiguration : IEntityTypeConfiguration<ClassSection>
             .HasMaxLength(50)
             .IsRequired();
 
+        // Cấu hình Value Object Semester
         builder.Property(cs => cs.Semester)
+            .HasConversion(s => s.ToString(), v => Semester.Create(v))
             .HasMaxLength(20)
             .IsRequired();
 

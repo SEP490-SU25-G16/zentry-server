@@ -116,7 +116,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         try
         {
             var command = new CreateClassSectionCommand(
-                new Guid(request.CourseId),
+                request.CourseId,
                 request.SectionCode,
                 request.Semester
             );

@@ -14,6 +14,7 @@ public class CreateClassSectionRequestValidator : BaseValidator<CreateClassSecti
             .NotEmpty().WithMessage("Section Code là bắt buộc.");
 
         RuleFor(x => x.Semester)
-            .NotEmpty().WithMessage("Semester là bắt buộc.");
+            .NotEmpty().WithMessage("Semester là bắt buộc.")
+            .Matches("^(SP|SU|FA)\\d{2}$").WithMessage("Định dạng học kỳ không hợp lệ. Ví dụ: SP25, SU25."); // Thêm validation cho Semester
     }
 }
