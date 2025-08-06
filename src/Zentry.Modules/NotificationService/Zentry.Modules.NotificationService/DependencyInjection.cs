@@ -1,35 +1,32 @@
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
-using Zentry.Infrastructure.Messaging.External;
-using Zentry.Modules.NotificationService.Persistence.Configurations;
-using Zentry.Modules.NotificationService.Persistence.Data;
+using Zentry.Modules.NotificationService.Application.Services;
+using Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
+using Zentry.Modules.NotificationService.Infrastructure.Push;
+using Zentry.Modules.NotificationService.Infrastructure.Services;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 
 namespace Zentry.Modules.NotificationService;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddNotificationInfrastructure(this IServiceCollection services,
+    public static IServiceCollection AddNotificationModule(this IServiceCollection services,
         IConfiguration configuration)
     {
-        var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
-                                    throw new ArgumentNullException(nameof(services));
+        services.AddDbContext<NotificationDbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddSingleton<IMongoClient>(s => new MongoClient(mongoConnectionString));
-
-        services.AddSingleton(s =>
-        {
-            var mongoClient = s.GetRequiredService<IMongoClient>();
-            var database = mongoClient.GetDatabase("zentry");
-            NotificationConfiguration.Configure(database);
-            NotificationSeed.SeedData(database);
-            return database;
-        });
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-        services.AddSingleton<IMessagePublisher, MessagePublisher>();
+        services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+        services.AddScoped<IFcmSender, FcmSender>();
+        services.AddScoped<INotificationSender, NotificationSender>();
+
+        services.AddSignalR();
 
         return services;
     }

@@ -1,5 +1,8 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Đồng bộ UID/GID với host (được truyền từ docker-compose)
 ARG APP_UID=1000
 ARG APP_GID=1000

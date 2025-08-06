@@ -30,7 +30,9 @@ public class GetUserQueryHandler(IUserRepository userRepository)
             PhoneNumber = user.PhoneNumber,
             Role = account.Role.ToString(),
             Status = account.Status.ToString(),
-            CreatedAt = account.CreatedAt
+            CreatedAt = account.CreatedAt,
+            HasFaceId = user.HasFaceId,
+            FaceIdLastUpdated = user.FaceIdLastUpdated
         };
 
         return response;

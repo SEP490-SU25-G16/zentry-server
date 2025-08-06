@@ -22,6 +22,8 @@ using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Helpers;
 using Zentry.SharedKernel.Middlewares;
+using Zentry.Modules.FaceId;
+using Zentry.Modules.NotificationService.Infrastructure.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +36,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new DateTimeToLocalConverter());
         options.JsonSerializerOptions.Converters.Add(new NullableDateTimeToLocalConverter());
     });
+
 
 // ===== CẤU HÌNH MODEL VALIDATION =====
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -62,27 +65,32 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddAuthorization();
 
+// --- Thêm health check ---
+builder.Services.AddHealthChecks();
+
+
+// --- Cấu hình MassTransit chung ---
 // ===== CẤU HÌNH MASSTRANSIT =====
 builder.Services.AddMassTransit(x =>
 {
     x.AddAttendanceMassTransitConsumers();
     x.AddUserMassTransitConsumers();
-
+    x.AddNotificationMassTransitConsumers(); 
     x.UsingRabbitMq((context, cfg) =>
     {
         var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
-
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
-            throw new InvalidOperationException(
-                "RabbitMQ_ConnectionString is not configured in appsettings.json or environment variables.");
+            throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured.");
 
         cfg.Host(new Uri(rabbitMqConnectionString));
+
         cfg.ConfigureAttendanceReceiveEndpoints(context);
         cfg.ConfigureUserReceiveEndpoints(context);
+        cfg.ConfigureNotificationReceiveEndpoints(context);
     });
 });
 
-// ===== ĐĂNG KÝ CÁC MODULES =====
+// --- Đăng ký các module ---
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddUserInfrastructure(builder.Configuration);
 builder.Services.AddScheduleInfrastructure(builder.Configuration);
@@ -91,8 +99,10 @@ builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddDeviceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceApplication();
-builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddReportingInfrastructure(builder.Configuration);
+builder.Services.AddNotificationModule(builder.Configuration);
+builder.Services.AddFaceIdInfrastructure(builder.Configuration);
+
 
 var app = builder.Build();
 
@@ -103,6 +113,9 @@ app.UseValidationExceptionMiddleware();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
+app.MapHealthChecks("/health");
+
 
 // ===== DATABASE MIGRATION CODE =====
 await RunDatabaseMigrationsAsync(app);

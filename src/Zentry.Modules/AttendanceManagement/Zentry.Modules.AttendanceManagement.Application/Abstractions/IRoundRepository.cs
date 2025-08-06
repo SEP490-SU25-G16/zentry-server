@@ -10,4 +10,5 @@ public interface IRoundRepository : IRepository<Round, Guid>
     Task<int> CountRoundsBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken);
     Task<Guid> GetFirstRoundBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken);
     Task UpdateRoundStatusAsync(Guid roundId, RoundStatus status, CancellationToken cancellationToken = default);
+    Task<List<Round>> GetActiveRoundsBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
 }
