@@ -14,8 +14,9 @@ public static class DependencyInjection
     {
         // Register DbContext
         services.AddDbContext<FaceIdDbContext>(options =>
+            // Sử dụng chuỗi kết nối FaceIdConnection
             options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection"),
+                configuration.GetConnectionString("FaceIdConnection"),
                 b =>
                 {
                     b.MigrationsAssembly("Zentry.Modules.FaceId");
@@ -37,4 +38,4 @@ public static class DependencyInjection
 
         return services;
     }
-} 
+}
