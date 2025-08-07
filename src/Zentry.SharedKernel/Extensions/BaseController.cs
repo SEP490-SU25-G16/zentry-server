@@ -33,15 +33,12 @@ public abstract class BaseController : ControllerBase
         return NoContent();
     }
 
-    // Enhanced error handling - SỬA LẠI CÁC PHƯƠNG THỨC UNAUTHORIZED
     protected IActionResult HandleError(Exception ex)
     {
-        // Log exception details (có thể inject ILogger nếu cần)
         LogException(ex);
 
         return ex switch
         {
-            // Authentication specific exceptions (most specific first)
             InvalidCredentialsException =>
                 StatusCode(401,
                     ApiResponse.ErrorResult(ErrorCodes.InvalidCredentials,

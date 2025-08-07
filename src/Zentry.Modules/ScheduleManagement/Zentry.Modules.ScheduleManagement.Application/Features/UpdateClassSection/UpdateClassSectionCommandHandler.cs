@@ -4,19 +4,24 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateClassSection;
 
-public class UpdateClassSectionCommandHandler(IClassSectionRepository repo)
+public class UpdateClassSectionCommandHandler(IClassSectionRepository classSectionRepository)
     : ICommandHandler<UpdateClassSectionCommand, bool>
 {
     public async Task<bool> Handle(UpdateClassSectionCommand command, CancellationToken cancellationToken)
     {
-        var classSection = await repo.GetByIdAsync(command.Id, cancellationToken);
+        var classSection = await classSectionRepository.GetByIdAsync(command.Id, cancellationToken);
 
         if (classSection is null || classSection.IsDeleted)
-            throw new NotFoundException("ClassSection", command.Id);
+            throw new ResourceNotFoundException("Class Section", command.Id);
+        if (command.SectionCode != null &&
+            await classSectionRepository.IsExistClassSectionBySectionCodeAsync(command.Id, command.SectionCode, cancellationToken))
+        {
+            throw new ResourceAlreadyExistsException("Class Section", command.SectionCode);
+        }
 
         classSection.Update(command.SectionCode, command.Semester);
-        await repo.UpdateAsync(classSection, cancellationToken);
-        await repo.SaveChangesAsync(cancellationToken);
+        await classSectionRepository.UpdateAsync(classSection, cancellationToken);
+        await classSectionRepository.SaveChangesAsync(cancellationToken);
 
         return true;
     }

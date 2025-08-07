@@ -82,7 +82,7 @@ public class ConfigurationsController(IMediator mediator) : BaseController
 
     #region Update Operations
 
-    [HttpPut("definitions/{id:guid}")]
+    [HttpPut("definitions/{id}")]
     [ProducesResponseType(typeof(ApiResponse<UpdateAttributeDefinitionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -97,7 +97,7 @@ public class ConfigurationsController(IMediator mediator) : BaseController
         return HandleResult(response);
     }
 
-    [HttpPut("settings/{id:guid}")]
+    [HttpPut("settings/{id}")]
     [ProducesResponseType(typeof(ApiResponse<UpdateSettingResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]

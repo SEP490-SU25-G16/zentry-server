@@ -23,7 +23,7 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 public class AttendanceController(IMediator mediator) : BaseController
 {
     // Lấy kết quả điểm danh cuối cùng của một sinh viên trong một session
-    [HttpGet("sessions/{sessionId:guid}/students/{studentId:guid}/final-result")]
+    [HttpGet("sessions/{sessionId}/students/{studentId}/final-result")]
     [ProducesResponseType(typeof(ApiResponse<StudentFinalAttendanceDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetStudentFinalAttendance(Guid sessionId, Guid studentId)
@@ -41,7 +41,7 @@ public class AttendanceController(IMediator mediator) : BaseController
     }
 
     // Lấy kết quả điểm danh của một round
-    [HttpGet("rounds/{roundId:guid}/result")]
+    [HttpGet("rounds/{roundId}/result")]
     [ProducesResponseType(typeof(ApiResponse<RoundResultDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRoundResult(Guid roundId)
@@ -80,7 +80,7 @@ public class AttendanceController(IMediator mediator) : BaseController
     }
 
     // Lấy danh sách các round trong một session
-    [HttpGet("sessions/{sessionId:guid}/rounds")]
+    [HttpGet("sessions/{sessionId}/rounds")]
     [ProducesResponseType(typeof(ApiResponse<List<RoundAttendanceDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionRounds(Guid sessionId, CancellationToken cancellationToken)
@@ -99,7 +99,7 @@ public class AttendanceController(IMediator mediator) : BaseController
     }
 
     // Lấy kết quả điểm danh cuối cùng của toàn bộ session
-    [HttpGet("sessions/{sessionId:guid}/final")]
+    [HttpGet("sessions/{sessionId}/final")]
     [ProducesResponseType(typeof(ApiResponse<List<FinalAttendanceDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionFinalAttendance(Guid sessionId, CancellationToken cancellationToken)
@@ -117,7 +117,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPost("sessions/{sessionId:guid}/start")]
+    [HttpPost("sessions/{sessionId}/start")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -135,7 +135,7 @@ public class AttendanceController(IMediator mediator) : BaseController
             var command = new StartSessionCommand
             {
                 SessionId = sessionId,
-                UserId = request.UserId
+                LecturerId = request.UserId
             };
             await mediator.Send(command, cancellationToken);
             return HandleResult("Session started successfully.");
@@ -146,7 +146,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPost("sessions/{sessionId:guid}/end")]
+    [HttpPost("sessions/{sessionId}/end")]
     [ProducesResponseType(typeof(ApiResponse<EndSessionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -201,7 +201,7 @@ public class AttendanceController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPut("sessions/{sessionId:guid}/students/{studentId:guid}/status")]
+    [HttpPut("sessions/{sessionId}/students/{studentId}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]

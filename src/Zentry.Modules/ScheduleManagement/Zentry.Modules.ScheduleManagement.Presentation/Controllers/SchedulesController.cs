@@ -40,7 +40,7 @@ public class SchedulesController(
         }
     }
 
-    [HttpGet("{scheduleId:guid}/detail")]
+    [HttpGet("{scheduleId}/detail")]
     [ProducesResponseType(typeof(ApiResponse<ScheduleDetailDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClassDetail(Guid scheduleId, CancellationToken cancellationToken)
@@ -129,7 +129,7 @@ public class SchedulesController(
         }
     }
 
-    [HttpGet("lecturer/{lecturerId:guid}/monthly-calendar")]
+    [HttpGet("lecturer/{lecturerId}/monthly-calendar")]
     [ProducesResponseType(typeof(ApiResponse<MonthlyCalendarResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetMonthlyCalendar(

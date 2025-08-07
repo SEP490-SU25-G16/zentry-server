@@ -2,8 +2,8 @@ namespace Zentry.SharedKernel.Exceptions;
 
 public class ResourceCannotBeDeletedException : BusinessLogicException
 {
-    public ResourceCannotBeDeletedException(Guid id) : base(
-        $"Resource with ID '{id}' can not be deleted.")
+    public ResourceCannotBeDeletedException(string resourceName, Guid id) : base(
+        $"{resourceName} with ID '{id}' can not be deleted.")
     {
     }
 

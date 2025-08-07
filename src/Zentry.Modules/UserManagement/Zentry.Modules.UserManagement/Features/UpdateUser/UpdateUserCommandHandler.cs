@@ -1,22 +1,30 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Features.UpdateUser;
 
-// Chỉ cần kế thừa ICommandHandler của bạn
 public class UpdateUserCommandHandler(IUserRepository userRepository)
-    : ICommandHandler<UpdateUserCommand, UpdateUserResponse> // TRƯỚC ĐÂY: IQueryHandler<UpdateUserCommand, UpdateUserResponse>
+    : ICommandHandler<UpdateUserCommand, UpdateUserResponse>
 {
-    // Phương thức Handle vẫn giữ nguyên tên và chữ ký như của MediatR.IQueryHandler
     public async Task<UpdateUserResponse> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
-        if (user == null) return new UpdateUserResponse { Success = false, Message = "User not found." };
+        if (user is null)
+            throw new ResourceNotFoundException("USER", command.UserId);
 
         var account = await userRepository.GetAccountById(user.AccountId);
-        if (account == null)
-            return new UpdateUserResponse { Success = false, Message = "Associated account not found." };
+        if (account is null)
+            throw new ResourceNotFoundException("USER", command.UserId);
+
+        if (command.PhoneNumber != null)
+        {
+            if (await userRepository.IsPhoneNumberExist(command.UserId, command.PhoneNumber, cancellationToken))
+            {
+                throw new ResourceAlreadyExistsException("USER Phone Number", command.PhoneNumber);
+            }
+        }
 
         user.UpdateUser(command.FullName, command.PhoneNumber);
 

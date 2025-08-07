@@ -110,7 +110,7 @@ public class DevicesController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpGet("{deviceId:guid}")]
+    [HttpGet("{deviceId}")]
     [ProducesResponseType(typeof(ApiResponse<GetDeviceDetailsResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
@@ -163,7 +163,7 @@ public class DevicesController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPut("change-request/{userRequestId:guid}/accept")]
+    [HttpPut("change-request/{userRequestId}/accept")]
     [ProducesResponseType(typeof(ApiResponse<HandleDeviceChangeRequestResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -188,7 +188,7 @@ public class DevicesController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPut("change-request/{userRequestId:guid}/reject")]
+    [HttpPut("change-request/{userRequestId}/reject")]
     [ProducesResponseType(typeof(ApiResponse<HandleDeviceChangeRequestResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]

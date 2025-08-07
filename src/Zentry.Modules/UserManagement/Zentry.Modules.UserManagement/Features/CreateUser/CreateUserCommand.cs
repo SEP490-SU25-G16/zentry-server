@@ -17,7 +17,7 @@ public class CreateUserCommand : ICommand<CreateUserResponse>
     public string Password { get; init; }
     public string FullName { get; init; }
     public string? PhoneNumber { get; init; }
-    public string Role { get; init; } = "User";
+    public string Role { get; init; }
 }
 
 public class CreateUserResponse

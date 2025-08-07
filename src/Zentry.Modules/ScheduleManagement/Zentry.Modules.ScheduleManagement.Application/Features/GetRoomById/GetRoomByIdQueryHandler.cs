@@ -1,6 +1,7 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.GetRoomById;
 
@@ -8,16 +9,10 @@ public class GetRoomByIdQueryHandler(IRoomRepository roomRepository) : IQueryHan
 {
     public async Task<RoomDto?> Handle(GetRoomByIdQuery query, CancellationToken cancellationToken)
     {
-        // 1. Lấy Room Entity từ Repository
         var room = await roomRepository.GetByIdAsync(query.Id, cancellationToken);
 
-        // 2. Kiểm tra nếu không tìm thấy
-        if (room == null)
-            // Ném một NotFoundException để middleware xử lý thành 404
-            throw new Exception($"Room with ID '{query.Id}' not found.");
-        // Hoặc đơn giản là trả về null và Controller sẽ xử lý thành NotFound()
-        // return null;
-        // 3. Ánh xạ từ Domain Entity sang DTO để trả về
+        if (room is null)
+            throw new ResourceNotFoundException("ROOM", query.Id);
         var roomDetailDto = new RoomDto
         {
             Id = room.Id,

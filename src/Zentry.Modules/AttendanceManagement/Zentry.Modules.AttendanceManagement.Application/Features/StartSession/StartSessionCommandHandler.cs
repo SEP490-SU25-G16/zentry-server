@@ -20,7 +20,7 @@ public class StartSessionCommandHandler(
     public async Task<StartSessionResponse> Handle(StartSessionCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation("Attempting to start session {SessionId} by user {UserId}.", request.SessionId,
-            request.UserId);
+            request.LecturerId);
 
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
         if (session is null)
@@ -29,10 +29,10 @@ public class StartSessionCommandHandler(
             throw new NotFoundException(nameof(Session), request.SessionId);
         }
 
-        if (session.LecturerId != request.UserId)
+        if (session.LecturerId != request.LecturerId)
         {
             logger.LogWarning("StartSession failed: Lecturer {LecturerId} is not assigned to session {SessionId}.",
-                request.UserId, request.SessionId);
+                request.LecturerId, request.SessionId);
             throw new BusinessRuleException("LECTURER_NOT_ASSIGNED", "Giảng viên không được phân công cho phiên này.");
         }
 

@@ -17,10 +17,8 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
     {
         var cs = await classSectionRepository.GetByIdAsync(query.Id, ct);
         if (cs is null || cs.IsDeleted)
-            throw new NotFoundException("ClassSection", query.Id);
+            throw new ResourceNotFoundException("CLASS SECTION", query.Id);
 
-        // --- 1. Lấy thông tin Giảng viên từ UserManagement module ---
-        // Xử lý trường hợp LecturerId có thể là null
         GetUserByIdAndRoleIntegrationResponse? lecturerInfo = null;
         if (cs.LecturerId.HasValue)
         {
@@ -34,12 +32,10 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
             }
         }
 
-        // --- 2. Lấy danh sách StudentId từ Enrollments ---
         var studentIds = cs.Enrollments?.Select(e => e.StudentId).ToList() ?? new List<Guid>();
 
-        // --- 3. Lấy thông tin chi tiết của tất cả sinh viên bằng Batch Query ---
         var studentInfos = new Dictionary<Guid, BasicUserInfoDto>();
-        if (studentIds.Any())
+        if (studentIds.Count != 0)
         {
             var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(studentIds), ct);
             studentInfos = usersResponse.Users.ToDictionary(u => u.Id);

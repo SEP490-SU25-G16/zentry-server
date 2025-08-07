@@ -1,6 +1,7 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateRoom;
 
@@ -11,15 +12,16 @@ public class UpdateRoomCommandHandler(IRoomRepository roomRepository)
     {
         var room = await roomRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        if (room == null) throw new Exception($"Room with ID '{command.Id}' not found.");
+        if (room is null) throw new ResourceNotFoundException($"Room with ID '{command.Id}' not found.");
 
         if (room.RoomName != command.RoomName)
         {
             var isRoomNameUnique =
-                await roomRepository.IsRoomNameUniqueExcludingSelfAsync(command.Id, command.RoomName,
+                await roomRepository.IsRoomNameUniqueExcludingSelfAsync(command.Id, command.RoomName, room.Building,
                     cancellationToken);
             if (!isRoomNameUnique)
-                throw new Exception($"Room with name '{command.RoomName}' already exists for another room.");
+                throw new ResourceAlreadyExistsException(
+                    $"Room with name '{command.RoomName}' already exists for another room in the same building.");
         }
 
         room.Update(

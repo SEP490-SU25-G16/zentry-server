@@ -1,5 +1,6 @@
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.DeleteClassSection;
 
@@ -10,8 +11,13 @@ public class DeleteClassSectionCommandHandler(IClassSectionRepository classSecti
     {
         var classSection = await classSectionRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        if (classSection is not null)
-            throw new Exception($"Class with ID '{command.Id}' not found or already deleted.");
+        if (classSection is null)
+            throw new ResourceNotFoundException("CLASS SECTION", command.Id);
+
+        if (classSection.Enrollments.Count != 0)
+        {
+            throw new ResourceCannotBeDeletedException("Class section", command.Id);
+        }
 
         await classSectionRepository.SoftDeleteAsync(command.Id, cancellationToken);
         await classSectionRepository.SaveChangesAsync(cancellationToken);

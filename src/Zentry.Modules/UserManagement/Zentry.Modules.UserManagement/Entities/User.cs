@@ -45,6 +45,7 @@ public class User : AggregateRoot<Guid>
         {
             FaceIdLastUpdated = DateTime.UtcNow;
         }
+
         UpdatedAt = DateTime.UtcNow;
     }
 }

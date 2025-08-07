@@ -40,7 +40,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<ClassSectionDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
@@ -78,7 +78,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -97,7 +97,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
@@ -132,7 +132,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpGet("{classSectionId:guid}/sessions")]
+    [HttpGet("{classSectionId}/sessions")]
     [ProducesResponseType(typeof(ApiResponse<List<SessionDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionsByScheduleId(Guid classSectionId, CancellationToken cancellationToken)
@@ -151,7 +151,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
 
     // === API liên quan đến vai trò giảng viên ===
 
-    [HttpGet("{lecturerId:guid}/home")]
+    [HttpGet("{lecturerId}/home")]
     [ProducesResponseType(typeof(ApiResponse<List<LecturerHomeDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLecturerHome(Guid lecturerId, CancellationToken cancellationToken)
@@ -168,7 +168,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpGet("{lecturerId:guid}/report/daily")]
+    [HttpGet("{lecturerId}/report/daily")]
     [ProducesResponseType(typeof(ApiResponse<List<LecturerDailyReportDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLecturerDailyReport(
@@ -189,7 +189,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpPost("{classSectionId:guid}/lecturers/{lecturerId:guid}")]
+    [HttpPost("{classSectionId}/lecturers/{lecturerId}")]
     [ProducesResponseType(typeof(AssignLecturerResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssignLecturer(

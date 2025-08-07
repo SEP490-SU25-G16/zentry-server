@@ -1,6 +1,7 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateCourse;
 
@@ -11,7 +12,7 @@ public class UpdateCourseCommandHandler(ICourseRepository courseRepository)
     {
         var course = await courseRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        if (course == null) throw new Exception($"Course with ID '{command.Id}' not found.");
+        if (course is null) throw new ResourceNotFoundException("COURSE", command.Id);
 
         course.Update(
             command.Name,

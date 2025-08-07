@@ -22,6 +22,13 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             .AnyAsync(cs => cs.CourseId == courseId, cancellationToken: cancellationToken);
     }
 
+    public async Task<bool> IsExistClassSectionBySectionCodeAsync(Guid id, string sectionCode,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections.AnyAsync(cs => cs.Id != id && cs.SectionCode == sectionCode,
+            cancellationToken);
+    }
+
     public async Task<ClassSection?> GetBySectionCodeAndSemesterAsync(string sectionCode, Semester semester,
         CancellationToken cancellationToken = default)
     {

@@ -1,5 +1,7 @@
 ﻿using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Exceptions;
 
 // Đảm bảo using này có mặt
 
@@ -10,20 +12,19 @@ public class DeleteUserCommandHandler(IUserRepository userRepository)
 {
     public async Task<DeleteUserResponse> Handle(DeleteUserCommand command, CancellationToken cancellationToken)
     {
-        try
+        var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
+        if (user is null)
         {
-            await userRepository.SoftDeleteUserAsync(command.UserId, cancellationToken);
-            return new DeleteUserResponse { Success = true, Message = "User soft deleted successfully." };
+            throw new ResourceNotFoundException("USER", command.UserId);
         }
-        catch (InvalidOperationException ex)
+
+        var account = await userRepository.GetAccountById(user.AccountId);
+        if (account is null || !Equals(account.Status, AccountStatus.Active))
         {
-            // Xử lý các lỗi cụ thể từ repository (ví dụ: User not found)
-            return new DeleteUserResponse { Success = false, Message = ex.Message };
+            throw new ResourceNotFoundException("USER", command.UserId);
         }
-        catch (Exception)
-        {
-            // Xử lý các lỗi chung khác
-            return new DeleteUserResponse { Success = false, Message = "An error occurred during soft delete." };
-        }
+
+        await userRepository.SoftDeleteUserAsync(command.UserId, cancellationToken);
+        return new DeleteUserResponse { Success = true, Message = "User soft deleted successfully." };
     }
 }

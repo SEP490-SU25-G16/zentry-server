@@ -10,12 +10,14 @@ namespace Zentry.Modules.UserManagement.Persistence.Repositories;
 
 public class UserRepository(UserDbContext dbContext) : IUserRepository
 {
-    public async Task AddRangeAsync(IEnumerable<Account> accounts, IEnumerable<User> users, CancellationToken cancellationToken)
+    public async Task AddRangeAsync(IEnumerable<Account> accounts, IEnumerable<User> users,
+        CancellationToken cancellationToken)
     {
         await dbContext.Accounts.AddRangeAsync(accounts, cancellationToken);
         await dbContext.Users.AddRangeAsync(users, cancellationToken);
         await SaveChangesAsync(cancellationToken);
     }
+
     public async Task<List<string>> GetExistingEmailsAsync(List<string> emails)
     {
         return await dbContext.Accounts
@@ -41,6 +43,18 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
             })
             .ToListAsync(cancellationToken)
             .ContinueWith(t => t.Result.Select(x => (x.Id, x.Role)).ToList(), cancellationToken);
+    }
+
+    public async Task<bool> IsPhoneNumberExist(Guid id, string phone, CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        if (user is null)
+            throw new ResourceNotFoundException("USER", id);
+        var account = await dbContext.Accounts.AnyAsync(a => a.Id == user.AccountId && a.Status == AccountStatus.Active,
+            cancellationToken);
+        if (!account)
+            throw new ResourceNotFoundException("USER", id);
+        return await dbContext.Users.AnyAsync(u => u.PhoneNumber == phone, cancellationToken);
     }
 
     public async Task<List<User>> GetUsersByIdsAsync(List<Guid> userIds,
@@ -70,7 +84,12 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
 
     public async Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
-        return await dbContext.Users.AnyAsync(a => a.Id == userId, cancellationToken);
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        if (user is null)
+            throw new ResourceNotFoundException("USER", userId);
+        var account = await dbContext.Accounts.AnyAsync(a => a.Id == user.AccountId && a.Status == AccountStatus.Active,
+            cancellationToken);
+        return !account ? throw new ResourceNotFoundException("USER", userId) : true;
     }
 
     public async Task AddAsync(Account account, User user, CancellationToken cancellationToken)
@@ -85,9 +104,12 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         await dbContext.Users.AddRangeAsync(entities, cancellationToken);
     }
 
-    public async Task<bool> ExistsByEmail(string email)
+    public async Task<bool> IsExistsByEmail(Guid? id, string email)
     {
-        return await dbContext.Accounts.AnyAsync(a => a.Email == email);
+        if (id == null) return await dbContext.Accounts.AnyAsync(a => a.Email == email);
+        {
+            return await dbContext.Accounts.AnyAsync(a => a.Id != id && a.Email == email);
+        }
     }
 
 
@@ -171,20 +193,16 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
     public async Task SoftDeleteUserAsync(Guid userId, CancellationToken cancellationToken)
     {
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-        if (user == null)
-            // Xử lý trường hợp người dùng không tồn tại
-            throw new InvalidOperationException($"User with ID '{userId}' not found.");
+        if (user is null)
+            throw new ResourceNotFoundException($"User with ID '{userId}' not found.");
 
         var account =
             await dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == user.AccountId,
                 cancellationToken);
-        if (account == null)
-            // Xử lý trường hợp không tìm thấy tài khoản liên quan
-            throw new InvalidOperationException($"Associated account for user ID '{userId}' not found.");
+        if (account is null)
+            throw new ResourceNotFoundException($"Associated account for user ID '{userId}' not found.");
 
-        // Cập nhật trạng thái của tài khoản thành "Deleted" hoặc "Inactive"
-        // Bạn nên định nghĩa các hằng số hoặc enum cho các trạng thái này
-        account.UpdateStatus(AccountStatus.Inactive); // Giả sử "Inactive" là trạng thái soft delete
+        account.UpdateStatus(AccountStatus.Inactive);
 
         dbContext.Accounts.Update(account);
         await SaveChangesAsync(cancellationToken);

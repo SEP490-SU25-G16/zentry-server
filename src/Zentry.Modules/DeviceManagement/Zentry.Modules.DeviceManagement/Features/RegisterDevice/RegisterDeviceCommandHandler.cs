@@ -18,7 +18,7 @@ public class RegisterDeviceCommandHandler(
         // 1. Validate UserId existence (from Identity Module)
         var userExists = await userDeviceService.CheckUserExistsAsync(command.UserId, cancellationToken);
         if (!userExists)
-            throw new UserNotFoundException("User not found.");
+            throw new ResourceNotFoundException("User", command.UserId);
 
         // 2. Check if Android ID already exists (Android IDs should be unique across all devices)
         var existingDeviceByAndroidId =

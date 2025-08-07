@@ -3,6 +3,7 @@ using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
@@ -11,9 +12,9 @@ public class CreateUserCommandHandler(IUserRepository userRepository, IPasswordH
 {
     public async Task<CreateUserResponse> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
-        var emailExists = await userRepository.ExistsByEmail(command.Email);
+        var emailExists = await userRepository.IsExistsByEmail(null, command.Email);
         if (emailExists)
-            throw new InvalidOperationException($"Email '{command.Email}' đã tồn tại.");
+            throw new ResourceNotFoundException($"Email '{command.Email}' đã tồn tại.");
         var (hashedPassword, salt) = passwordHasher.HashPassword(command.Password);
 
         var account = Account.Create(command.Email, hashedPassword, salt, Role.FromName(command.Role));

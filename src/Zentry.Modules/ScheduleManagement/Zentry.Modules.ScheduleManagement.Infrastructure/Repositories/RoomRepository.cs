@@ -15,6 +15,7 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
             .Where(r => roomNames.Contains(r.RoomName))
             .ToListAsync(cancellationToken);
     }
+
     public async Task AddAsync(Room entity, CancellationToken cancellationToken)
     {
         await dbContext.Rooms.AddAsync(entity, cancellationToken);
@@ -40,10 +41,11 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
         return !await dbContext.Rooms.AnyAsync(r => r.RoomName == roomName, cancellationToken);
     }
 
-    public async Task<bool> IsRoomNameUniqueExcludingSelfAsync(Guid roomId, string roomName,
+    public async Task<bool> IsRoomNameUniqueExcludingSelfAsync(Guid roomId, string? roomName, string building,
         CancellationToken cancellationToken)
     {
-        return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName, cancellationToken);
+        return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName && r.Building == building,
+            cancellationToken);
     }
 
     public async Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken)

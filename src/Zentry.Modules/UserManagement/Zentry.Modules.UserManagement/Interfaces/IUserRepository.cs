@@ -11,7 +11,7 @@ public interface IUserRepository : IRepository<User, Guid>
     Task<List<string>> GetExistingEmailsAsync(List<string> emails);
     Task<bool> ExistsByIdAsync(Guid userId, CancellationToken cancellationToken);
     Task AddAsync(Account account, User user, CancellationToken cancellationToken);
-    Task<bool> ExistsByEmail(string email);
+    Task<bool> IsExistsByEmail(Guid? id, string email);
     Task<Role> GetUserRoleByUserIdAsync(Guid userId, CancellationToken cancellationToken);
     Task<Account?> GetAccountById(Guid accountId);
     Task<Account?> GetAccountByUserId(Guid userId);
@@ -29,4 +29,6 @@ public interface IUserRepository : IRepository<User, Guid>
 
     Task<List<(Guid UserId, Role Role)>> GetUserRolesByUserIdsAsync(List<Guid> userIds,
         CancellationToken cancellationToken);
+
+    Task<bool> IsPhoneNumberExist(Guid id, string phone, CancellationToken cancellationToken);
 }

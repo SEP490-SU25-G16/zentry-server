@@ -1,11 +1,11 @@
 using FluentValidation;
 using Zentry.SharedKernel.Abstractions.Models;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.CreateRoom;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.UpdateRoom;
 
-public class CreateRoomRequestValidator : BaseValidator<CreateRoomRequest>
+public class UpdateRoomRequestValidator : BaseValidator<UpdateRoomRequest>
 {
-    public CreateRoomRequestValidator()
+    public UpdateRoomRequestValidator()
     {
         // Rule for RoomName
         RuleFor(x => x.RoomName)
@@ -23,7 +23,7 @@ public class CreateRoomRequestValidator : BaseValidator<CreateRoomRequest>
 
         // Rule for Capacity
         RuleFor(x => x.Capacity)
-            .NotNull()
+            .NotEmpty()
             .WithMessage("Sức chứa là bắt buộc.")
             .GreaterThan(0)
             .WithMessage("Sức chứa phải lớn hơn 0.")
