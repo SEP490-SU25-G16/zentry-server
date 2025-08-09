@@ -1,25 +1,22 @@
-using Zentry.SharedKernel.Domain;
+namespace Zentry.SharedKernel.Contracts.Events;
 
-namespace Zentry.SharedKernel.Constants.Notification;
-
-public class NotificationType : Enumeration
+/// <summary>
+///     Enum để xác định loại thông báo sẽ được gửi đi.
+/// </summary>
+public enum NotificationType
 {
-    public static readonly NotificationType Email = new(1, nameof(Email));
-    public static readonly NotificationType InApp = new(2, nameof(InApp));
-    public static readonly NotificationType SMS = new(3, nameof(SMS));
-    public static readonly NotificationType Push = new(4, nameof(Push));
+    /// <summary>
+    ///     Chỉ lưu vào CSDL để hiển thị trong ứng dụng.
+    /// </summary>
+    InApp,
 
-    private NotificationType(int id, string name) : base(id, name)
-    {
-    }
+    /// <summary>
+    ///     Chỉ đẩy thông báo qua dịch vụ push (ví dụ: FCM).
+    /// </summary>
+    Push,
 
-    public static NotificationType FromName(string name)
-    {
-        return FromName<NotificationType>(name);
-    }
-
-    public static NotificationType FromId(int id)
-    {
-        return FromId<NotificationType>(id);
-    }
+    /// <summary>
+    ///     Gửi cả hai loại: In-app và Push.
+    /// </summary>
+    All
 }

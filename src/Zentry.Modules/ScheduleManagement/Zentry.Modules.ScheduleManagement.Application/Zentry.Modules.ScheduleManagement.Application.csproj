@@ -17,6 +17,5 @@
         <Folder Include="Features\ClassSections\"/>
         <Folder Include="Features\Courses\"/>
         <Folder Include="Features\Rooms\"/>
-        <Folder Include="Features\Schedules\"/>
     </ItemGroup>
 </Project>

@@ -29,6 +29,7 @@ public class Schedule : AggregateRoot<Guid>
         EndTime = endTime;
         WeekDay = weekWeekDay;
         CreatedAt = DateTime.UtcNow;
+        IsDeleted = false;
     }
 
     [Required] public Guid ClassSectionId { get; private set; }
@@ -44,6 +45,8 @@ public class Schedule : AggregateRoot<Guid>
     [Required] public TimeOnly EndTime { get; private set; }
 
     [Required] public WeekDayEnum WeekDay { get; private set; }
+    public bool IsDeleted { get; private set; }
+
 
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
@@ -78,6 +81,13 @@ public class Schedule : AggregateRoot<Guid>
         if (endTime.HasValue) EndTime = endTime.Value;
         if (weekDay != null) WeekDay = weekDay;
 
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Delete()
+    {
+        if (IsDeleted) return;
+        IsDeleted = true;
         UpdatedAt = DateTime.UtcNow;
     }
 }

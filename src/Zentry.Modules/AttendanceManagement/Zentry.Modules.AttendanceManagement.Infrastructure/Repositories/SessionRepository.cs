@@ -10,6 +10,11 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
+    public Task UpdateRangeAsync(IEnumerable<Session> entities, CancellationToken cancellationToken)
+    {
+        dbContext.Sessions.UpdateRange(entities);
+        return Task.CompletedTask;
+    }
     public async Task<List<Session>> GetSessionsByScheduleIdsAsync(List<Guid> scheduleIds,
         CancellationToken cancellationToken)
     {
@@ -149,5 +154,10 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
         return await dbContext.Sessions
             .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Status == SessionStatus.Active,
                 cancellationToken);
+    }
+    public async Task DeleteRangeAsync(IEnumerable<Session> sessions, CancellationToken cancellationToken)
+    {
+        dbContext.Sessions.RemoveRange(sessions);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

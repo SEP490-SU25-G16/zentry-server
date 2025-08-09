@@ -9,6 +9,8 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedu
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentDailySchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.ImportSchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.SoftDeleteSchedule;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.UpdateSchedule;
 using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Exceptions;
@@ -195,6 +197,51 @@ public class SchedulesController(
             return HandlePartialSuccess(response,
                 $"Đã import thành công {response.ImportedCount} lịch học.",
                 $"Có {response.FailedCount} lỗi trong file.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("{scheduleId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSchedule(Guid scheduleId, [FromBody] UpdateScheduleRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new UpdateScheduleCommand
+            {
+                ScheduleId = scheduleId,
+                RoomId = request.RoomId,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                WeekDay = request.WeekDay
+            };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpDelete("{scheduleId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SoftDeleteSchedule(Guid scheduleId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new SoftDeleteScheduleCommand { ScheduleId = scheduleId };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
         }
         catch (Exception ex)
         {
