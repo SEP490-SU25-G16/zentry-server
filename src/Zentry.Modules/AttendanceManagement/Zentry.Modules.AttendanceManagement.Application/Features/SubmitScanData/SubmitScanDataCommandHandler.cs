@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Constants.Response;
@@ -24,91 +25,111 @@ public class SubmitScanDataCommandHandler(
             "Received SubmitScanDataCommand for Session {SessionId}, SubmitterDeviceAndroidId {SubmitterAndroidId}",
             request.SessionId, request.SubmitterDeviceAndroidId);
 
-        // Validate session exists and is active
-        await ValidateSessionAsync(request.SessionId, request.Timestamp, cancellationToken);
+        // Logic mới để xác định round và loại submission
+        var submissionDetails = await DetermineSubmissionDetailsAsync(
+            request.SessionId,
+            request.Timestamp,
+            cancellationToken
+        );
 
-        // Determine current round
-        var currentRoundId = await DetermineCurrentRoundAsync(request.SessionId, request.Timestamp, cancellationToken);
+        // Kiểm tra session trước
+        await ValidateSessionStatus(request.SessionId, cancellationToken);
 
-        // Publish message - MassTransit sẽ tự động retry theo cấu hình
+        // Create message with late submission flag
         var message = new SubmitScanDataMessage(
             request.SubmitterDeviceAndroidId,
             request.SessionId,
-            currentRoundId,
+            submissionDetails.Round.Id,
             request.ScannedDevices.Select(sd => new ScannedDeviceContractForMessage(sd.AndroidId, sd.Rssi))
                 .ToList(),
-            request.Timestamp
+            request.Timestamp,
+            submissionDetails.IsLateSubmission
         );
 
         await publishEndpoint.Publish(message, cancellationToken);
 
-        logger.LogInformation(
-            "Scan data message for Session {SessionId}, Submitter Android ID {SubmitterAndroidId} published successfully with RoundId {RoundId}",
-            request.SessionId, request.SubmitterDeviceAndroidId, currentRoundId);
+        var responseMessage = submissionDetails.IsLateSubmission
+            ? "Dữ liệu quét muộn đã được tiếp nhận và đưa vào hàng đợi xử lý."
+            : "Dữ liệu quét đã được tiếp nhận và đưa vào hàng đợi xử lý.";
 
-        return new SubmitScanDataResponse(true, "Dữ liệu quét đã được tiếp nhận và đưa vào hàng đợi xử lý.");
+        logger.LogInformation(
+            "Scan data message for Session {SessionId}, Submitter Android ID {SubmitterAndroidId} " +
+            "published successfully with RoundId {RoundId} (Late: {IsLate})",
+            request.SessionId, request.SubmitterDeviceAndroidId, submissionDetails.Round.Id,
+            submissionDetails.IsLateSubmission);
+
+        return new SubmitScanDataResponse(true, responseMessage);
     }
 
-    private async Task ValidateSessionAsync(Guid sessionId, DateTime timestamp, CancellationToken cancellationToken)
+    // Hàm mới thay thế cho ValidateSessionAsync và DetermineCurrentRoundAsync
+    private async Task<SubmissionDetails> DetermineSubmissionDetailsAsync(
+        Guid sessionId,
+        DateTime timestamp,
+        CancellationToken cancellationToken)
     {
+        // Bước 1: Tìm round phù hợp với timestamp
+        var allRoundsInSession = await roundRepository.GetRoundsBySessionIdAsync(sessionId, cancellationToken);
+
+        var targetRound = allRoundsInSession
+            .Where(r => timestamp >= r.StartTime && timestamp <= r.EndTime)
+            .OrderByDescending(r => r.StartTime)
+            .FirstOrDefault();
+
+        if (targetRound is null)
+        {
+            logger.LogWarning(
+                "No suitable round found for Session {SessionId} at timestamp {Timestamp}",
+                sessionId, timestamp);
+            throw new ApplicationException("No suitable round found for the submission.");
+        }
+
+        // Bước 2: Xác định loại submission dựa trên trạng thái của round
+        var isLateSubmission = Equals(targetRound.Status, RoundStatus.Completed) ||
+                                Equals(targetRound.Status, RoundStatus.Finalized);
+
+        logger.LogInformation(
+            "Submission for Session {SessionId} assigned to Round {RoundId} " +
+            "(Status: {Status}, IsLate: {IsLate})",
+            sessionId, targetRound.Id, targetRound.Status.ToString(), isLateSubmission);
+
+        return new SubmissionDetails(targetRound, isLateSubmission);
+    }
+
+    // Một hàm riêng để chỉ kiểm tra status của session
+    private async Task ValidateSessionStatus(Guid sessionId, CancellationToken cancellationToken)
+    {
+        // Step 1: Check if session is actively running in Redis
         var sessionKey = $"session:{sessionId}";
         var sessionExists = await redisService.KeyExistsAsync(sessionKey);
 
-        if (!sessionExists)
+        if (sessionExists)
         {
-            var actualEndTime = await sessionRepository.GetActualEndTimeAsync(sessionId, cancellationToken);
-
-            if (actualEndTime.HasValue && timestamp > actualEndTime.Value)
-            {
-                logger.LogWarning(
-                    "SubmitScanData rejected: Data timestamp {Timestamp} is after actual session end time {ActualEndTime} for Session {SessionId}",
-                    timestamp, actualEndTime, sessionId);
-
-                throw new SessionEndedException(ErrorMessages.Attendance.SessionEnded);
-            }
-
-            logger.LogWarning("SubmitScanData failed: Session {SessionId} not found or not active", sessionId);
-            throw new BusinessRuleException(ErrorCodes.SessionNotActive,
-                ErrorMessages.Attendance.SessionNotActive);
+            logger.LogDebug("Session {SessionId} is active in Redis", sessionId);
+            return;
         }
-    }
 
-    private async Task<Guid> DetermineCurrentRoundAsync(Guid sessionId, DateTime timestamp,
-        CancellationToken cancellationToken)
-    {
-        try
+        logger.LogDebug("Session {SessionId} not found in Redis, checking database", sessionId);
+
+        // Step 2: Session not in Redis - check database
+        var session = await sessionRepository.GetByIdAsync(sessionId, cancellationToken);
+        if (session is null)
         {
-            var allRoundsInSession = await roundRepository.GetRoundsBySessionIdAsync(sessionId, cancellationToken);
-
-            var currentRound = allRoundsInSession
-                .Where(r => timestamp >= r.StartTime &&
-                            timestamp <= r.EndTime &&
-                            !Equals(r.Status, RoundStatus.Completed) &&
-                            !Equals(r.Status, RoundStatus.Cancelled) &&
-                            !Equals(r.Status, RoundStatus.Finalized))
-                .OrderByDescending(r => r.StartTime)
-                .FirstOrDefault();
-
-            if (currentRound is null)
-            {
-                logger.LogWarning(
-                    "No active or pending round found for Session {SessionId} at timestamp {Timestamp}",
-                    sessionId, timestamp);
-                throw new ApplicationException("An error occurred while determining the round.");
-            }
-
-            logger.LogInformation(
-                "Scan data for Session {SessionId} assigned to Round {RoundId} (RoundNumber: {RoundNumber})",
-                sessionId, currentRound.Id, currentRound.RoundNumber);
-
-            return currentRound.Id;
+            logger.LogWarning("SubmitScanData failed: Session {SessionId} not found", sessionId);
+            throw new BusinessRuleException(ErrorCodes.SessionNotFound, ErrorMessages.Attendance.SessionNotFound);
         }
-        catch (Exception ex)
+
+        // Step 3: Handle different session statuses that should be rejected
+        if (Equals(session.Status, SessionStatus.Cancelled))
         {
-            logger.LogError(ex,
-                "Error determining current round for Session {SessionId} at timestamp {Timestamp}",
-                sessionId, timestamp);
-            throw new ApplicationException("An error occurred while determining the active round.", ex);
+            throw new BusinessRuleException(ErrorCodes.SessionCancelled, ErrorMessages.Attendance.SessionCancelled);
+        }
+
+        if (Equals(session.Status, SessionStatus.Missed))
+        {
+            throw new BusinessRuleException(ErrorCodes.SessionMissed, ErrorMessages.Attendance.SessionMissed);
         }
     }
 }
+
+// Supporting classes
+public record SubmissionDetails(Round Round, bool IsLateSubmission);

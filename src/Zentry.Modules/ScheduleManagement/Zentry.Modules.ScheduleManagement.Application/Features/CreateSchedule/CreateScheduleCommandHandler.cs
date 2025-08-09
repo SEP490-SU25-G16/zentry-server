@@ -65,7 +65,8 @@ public class CreateScheduleCommandHandler(
 
         await publishEndpoint.Publish(scheduleCreatedEvent, cancellationToken);
         logger.LogInformation("ScheduleCreatedMessage published for ScheduleId: {ScheduleId}.", schedule.Id);
-
+        logger.LogInformation("Published GenerateScheduleWhitelistMessage for ScheduleId: {ScheduleId}.",
+            schedule.Id);
         return new CreatedScheduleResponse
         {
             Id = schedule.Id,

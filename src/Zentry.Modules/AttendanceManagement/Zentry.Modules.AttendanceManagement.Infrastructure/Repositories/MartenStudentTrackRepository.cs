@@ -12,9 +12,12 @@ public class MartenStudentTrackRepository(IDocumentSession documentSession) : IS
         await documentSession.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<StudentTrack?> GetByIdAsync(Guid studentId, CancellationToken cancellationToken)
+    public async Task<StudentTrack?> GetBySessionIdAndUserIdAsync(Guid sessionId, Guid studentId,
+        CancellationToken cancellationToken)
     {
-        return await documentSession.LoadAsync<StudentTrack>(studentId, cancellationToken);
+        return await documentSession.Query<StudentTrack>()
+            .FirstOrDefaultAsync(s => s.SessionId == sessionId
+                                      && s.StudentId == studentId, cancellationToken);
     }
 
     public async Task<StudentTrack?> GetByDeviceIdAsync(string deviceId, CancellationToken cancellationToken)

@@ -51,19 +51,19 @@ public class Session : AggregateRoot<Guid>
     public int AbsentReportGracePeriodHours => SessionConfigs.AbsentReportGracePeriodHours;
     public int ManualAdjustmentGracePeriodHours => SessionConfigs.ManualAdjustmentGracePeriodHours;
 
-    public static Session Create(Guid scheduleId, Guid? userId, DateTime startTime, DateTime endTime,
+    public static Session Create(Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime,
         Dictionary<string, string> configs)
     {
         var sessionConfigs = SessionConfigSnapshot.FromDictionary(configs);
-        return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, SessionStatus.Pending,
+        return new Session(Guid.NewGuid(), scheduleId, lecturerId, startTime, endTime, SessionStatus.Pending,
             sessionConfigs);
     }
 
     // Create method mới
-    public static Session Create(Guid scheduleId, Guid? userId, DateTime startTime, DateTime endTime,
+    public static Session Create(Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime,
         SessionConfigSnapshot sessionConfigs)
     {
-        return new Session(Guid.NewGuid(), scheduleId, userId, startTime, endTime, SessionStatus.Pending,
+        return new Session(Guid.NewGuid(), scheduleId, lecturerId, startTime, endTime, SessionStatus.Pending,
             sessionConfigs);
     }
 

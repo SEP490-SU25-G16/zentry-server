@@ -1,11 +1,13 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
+
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
 public class AttendanceCalculationService(
@@ -15,7 +17,7 @@ public class AttendanceCalculationService(
     ISessionRepository sessionRepository,
     IMediator mediator) : IAttendanceCalculationService
 {
-    public async Task<AttendanceCalculationResult> CalculateAttendanceForRound(
+    public async Task<AttendanceCalculationResultDto> CalculateAttendanceForRound(
         Guid sessionId,
         Guid roundId,
         CancellationToken cancellationToken)
@@ -29,10 +31,10 @@ public class AttendanceCalculationService(
 
         // 1. Get whitelist (bây giờ lấy từ Schedule)
         var whitelist = await GetScheduleWhitelist(session.ScheduleId, cancellationToken);
-        if (!whitelist.Any())
+        if (whitelist.Count == 0)
         {
             logger.LogWarning("No whitelist found for Session {SessionId}. Calculation cannot proceed.", sessionId);
-            return new AttendanceCalculationResult
+            return new AttendanceCalculationResultDto
             {
                 AttendedDeviceIds = [],
                 LecturerId = lecturerId
@@ -49,7 +51,7 @@ public class AttendanceCalculationService(
             "Successfully calculated attendance for Round {RoundId}: {Count} devices attended",
             roundId, attendedDeviceIds.Count);
 
-        return new AttendanceCalculationResult
+        return new AttendanceCalculationResultDto
         {
             AttendedDeviceIds = attendedDeviceIds,
             LecturerId = lecturerId
@@ -140,7 +142,8 @@ public class AttendanceCalculationService(
         return filtered;
     }
 
-    private async Task<List<DeviceRecord>> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist, CancellationToken cancellationToken)
+    private async Task<List<DeviceRecordDto>> BuildDeviceRecords(List<ScanLog> scanLogs, HashSet<string> whitelist,
+        CancellationToken cancellationToken)
     {
         logger.LogInformation("Building device records with neighbor scan lists");
 
@@ -148,7 +151,7 @@ public class AttendanceCalculationService(
             .GroupBy(s => s.DeviceId.ToString())
             .ToList();
 
-        var records = new List<DeviceRecord>();
+        var records = new List<DeviceRecordDto>();
 
         var allUniqueDeviceIdStrings = groupedScanLogs.Select(g => g.Key).ToList();
         var allUniqueDeviceIdGuids = allUniqueDeviceIdStrings.Select(Guid.Parse).ToList();
@@ -187,7 +190,7 @@ public class AttendanceCalculationService(
             logger.LogDebug("Device {DeviceId} ({Role}) has {NeighborCount} neighbors after filtering",
                 deviceIdString, role, scanList.Count);
 
-            records.Add(new DeviceRecord
+            records.Add(new DeviceRecordDto
             {
                 DeviceId = deviceIdString,
                 Role = role,
@@ -199,7 +202,7 @@ public class AttendanceCalculationService(
         return records;
     }
 
-    private string FindLecturerRoot(List<DeviceRecord> deviceRecords)
+    private string FindLecturerRoot(List<DeviceRecordDto> deviceRecords)
     {
         var lecturerRecord = deviceRecords.FirstOrDefault(r =>
             r.Role.Equals(Role.Lecturer.ToString(), StringComparison.OrdinalIgnoreCase));
@@ -211,10 +214,9 @@ public class AttendanceCalculationService(
         return lecturerRecord.DeviceId;
     }
 
-    private HashSet<string> ApplyBfsAlgorithm(List<DeviceRecord> deviceRecords, string lecturerId,
+    private HashSet<string> ApplyBfsAlgorithm(List<DeviceRecordDto> deviceRecords, string lecturerId,
         HashSet<string> whitelist)
     {
-        // ... (Logic không thay đổi) ...
         logger.LogInformation("Starting BFS traversal from lecturer {LecturerId}", lecturerId);
 
         var scanMap = deviceRecords.ToDictionary(r => r.DeviceId, r => r.ScanList);
@@ -222,7 +224,7 @@ public class AttendanceCalculationService(
         var queue = new Queue<string>();
         queue.Enqueue(lecturerId);
 
-        while (queue.Any())
+        while (queue.Count != 0)
         {
             var currentDevice = queue.Dequeue();
             var neighbors = scanMap.GetValueOrDefault(currentDevice, new List<string>());
@@ -236,10 +238,9 @@ public class AttendanceCalculationService(
         return attendance;
     }
 
-    private HashSet<string> ApplyFillInPhase(List<DeviceRecord> deviceRecords, HashSet<string> attendance,
+    private HashSet<string> ApplyFillInPhase(List<DeviceRecordDto> deviceRecords, HashSet<string> attendance,
         HashSet<string> whitelist)
     {
-        // ... (Logic không thay đổi) ...
         logger.LogInformation("Applying fill-in phase");
 
         var finalAttendance = new HashSet<string>(attendance);
@@ -249,29 +250,14 @@ public class AttendanceCalculationService(
             var deviceId = deviceRecord.DeviceId;
             var neighbors = deviceRecord.ScanList;
 
-            if (!finalAttendance.Contains(deviceId) &&
-                whitelist.Contains(deviceId) &&
-                neighbors.Any(n => finalAttendance.Contains(n)))
-            {
-                finalAttendance.Add(deviceId);
-                logger.LogDebug("Fill-in: Added {DeviceId} (has attended neighbors)", deviceId);
-            }
+            if (finalAttendance.Contains(deviceId) ||
+                !whitelist.Contains(deviceId) ||
+                !neighbors.Any(n => finalAttendance.Contains(n))) continue;
+            finalAttendance.Add(deviceId);
+            logger.LogDebug("Fill-in: Added {DeviceId} (has attended neighbors)", deviceId);
         }
 
         logger.LogInformation("Fill-in phase completed: {Count} total devices attended", finalAttendance.Count);
         return finalAttendance;
     }
-
-    private class DeviceRecord
-    {
-        public string DeviceId { get; set; }
-        public string Role { get; set; }
-        public List<string> ScanList { get; set; }
-    }
-}
-
-public class AttendanceCalculationResult
-{
-    public List<string> AttendedDeviceIds { get; set; } = new();
-    public string? LecturerId { get; set; } = string.Empty;
 }

@@ -38,14 +38,20 @@ public class AssignLecturerConsumer(
         {
             session.AssignLecturer(message.LecturerId);
             await sessionRepository.UpdateAsync(session, context.CancellationToken);
-
-            await publishEndpoint.Publish(new GenerateScheduleWhitelistMessage(
-                session.ScheduleId,
-                message.ClassSectionId,
-                message.LecturerId
-            ), context.CancellationToken);
         }
 
         await sessionRepository.SaveChangesAsync(context.CancellationToken);
+
+        foreach (var scheduleId in scheduleIds.Distinct())
+        {
+            await publishEndpoint.Publish(new AssignLecturerToWhitelistMessage(
+                scheduleId,
+                message.ClassSectionId,
+                message.LecturerId
+            ), context.CancellationToken);
+            logger.LogInformation(
+                "Published AssignLecturerToWhitelistMessage for ScheduleId: {ScheduleId}, LecturerId: {LecturerId}.",
+                scheduleId, message.LecturerId);
+        }
     }
 }

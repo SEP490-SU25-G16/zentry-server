@@ -37,6 +37,9 @@ public static class DependencyInjection
                 options.Schema.For<ScanLog>().Identity(r => r.Id);
                 options.Schema.For<ScheduleWhitelist>()
                     .Index(x => x.ScheduleId, x => x.IsUnique = true);
+                options.Schema.For<StudentTrack>().Identity(x => x.Id)
+                    .Index(x => x.StudentId)
+                    .Index(x => x.SessionId);
             });
 
             services.AddScoped<IScanLogRepository, MartenScanLogRepository>();

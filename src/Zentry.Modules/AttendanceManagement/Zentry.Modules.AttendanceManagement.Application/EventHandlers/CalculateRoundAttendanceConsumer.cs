@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.SharedKernel.Constants.Attendance;
@@ -14,6 +15,7 @@ public class CalculateRoundAttendanceConsumer(
     IRoundRepository roundRepository,
     ISessionRepository sessionRepository,
     IPublishEndpoint publishEndpoint,
+    IRedisService redisService,
     IAttendanceCalculationService attendanceCalculationService,
     IAttendancePersistenceService attendancePersistenceService)
     : IConsumer<CalculateRoundAttendanceMessage>
@@ -104,9 +106,18 @@ public class CalculateRoundAttendanceConsumer(
         }
 
         // Complete session
-        session.CompleteSession();
-        await sessionRepository.UpdateAsync(session, cancellationToken);
-        await sessionRepository.SaveChangesAsync(cancellationToken);
+        if (!Equals(session.Status, SessionStatus.Completed))
+        {
+            session.CompleteSession();
+            await sessionRepository.UpdateAsync(session, cancellationToken);
+            await sessionRepository.SaveChangesAsync(cancellationToken);
+
+            var activeScheduleKey = $"active_schedule:{session.ScheduleId}";
+            await redisService.RemoveAsync($"session:{session.Id}");
+            await redisService.RemoveAsync(activeScheduleKey);
+            logger.LogInformation("Redis keys for Session {SessionId} and Schedule {ScheduleId} deleted.",
+                session.Id, session.ScheduleId);
+        }
 
         // Publish final attendance processing message
         var finalMessage = new SessionFinalAttendanceToProcess

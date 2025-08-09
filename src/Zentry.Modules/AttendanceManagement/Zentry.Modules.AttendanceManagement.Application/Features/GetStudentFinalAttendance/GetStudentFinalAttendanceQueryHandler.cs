@@ -61,7 +61,9 @@ public class GetStudentFinalAttendanceQueryHandler(
         }
 
         // 3. Lấy kết quả điểm danh của sinh viên từ Marten (StudentTrack)
-        var studentTrack = await studentTrackRepository.GetByIdAsync(request.StudentId, cancellationToken);
+        var studentTrack =
+            await studentTrackRepository.GetBySessionIdAndUserIdAsync(request.SessionId, request.StudentId,
+                cancellationToken);
 
         // 4. Kết hợp dữ liệu và tính toán
         var attendedRounds = studentTrack?.Rounds.ToDictionary(r => r.RoundId) ??

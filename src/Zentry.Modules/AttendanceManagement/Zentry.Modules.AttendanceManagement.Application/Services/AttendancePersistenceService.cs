@@ -63,14 +63,14 @@ public class AttendancePersistenceService(
 
         var studentTracksToUpdate = new List<StudentTrack>();
 
-        foreach (var (deviceId, userId) in deviceToUserMap)
+        foreach (var (deviceId, studentId) in deviceToUserMap)
         {
-            if (userId == lecturerId) continue;
+            if (studentId == lecturerId) continue;
             const bool isAttended = true;
             var attendedTime = DateTime.UtcNow;
             var usedDeviceIdString = deviceId.ToString();
 
-            if (mergedStudentsInRoundTrack.TryGetValue(userId, out var existingStudentInMerged))
+            if (mergedStudentsInRoundTrack.TryGetValue(studentId, out var existingStudentInMerged))
             {
                 existingStudentInMerged.DeviceId = usedDeviceIdString;
                 existingStudentInMerged.IsAttended = isAttended;
@@ -78,18 +78,19 @@ public class AttendancePersistenceService(
             }
             else
             {
-                mergedStudentsInRoundTrack.Add(userId, new StudentAttendanceInRound
+                mergedStudentsInRoundTrack.Add(studentId, new StudentAttendanceInRound
                 {
-                    StudentId = userId,
+                    StudentId = studentId,
                     DeviceId = usedDeviceIdString,
                     IsAttended = isAttended,
                     AttendedTime = attendedTime
                 });
             }
 
-            var studentTrack = await studentTrackRepository.GetByIdAsync(userId, cancellationToken);
+            var studentTrack =
+                await studentTrackRepository.GetBySessionIdAndUserIdAsync(sessionId, studentId, cancellationToken);
             if (studentTrack == null)
-                studentTrack = new StudentTrack(sessionId, userId, usedDeviceIdString);
+                studentTrack = new StudentTrack(sessionId, studentId, usedDeviceIdString);
             else
                 studentTrack.DeviceId = usedDeviceIdString;
 

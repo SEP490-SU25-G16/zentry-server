@@ -10,14 +10,16 @@ public class StudentTrack
 
     public StudentTrack(Guid sessionId, Guid studentId, string deviceId)
     {
+        Id = Guid.NewGuid();
         SessionId = sessionId;
-        Id = studentId;
+        StudentId = studentId;
         DeviceId = deviceId;
     }
 
     public Guid Id { get; set; }
-    public string DeviceId { get; set; }
+    public Guid StudentId { get; set; }
     public Guid SessionId { get; set; }
+    public string DeviceId { get; set; }
     public List<RoundParticipation> Rounds { get; set; } = [];
     public double CurrentPercentageAttended { get; private set; }
 

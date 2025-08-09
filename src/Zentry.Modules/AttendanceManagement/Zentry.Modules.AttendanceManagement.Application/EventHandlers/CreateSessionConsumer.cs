@@ -165,14 +165,6 @@ public class CreateSessionConsumer(
                             "No rounds will be created for Session {SessionId} as TotalAttendanceRounds is 0.",
                             session.Id);
                     }
-
-                    var generateWhitelistMessage = new GenerateScheduleWhitelistMessage(
-                        message.ScheduleId,
-                        message.ClassSectionId
-                    );
-                    await publishEndpoint.Publish(generateWhitelistMessage, context.CancellationToken);
-                    logger.LogInformation("Published GenerateScheduleWhitelistMessage for SessionId: {SessionId}.",
-                        session.Id);
                 }
             }
             else

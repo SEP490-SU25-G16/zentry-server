@@ -5,7 +5,8 @@ public record SubmitScanDataMessage(
     Guid SessionId,
     Guid RoundId,
     List<ScannedDeviceContractForMessage> ScannedDevices,
-    DateTime Timestamp
+    DateTime Timestamp,
+    bool IsLateSubmission = false // Added with default value for backward compatibility
 );
 
 public record ScannedDeviceContractForMessage(
