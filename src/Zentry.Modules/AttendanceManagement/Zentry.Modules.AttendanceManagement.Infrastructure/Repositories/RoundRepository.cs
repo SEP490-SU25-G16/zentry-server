@@ -34,6 +34,12 @@ public class RoundRepository(AttendanceDbContext dbContext) : IRoundRepository
         await SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdateRangeAsync(IEnumerable<Round> entities, CancellationToken cancellationToken)
+    {
+        dbContext.Rounds.UpdateRange(entities);
+        await SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeleteAsync(Round entity, CancellationToken cancellationToken)
     {
         dbContext.Rounds.Remove(entity);

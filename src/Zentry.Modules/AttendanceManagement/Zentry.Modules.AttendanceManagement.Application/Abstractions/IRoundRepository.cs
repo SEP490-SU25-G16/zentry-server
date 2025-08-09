@@ -12,4 +12,5 @@ public interface IRoundRepository : IRepository<Round, Guid>
     Task UpdateRoundStatusAsync(Guid roundId, RoundStatus status, CancellationToken cancellationToken = default);
     Task<List<Round>> GetActiveRoundsBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
     Task DeleteRangeAsync(IEnumerable<Round> entities, CancellationToken cancellationToken);
+    Task UpdateRangeAsync(IEnumerable<Round> entities, CancellationToken cancellationToken);
 }

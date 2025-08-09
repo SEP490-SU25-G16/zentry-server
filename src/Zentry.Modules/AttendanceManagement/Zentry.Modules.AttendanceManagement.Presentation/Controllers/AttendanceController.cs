@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Application.Features.CalculateRoundAttendance;
+using Zentry.Modules.AttendanceManagement.Application.Features.CancelSession;
+using Zentry.Modules.AttendanceManagement.Application.Features.DeleteSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.EndSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetRoundResult;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAttendance;
@@ -10,6 +12,7 @@ using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetStudentFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
+using Zentry.Modules.AttendanceManagement.Application.Features.UpdateSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.UpdateStudentAttendanceStatus;
 using Zentry.Modules.AttendanceManagement.Presentation.Requests;
 using Zentry.SharedKernel.Abstractions.Models;
@@ -224,6 +227,69 @@ public class AttendanceController(IMediator mediator) : BaseController
         catch (NotFoundException ex)
         {
             return HandleNotFound(ex.Message, studentId);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("sessions/{sessionId}")]
+    [ProducesResponseType(typeof(ApiResponse<UpdateSessionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSession(Guid sessionId, [FromBody] UpdateSessionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return HandleValidationError();
+        try
+        {
+            var command = new UpdateSessionCommand
+            {
+                SessionId = sessionId,
+                LecturerId = request.LecturerId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                SessionConfigs = request.SessionConfigs
+            };
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response, "Session updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpDelete("sessions/{sessionId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteSession(Guid sessionId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteSessionCommand { SessionId = sessionId };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("sessions/{sessionId}/cancel")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelSession(Guid sessionId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new CancelSessionCommand { SessionId = sessionId };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
         }
         catch (Exception ex)
         {

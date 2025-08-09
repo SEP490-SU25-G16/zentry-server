@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Domain;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.Entities;
 
@@ -49,6 +50,17 @@ public class Round : AggregateRoot<Guid>
     public void UpdateStatus(RoundStatus newStatus)
     {
         Status = newStatus;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void CancelRound()
+    {
+        if (!Equals(Status, RoundStatus.Active))
+        {
+            throw new BusinessRuleException("ONLY_CANCEL_PENDING_ROUND", "Chỉ có thể cancel round đang pending.");
+        }
+
+        Status = RoundStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }
 }
