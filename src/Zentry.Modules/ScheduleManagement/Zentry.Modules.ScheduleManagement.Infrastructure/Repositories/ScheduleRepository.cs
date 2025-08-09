@@ -11,6 +11,41 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleRepository
 {
+    public async Task<bool> HasActiveScheduleByClassSectionIdAsync(Guid classSectionId, CancellationToken cancellationToken)
+    {
+        var dateOnly = DateOnly.FromDateTime(DateTime.Now);
+
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .AnyAsync(s => s.ClassSectionId == classSectionId &&
+                           s.StartDate <= dateOnly &&
+                           s.EndDate >= dateOnly,
+                cancellationToken);
+    }
+    public async Task<bool> HasActiveScheduleInTermByRoomIdAsync(Guid roomId, CancellationToken cancellationToken)
+    {
+        var dateOnly = DateOnly.FromDateTime(DateTime.Now);
+
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .AnyAsync(s => s.RoomId == roomId &&
+                           s.StartDate <= dateOnly &&
+                           s.EndDate >= dateOnly,
+                cancellationToken);
+    }
+    public async Task<bool> HasActiveScheduleInTermAsync(Guid courseId, CancellationToken cancellationToken)
+    {
+        var dateOnly = DateOnly.FromDateTime(DateTime.Now);
+
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Include(s => s.ClassSection)
+            .AnyAsync(s => s.ClassSection!.CourseId == courseId &&
+                           s.StartDate <= dateOnly &&
+                           s.EndDate >= dateOnly,
+                cancellationToken);
+    }
+
     public async Task<bool> IsBookedScheduleByRoomIdAsync(Guid roomId, CancellationToken cancellationToken)
     {
         return await dbContext.Schedules
