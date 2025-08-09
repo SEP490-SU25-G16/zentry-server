@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
+using Zentry.Modules.DeviceManagement.Features.DeleteDevicesForInactiveStudent;
 using Zentry.Modules.DeviceManagement.Features.GetDeviceById;
 using Zentry.Modules.DeviceManagement.Features.GetDevices;
 using Zentry.Modules.DeviceManagement.Features.RegisterDevice;
@@ -206,6 +207,24 @@ public class DevicesController(IMediator mediator) : BaseController
         {
             var response = await mediator.Send(command, cancellationToken);
             return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+    [HttpDelete("student/{studentId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+// [Authorize(Roles = "Admin")] // Cần có authorization phù hợp
+    public async Task<IActionResult> DeleteDevicesForInactiveStudent(Guid studentId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteDevicesForInactiveStudentCommand { StudentId = studentId };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
         }
         catch (Exception ex)
         {

@@ -223,4 +223,10 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
         return await dbContext.Devices
             .FirstOrDefaultAsync(d => d.DeviceToken.Value == deviceToken, cancellationToken);
     }
+
+    public async Task DeleteRangeAsync(IEnumerable<Device> entities, CancellationToken cancellationToken)
+    {
+        dbContext.Devices.RemoveRange(entities);
+        await SaveChangesAsync(cancellationToken);
+    }
 }

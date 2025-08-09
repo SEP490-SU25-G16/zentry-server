@@ -12,7 +12,7 @@ public class UserService(IMediator mediator) : IUserService
     {
         try
         {
-            var query = new GetUserByIdAndRoleIntegrationQuery(role, userId);
+            var query = new GetUserByIdAndRoleIntegrationQuery(userId, role);
             var result = await mediator.Send(query, cancellationToken);
             return result;
         }

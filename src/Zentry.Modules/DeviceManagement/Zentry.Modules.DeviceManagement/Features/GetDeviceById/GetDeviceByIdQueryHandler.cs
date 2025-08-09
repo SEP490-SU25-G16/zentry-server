@@ -19,8 +19,8 @@ public class GetDeviceByIdQueryHandler(
         if (device is null) throw new NotFoundException(nameof(GetDeviceByIdQueryHandler), request.DeviceId);
 
         // too fucking lazy to create a new integration handler
-        var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery([device.UserId]), cancellationToken);
-        var userInfo = usersResponse.Users.FirstOrDefault();
+        var userInfo =
+            await mediator.Send(new GetUserByIdAndRoleIntegrationQuery(device.UserId, null), cancellationToken);
 
         return new GetDeviceDetailsResponse
         {

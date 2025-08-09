@@ -38,4 +38,5 @@ public interface IDeviceRepository : IRepository<Device, Guid>
     Task<int> CountAllByUserIdAsync(Guid userId, CancellationToken cancellationToken);
     Task<Device?> GetActiveDeviceForUserAsync(Guid userId, CancellationToken cancellationToken);
     Task<Device?> GetPendingDeviceForUserAsync(Guid userId, Guid deviceId, CancellationToken cancellationToken);
+    Task DeleteRangeAsync(IEnumerable<Device> entities, CancellationToken cancellationToken);
 }

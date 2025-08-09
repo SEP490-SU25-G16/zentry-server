@@ -4,6 +4,7 @@ using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
 
@@ -51,9 +52,9 @@ public class GetStudentFinalAttendanceQueryHandler(
         }
 
         // 2. Lấy thông tin sinh viên từ UserManagement module
-        var userResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(new List<Guid> { request.StudentId }),
+        var studentInfo = await mediator.Send(
+            new GetUserByIdAndRoleIntegrationQuery(request.StudentId, Role.Student),
             cancellationToken);
-        var studentInfo = userResponse.Users.FirstOrDefault();
         if (studentInfo == null)
         {
             logger.LogWarning("Student with ID {StudentId} not found.", request.StudentId);

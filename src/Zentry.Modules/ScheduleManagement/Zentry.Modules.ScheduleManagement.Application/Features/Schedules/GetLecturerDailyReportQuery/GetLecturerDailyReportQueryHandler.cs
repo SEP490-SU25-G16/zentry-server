@@ -20,7 +20,7 @@ public class GetLecturerDailyReportQueryHandler(
         GetLecturerDailyReportQuery request,
         CancellationToken cancellationToken)
     {
-        var getUserQuery = new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, request.LecturerId);
+        var getUserQuery = new GetUserByIdAndRoleIntegrationQuery(request.LecturerId, Role.Lecturer);
         var lecturerInfo = await mediator.Send(getUserQuery, cancellationToken);
         var lecturerName = lecturerInfo?.FullName ?? "N/A";
 

@@ -1,11 +1,9 @@
 ﻿using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
 
-// Đảm bảo đã có using này
-
 namespace Zentry.SharedKernel.Contracts.User;
 
-public record GetUserByIdAndRoleIntegrationQuery(Role Role, Guid UserId)
+public record GetUserByIdAndRoleIntegrationQuery(Guid UserId, Role? Role)
     : IQuery<GetUserByIdAndRoleIntegrationResponse>;
 
 public record GetUserByIdAndRoleIntegrationResponse(

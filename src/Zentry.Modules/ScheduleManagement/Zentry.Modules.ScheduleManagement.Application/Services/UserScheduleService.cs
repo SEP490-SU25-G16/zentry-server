@@ -9,7 +9,7 @@ public class UserScheduleService(IMediator mediator) : IUserScheduleService
     public async Task<GetUserByIdAndRoleIntegrationResponse?> GetUserByIdAndRoleAsync(Role role, Guid userId,
         CancellationToken cancellationToken)
     {
-        var query = new GetUserByIdAndRoleIntegrationQuery(role, userId);
+        var query = new GetUserByIdAndRoleIntegrationQuery(userId, role);
         var result = await mediator.Send(query, cancellationToken);
         return result;
     }

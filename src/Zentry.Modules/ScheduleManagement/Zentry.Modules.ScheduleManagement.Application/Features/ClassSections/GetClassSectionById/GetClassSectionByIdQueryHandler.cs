@@ -11,9 +11,9 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.G
 public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectionRepository, IMediator mediator)
     : IQueryHandler<GetClassSectionByIdQuery, ClassSectionDto>
 {
-    public async Task<ClassSectionDto> Handle(GetClassSectionByIdQuery query, CancellationToken ct)
+    public async Task<ClassSectionDto> Handle(GetClassSectionByIdQuery query, CancellationToken cancellationToken)
     {
-        var cs = await classSectionRepository.GetByIdAsync(query.Id, ct);
+        var cs = await classSectionRepository.GetByIdAsync(query.Id, cancellationToken);
         if (cs is null || cs.IsDeleted)
             throw new ResourceNotFoundException("CLASS SECTION", query.Id);
 
@@ -22,7 +22,8 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
             try
             {
                 lecturerInfo =
-                    await mediator.Send(new GetUserByIdAndRoleIntegrationQuery(Role.Lecturer, cs.LecturerId.Value), ct);
+                    await mediator.Send(new GetUserByIdAndRoleIntegrationQuery(cs.LecturerId.Value, Role.Lecturer),
+                        cancellationToken);
             }
             catch (NotFoundException)
             {
@@ -33,7 +34,7 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
         var studentInfos = new Dictionary<Guid, BasicUserInfoDto>();
         if (studentIds.Count != 0)
         {
-            var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(studentIds), ct);
+            var usersResponse = await mediator.Send(new GetUsersByIdsIntegrationQuery(studentIds), cancellationToken);
             studentInfos = usersResponse.Users.ToDictionary(u => u.Id);
         }
 
