@@ -4,7 +4,9 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.DeleteClassSection;
 
-public class DeleteClassSectionCommandHandler(IClassSectionRepository classSectionRepository)
+public class DeleteClassSectionCommandHandler(
+    IClassSectionRepository classSectionRepository,
+    IScheduleRepository scheduleRepository)
     : ICommandHandler<DeleteClassSectionCommand, bool>
 {
     public async Task<bool> Handle(DeleteClassSectionCommand command, CancellationToken cancellationToken)
@@ -12,14 +14,25 @@ public class DeleteClassSectionCommandHandler(IClassSectionRepository classSecti
         var classSection = await classSectionRepository.GetByIdAsync(command.Id, cancellationToken);
 
         if (classSection is null)
+        {
             throw new ResourceNotFoundException("CLASS SECTION", command.Id);
+        }
 
         if (classSection.Enrollments.Count != 0)
-            throw new ResourceCannotBeDeletedException("Class section", command.Id);
+        {
+            var hasActiveSchedule =
+                await scheduleRepository.HasActiveScheduleByClassSectionIdAsync(classSection.Id, cancellationToken);
 
-        await classSectionRepository.SoftDeleteAsync(command.Id, cancellationToken);
-        await classSectionRepository.SaveChangesAsync(cancellationToken);
+            if (hasActiveSchedule)
+            {
+                throw new ResourceCannotBeDeletedException(
+                    $"Class section with ID '{command.Id}' has active enrollments and a running schedule, so it cannot be deleted.");
+            }
 
+            await classSectionRepository.SoftDeleteAsync(command.Id, cancellationToken);
+        }
+
+        await classSectionRepository.DeleteAsync(classSection, cancellationToken);
         return true;
     }
 }
