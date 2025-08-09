@@ -18,14 +18,13 @@ public class UserAttribute : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
     }
 
-    [Required]
-    public Guid UserId { get; private set; }
+    [Required] public Guid UserId { get; private set; }
 
-    [Required]
-    public Guid AttributeId { get; private set; }
+    [Required] public Guid AttributeId { get; private set; }
 
     [StringLength(255)] // Giới hạn độ dài của giá trị thuộc tính người dùng
     public string AttributeValue { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

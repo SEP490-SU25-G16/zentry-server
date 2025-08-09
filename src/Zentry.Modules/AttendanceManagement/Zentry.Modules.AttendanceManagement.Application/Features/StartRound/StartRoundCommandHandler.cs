@@ -21,38 +21,27 @@ public class StartRoundCommandHandler(
 {
     public async Task<StartRoundResponse> Handle(StartRoundCommand request, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Attempting to start round {RoundId} for session {SessionId} by lecturer {LecturerId}.", 
+        logger.LogInformation("Attempting to start round {RoundId} for session {SessionId} by lecturer {LecturerId}.",
             request.RoundId, request.SessionId, request.LecturerId);
 
         // 1. Validate session exists and lecturer has permission
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
-        if (session is null)
-        {
-            throw new NotFoundException(nameof(Session), request.SessionId);
-        }
+        if (session is null) throw new NotFoundException(nameof(Session), request.SessionId);
 
         if (session.LecturerId != request.LecturerId)
-        {
             throw new BusinessRuleException("LECTURER_NOT_ASSIGNED", "Giảng viên không được phân công cho phiên này.");
-        }
 
         // 2. Validate round exists and belongs to session
         var round = await roundRepository.GetByIdAsync(request.RoundId, cancellationToken);
-        if (round is null)
-        {
-            throw new NotFoundException(nameof(Round), request.RoundId);
-        }
+        if (round is null) throw new NotFoundException(nameof(Round), request.RoundId);
 
         if (round.SessionId != request.SessionId)
-        {
             throw new BusinessRuleException("ROUND_SESSION_MISMATCH", "Round không thuộc về session này.");
-        }
 
         // 3. Check if round can be started
         if (round.Status != RoundStatus.Pending)
-        {
-            throw new BusinessRuleException("ROUND_NOT_PENDING", $"Round đã ở trạng thái {round.Status} và không thể start.");
-        }
+            throw new BusinessRuleException("ROUND_NOT_PENDING",
+                $"Round đã ở trạng thái {round.Status} và không thể start.");
 
         // 4. Deactivate any other active rounds in this session
         var activeRounds = await roundRepository.GetActiveRoundsBySessionIdAsync(request.SessionId, cancellationToken);
@@ -60,7 +49,7 @@ public class StartRoundCommandHandler(
         {
             activeRound.UpdateStatus(RoundStatus.Completed);
             await roundRepository.UpdateAsync(activeRound, cancellationToken);
-            logger.LogInformation("Completed previous active round {RoundId} for session {SessionId}.", 
+            logger.LogInformation("Completed previous active round {RoundId} for session {SessionId}.",
                 activeRound.Id, request.SessionId);
         }
 
@@ -91,9 +80,8 @@ public class StartRoundCommandHandler(
 
         // 8. Send notifications to students if face verification is required
         if (request.RequireFaceVerification)
-        {
-            await NotifyStudentsForFaceVerification(classSectionIdResponse.ClassSectionId, session, round, cancellationToken);
-        }
+            await NotifyStudentsForFaceVerification(classSectionIdResponse.ClassSectionId, session, round,
+                cancellationToken);
 
         return new StartRoundResponse
         {
@@ -106,7 +94,8 @@ public class StartRoundCommandHandler(
         };
     }
 
-    private async Task NotifyStudentsForFaceVerification(Guid classSectionId, Session session, Round round, CancellationToken cancellationToken)
+    private async Task NotifyStudentsForFaceVerification(Guid classSectionId, Session session, Round round,
+        CancellationToken cancellationToken)
     {
         // Get list of students enrolled in this session via integration query
         var getStudentIdsQuery = new GetStudentIdsByClassSectionIdIntegrationQuery(classSectionId);
@@ -139,7 +128,7 @@ public class StartRoundCommandHandler(
         });
 
         await Task.WhenAll(notificationTasks);
-        
+
         logger.LogInformation("Face verification notifications sent to all students for round {RoundId}.", round.Id);
     }
-} 
+}

@@ -37,11 +37,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.UpdatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
-            
+
         builder.Property(u => u.HasFaceId)
             .HasDefaultValue(false)
             .IsRequired();
-            
+
         builder.Property(u => u.FaceIdLastUpdated)
             .IsRequired(false);
 

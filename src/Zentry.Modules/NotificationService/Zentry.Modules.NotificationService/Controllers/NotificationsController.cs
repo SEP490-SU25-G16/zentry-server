@@ -26,7 +26,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     }
 
     /// <summary>
-    /// Test endpoint để send notification trực tiếp (for testing purposes only)
+    ///     Test endpoint để send notification trực tiếp (for testing purposes only)
     /// </summary>
     [HttpPost("send-test")]
     public async Task<IActionResult> SendTestNotification([FromBody] SendTestNotificationRequest request,
@@ -52,7 +52,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     }
 
     /// <summary>
-    /// Mark notification as read
+    ///     Mark notification as read
     /// </summary>
     [HttpPost("{notificationId}/mark-read")]
     public async Task<IActionResult> MarkAsRead(Guid notificationId, CancellationToken cancellationToken)
@@ -61,10 +61,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         {
             var notification = await notificationRepository.GetByIdAsync(notificationId, cancellationToken);
 
-            if (notification == null)
-            {
-                return NotFound(new { message = "Notification not found" });
-            }
+            if (notification == null) return NotFound(new { message = "Notification not found" });
 
             notification.MarkAsRead();
             await notificationRepository.UpdateAsync(notification, cancellationToken);
@@ -74,7 +71,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
             {
                 success = true,
                 message = "Notification marked as read",
-                notificationId = notificationId
+                notificationId
             });
         }
         catch (Exception ex)
@@ -88,7 +85,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     }
 
     /// <summary>
-    /// Mark all notifications as read for a user
+    ///     Mark all notifications as read for a user
     /// </summary>
     [HttpPost("mark-all-read")]
     public async Task<IActionResult> MarkAllAsRead([FromQuery] Guid userId, CancellationToken cancellationToken)
@@ -97,10 +94,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         {
             var notifications = await notificationRepository.GetUnreadByUserIdAsync(userId, cancellationToken);
 
-            foreach (var notification in notifications)
-            {
-                notification.MarkAsRead();
-            }
+            foreach (var notification in notifications) notification.MarkAsRead();
 
             if (notifications.Any())
             {
@@ -112,7 +106,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
             {
                 success = true,
                 message = $"Marked {notifications.Count()} notifications as read",
-                userId = userId,
+                userId,
                 count = notifications.Count()
             });
         }
@@ -127,7 +121,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     }
 
     /// <summary>
-    /// Delete a notification
+    ///     Delete a notification
     /// </summary>
     [HttpDelete("{notificationId}")]
     public async Task<IActionResult> DeleteNotification(Guid notificationId, CancellationToken cancellationToken)
@@ -136,10 +130,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         {
             var notification = await notificationRepository.GetByIdAsync(notificationId, cancellationToken);
 
-            if (notification == null)
-            {
-                return NotFound(new { message = "Notification not found" });
-            }
+            if (notification == null) return NotFound(new { message = "Notification not found" });
 
             await notificationRepository.DeleteAsync(notification, cancellationToken);
             await notificationRepository.SaveChangesAsync(cancellationToken);
@@ -148,7 +139,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
             {
                 success = true,
                 message = "Notification deleted",
-                notificationId = notificationId
+                notificationId
             });
         }
         catch (Exception ex)
@@ -162,7 +153,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     }
 
     /// <summary>
-    /// Delete all notifications for a user
+    ///     Delete all notifications for a user
     /// </summary>
     [HttpDelete("user/{userId}")]
     public async Task<IActionResult> DeleteAllNotifications(Guid userId, CancellationToken cancellationToken)
@@ -181,7 +172,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
             {
                 success = true,
                 message = $"Deleted {notifications.Count()} notifications",
-                userId = userId,
+                userId,
                 count = notifications.Count()
             });
         }
@@ -196,7 +187,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     }
 
     /// <summary>
-    /// Get notification count for a user
+    ///     Get notification count for a user
     /// </summary>
     [HttpGet("count")]
     public async Task<IActionResult> GetNotificationCount([FromQuery] Guid userId, CancellationToken cancellationToken)
@@ -208,7 +199,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
 
             return Ok(new
             {
-                userId = userId,
+                userId,
                 total = totalCount,
                 unread = unreadCount,
                 read = totalCount - unreadCount

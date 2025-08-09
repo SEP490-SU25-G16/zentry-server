@@ -1,8 +1,8 @@
-using FluentValidation;
-using Zentry.SharedKernel.Constants.User;
 using System.Text.RegularExpressions;
+using FluentValidation;
 using Zentry.Modules.UserManagement.Dtos;
 using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.UserManagement.Features.ImportUsers;
@@ -29,7 +29,8 @@ public class UserImportDtoValidator : BaseValidator<UserImportDto>
 
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("Vai trò không được để trống.")
-            .Must(role => Enumeration.GetAll<Role>().Any(r => r.ToString().Equals(role, StringComparison.OrdinalIgnoreCase)))
+            .Must(role =>
+                Enumeration.GetAll<Role>().Any(r => r.ToString().Equals(role, StringComparison.OrdinalIgnoreCase)))
             .WithMessage("Vai trò không hợp lệ.");
     }
 }

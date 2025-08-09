@@ -5,13 +5,13 @@ using Zentry.SharedKernel.Contracts.Device;
 namespace Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
 
 /// <summary>
-/// Real implementation of IDeviceTokenRepository that integrates with DeviceManagement module
-/// to get actual push notification tokens instead of using mock data
+///     Real implementation of IDeviceTokenRepository that integrates with DeviceManagement module
+///     to get actual push notification tokens instead of using mock data
 /// </summary>
 public class DeviceTokenRepository : IDeviceTokenRepository
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<DeviceTokenRepository> _logger;
+    private readonly IMediator _mediator;
 
     public DeviceTokenRepository(IMediator mediator, ILogger<DeviceTokenRepository> logger)
     {
@@ -29,7 +29,7 @@ public class DeviceTokenRepository : IDeviceTokenRepository
             var query = new GetDevicePushTokensIntegrationQuery(userId);
             var response = await _mediator.Send(query, cancellationToken);
 
-            _logger.LogInformation("Found {TokenCount} push notification tokens for user {UserId}", 
+            _logger.LogInformation("Found {TokenCount} push notification tokens for user {UserId}",
                 response.PushNotificationTokens.Count, userId);
 
             return response.PushNotificationTokens;
@@ -37,7 +37,7 @@ public class DeviceTokenRepository : IDeviceTokenRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting push notification tokens for user {UserId}", userId);
-            
+
             // Return empty list instead of throwing to prevent notification failures
             // from breaking the entire notification flow
             return new List<string>().AsReadOnly();
@@ -49,18 +49,16 @@ public class DeviceTokenRepository : IDeviceTokenRepository
         try
         {
             _logger.LogInformation("Request to remove {TokenCount} invalid push notification tokens", tokens.Count);
-            
+
             // TODO: Implement integration with DeviceManagement to mark tokens as invalid
             // For now, just log the invalid tokens
             foreach (var token in tokens)
-            {
-                _logger.LogWarning("Invalid push notification token detected: {Token}", 
+                _logger.LogWarning("Invalid push notification token detected: {Token}",
                     token?.Substring(0, Math.Min(10, token.Length)) + "...");
-            }
-            
+
             // TODO: Create RemoveInvalidDeviceTokensIntegrationCommand in SharedKernel.Contracts.Device
             // and implement handler in DeviceManagement module
-            
+
             await Task.CompletedTask;
         }
         catch (Exception ex)
@@ -71,10 +69,10 @@ public class DeviceTokenRepository : IDeviceTokenRepository
 }
 
 /// <summary>
-/// Interface for device token repository
+///     Interface for device token repository
 /// </summary>
 public interface IDeviceTokenRepository
 {
     Task<IReadOnlyList<string>> GetTokensByUserIdAsync(Guid userId, CancellationToken cancellationToken);
     Task RemoveTokensAsync(List<string> tokens, CancellationToken cancellationToken);
-} 
+}

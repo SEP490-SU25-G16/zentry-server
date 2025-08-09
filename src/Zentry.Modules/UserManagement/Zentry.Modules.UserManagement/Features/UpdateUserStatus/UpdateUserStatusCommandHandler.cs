@@ -8,7 +8,8 @@ namespace Zentry.Modules.UserManagement.Features.UpdateUserStatus;
 public class UpdateUserStatusCommandHandler(IUserRepository userRepository)
     : ICommandHandler<UpdateUserStatusCommand, UpdateUserStatusResponse>
 {
-    public async Task<UpdateUserStatusResponse> Handle(UpdateUserStatusCommand command, CancellationToken cancellationToken)
+    public async Task<UpdateUserStatusResponse> Handle(UpdateUserStatusCommand command,
+        CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)

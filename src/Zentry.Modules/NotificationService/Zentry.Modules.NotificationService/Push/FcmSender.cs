@@ -1,18 +1,16 @@
-using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
 
 namespace Zentry.Modules.NotificationService.Infrastructure.Push;
 
 /// <summary>
-/// Gửi push notification sử dụng Firebase Cloud Messaging.
+///     Gửi push notification sử dụng Firebase Cloud Messaging.
 /// </summary>
 public class FcmSender : IFcmSender
 {
-    private readonly ILogger<FcmSender> _logger;
     private readonly IDeviceTokenRepository _deviceTokenRepository; // Sẽ được tạo sau
+    private readonly ILogger<FcmSender> _logger;
 
     public FcmSender(ILogger<FcmSender> logger, IDeviceTokenRepository deviceTokenRepository)
     {
@@ -30,7 +28,8 @@ public class FcmSender : IFcmSender
         // }
     }
 
-    public async Task SendPushNotificationAsync(Guid recipientUserId, string title, string body, IReadOnlyDictionary<string, string>? data, CancellationToken cancellationToken)
+    public async Task SendPushNotificationAsync(Guid recipientUserId, string title, string body,
+        IReadOnlyDictionary<string, string>? data, CancellationToken cancellationToken)
     {
         var fcmTokens = await _deviceTokenRepository.GetTokensByUserIdAsync(recipientUserId, cancellationToken);
         if (!fcmTokens.Any())
@@ -64,15 +63,13 @@ public class FcmSender : IFcmSender
             {
                 var failedTokens = new List<string>();
                 for (var i = 0; i < response.Responses.Count; i++)
-                {
                     if (!response.Responses[i].IsSuccess)
-                    {
                         failedTokens.Add(fcmTokens[i]);
-                    }
-                }
-                _logger.LogError("Failed to send push notification to {FailureCount} tokens for user {UserId}. Failed tokens: {FailedTokens}",
+
+                _logger.LogError(
+                    "Failed to send push notification to {FailureCount} tokens for user {UserId}. Failed tokens: {FailedTokens}",
                     response.FailureCount, recipientUserId, string.Join(", ", failedTokens));
-                
+
                 // Optional: Xóa các token không hợp lệ khỏi DB
                 await _deviceTokenRepository.RemoveTokensAsync(failedTokens, cancellationToken);
             }
@@ -82,7 +79,8 @@ public class FcmSender : IFcmSender
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unexpected error occurred while sending push notification for user {UserId}", recipientUserId);
+            _logger.LogError(ex, "An unexpected error occurred while sending push notification for user {UserId}",
+                recipientUserId);
             throw;
         }
     }

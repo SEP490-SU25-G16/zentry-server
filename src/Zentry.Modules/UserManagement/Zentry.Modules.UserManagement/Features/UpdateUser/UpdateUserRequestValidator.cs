@@ -1,5 +1,4 @@
 using FluentValidation;
-using Zentry.Modules.UserManagement.Features.CreateUser;
 using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Features.UpdateUser;

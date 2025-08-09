@@ -12,7 +12,7 @@ public class NotificationRepository(NotificationDbContext dbContext) : INotifica
 
     public async Task<Notification?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await dbContext.Notifications.FindAsync([id], cancellationToken: cancellationToken);
+        return await dbContext.Notifications.FindAsync([id], cancellationToken);
     }
 
     public async Task<IEnumerable<Notification>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken)
@@ -23,7 +23,8 @@ public class NotificationRepository(NotificationDbContext dbContext) : INotifica
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Notification>> GetUnreadByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Notification>> GetUnreadByUserIdAsync(Guid userId,
+        CancellationToken cancellationToken)
     {
         return await dbContext.Notifications
             .Where(n => n.RecipientUserId == userId && !n.IsRead)
@@ -67,4 +68,4 @@ public class NotificationRepository(NotificationDbContext dbContext) : INotifica
     {
         return await dbContext.SaveChangesAsync(cancellationToken) > 0;
     }
-} 
+}

@@ -20,22 +20,20 @@ public class VerifyFaceIdCommandHandler : ICommandHandler<VerifyFaceIdCommand, V
             // Check if user has a face ID
             var exists = await _faceIdRepository.ExistsByUserIdAsync(command.UserId, cancellationToken);
             if (!exists)
-            {
                 return new VerifyFaceIdResponse
                 {
                     Success = false,
                     Message = "User does not have a registered Face ID."
                 };
-            }
 
             // Convert float array to Vector
             var embedding = new Vector(command.EmbeddingArray);
 
             // Verify embedding against stored one
             var (isMatch, similarity) = await _faceIdRepository.VerifyAsync(
-                command.UserId, 
-                embedding, 
-                command.Threshold, 
+                command.UserId,
+                embedding,
+                command.Threshold,
                 cancellationToken);
 
             return new VerifyFaceIdResponse
@@ -54,4 +52,4 @@ public class VerifyFaceIdCommandHandler : ICommandHandler<VerifyFaceIdCommand, V
             };
         }
     }
-} 
+}

@@ -13,6 +13,7 @@ public class ScheduleImportDto : BaseImportDto
     public string EndTime { get; set; } = string.Empty; // Format HH:mm
     public string WeekDay { get; set; } = string.Empty; // Monday, Tuesday...
 }
+
 public sealed class ScheduleImportDtoMap : ClassMap<ScheduleImportDto>
 {
     public ScheduleImportDtoMap()

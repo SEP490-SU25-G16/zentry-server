@@ -1,5 +1,3 @@
-using Zentry.SharedKernel.Constants.User;
-
 namespace Zentry.Modules.UserManagement.Features.UpdateUserStatus;
 
 public class UpdateUserStatusRequest

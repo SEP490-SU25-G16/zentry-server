@@ -10,7 +10,7 @@
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="EPPlus" Version="8.0.8" />
+        <PackageReference Include="EPPlus" Version="8.0.8"/>
     </ItemGroup>
 
 

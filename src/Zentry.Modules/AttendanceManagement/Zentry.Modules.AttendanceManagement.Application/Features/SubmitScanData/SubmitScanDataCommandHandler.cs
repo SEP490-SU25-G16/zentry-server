@@ -85,7 +85,7 @@ public class SubmitScanDataCommandHandler(
 
         // Bước 2: Xác định loại submission dựa trên trạng thái của round
         var isLateSubmission = Equals(targetRound.Status, RoundStatus.Completed) ||
-                                Equals(targetRound.Status, RoundStatus.Finalized);
+                               Equals(targetRound.Status, RoundStatus.Finalized);
 
         logger.LogInformation(
             "Submission for Session {SessionId} assigned to Round {RoundId} " +
@@ -120,14 +120,10 @@ public class SubmitScanDataCommandHandler(
 
         // Step 3: Handle different session statuses that should be rejected
         if (Equals(session.Status, SessionStatus.Cancelled))
-        {
             throw new BusinessRuleException(ErrorCodes.SessionCancelled, ErrorMessages.Attendance.SessionCancelled);
-        }
 
         if (Equals(session.Status, SessionStatus.Missed))
-        {
             throw new BusinessRuleException(ErrorCodes.SessionMissed, ErrorMessages.Attendance.SessionMissed);
-        }
     }
 }
 

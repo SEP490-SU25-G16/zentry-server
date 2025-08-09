@@ -12,4 +12,4 @@ public class FaceIdDbContext(DbContextOptions<FaceIdDbContext> options) : DbCont
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FaceIdDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
-} 
+}

@@ -2,13 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.CreateSchedule;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetLecturerDailySchedules;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetMonthlyCalendar;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetScheduleDetail;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetStudentDailySchedules;
-using Zentry.Modules.ScheduleManagement.Application.Features.ImportSchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.CreateSchedule;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailySchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetMonthlyCalendar;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetScheduleDetail;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentDailySchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.ImportSchedules;
 using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Exceptions;
@@ -27,7 +27,8 @@ public class SchedulesController(
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<GetSchedulesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetSchedules([FromQuery] GetSchedulesQuery query,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -61,7 +62,8 @@ public class SchedulesController(
     [ProducesResponseType(typeof(ApiResponse<CreatedScheduleResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleRequest request,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -162,10 +164,7 @@ public class SchedulesController(
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ImportSchedules([FromForm] IFormFile file, CancellationToken cancellationToken)
     {
-        if (file.Length == 0)
-        {
-            return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không được rỗng."));
-        }
+        if (file.Length == 0) return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không được rỗng."));
 
         List<ScheduleImportDto> schedulesToImport;
         try
@@ -184,24 +183,18 @@ public class SchedulesController(
         // Validation thủ công này vẫn cần thiết vì nó liên quan đến file processor,
         // không phải request DTO.
         if (!schedulesToImport.Any())
-        {
             return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không chứa dữ liệu hợp lệ."));
-        }
 
         var command = new ImportSchedulesCommand(schedulesToImport);
         try
         {
             var response = await mediator.Send(command, cancellationToken);
             if (response.Success)
-            {
                 return HandleResult(response, $"Import thành công {response.ImportedCount} lịch học.");
-            }
-            else
-            {
-                return HandlePartialSuccess(response,
-                    $"Đã import thành công {response.ImportedCount} lịch học.",
-                    $"Có {response.FailedCount} lỗi trong file.");
-            }
+
+            return HandlePartialSuccess(response,
+                $"Đã import thành công {response.ImportedCount} lịch học.",
+                $"Có {response.FailedCount} lỗi trong file.");
         }
         catch (Exception ex)
         {

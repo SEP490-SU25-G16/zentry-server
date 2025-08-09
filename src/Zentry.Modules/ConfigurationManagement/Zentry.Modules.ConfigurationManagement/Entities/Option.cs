@@ -24,8 +24,7 @@ public class Option : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
     }
 
-    [Required]
-    public Guid AttributeId { get; private set; }
+    [Required] public Guid AttributeId { get; private set; }
 
     [Required]
     [StringLength(255)] // Giới hạn độ dài của giá trị
@@ -34,6 +33,7 @@ public class Option : AggregateRoot<Guid>
     [Required]
     [StringLength(255)] // Giới hạn độ dài của nhãn hiển thị
     public string DisplayLabel { get; private set; }
+
     public int SortOrder { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; }

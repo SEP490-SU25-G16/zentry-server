@@ -14,7 +14,8 @@ public class Session : AggregateRoot<Guid>
         SessionConfigs = new SessionConfigSnapshot();
     }
 
-    private Session(Guid id, Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime, SessionStatus status,
+    private Session(Guid id, Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime,
+        SessionStatus status,
         SessionConfigSnapshot sessionConfigs)
         : base(id)
     {
@@ -27,19 +28,16 @@ public class Session : AggregateRoot<Guid>
         SessionConfigs = sessionConfigs;
     }
 
-    [Required]
-    public Guid ScheduleId { get; private set; }
+    [Required] public Guid ScheduleId { get; private set; }
 
     public Guid? LecturerId { get; private set; }
 
-    [Required]
-    public DateTime StartTime { get; private set; }
+    [Required] public DateTime StartTime { get; private set; }
 
-    [Required]
-    public DateTime EndTime { get; private set; }
+    [Required] public DateTime EndTime { get; private set; }
 
-    [Required]
-    public SessionStatus Status { get; private set; }
+    [Required] public SessionStatus Status { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public DateTime? ActualEndTime { get; private set; }

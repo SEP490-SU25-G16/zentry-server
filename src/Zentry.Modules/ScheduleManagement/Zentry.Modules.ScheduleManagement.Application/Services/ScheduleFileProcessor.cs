@@ -10,5 +10,6 @@ public class ScheduleFileProcessor : GenericFileProcessor<ScheduleImportDto>
     {
         "sectioncode", "roomname", "startdate", "enddate", "starttime", "endtime", "weekday"
     };
+
     protected override ClassMap<ScheduleImportDto>? CsvClassMap => new ScheduleImportDtoMap();
 }

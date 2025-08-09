@@ -3,20 +3,18 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.UpdateFaceId;
 
-public class UpdateFaceIdCommandHandler(IUserRepository userRepository) 
+public class UpdateFaceIdCommandHandler(IUserRepository userRepository)
     : ICommandHandler<UpdateFaceIdCommand, UpdateFaceIdResponse>
 {
     public async Task<UpdateFaceIdResponse> Handle(UpdateFaceIdCommand command, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user == null)
-        {
             return new UpdateFaceIdResponse
             {
                 Success = false,
                 Message = "User not found."
             };
-        }
 
         user.UpdateFaceIdStatus(command.HasFaceId);
         await userRepository.UpdateAsync(user, cancellationToken);
@@ -28,4 +26,4 @@ public class UpdateFaceIdCommandHandler(IUserRepository userRepository)
             LastUpdated = user.FaceIdLastUpdated
         };
     }
-} 
+}

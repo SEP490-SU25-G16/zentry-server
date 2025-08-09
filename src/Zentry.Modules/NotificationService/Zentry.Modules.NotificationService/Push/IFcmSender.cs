@@ -8,4 +8,4 @@ public interface IFcmSender
         string body,
         IReadOnlyDictionary<string, string>? data,
         CancellationToken cancellationToken);
-} 
+}

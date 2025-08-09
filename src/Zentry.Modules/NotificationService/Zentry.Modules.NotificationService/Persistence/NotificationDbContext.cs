@@ -20,4 +20,4 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
             builder.HasIndex(n => n.RecipientUserId);
         });
     }
-} 
+}

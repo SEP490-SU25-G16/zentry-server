@@ -17,4 +17,4 @@ public record ScheduleInfoDto
     public TimeOnly StartTime { get; init; }
     public TimeOnly EndTime { get; init; }
     public WeekDayEnum WeekDay { get; init; }
-};
+}

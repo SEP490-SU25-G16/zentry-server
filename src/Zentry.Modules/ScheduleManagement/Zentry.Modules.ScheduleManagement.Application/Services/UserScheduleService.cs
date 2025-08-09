@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Services;
 

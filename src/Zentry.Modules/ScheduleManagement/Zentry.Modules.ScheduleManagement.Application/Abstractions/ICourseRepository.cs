@@ -1,4 +1,4 @@
-﻿using Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
+﻿using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourses;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
 
@@ -10,5 +10,6 @@ public interface ICourseRepository : IRepository<Course, Guid>
 
     Task<Tuple<List<Course>, int>> GetPagedCoursesAsync(CourseListCriteria criteria,
         CancellationToken cancellationToken);
+
     Task SoftDeleteAsync(Guid id, CancellationToken cancellationToken);
 }

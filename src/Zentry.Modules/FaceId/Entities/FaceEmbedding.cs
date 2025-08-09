@@ -33,4 +33,4 @@ public class FaceEmbedding : AggregateRoot<Guid>
         Embedding = embedding;
         UpdatedAt = DateTime.UtcNow;
     }
-} 
+}

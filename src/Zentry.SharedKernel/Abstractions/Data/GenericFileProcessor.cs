@@ -11,7 +11,7 @@ public class GenericFileProcessor<T> : IFileProcessor<T> where T : BaseImportDto
 {
     private readonly CsvConfiguration _csvConfig = new(CultureInfo.InvariantCulture)
     {
-        PrepareHeaderForMatch = args => args.Header.ToLower().Replace(" ", ""),
+        PrepareHeaderForMatch = args => args.Header.ToLower().Replace(" ", "")
     };
 
     protected virtual string[] RequiredHeaders => [];
@@ -28,7 +28,7 @@ public class GenericFileProcessor<T> : IFileProcessor<T> where T : BaseImportDto
         {
             ".csv" => await ProcessCsvAsync(stream, cancellationToken),
             ".xlsx" or ".xls" => await ProcessExcelAsync(stream, cancellationToken),
-            _ => throw new InvalidFileFormatException("Unsupported file format. Please upload a CSV or Excel file."),
+            _ => throw new InvalidFileFormatException("Unsupported file format. Please upload a CSV or Excel file.")
         };
     }
 
@@ -38,10 +38,7 @@ public class GenericFileProcessor<T> : IFileProcessor<T> where T : BaseImportDto
         using var reader = new StreamReader(stream);
         using var csv = new CsvReader(reader, _csvConfig);
 
-        if (CsvClassMap != null)
-        {
-            csv.Context.RegisterClassMap(CsvClassMap);
-        }
+        if (CsvClassMap != null) csv.Context.RegisterClassMap(CsvClassMap);
 
         var csvRecords = csv.GetRecordsAsync<T>(cancellationToken);
         var rowIndex = 1;
@@ -61,10 +58,7 @@ public class GenericFileProcessor<T> : IFileProcessor<T> where T : BaseImportDto
         var records = new List<T>();
         using var package = new ExcelPackage(stream);
         var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-        if (worksheet == null)
-        {
-            return Task.FromResult(records);
-        }
+        if (worksheet == null) return Task.FromResult(records);
 
         var rowCount = worksheet.Dimension.Rows;
         if (rowCount <= 1) return Task.FromResult(records);
@@ -77,12 +71,8 @@ public class GenericFileProcessor<T> : IFileProcessor<T> where T : BaseImportDto
         }
 
         foreach (var header in RequiredHeaders)
-        {
             if (!headerMap.ContainsKey(header))
-            {
                 throw new InvalidFileFormatException($"Excel file is missing a required column: '{header}'");
-            }
-        }
 
         var properties = typeof(T).GetProperties();
 

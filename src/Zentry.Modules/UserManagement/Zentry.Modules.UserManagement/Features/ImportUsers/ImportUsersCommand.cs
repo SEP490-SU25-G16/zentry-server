@@ -5,12 +5,12 @@ namespace Zentry.Modules.UserManagement.Features.ImportUsers;
 
 public class ImportUsersCommand : ICommand<ImportUsersResponse>
 {
-    public List<UserImportDto> UsersToImport { get; }
-
     public ImportUsersCommand(List<UserImportDto> usersToImport)
     {
         UsersToImport = usersToImport;
     }
+
+    public List<UserImportDto> UsersToImport { get; }
 }
 
 public class ImportUsersResponse

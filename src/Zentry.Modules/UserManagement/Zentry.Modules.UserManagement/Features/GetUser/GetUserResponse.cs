@@ -1,5 +1,3 @@
-using Zentry.Modules.UserManagement.Entities;
-
 namespace Zentry.Modules.UserManagement.Features.GetUser;
 
 public class GetUserResponse
@@ -14,4 +12,4 @@ public class GetUserResponse
     public DateTime CreatedAt { get; set; }
     public bool HasFaceId { get; set; }
     public DateTime? FaceIdLastUpdated { get; set; }
-} 
+}

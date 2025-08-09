@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace Zentry.Modules.NotificationService.Hubs;
 
 /// <summary>
-/// SignalR Hub cho real-time notifications
+///     SignalR Hub cho real-time notifications
 /// </summary>
 public class NotificationHub : Hub
 {
@@ -16,7 +16,7 @@ public class NotificationHub : Hub
     }
 
     /// <summary>
-    /// User join vào group để nhận notifications
+    ///     User join vào group để nhận notifications
     /// </summary>
     public async Task JoinUserGroup(string userId)
     {
@@ -28,44 +28,39 @@ public class NotificationHub : Hub
 
         var groupName = GetUserGroupName(userId);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        
-        _logger.LogInformation("User {UserId} joined notification group with connection {ConnectionId}", 
+
+        _logger.LogInformation("User {UserId} joined notification group with connection {ConnectionId}",
             userId, Context.ConnectionId);
     }
 
     /// <summary>
-    /// User leave group khi disconnect
+    ///     User leave group khi disconnect
     /// </summary>
     public async Task LeaveUserGroup(string userId)
     {
-        if (string.IsNullOrEmpty(userId))
-        {
-            return;
-        }
+        if (string.IsNullOrEmpty(userId)) return;
 
         var groupName = GetUserGroupName(userId);
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-        
+
         _logger.LogInformation("User {UserId} left notification group", userId);
     }
 
     /// <summary>
-    /// Handle connection disconnect
+    ///     Handle connection disconnect
     /// </summary>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         _logger.LogInformation("Connection {ConnectionId} disconnected", Context.ConnectionId);
-        
+
         if (exception != null)
-        {
             _logger.LogError(exception, "Connection {ConnectionId} disconnected with error", Context.ConnectionId);
-        }
 
         await base.OnDisconnectedAsync(exception);
     }
 
     /// <summary>
-    /// Handle connection connect
+    ///     Handle connection connect
     /// </summary>
     public override async Task OnConnectedAsync()
     {
@@ -74,10 +69,10 @@ public class NotificationHub : Hub
     }
 
     /// <summary>
-    /// Get standardized user group name
+    ///     Get standardized user group name
     /// </summary>
     private static string GetUserGroupName(string userId)
     {
         return $"user_{userId}";
     }
-} 
+}

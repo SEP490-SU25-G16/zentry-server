@@ -37,4 +37,4 @@ public class FaceEmbeddingConfiguration : IEntityTypeConfiguration<FaceEmbedding
         // Note: Vector index will be created in migration using raw SQL
         // since EF Core doesn't support vector index creation directly
     }
-} 
+}

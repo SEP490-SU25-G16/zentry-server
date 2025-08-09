@@ -68,9 +68,7 @@ public class AttendanceCalculationService(
             var whitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(scheduleId, cancellationToken);
 
             if (whitelist != null && whitelist.WhitelistedDeviceIds.Count != 0)
-            {
                 return [..whitelist.WhitelistedDeviceIds.Select(id => id.ToString())];
-            }
 
             logger.LogWarning("No whitelist found or whitelist is empty for Schedule {ScheduleId}.", scheduleId);
             return [];

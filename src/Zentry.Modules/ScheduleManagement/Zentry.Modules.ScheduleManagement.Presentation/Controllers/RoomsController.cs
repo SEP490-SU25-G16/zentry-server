@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.CreateRoom;
-using Zentry.Modules.ScheduleManagement.Application.Features.DeleteRoom;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetRoomById;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetRooms;
-using Zentry.Modules.ScheduleManagement.Application.Features.UpdateRoom;
+using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.CreateRoom;
+using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.DeleteRoom;
+using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.GetRoomById;
+using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.GetRooms;
+using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.UpdateRoom;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -54,7 +54,8 @@ public class RoomsController(IMediator mediator) : BaseController
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<CreateRoomResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest request,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -73,7 +74,8 @@ public class RoomsController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse<RoomDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateRoom(Guid id, [FromBody] UpdateRoomRequest request,
+        CancellationToken cancellationToken)
     {
         try
         {

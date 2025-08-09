@@ -23,14 +23,11 @@ public class AttendanceRecord : AggregateRoot<Guid>
         ExpiredAt = DateTime.UtcNow;
     }
 
-    [Required]
-    public Guid UserId { get; private set; }
+    [Required] public Guid UserId { get; private set; }
 
-    [Required]
-    public Guid SessionId { get; private set; }
+    [Required] public Guid SessionId { get; private set; }
 
-    [Required]
-    public AttendanceStatus Status { get; private set; }
+    [Required] public AttendanceStatus Status { get; private set; }
 
     public bool IsManual { get; private set; }
     public DateTime CreatedAt { get; private set; }

@@ -1,10 +1,7 @@
-﻿using FluentValidation;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Data;
-using Zentry.SharedKernel.Helpers;
 
 namespace Zentry.Modules.ScheduleManagement.Application;
 

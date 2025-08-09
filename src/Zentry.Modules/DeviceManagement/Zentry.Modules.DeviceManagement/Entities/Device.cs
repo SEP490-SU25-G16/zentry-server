@@ -45,8 +45,8 @@ public class Device : AggregateRoot<Guid>
         Status = DeviceStatus.Active;
     }
 
-    [Required]
-    public Guid UserId { get; private set; }
+    [Required] public Guid UserId { get; private set; }
+
     public DeviceName DeviceName { get; private set; }
     public DeviceToken DeviceToken { get; }
     public AndroidId AndroidId { get; private set; }

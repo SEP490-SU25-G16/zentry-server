@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -19,7 +19,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
     public async Task<bool> IsExistClassSectionByCourseIdAsync(Guid courseId, CancellationToken cancellationToken)
     {
         return await dbContext.ClassSections
-            .AnyAsync(cs => cs.CourseId == courseId, cancellationToken: cancellationToken);
+            .AnyAsync(cs => cs.CourseId == courseId, cancellationToken);
     }
 
     public async Task<bool> IsExistClassSectionBySectionCodeAsync(Guid id, string sectionCode,

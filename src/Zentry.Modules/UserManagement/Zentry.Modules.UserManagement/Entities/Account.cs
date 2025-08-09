@@ -34,8 +34,7 @@ public class Account : AggregateRoot<Guid>
     [StringLength(64)] // Độ dài của PasswordSalt
     public string PasswordSalt { get; private set; }
 
-    [Required]
-    public Role Role { get; private set; }
+    [Required] public Role Role { get; private set; }
 
     [StringLength(255)] // Giới hạn độ dài của ResetToken
     public string? ResetToken { get; private set; }

@@ -31,26 +31,20 @@ public class Schedule : AggregateRoot<Guid>
         CreatedAt = DateTime.UtcNow;
     }
 
-    [Required]
-    public Guid ClassSectionId { get; private set; }
+    [Required] public Guid ClassSectionId { get; private set; }
 
-    [Required]
-    public Guid RoomId { get; private set; }
+    [Required] public Guid RoomId { get; private set; }
 
-    [Required]
-    public DateOnly StartDate { get; private set; }
+    [Required] public DateOnly StartDate { get; private set; }
 
-    [Required]
-    public DateOnly EndDate { get; private set; }
+    [Required] public DateOnly EndDate { get; private set; }
 
-    [Required]
-    public TimeOnly StartTime { get; private set; }
+    [Required] public TimeOnly StartTime { get; private set; }
 
-    [Required]
-    public TimeOnly EndTime { get; private set; }
+    [Required] public TimeOnly EndTime { get; private set; }
 
-    [Required]
-    public WeekDayEnum WeekDay { get; private set; }
+    [Required] public WeekDayEnum WeekDay { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 

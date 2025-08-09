@@ -20,6 +20,7 @@ services:
       - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       # Chuỗi kết nối cho các module khác (dùng Neon)
       - ConnectionStrings__DefaultConnection=Host=ep-hidden-paper-a1dczukc-pooler.ap-southeast-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_GF4Jzpevoti5;SSL Mode=Require;
+      #      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       - Redis_ConnectionString=redis:6379
       - UseMarten=true
       - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
@@ -75,18 +76,24 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:4.0-management-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.rabbitmq
     ports:
       - "5672:5672"
+      - "15672:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=pass
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
       test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   redis-data:
   postgres-data:
+  rabbitmq-data:

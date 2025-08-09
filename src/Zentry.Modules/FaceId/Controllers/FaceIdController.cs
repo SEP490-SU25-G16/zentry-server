@@ -1,4 +1,3 @@
-using System.IO;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,10 +27,10 @@ public class FaceIdController(IMediator mediator) : ControllerBase
             // Read embedding bytes
             using var memoryStream = new MemoryStream();
             await embedding.CopyToAsync(memoryStream);
-            byte[] embeddingBytes = memoryStream.ToArray();
+            var embeddingBytes = memoryStream.ToArray();
 
             // Convert bytes to float array (4 bytes per float)
-            float[] embeddingArray = new float[embeddingBytes.Length / 4];
+            var embeddingArray = new float[embeddingBytes.Length / 4];
             Buffer.BlockCopy(embeddingBytes, 0, embeddingArray, 0, embeddingBytes.Length);
 
             // Create and send command
@@ -40,8 +39,7 @@ public class FaceIdController(IMediator mediator) : ControllerBase
 
             if (result.Success)
                 return Ok(result);
-            else
-                return BadRequest(result);
+            return BadRequest(result);
         }
         catch (Exception ex)
         {
@@ -70,10 +68,10 @@ public class FaceIdController(IMediator mediator) : ControllerBase
             // Read embedding bytes
             using var memoryStream = new MemoryStream();
             await embedding.CopyToAsync(memoryStream);
-            byte[] embeddingBytes = memoryStream.ToArray();
+            var embeddingBytes = memoryStream.ToArray();
 
             // Convert bytes to float array (4 bytes per float)
-            float[] embeddingArray = new float[embeddingBytes.Length / 4];
+            var embeddingArray = new float[embeddingBytes.Length / 4];
             Buffer.BlockCopy(embeddingBytes, 0, embeddingArray, 0, embeddingBytes.Length);
 
             // Create and send command
@@ -82,8 +80,7 @@ public class FaceIdController(IMediator mediator) : ControllerBase
 
             if (result.Success)
                 return Ok(result);
-            else
-                return BadRequest(result);
+            return BadRequest(result);
         }
         catch (Exception ex)
         {
@@ -98,7 +95,8 @@ public class FaceIdController(IMediator mediator) : ControllerBase
 
     [HttpPost("verify")]
     [ProducesResponseType(typeof(VerifyFaceIdResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Verify([FromForm] string userId, IFormFile embedding, [FromForm] float? threshold = null)
+    public async Task<IActionResult> Verify([FromForm] string userId, IFormFile embedding,
+        [FromForm] float? threshold = null)
     {
         try
         {
@@ -111,18 +109,18 @@ public class FaceIdController(IMediator mediator) : ControllerBase
             // Read embedding bytes
             using var memoryStream = new MemoryStream();
             await embedding.CopyToAsync(memoryStream);
-            byte[] embeddingBytes = memoryStream.ToArray();
+            var embeddingBytes = memoryStream.ToArray();
 
             // Convert bytes to float array (4 bytes per float)
-            float[] embeddingArray = new float[embeddingBytes.Length / 4];
+            var embeddingArray = new float[embeddingBytes.Length / 4];
             Buffer.BlockCopy(embeddingBytes, 0, embeddingArray, 0, embeddingBytes.Length);
 
             // Create and send command
             var command = new VerifyFaceIdCommand(
-                Guid.Parse(userId), 
-                embeddingArray, 
+                Guid.Parse(userId),
+                embeddingArray,
                 threshold ?? 0.7f);
-                
+
             var result = await mediator.Send(command);
 
             // Always return 200 OK, with Success = true/false in body
@@ -138,4 +136,4 @@ public class FaceIdController(IMediator mediator) : ControllerBase
             });
         }
     }
-} 
+}

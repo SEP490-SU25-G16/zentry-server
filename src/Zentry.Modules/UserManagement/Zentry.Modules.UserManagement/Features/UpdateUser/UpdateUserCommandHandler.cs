@@ -19,12 +19,8 @@ public class UpdateUserCommandHandler(IUserRepository userRepository)
             throw new ResourceNotFoundException("USER", command.UserId);
 
         if (command.PhoneNumber != null)
-        {
             if (await userRepository.IsPhoneNumberExist(command.UserId, command.PhoneNumber, cancellationToken))
-            {
                 throw new ResourceAlreadyExistsException("USER Phone Number", command.PhoneNumber);
-            }
-        }
 
         user.UpdateUser(command.FullName, command.PhoneNumber);
 

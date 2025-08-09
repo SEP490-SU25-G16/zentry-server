@@ -10,13 +10,15 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
-    public async Task<List<Session>> GetSessionsByScheduleIdsAsync(List<Guid> scheduleIds, CancellationToken cancellationToken)
+    public async Task<List<Session>> GetSessionsByScheduleIdsAsync(List<Guid> scheduleIds,
+        CancellationToken cancellationToken)
     {
         return await dbContext.Sessions
             .Where(s => scheduleIds.Contains(s.ScheduleId))
             .OrderBy(s => s.StartTime)
             .ToListAsync(cancellationToken);
     }
+
     public async Task<DateTime?> GetActualEndTimeAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         return await dbContext.Sessions
@@ -82,15 +84,9 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
         var session = await dbContext.Sessions
             .Where(s => s.Id == sessionId)
             .FirstOrDefaultAsync(cancellationToken);
-        if (session is null)
-        {
-            throw new ResourceNotFoundException("Session not found");
-        }
+        if (session is null) throw new ResourceNotFoundException("Session not found");
 
-        if (session.LecturerId is null)
-        {
-            throw new ResourceNotFoundException("Lecturer not found");
-        }
+        if (session.LecturerId is null) throw new ResourceNotFoundException("Lecturer not found");
 
         return (Guid)session.LecturerId;
     }

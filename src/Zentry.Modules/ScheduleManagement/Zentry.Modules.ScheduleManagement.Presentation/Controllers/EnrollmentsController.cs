@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Zentry.Modules.ScheduleManagement.Application.Features.EnrollMultipleStudents;
-using Zentry.Modules.ScheduleManagement.Application.Features.EnrollStudent;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollMultipleStudents;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollStudent;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -16,7 +16,8 @@ public class EnrollmentsController(IMediator mediator) : BaseController
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<GetEnrollmentsResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetEnrollments([FromQuery] GetEnrollmentsRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetEnrollments([FromQuery] GetEnrollmentsRequest request,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -34,7 +35,8 @@ public class EnrollmentsController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse<EnrollmentResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> EnrollStudent([FromBody] EnrollStudentRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> EnrollStudent([FromBody] EnrollStudentRequest request,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -56,7 +58,8 @@ public class EnrollmentsController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse<BulkEnrollmentResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> BulkEnrollStudents([FromBody] BulkEnrollStudentsRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> BulkEnrollStudents([FromBody] BulkEnrollStudentsRequest request,
+        CancellationToken cancellationToken)
     {
         try
         {

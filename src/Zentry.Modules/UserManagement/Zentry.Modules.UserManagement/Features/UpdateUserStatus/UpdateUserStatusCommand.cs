@@ -1,11 +1,9 @@
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Features.UpdateUserStatus;
 
 public record UpdateUserStatusCommand(Guid UserId, UpdateUserStatusRequest Request)
     : ICommand<UpdateUserStatusResponse>;
-
 
 public class UpdateUserStatusResponse
 {

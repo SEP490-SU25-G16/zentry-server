@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="EPPlus" Version="8.0.8" />
+        <PackageReference Include="EPPlus" Version="8.0.8"/>
         <PackageReference Include="MongoDB.Driver" Version="3.4.1"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0"/>
         <PackageReference Include="FirebaseAdmin" Version="2.4.0"/>

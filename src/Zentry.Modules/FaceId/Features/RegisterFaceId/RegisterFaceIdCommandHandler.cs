@@ -24,13 +24,11 @@ public class RegisterFaceIdCommandHandler : ICommandHandler<RegisterFaceIdComman
             // Check if user already has a face ID
             var exists = await _faceIdRepository.ExistsByUserIdAsync(command.UserId, cancellationToken);
             if (exists)
-            {
                 return new RegisterFaceIdResponse
                 {
                     Success = false,
                     Message = "User already has a registered Face ID. Use update instead."
                 };
-            }
 
             // Convert float array to Vector
             var embedding = new Vector(command.EmbeddingArray);
@@ -39,7 +37,7 @@ public class RegisterFaceIdCommandHandler : ICommandHandler<RegisterFaceIdComman
             await _faceIdRepository.CreateAsync(command.UserId, embedding, cancellationToken);
 
             // Update user's face ID status
-            var updateFaceIdCommand = new Zentry.Modules.UserManagement.Features.UpdateFaceId.UpdateFaceIdCommand(command.UserId, true);
+            var updateFaceIdCommand = new UpdateFaceIdCommand(command.UserId, true);
             await _mediator.Send(updateFaceIdCommand, cancellationToken);
 
             return new RegisterFaceIdResponse
@@ -57,4 +55,4 @@ public class RegisterFaceIdCommandHandler : ICommandHandler<RegisterFaceIdComman
             };
         }
     }
-} 
+}

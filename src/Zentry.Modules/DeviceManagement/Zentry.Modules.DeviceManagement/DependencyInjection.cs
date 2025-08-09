@@ -1,5 +1,3 @@
-using FluentValidation;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +5,6 @@ using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.Modules.DeviceManagement.Persistence;
 using Zentry.Modules.DeviceManagement.Persistence.Repositories;
 using Zentry.Modules.DeviceManagement.Services;
-using Zentry.SharedKernel.Helpers;
 
 namespace Zentry.Modules.DeviceManagement;
 

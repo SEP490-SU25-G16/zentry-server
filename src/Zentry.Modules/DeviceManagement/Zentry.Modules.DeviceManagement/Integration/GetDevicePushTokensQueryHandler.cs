@@ -13,7 +13,7 @@ public class GetDevicePushTokensQueryHandler(IDeviceRepository repository)
     {
         // Get all active devices for the user
         var activeDevices = await repository.GetActiveDevicesByUserIdsAsync(
-            new List<Guid> { request.UserId }, 
+            new List<Guid> { request.UserId },
             cancellationToken);
 
         // Extract push notification tokens, filtering out null/empty values
@@ -25,4 +25,4 @@ public class GetDevicePushTokensQueryHandler(IDeviceRepository repository)
 
         return new GetDevicePushTokensIntegrationResponse(pushTokens.AsReadOnly());
     }
-} 
+}

@@ -1,4 +1,3 @@
-
 using Zentry.Modules.NotificationService.Entities;
 
 namespace Zentry.Modules.NotificationService.Persistence.Repository;
@@ -16,4 +15,4 @@ public interface INotificationRepository
     Task DeleteAsync(Notification notification, CancellationToken cancellationToken);
     Task DeleteRangeAsync(IEnumerable<Notification> notifications, CancellationToken cancellationToken);
     Task<bool> SaveChangesAsync(CancellationToken cancellationToken);
-} 
+}

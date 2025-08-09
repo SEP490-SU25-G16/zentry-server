@@ -23,7 +23,7 @@ public class User : AggregateRoot<Guid>
     public string? PhoneNumber { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public bool HasFaceId { get; private set; } = false;
+    public bool HasFaceId { get; private set; }
     public DateTime? FaceIdLastUpdated { get; private set; }
 
     public static User Create(Guid accountId, string fullName, string? phoneNumber)
@@ -41,10 +41,7 @@ public class User : AggregateRoot<Guid>
     public void UpdateFaceIdStatus(bool hasFaceId)
     {
         HasFaceId = hasFaceId;
-        if (hasFaceId)
-        {
-            FaceIdLastUpdated = DateTime.UtcNow;
-        }
+        if (hasFaceId) FaceIdLastUpdated = DateTime.UtcNow;
 
         UpdatedAt = DateTime.UtcNow;
     }

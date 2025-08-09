@@ -155,9 +155,7 @@ public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fi
     public async Task<IActionResult> ImportUsers([FromForm] IFormFile file, CancellationToken cancellationToken)
     {
         if (file.Length == 0)
-        {
             return BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidInput, ErrorMessages.InvalidInput));
-        }
 
         List<UserImportDto> usersToImport;
         try
@@ -175,9 +173,7 @@ public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fi
         }
 
         if (!usersToImport.Any())
-        {
             return BadRequest(ApiResponse.ErrorResult(ErrorCodes.InvalidInput, ErrorMessages.InvalidInput));
-        }
 
         var command = new ImportUsersCommand(usersToImport);
 
@@ -186,16 +182,12 @@ public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fi
             var response = await mediator.Send(command, cancellationToken);
 
             if (response.Success)
-            {
                 // Sử dụng HandleResult thay cho HandleCreated vì không tạo một resource mới duy nhất
                 return HandleResult(response, "Import successful.");
-            }
-            else
-            {
-                return HandlePartialSuccess(response,
-                    $"Imported {response.ImportedCount} users successfully.",
-                    $"There were {response.FailedCount} errors in the file input.");
-            }
+
+            return HandlePartialSuccess(response,
+                $"Imported {response.ImportedCount} users successfully.",
+                $"There were {response.FailedCount} errors in the file input.");
         }
         catch (Exception ex)
         {

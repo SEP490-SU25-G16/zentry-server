@@ -26,9 +26,9 @@ public class SubmitScanDataConsumer(
     IMediator mediator)
     : IConsumer<SubmitScanDataMessage>
 {
-    private readonly TimeSpan _maxLateSubmissionWindow = TimeSpan.FromMinutes(90);
     private const int MinValidNeighborsForLateSubmission = 1;
     private readonly TimeSpan _batchWindow = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _maxLateSubmissionWindow = TimeSpan.FromMinutes(90);
 
     public async Task Consume(ConsumeContext<SubmitScanDataMessage> consumeContext)
     {
@@ -68,15 +68,11 @@ public class SubmitScanDataConsumer(
 
             // Use the IsLateSubmission flag from the message (set by CommandHandler)
             if (message.IsLateSubmission)
-            {
                 await HandleLateSubmission(message, session, round, submitterDeviceId,
                     submitterUserId, finalScannedDevices, consumeContext.CancellationToken);
-            }
             else
-            {
                 await HandleNormalSubmission(message, submitterDeviceId, submitterUserId,
                     finalScannedDevices, consumeContext.CancellationToken);
-            }
 
             logger.LogInformation("Successfully processed scan data for SessionId: {SessionId}", message.SessionId);
         }
@@ -119,9 +115,7 @@ public class SubmitScanDataConsumer(
 
             // Schedule batched final processing only for completed sessions
             if (Equals(session.Status, SessionStatus.Completed))
-            {
                 await ScheduleBatchedFinalProcessing(session.Id, cancellationToken);
-            }
         }
         else
         {
@@ -389,12 +383,8 @@ public class SubmitScanDataConsumer(
 
         var result = new List<ScannedDevice>();
         foreach (var scannedDevice in message.ScannedDevices)
-        {
             if (deviceMap.TryGetValue(scannedDevice.AndroidId, out var deviceId))
-            {
                 result.Add(new ScannedDevice(deviceId.ToString(), scannedDevice.Rssi));
-            }
-        }
 
         return result;
     }

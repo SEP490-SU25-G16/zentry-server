@@ -1,9 +1,9 @@
+using Microsoft.Extensions.Logging;
+using Zentry.Modules.UserManagement.Dtos;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
-using Microsoft.Extensions.Logging;
-using Zentry.Modules.UserManagement.Dtos;
 
 namespace Zentry.Modules.UserManagement.Features.ImportUsers;
 
@@ -62,7 +62,6 @@ public class ImportUsersCommandHandler(
         // Lọc lại danh sách users để loại bỏ các bản ghi trùng lặp
         var finalUsersToProcess = new List<UserImportDto>();
         foreach (var userDto in validUsers)
-        {
             if (existingEmails.Contains(userDto.Email, StringComparer.OrdinalIgnoreCase))
             {
                 response.Errors.Add(new ImportError
@@ -76,26 +75,22 @@ public class ImportUsersCommandHandler(
             {
                 // Chỉ cần ghi lỗi một lần cho các email trùng trong file
                 if (!response.Errors.Any(e => e.Email.Equals(userDto.Email, StringComparison.OrdinalIgnoreCase)))
-                {
                     response.Errors.Add(new ImportError
                     {
                         RowIndex = userDto.RowIndex, // Ghi lại dòng đầu tiên có lỗi
                         Email = userDto.Email,
                         Message = $"Email '{userDto.Email}' bị trùng lặp trong file import."
                     });
-                }
             }
             else
             {
                 finalUsersToProcess.Add(userDto);
             }
-        }
 
         var accountsToCreate = new List<Account>();
         var usersToCreate = new List<User>();
 
         foreach (var userDto in finalUsersToProcess)
-        {
             try
             {
                 var role = Role.FromName(userDto.Role);
@@ -117,7 +112,6 @@ public class ImportUsersCommandHandler(
                     Message = $"Lỗi khi chuẩn bị dữ liệu: {ex.Message}"
                 });
             }
-        }
 
         try
         {

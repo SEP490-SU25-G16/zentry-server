@@ -9,7 +9,8 @@ public class BusinessRuleException : BusinessLogicException
     {
     }
 
-    public BusinessRuleException(string code, string message, Exception innerException) : base(code, innerException, message)
+    public BusinessRuleException(string code, string message, Exception innerException) : base(code, innerException,
+        message)
     {
     }
 }

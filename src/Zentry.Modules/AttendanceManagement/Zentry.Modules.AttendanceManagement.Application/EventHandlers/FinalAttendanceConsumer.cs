@@ -36,7 +36,8 @@ public class FinalAttendanceConsumer(
 
             if (!isProcessing)
             {
-                logger.LogInformation("Final processing already in progress for session {SessionId}, skipping", sessionId);
+                logger.LogInformation("Final processing already in progress for session {SessionId}, skipping",
+                    sessionId);
                 return;
             }
         }
@@ -61,7 +62,8 @@ public class FinalAttendanceConsumer(
             // Always attempt to remove the processing lock, regardless of success or failure.
             try
             {
-                await redisService.SetAsync($"{processingKey}:completed", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture),
+                await redisService.SetAsync($"{processingKey}:completed",
+                    DateTime.UtcNow.ToString(CultureInfo.InvariantCulture),
                     TimeSpan.FromHours(24));
                 await redisService.RemoveAsync(processingKey);
             }
@@ -123,17 +125,13 @@ public class FinalAttendanceConsumer(
         var attendanceRecordsToProcess = new List<AttendanceRecord>();
 
         foreach (var studentTrack in relevantStudentTracks)
-        {
             try
             {
                 var attendedCompletedRounds = studentTrack.Rounds
                     .Count(rp => completedRounds.Any(r => r.Id == rp.RoundId) && rp.IsAttended);
 
-                double percentage = 0.0;
-                if (actualRoundsCount > 0)
-                {
-                    percentage = (double)attendedCompletedRounds / actualRoundsCount * 100.0;
-                }
+                var percentage = 0.0;
+                if (actualRoundsCount > 0) percentage = (double)attendedCompletedRounds / actualRoundsCount * 100.0;
 
                 logger.LogDebug(
                     "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds).",
@@ -177,10 +175,11 @@ public class FinalAttendanceConsumer(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error processing student track for student {StudentId} in session {SessionId}. Skipping this student.", studentTrack.Id, sessionId);
+                logger.LogError(ex,
+                    "Error processing student track for student {StudentId} in session {SessionId}. Skipping this student.",
+                    studentTrack.Id, sessionId);
                 // Continue to the next student
             }
-        }
 
         try
         {

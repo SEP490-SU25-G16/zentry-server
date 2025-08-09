@@ -92,7 +92,8 @@ public class StartSessionCommandHandler(
         }
 
         // --- 3. Tải Whitelist từ DocumentDB (Schedule) và cache vào Redis (Session) ---
-        var scheduleWhitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(session.ScheduleId, cancellationToken);
+        var scheduleWhitelist =
+            await scheduleWhitelistRepository.GetByScheduleIdAsync(session.ScheduleId, cancellationToken);
         if (scheduleWhitelist != null)
         {
             var whitelistJson = JsonSerializer.Serialize(scheduleWhitelist.WhitelistedDeviceIds);

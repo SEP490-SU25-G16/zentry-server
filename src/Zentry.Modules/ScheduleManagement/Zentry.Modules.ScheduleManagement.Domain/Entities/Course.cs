@@ -22,16 +22,11 @@ public class Course : AggregateRoot<Guid>
         ClassSections = new List<ClassSection>();
     }
 
-    [Required]
-    [StringLength(50)]
-    public string Code { get; private set; }
+    [Required] [StringLength(50)] public string Code { get; private set; }
 
-    [Required]
-    [StringLength(255)]
-    public string Name { get; private set; }
+    [Required] [StringLength(255)] public string Name { get; private set; }
 
-    [StringLength(1000)]
-    public string Description { get; private set; }
+    [StringLength(1000)] public string Description { get; private set; }
 
     public virtual ICollection<ClassSection> ClassSections { get; set; }
     public DateTime CreatedAt { get; private set; }

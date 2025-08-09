@@ -10,5 +10,7 @@ public interface IFaceIdRepository : IRepository<FaceEmbedding, Guid>
     Task<bool> ExistsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<FaceEmbedding> CreateAsync(Guid userId, Vector embedding, CancellationToken cancellationToken = default);
     Task<FaceEmbedding> UpdateAsync(Guid userId, Vector embedding, CancellationToken cancellationToken = default);
-    Task<(bool IsMatch, float Similarity)> VerifyAsync(Guid userId, Vector embedding, float threshold = 0.7f, CancellationToken cancellationToken = default);
-} 
+
+    Task<(bool IsMatch, float Similarity)> VerifyAsync(Guid userId, Vector embedding, float threshold = 0.7f,
+        CancellationToken cancellationToken = default);
+}

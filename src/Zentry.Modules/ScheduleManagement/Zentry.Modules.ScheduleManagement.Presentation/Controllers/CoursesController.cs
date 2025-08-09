@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.CreateCourse;
-using Zentry.Modules.ScheduleManagement.Application.Features.DeleteCourse;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetCourseById;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetCourses;
-using Zentry.Modules.ScheduleManagement.Application.Features.UpdateCourse;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.CreateCourse;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.DeleteCourse;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourseById;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourses;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.UpdateCourse;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -52,7 +52,8 @@ public class CoursesController(IMediator mediator) : BaseController
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<CourseCreatedResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateCourse([FromBody] CreateCourseCommand request,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -69,7 +70,8 @@ public class CoursesController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse<CourseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseRequest request,
+        CancellationToken cancellationToken)
     {
         try
         {

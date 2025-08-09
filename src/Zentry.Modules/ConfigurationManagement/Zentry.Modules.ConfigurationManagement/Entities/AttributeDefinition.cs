@@ -49,11 +49,11 @@ public class AttributeDefinition : AggregateRoot<Guid>
     [StringLength(1000)] // Giới hạn độ dài của mô tả
     public string? Description { get; private set; }
 
-    [Required]
-    public DataType DataType { get; private set; }
+    [Required] public DataType DataType { get; private set; }
 
     [StringLength(500)] // Giới hạn độ dài của giá trị mặc định
     public string? DefaultValue { get; private set; }
+
     public List<ScopeType> AllowedScopeTypes { get; private set; }
     public virtual ICollection<Option> Options { get; private set; }
     public string? Unit { get; private set; }

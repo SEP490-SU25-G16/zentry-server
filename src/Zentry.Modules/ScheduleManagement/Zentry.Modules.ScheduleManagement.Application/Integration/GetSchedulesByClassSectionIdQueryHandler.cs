@@ -11,12 +11,10 @@ public class GetSchedulesByClassSectionIdQueryHandler(IScheduleRepository schedu
         GetSchedulesByClassSectionIdIntegrationQuery request,
         CancellationToken cancellationToken)
     {
-        var schedules = await scheduleRepository.GetSchedulesByClassSectionIdAsync(request.ClassSectionId, cancellationToken);
+        var schedules =
+            await scheduleRepository.GetSchedulesByClassSectionIdAsync(request.ClassSectionId, cancellationToken);
 
-        if (schedules.Count == 0)
-        {
-            return new GetSchedulesByClassSectionIdIntegrationResponse([]);
-        }
+        if (schedules.Count == 0) return new GetSchedulesByClassSectionIdIntegrationResponse([]);
 
         var scheduleDtos = schedules.Select(s => new ScheduleInfoDto
         {

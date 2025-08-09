@@ -3,13 +3,13 @@ using Microsoft.AspNetCore.Http;
 namespace Zentry.SharedKernel.Abstractions.Data;
 
 /// <summary>
-/// A generic service for processing uploaded files (CSV, Excel) into a list of DTOs.
+///     A generic service for processing uploaded files (CSV, Excel) into a list of DTOs.
 /// </summary>
 /// <typeparam name="T">The type of DTO to be created from the file content.</typeparam>
 public interface IFileProcessor<T> where T : BaseImportDto, new()
 {
     /// <summary>
-    /// Processes an uploaded file and converts its content into a list of DTOs.
+    ///     Processes an uploaded file and converts its content into a list of DTOs.
     /// </summary>
     /// <param name="file">The uploaded file.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
@@ -18,8 +18,8 @@ public interface IFileProcessor<T> where T : BaseImportDto, new()
 }
 
 /// <summary>
-/// Base class for DTOs used in file import operations.
-/// Includes properties common to all imported records.
+///     Base class for DTOs used in file import operations.
+///     Includes properties common to all imported records.
 /// </summary>
 public abstract class BaseImportDto
 {

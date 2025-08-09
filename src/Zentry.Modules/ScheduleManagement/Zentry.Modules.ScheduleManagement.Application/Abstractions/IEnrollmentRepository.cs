@@ -1,5 +1,5 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
 

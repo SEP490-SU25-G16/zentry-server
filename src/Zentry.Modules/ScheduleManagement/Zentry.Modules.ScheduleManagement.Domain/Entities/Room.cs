@@ -19,16 +19,12 @@ public class Room : AggregateRoot<Guid>
         IsDeleted = false;
     }
 
-    [Required]
-    [StringLength(100)]
-    public string RoomName { get; private set; }
+    [Required] [StringLength(100)] public string RoomName { get; private set; }
 
-    [Required]
-    [StringLength(100)]
-    public string Building { get; private set; }
+    [Required] [StringLength(100)] public string Building { get; private set; }
 
-    [Range(0, 1000)]
-    public int Capacity { get; private set; }
+    [Range(0, 1000)] public int Capacity { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool IsDeleted { get; private set; }
@@ -46,6 +42,7 @@ public class Room : AggregateRoot<Guid>
         if (capacity.HasValue) Capacity = capacity.Value;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void Delete()
     {
         if (IsDeleted) return;

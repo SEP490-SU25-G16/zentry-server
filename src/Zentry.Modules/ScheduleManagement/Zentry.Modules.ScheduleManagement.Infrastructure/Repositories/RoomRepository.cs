@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetRooms;
+using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.GetRooms;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 

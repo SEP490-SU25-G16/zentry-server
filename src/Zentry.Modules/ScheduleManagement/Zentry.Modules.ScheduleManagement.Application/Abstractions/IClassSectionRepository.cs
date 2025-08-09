@@ -1,4 +1,4 @@
-using Zentry.Modules.ScheduleManagement.Application.Features.GetClassSections;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Data;

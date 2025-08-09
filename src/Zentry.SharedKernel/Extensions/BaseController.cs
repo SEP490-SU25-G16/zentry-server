@@ -252,10 +252,7 @@ public abstract class BaseController : ControllerBase
         string? failureMessage = null)
     {
         var message = successMessage ?? "Operation completed with partial success";
-        if (!string.IsNullOrWhiteSpace(failureMessage))
-        {
-            message += $". {failureMessage}";
-        }
+        if (!string.IsNullOrWhiteSpace(failureMessage)) message += $". {failureMessage}";
 
         return Ok(ApiResponse<T>.SuccessResult(data, message));
     }

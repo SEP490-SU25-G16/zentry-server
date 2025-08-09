@@ -13,7 +13,9 @@ using Zentry.Modules.ConfigurationManagement;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.Modules.DeviceManagement;
 using Zentry.Modules.DeviceManagement.Persistence;
+using Zentry.Modules.FaceId;
 using Zentry.Modules.NotificationService;
+using Zentry.Modules.NotificationService.Hubs;
 using Zentry.Modules.ReportingService;
 using Zentry.Modules.ReportingService.Persistence;
 using Zentry.Modules.ScheduleManagement.Application;
@@ -25,8 +27,6 @@ using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Helpers;
 using Zentry.SharedKernel.Middlewares;
-using Zentry.Modules.FaceId;
-using Zentry.Modules.NotificationService.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,7 +65,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
-    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(Zentry.SharedKernel.Helpers.ValidationBehavior<,>));
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 });
 builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
 

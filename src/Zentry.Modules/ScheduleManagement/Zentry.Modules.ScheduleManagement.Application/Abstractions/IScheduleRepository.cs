@@ -1,5 +1,5 @@
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.GetSchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Constants.Schedule;
