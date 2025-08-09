@@ -1,8 +1,6 @@
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 
-// Đảm bảo using này có mặt
-
 namespace Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 
 public class GetListAttributeDefinitionQuery : IQuery<GetListAttributeDefinitionResponse>
@@ -11,7 +9,6 @@ public class GetListAttributeDefinitionQuery : IQuery<GetListAttributeDefinition
     {
     }
 
-    // Constructor nếu bạn muốn khởi tạo với các giá trị cụ thể từ code
     public GetListAttributeDefinitionQuery(
         int pageNumber,
         int pageSize,
@@ -22,7 +19,7 @@ public class GetListAttributeDefinitionQuery : IQuery<GetListAttributeDefinition
         string? orderBy = null)
     {
         PageNumber = pageNumber <= 0 ? 1 : pageNumber;
-        PageSize = pageSize <= 0 ? 10 : pageSize; // Giả định pageSize mặc định 10
+        PageSize = pageSize <= 0 ? 10 : pageSize;
         Key = key?.Trim();
         DisplayName = displayName?.Trim();
         DataType = dataType?.Trim();

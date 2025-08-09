@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
+using Zentry.Modules.ConfigurationManagement.Features.DeleteAttributeDefinition;
+using Zentry.Modules.ConfigurationManagement.Features.DeleteSetting;
 using Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
 using Zentry.Modules.ConfigurationManagement.Features.UpdateAttributeDefinition;
@@ -113,4 +115,48 @@ public class ConfigurationsController(IMediator mediator) : BaseController
     }
 
     #endregion
+
+    #region Delete Operations
+
+    [HttpDelete("definitions/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteAttributeDefinition(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteAttributeDefinitionCommand { AttributeId = id };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    #endregion
+
+    [HttpDelete("settings/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteSetting(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteSettingCommand { SettingId = id };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
 }

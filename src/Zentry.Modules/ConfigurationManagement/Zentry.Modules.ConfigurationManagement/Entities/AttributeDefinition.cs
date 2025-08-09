@@ -3,8 +3,6 @@ using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Domain;
 using DataType = Zentry.SharedKernel.Constants.Configuration.DataType;
 
-// Thêm namespace này
-
 namespace Zentry.Modules.ConfigurationManagement.Entities;
 
 public class AttributeDefinition : AggregateRoot<Guid>
