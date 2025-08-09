@@ -8,6 +8,7 @@ using Zentry.Modules.UserManagement.Features.GetUser;
 using Zentry.Modules.UserManagement.Features.GetUsers;
 using Zentry.Modules.UserManagement.Features.ImportUsers;
 using Zentry.Modules.UserManagement.Features.UpdateUser;
+using Zentry.Modules.UserManagement.Features.UpdateUserStatus;
 using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.Response;
@@ -195,6 +196,35 @@ public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fi
                     $"Imported {response.ImportedCount} users successfully.",
                     $"There were {response.FailedCount} errors in the file input.");
             }
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+
+    [HttpPut("{id}/status")]
+    [ProducesResponseType(typeof(ApiResponse<UpdateUserStatusResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateUserStatus(Guid id, [FromBody] UpdateUserStatusRequest request)
+    {
+        var command = new UpdateUserStatusCommand(id, request);
+
+        try
+        {
+            var response = await mediator.Send(command);
+            return HandleResult(response);
+        }
+        catch (ResourceNotFoundException ex)
+        {
+            return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound, ex.Message));
+        }
+        catch (BusinessRuleException ex)
+        {
+            return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, ex.Message));
         }
         catch (Exception ex)
         {
