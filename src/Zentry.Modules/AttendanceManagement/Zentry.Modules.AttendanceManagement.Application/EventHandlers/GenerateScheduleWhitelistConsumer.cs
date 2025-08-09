@@ -53,12 +53,10 @@ public class GenerateScheduleWhitelistConsumer(
                 return;
             }
 
-            // Tạo một HashSet để thao tác hiệu quả hơn
             var whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
 
             if (whitelistedDeviceIds.Add(lecturerDeviceResponse.DeviceId))
             {
-                // Device được thêm thành công (nếu nó chưa tồn tại)
                 existingWhitelist.UpdateWhitelist(whitelistedDeviceIds.ToList());
                 await scheduleWhitelistRepository.UpdateAsync(existingWhitelist, consumeContext.CancellationToken);
                 logger.LogInformation(

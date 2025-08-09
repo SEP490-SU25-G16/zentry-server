@@ -46,7 +46,6 @@ public class AssignLecturerConsumer(
         {
             await publishEndpoint.Publish(new AssignLecturerToWhitelistMessage(
                 scheduleId,
-                message.ClassSectionId,
                 message.LecturerId
             ), context.CancellationToken);
             logger.LogInformation(
