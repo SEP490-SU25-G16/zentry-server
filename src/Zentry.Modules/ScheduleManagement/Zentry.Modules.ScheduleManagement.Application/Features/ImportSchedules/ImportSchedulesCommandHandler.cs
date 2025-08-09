@@ -60,7 +60,8 @@ public class ImportSchedulesCommandHandler(
         var rooms = (await roomRepository.GetByRoomNamesAsync(roomNames, cancellationToken))
             .ToDictionary(r => r.RoomName, r => r.Id, StringComparer.OrdinalIgnoreCase);
 
-        var classSectionsWithCourses = (await classSectionRepository.GetBySectionCodesAsync(sectionCodes, cancellationToken))
+        var classSectionsWithCourses =
+            (await classSectionRepository.GetBySectionCodesAsync(sectionCodes, cancellationToken))
             .ToDictionary(s => s.Id, s => s.CourseId);
 
         var finalSchedulesToProcess = new List<Schedule>();
@@ -149,6 +150,7 @@ public class ImportSchedulesCommandHandler(
                     schedule.Id,
                     schedule.ClassSectionId,
                     schedule.RoomId,
+                    null,
                     schedule.WeekDay.ToString(),
                     schedule.StartTime,
                     schedule.EndTime,

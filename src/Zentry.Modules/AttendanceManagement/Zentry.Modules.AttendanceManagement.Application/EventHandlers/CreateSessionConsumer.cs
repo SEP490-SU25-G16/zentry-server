@@ -123,7 +123,7 @@ public class CreateSessionConsumer(
 
                     var session = Session.Create(
                         message.ScheduleId,
-                        null,
+                        message.LecturerId,
                         todaySessionStartUtc,
                         todaySessionEndUtc,
                         finalConfigDictionary

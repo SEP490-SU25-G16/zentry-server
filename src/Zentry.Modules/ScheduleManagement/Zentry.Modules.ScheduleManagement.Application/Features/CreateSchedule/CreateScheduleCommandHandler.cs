@@ -22,8 +22,8 @@ public class CreateScheduleCommandHandler(
         if (!command.IsValidTimeRange())
             throw new BusinessRuleException("INVALID_TIME_RANGE", "Thời gian bắt đầu phải trước thời gian kết thúc.");
 
-        var section = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
-        if (section is null)
+        var classSection = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
+        if (classSection is null)
             throw new ResourceNotFoundException("ClassSection", $"ID '{command.ClassSectionId}' not found.");
 
         var room = await roomRepository.GetByIdAsync(command.RoomId, cancellationToken);
@@ -35,7 +35,7 @@ public class CreateScheduleCommandHandler(
             throw new BusinessRuleException("ROOM_BOOKED",
                 $"Phòng đã được đặt vào {command.WeekDay} từ {command.StartTime} đến {command.EndTime} trong khoảng thời gian này.");
         var schedule = Schedule.Create(
-            section.Id,
+            classSection.Id,
             command.RoomId,
             command.StartDate,
             command.EndDate,
@@ -48,17 +48,18 @@ public class CreateScheduleCommandHandler(
         await scheduleRepository.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Schedule {ScheduleId} created successfully. Publishing event.", schedule.Id);
-
+        var lecturerId = classSection.LecturerId;
         var scheduleCreatedEvent = new ScheduleCreatedMessage(
             schedule.Id,
             schedule.ClassSectionId,
             schedule.RoomId,
+            lecturerId,
             schedule.WeekDay.ToString(),
             schedule.StartTime,
             schedule.EndTime,
             schedule.StartDate,
             schedule.EndDate,
-            section.CourseId,
+            classSection.CourseId,
             schedule.CreatedAt
         );
 
