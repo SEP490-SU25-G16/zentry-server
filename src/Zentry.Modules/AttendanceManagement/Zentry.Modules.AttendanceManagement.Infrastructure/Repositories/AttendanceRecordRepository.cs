@@ -10,11 +10,19 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttendanceRecordRepository
 {
+    public async Task<List<AttendanceRecord>> GetAttendanceBySessionIdsAsync(List<Guid> sessionIds,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.AttendanceRecords
+            .Where(ar => sessionIds.Contains(ar.SessionId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<AttendanceRecord?> GetByUserIdAndSessionIdAsync(Guid userId, Guid sessionId,
         CancellationToken cancellationToken)
     {
         return await dbContext.AttendanceRecords
-            .FirstOrDefaultAsync(ar => ar.UserId == userId && ar.SessionId == sessionId, cancellationToken);
+            .FirstOrDefaultAsync(ar => ar.StudentId == userId && ar.SessionId == sessionId, cancellationToken);
     }
 
     public async Task AddOrUpdateAsync(AttendanceRecord entity, CancellationToken cancellationToken)
@@ -91,7 +99,7 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
 
         // Đây là ví dụ chung, bạn cần điều chỉnh để phù hợp với schema của mình
         var totalSessionsQuery = dbContext.AttendanceRecords
-            .Where(ar => ar.UserId == studentId)
+            .Where(ar => ar.StudentId == studentId)
             .Select(ar => ar.SessionId)
             .Distinct();
 
@@ -99,7 +107,7 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
 
         var attendedSessions = await totalSessionsQuery
             .Where(sessionId => dbContext.AttendanceRecords
-                .Any(ar => ar.UserId == studentId &&
+                .Any(ar => ar.StudentId == studentId &&
                            ar.SessionId == sessionId &&
                            ar.Status ==
                            AttendanceStatus.Present)) // Giả sử Present là Attended

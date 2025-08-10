@@ -10,11 +10,11 @@ public class AttendanceRecord : AggregateRoot<Guid>
     {
     }
 
-    private AttendanceRecord(Guid id, Guid userId, Guid sessionId, AttendanceStatus status, bool isManual,
+    private AttendanceRecord(Guid id, Guid studentId, Guid sessionId, AttendanceStatus status, bool isManual,
         double percentageAttended)
         : base(id)
     {
-        UserId = userId;
+        StudentId = studentId;
         SessionId = sessionId;
         Status = status;
         IsManual = isManual;
@@ -23,7 +23,7 @@ public class AttendanceRecord : AggregateRoot<Guid>
         ExpiredAt = DateTime.UtcNow;
     }
 
-    [Required] public Guid UserId { get; private set; }
+    [Required] public Guid StudentId { get; private set; }
 
     [Required] public Guid SessionId { get; private set; }
 

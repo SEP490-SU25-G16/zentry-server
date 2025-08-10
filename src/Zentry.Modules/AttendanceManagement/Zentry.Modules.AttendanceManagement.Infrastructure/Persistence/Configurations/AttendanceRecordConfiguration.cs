@@ -16,7 +16,7 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
         builder.Property(ar => ar.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(ar => ar.UserId)
+        builder.Property(ar => ar.StudentId)
             .IsRequired();
 
         builder.Property(ar => ar.SessionId)
@@ -43,7 +43,7 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
 
-        builder.HasIndex(ar => ar.UserId);
+        builder.HasIndex(ar => ar.StudentId);
         builder.HasIndex(ar => ar.SessionId);
         builder.HasIndex(ar => ar.Status);
     }

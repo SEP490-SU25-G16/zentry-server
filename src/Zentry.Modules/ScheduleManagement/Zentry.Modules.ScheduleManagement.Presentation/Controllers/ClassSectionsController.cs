@@ -12,6 +12,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSe
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerHome;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -152,14 +153,23 @@ public class ClassSectionsController(IMediator mediator) : BaseController
     // === API liên quan đến vai trò giảng viên ===
 
     [HttpGet("{lecturerId}/home")]
-    [ProducesResponseType(typeof(ApiResponse<List<LecturerHomeDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<LecturerHomeResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLecturerHome(Guid lecturerId, CancellationToken cancellationToken)
     {
         try
         {
-            var query = new GetLecturerHomeQuery(lecturerId);
-            var response = await mediator.Send(query, cancellationToken);
+            var nextSessionsTask = mediator.Send(new GetLecturerNextSessionsQuery(lecturerId), cancellationToken);
+            var weeklyOverviewTask = mediator.Send(new GetLecturerWeeklyOverviewQuery(lecturerId), cancellationToken);
+
+            await Task.WhenAll(nextSessionsTask, weeklyOverviewTask);
+
+            var response = new LecturerHomeResponse
+            {
+                NextSessions = nextSessionsTask.Result, // This will now work
+                WeeklyOverview = weeklyOverviewTask.Result
+            };
+
             return HandleResult(response);
         }
         catch (Exception ex)

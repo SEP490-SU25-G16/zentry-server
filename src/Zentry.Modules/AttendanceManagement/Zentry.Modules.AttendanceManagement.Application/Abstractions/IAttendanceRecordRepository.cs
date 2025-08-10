@@ -5,6 +5,9 @@ namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
 public interface IAttendanceRecordRepository : IRepository<AttendanceRecord, Guid>
 {
+    Task<List<AttendanceRecord>> GetAttendanceBySessionIdsAsync(List<Guid> sessionIds,
+        CancellationToken cancellationToken);
+
     Task<(int TotalSessions, int AttendedSessions)> GetAttendanceStatsAsync(Guid studentId, Guid courseId);
 
     public Task<List<AttendanceRecord>> GetAttendanceRecordsBySessionIdAsync(Guid sessionId,

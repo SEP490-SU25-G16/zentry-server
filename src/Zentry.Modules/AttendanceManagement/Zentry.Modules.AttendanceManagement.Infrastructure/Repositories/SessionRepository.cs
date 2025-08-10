@@ -10,11 +10,22 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
+    public async Task<List<Session>> GetUpcomingSessionsByScheduleIdsAsync(List<Guid> scheduleIds,
+        CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow;
+        return await dbContext.Sessions
+            .Where(s => scheduleIds.Contains(s.ScheduleId) && (s.EndTime > now || s.Status == SessionStatus.Active))
+            .OrderBy(s => s.StartTime)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task UpdateRangeAsync(IEnumerable<Session> entities, CancellationToken cancellationToken)
     {
         dbContext.Sessions.UpdateRange(entities);
         return Task.CompletedTask;
     }
+
     public async Task<List<Session>> GetSessionsByScheduleIdsAsync(List<Guid> scheduleIds,
         CancellationToken cancellationToken)
     {
@@ -155,6 +166,7 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
             .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Status == SessionStatus.Active,
                 cancellationToken);
     }
+
     public async Task DeleteRangeAsync(IEnumerable<Session> sessions, CancellationToken cancellationToken)
     {
         dbContext.Sessions.RemoveRange(sessions);

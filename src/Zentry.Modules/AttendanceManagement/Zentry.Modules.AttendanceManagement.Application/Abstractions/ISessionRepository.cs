@@ -5,6 +5,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
 public interface ISessionRepository : IRepository<Session, Guid>
 {
+    Task<List<Session>> GetUpcomingSessionsByScheduleIdsAsync(List<Guid> scheduleIds, CancellationToken cancellationToken);
     Task DeleteRangeAsync(IEnumerable<Session> sessions, CancellationToken cancellationToken);
     Task UpdateRangeAsync(IEnumerable<Session> entities, CancellationToken cancellationToken);
     Task<List<Session>> GetSessionsByScheduleIdsAsync(List<Guid> scheduleIds, CancellationToken cancellationToken);

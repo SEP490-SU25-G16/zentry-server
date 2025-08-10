@@ -63,7 +63,7 @@ public class GetSessionFinalAttendanceQueryHandler(
             var user = userDict.GetValueOrDefault(studentId);
 
             var lastAttendanceRecord = attendanceRecords
-                .Where(ar => ar.UserId == studentId)
+                .Where(ar => ar.StudentId == studentId)
                 .OrderByDescending(ar => ar.CreatedAt)
                 .FirstOrDefault();
 

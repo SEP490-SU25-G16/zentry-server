@@ -83,4 +83,20 @@ public static class DateTimeExtensions
         var (utcStart, utcEnd) = localDate.ToUtcRange();
         return utcDateTime >= utcStart && utcDateTime <= utcEnd;
     }
+
+    public static DateOnly ToDateOnly(this DateTime dateTime)
+    {
+        return DateOnly.FromDateTime(dateTime);
+    }
+
+    public static TimeOnly ToTimeOnly(this DateTime dateTime)
+    {
+        return TimeOnly.FromDateTime(dateTime);
+    }
+
+    public static DateTime StartOfWeek(this DateTime dt, DayOfWeek startOfWeek)
+    {
+        var diff = (7 + (dt.DayOfWeek - startOfWeek)) % 7;
+        return dt.AddDays(-1 * diff).Date;
+    }
 }
