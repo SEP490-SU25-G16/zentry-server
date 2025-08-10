@@ -1,4 +1,6 @@
-// Trong Zentry.Modules.AttendanceManagement.Application.Integrations
+// Zentry.Modules.AttendanceManagement.Application.Integrations/GetLecturerClassOverviewIntegrationQueryHandler.cs
+
+// Loại bỏ IClassSectionRepository khỏi constructor
 
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
@@ -20,8 +22,7 @@ public class GetLecturerClassOverviewIntegrationQueryHandler(
 
         // Lấy tất cả attendance records cho các sessions này
         var sessionIds = sessions.Select(s => s.Id).ToList();
-        var attendanceRecords =
-            await attendanceRepository.GetAttendanceBySessionIdsAsync(sessionIds, cancellationToken);
+        var attendanceRecords = await attendanceRepository.GetAttendanceBySessionIdsAsync(sessionIds, cancellationToken);
 
         // Ánh xạ dữ liệu sang DTOs
         var sessionDtos = sessions.Select(s => new OverviewSessionDto
@@ -37,7 +38,7 @@ public class GetLecturerClassOverviewIntegrationQueryHandler(
         {
             SessionId = a.SessionId,
             StudentId = a.StudentId,
-            Status = a.Status.ToString()
+            Status = a.Status.ToString() // Giữ nguyên Enum String
         }).ToList();
 
         return new GetLecturerClassOverviewIntegrationResponse(sessionDtos, attendanceDtos);

@@ -11,8 +11,8 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetCl
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSessionsByClassSectionId;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailyReportQuery;
-using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerHome;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerWeeklyOverview;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -159,15 +159,17 @@ public class ClassSectionsController(IMediator mediator) : BaseController
     {
         try
         {
-            var nextSessionsTask = mediator.Send(new GetLecturerNextSessionsQuery(lecturerId), cancellationToken);
-            var weeklyOverviewTask = mediator.Send(new GetLecturerWeeklyOverviewQuery(lecturerId), cancellationToken);
+            // Gửi và chờ kết quả từ handler đầu tiên
+            var nextSessions = await mediator.Send(new GetLecturerNextSessionsQuery(lecturerId), cancellationToken);
 
-            await Task.WhenAll(nextSessionsTask, weeklyOverviewTask);
+            // Gửi và chờ kết quả từ handler thứ hai
+            var weeklyOverview = await mediator.Send(new GetLecturerWeeklyOverviewQuery(lecturerId), cancellationToken);
 
+            // Tạo response object cuối cùng
             var response = new LecturerHomeResponse
             {
-                NextSessions = nextSessionsTask.Result, // This will now work
-                WeeklyOverview = weeklyOverviewTask.Result
+                NextSessions = nextSessions,
+                WeeklyOverview = weeklyOverview
             };
 
             return HandleResult(response);

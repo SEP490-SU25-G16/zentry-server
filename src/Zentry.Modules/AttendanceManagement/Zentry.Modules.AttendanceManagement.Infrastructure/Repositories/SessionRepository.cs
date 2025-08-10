@@ -10,12 +10,25 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
-    public async Task<List<Session>> GetUpcomingSessionsByScheduleIdsAsync(List<Guid> scheduleIds,
+    public async Task<List<Session>> GetUpcomingSessionsByScheduleIdsAsync(
+        List<Guid> scheduleIds,
         CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
+        var nowUtc = DateTime.UtcNow;
+
+        // Lấy thời gian bắt đầu và kết thúc của "ngày hôm nay" theo giờ Việt Nam
+        // và chuyển nó sang UTC một lần duy nhất.
+        var nowInVietnam = nowUtc.ToVietnamLocalTime();
+        var todayInVietnam = DateOnly.FromDateTime(nowInVietnam);
+        var (utcStartOfToday, utcEndOfToday) = todayInVietnam.ToUtcRange();
+
         return await dbContext.Sessions
-            .Where(s => scheduleIds.Contains(s.ScheduleId) && (s.EndTime > now || s.Status == SessionStatus.Active))
+            .Where(s => scheduleIds.Contains(s.ScheduleId) &&
+                        // Lọc theo khoảng thời gian "ngày hôm nay ở VN" đã được tính toán.
+                        s.StartTime >= utcStartOfToday &&
+                        s.StartTime <= utcEndOfToday &&
+                        // Vẫn giữ lại điều kiện này để chỉ lấy các session sắp tới.
+                        (s.EndTime > nowUtc || s.Status == SessionStatus.Active))
             .OrderBy(s => s.StartTime)
             .ToListAsync(cancellationToken);
     }

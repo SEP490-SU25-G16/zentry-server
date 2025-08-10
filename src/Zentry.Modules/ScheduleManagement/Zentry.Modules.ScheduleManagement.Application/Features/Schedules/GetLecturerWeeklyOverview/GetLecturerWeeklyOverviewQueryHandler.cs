@@ -1,26 +1,29 @@
 using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Extensions;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerHome;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerWeeklyOverview;
 
 public class GetLecturerWeeklyOverviewQueryHandler(
     IClassSectionRepository classSectionRepository,
-    IMediator mediator
+    IMediator mediator,
+    IAttendanceCalculationService attendanceCalculationService
 ) : IQueryHandler<GetLecturerWeeklyOverviewQuery, List<WeeklyOverviewDto>>
 {
     public async Task<List<WeeklyOverviewDto>> Handle(GetLecturerWeeklyOverviewQuery request,
         CancellationToken cancellationToken)
     {
         var weeklyOverview = new List<WeeklyOverviewDto>();
+
         var classSections =
             await classSectionRepository.GetLecturerClassSectionsAsync(request.LecturerId, cancellationToken);
-
         var allScheduleIds = classSections.SelectMany(cs => cs.Schedules.Select(s => s.Id)).ToList();
-        var allAttendanceData = await mediator.Send(
+
+        var overviewData = await mediator.Send(
             new GetLecturerClassOverviewIntegrationQuery(allScheduleIds),
             cancellationToken);
 
@@ -31,10 +34,16 @@ public class GetLecturerWeeklyOverviewQueryHandler(
         foreach (var cs in classSections)
         {
             var classScheduleIds = cs.Schedules.Select(s => s.Id).ToList();
-            var classSessions = allAttendanceData.Sessions
+
+            var classSessions = overviewData.Sessions
                 .Where(s => classScheduleIds.Contains(s.ScheduleId))
                 .ToList();
 
+            var classAttendanceRecords = overviewData.AttendanceRecords
+                .Where(ar => classSessions.Any(s => s.Id == ar.SessionId))
+                .ToList();
+
+            var enrolledStudentsCount = cs.Enrollments.Count;
             var totalSessions = classSessions.Count;
             var currentSession = classSessions.Count(s => s.EndTime < now);
 
@@ -42,10 +51,14 @@ public class GetLecturerWeeklyOverviewQueryHandler(
                 .Count(s => s.StartTime >= startOfWeek && s.StartTime <= endOfWeek);
 
             var completedSessionsThisWeek = classSessions
-                .Count(s => (s.Status == "completed" || s.Status == "active") && s.StartTime >= startOfWeek &&
+                .Count(s => s.Status is "completed" or "active" && s.StartTime >= startOfWeek &&
                             s.StartTime <= endOfWeek);
 
-            var attendanceRate = await mediator.Send(new GetAttendanceRateIntegrationQuery(cs.Id), cancellationToken);
+            // Gọi service để tính toán Attendance Rate
+            var attendanceRate = attendanceCalculationService.CalculateAttendanceRate(
+                classSessions,
+                classAttendanceRecords,
+                enrolledStudentsCount);
 
             weeklyOverview.Add(new WeeklyOverviewDto
             {
@@ -53,7 +66,7 @@ public class GetLecturerWeeklyOverviewQueryHandler(
                 ClassName = $"{cs.Course?.Name} - {cs.SectionCode}",
                 CourseCode = cs.Course?.Code ?? string.Empty,
                 SectionCode = cs.SectionCode,
-                EnrolledStudents = cs.Enrollments.Count,
+                EnrolledStudents = enrolledStudentsCount,
                 TotalSessions = totalSessions,
                 CurrentSession = currentSession,
                 SessionsThisWeek = sessionsThisWeek,
