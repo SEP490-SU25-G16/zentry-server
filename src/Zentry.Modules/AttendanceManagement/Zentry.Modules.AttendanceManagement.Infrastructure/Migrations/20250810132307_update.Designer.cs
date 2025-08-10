@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    partial class AttendanceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250810132307_update")]
+    partial class update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
