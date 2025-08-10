@@ -7,7 +7,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Persistence.Configu
 
 public class SessionConfiguration : IEntityTypeConfiguration<Session>
 {
-    [Obsolete("Obsolete")]
     public void Configure(EntityTypeBuilder<Session> builder)
     {
         builder.ToTable("Sessions");
@@ -28,6 +27,9 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.Property(s => s.EndTime)
             .IsRequired();
 
+        builder.Property(s => s.SessionNumber)
+            .IsRequired();
+
         builder.Property(s => s.Status)
             .HasConversion(
                 s => s.ToString(),
@@ -41,15 +43,21 @@ public class SessionConfiguration : IEntityTypeConfiguration<Session>
             .IsRequired();
 
         builder.Property(s => s.UpdatedAt)
-            .IsRequired(false); // Có thể null
+            .IsRequired(false);
 
         builder.HasIndex(s => s.ScheduleId);
         builder.HasIndex(s => s.LecturerId);
         builder.HasIndex(s => s.StartTime);
+        builder.HasIndex(s => s.SessionNumber);
 
         builder.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime",
             "\"EndTime\" > \"StartTime\"");
 
         builder.OwnsOne(s => s.SessionConfigs, ownedBuilder => { ownedBuilder.ToJson(); });
+
+        builder.HasMany(s => s.AttendanceRecords)
+            .WithOne(ar => ar.Session)
+            .HasForeignKey(ar => ar.SessionId)
+            .IsRequired();
     }
 }

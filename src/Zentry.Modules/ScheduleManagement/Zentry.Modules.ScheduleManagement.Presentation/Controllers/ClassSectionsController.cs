@@ -6,8 +6,10 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.Assig
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.CreateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.DeleteClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetAllClassSectionsWithEnrollmentCount;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassOverview;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSectionById;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSections;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSessions;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSessionsByClassSectionId;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailyReportQuery;
@@ -159,17 +161,44 @@ public class ClassSectionsController(IMediator mediator) : BaseController
     {
         try
         {
-            // Gửi và chờ kết quả từ handler đầu tiên
             var nextSessions = await mediator.Send(new GetLecturerNextSessionsQuery(lecturerId), cancellationToken);
 
-            // Gửi và chờ kết quả từ handler thứ hai
             var weeklyOverview = await mediator.Send(new GetLecturerWeeklyOverviewQuery(lecturerId), cancellationToken);
 
-            // Tạo response object cuối cùng
             var response = new LecturerHomeResponse
             {
                 NextSessions = nextSessions,
                 WeeklyOverview = weeklyOverview
+            };
+
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("{classId}/overview-sessions")]
+    [ProducesResponseType(typeof(ApiResponse<ClassDetailDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClassDetails(
+        [FromRoute] Guid classId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var overviewQuery = new GetClassOverviewQuery { ClassId = classId };
+            var sessionsQuery = new GetClassSessionsQuery { ClassId = classId };
+
+            var overview = await mediator.Send(overviewQuery, cancellationToken);
+            var sessions = await mediator.Send(sessionsQuery, cancellationToken);
+
+
+            var response = new ClassDetailDto
+            {
+                Overview = overview.Data,
+                Sessions = sessions.Data
             };
 
             return HandleResult(response);

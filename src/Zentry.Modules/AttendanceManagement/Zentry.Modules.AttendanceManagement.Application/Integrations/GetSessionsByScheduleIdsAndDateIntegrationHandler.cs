@@ -5,7 +5,6 @@ using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 
-// Handler này nằm trong module AttendanceManagement
 public class GetSessionsByScheduleIdsAndDateIntegrationHandler(
     ISessionRepository sessionRepository
 ) : IQueryHandler<GetSessionsByScheduleIdsAndDateIntegrationQuery, GetSessionsByScheduleIdsAndDateIntegrationResponse>

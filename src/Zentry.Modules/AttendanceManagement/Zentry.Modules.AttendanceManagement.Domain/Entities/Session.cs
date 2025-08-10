@@ -15,8 +15,7 @@ public class Session : AggregateRoot<Guid>
     }
 
     private Session(Guid id, Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime,
-        SessionStatus status,
-        SessionConfigSnapshot sessionConfigs)
+        SessionStatus status, SessionConfigSnapshot sessionConfigs, int sessionNumber)
         : base(id)
     {
         ScheduleId = scheduleId;
@@ -26,6 +25,8 @@ public class Session : AggregateRoot<Guid>
         Status = status;
         CreatedAt = DateTime.UtcNow;
         SessionConfigs = sessionConfigs;
+        SessionNumber = sessionNumber;
+        AttendanceRecords = new List<AttendanceRecord>();
     }
 
     [Required] public Guid ScheduleId { get; private set; }
@@ -38,9 +39,12 @@ public class Session : AggregateRoot<Guid>
 
     [Required] public SessionStatus Status { get; private set; }
 
+    [Required] public int SessionNumber { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     public DateTime? ActualEndTime { get; private set; }
+    public virtual ICollection<AttendanceRecord> AttendanceRecords { get; private set; }
 
     public SessionConfigSnapshot SessionConfigs { get; private set; }
 
@@ -50,19 +54,18 @@ public class Session : AggregateRoot<Guid>
     public int ManualAdjustmentGracePeriodHours => SessionConfigs.ManualAdjustmentGracePeriodHours;
 
     public static Session Create(Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime,
-        Dictionary<string, string> configs)
+        Dictionary<string, string> configs, int sessionNumber)
     {
         var sessionConfigs = SessionConfigSnapshot.FromDictionary(configs);
         return new Session(Guid.NewGuid(), scheduleId, lecturerId, startTime, endTime, SessionStatus.Pending,
-            sessionConfigs);
+            sessionConfigs, sessionNumber);
     }
 
-    // Create method mới
     public static Session Create(Guid scheduleId, Guid? lecturerId, DateTime startTime, DateTime endTime,
-        SessionConfigSnapshot sessionConfigs)
+        SessionConfigSnapshot sessionConfigs, int sessionNumber)
     {
         return new Session(Guid.NewGuid(), scheduleId, lecturerId, startTime, endTime, SessionStatus.Pending,
-            sessionConfigs);
+            sessionConfigs, sessionNumber);
     }
 
     public void AssignLecturer(Guid lecturerId)

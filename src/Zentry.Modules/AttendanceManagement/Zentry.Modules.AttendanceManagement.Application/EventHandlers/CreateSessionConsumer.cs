@@ -107,7 +107,7 @@ public class CreateSessionConsumer(
             }
 
             var sessionsToPersist = new List<Session>();
-
+            var sessionNumber = 1;
             for (var date = message.ScheduledStartDate; date <= message.ScheduledEndDate; date = date.AddDays(1))
                 if (date.DayOfWeek == systemDayOfWeek)
                 {
@@ -126,10 +126,11 @@ public class CreateSessionConsumer(
                         message.LecturerId,
                         todaySessionStartUtc,
                         todaySessionEndUtc,
-                        finalConfigDictionary
+                        finalConfigDictionary,
+                        sessionNumber
                     );
                     sessionsToPersist.Add(session);
-
+                    sessionNumber++;
                     logger.LogInformation(
                         "Prepared Session {SessionId} for Schedule {ScheduleId} on {SessionDate} (UTC: {UtcStart:HH:mm}).",
                         session.Id, message.ScheduleId, date.ToShortDateString(), todaySessionStartUtc);

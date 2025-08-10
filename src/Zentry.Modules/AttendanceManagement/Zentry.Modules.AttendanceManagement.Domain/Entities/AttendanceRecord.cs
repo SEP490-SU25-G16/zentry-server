@@ -26,6 +26,7 @@ public class AttendanceRecord : AggregateRoot<Guid>
     [Required] public Guid StudentId { get; private set; }
 
     [Required] public Guid SessionId { get; private set; }
+    public virtual Session? Session { get; private set; }
 
     [Required] public AttendanceStatus Status { get; private set; }
 

@@ -65,7 +65,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             .Include(cs => cs.Schedules)
             .ThenInclude(s => s.Room)
             .Include(cs => cs.Enrollments)
-            .FirstOrDefaultAsync(cs => cs.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(cs => cs.Id == id && !cs.IsDeleted, cancellationToken);
     }
 
     public async Task AddAsync(ClassSection entity, CancellationToken cancellationToken)
