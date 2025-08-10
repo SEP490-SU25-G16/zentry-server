@@ -1,3 +1,4 @@
+using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Constants.Attendance;
 
@@ -32,5 +33,20 @@ public class AttendanceCalculationService : IAttendanceCalculationService
         }
 
         return ((double)totalPresentCount / totalExpectedPresentCount) * 100;
+    }
+
+    public double CalculateAttendanceRateForStudent(
+        List<Schedule> schedules,
+        List<StudentAttendanceForScheduleDto> attendanceRecords)
+    {
+        var totalSessionsOfClass = schedules.Count;
+        var attendedCount = attendanceRecords.Count(ar => ar.Status == AttendanceStatus.Present.ToString());
+
+        if (totalSessionsOfClass == 0)
+        {
+            return 0;
+        }
+
+        return ((double)attendedCount / totalSessionsOfClass) * 100;
     }
 }

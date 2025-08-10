@@ -462,4 +462,15 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         dbContext.Schedules.Update(entity);
         await SaveChangesAsync(cancellationToken);
     }
+    public async Task<List<Schedule>> GetSchedulesByClassSectionIdsAsync(
+        List<Guid> classSectionIds,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .AsNoTracking()
+            .Where(s => classSectionIds.Contains(s.ClassSectionId) && !s.IsDeleted)
+            .Include(s => s.ClassSection)
+            .Include(s => s.Room)
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -11,6 +11,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetCl
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSessions;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSessionsByClassSectionId;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentClasses;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;
@@ -202,6 +203,25 @@ public class ClassSectionsController(IMediator mediator) : BaseController
             };
 
             return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("{studentId}/classes")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(ApiResponse<List<StudentClassDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetStudentClasses(Guid studentId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetStudentClassesQuery { StudentId = studentId };
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response.Data);
         }
         catch (Exception ex)
         {

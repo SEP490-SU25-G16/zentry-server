@@ -11,6 +11,7 @@ using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionFinalAt
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionInfo;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetStudentFinalAttendance;
+using Zentry.Modules.AttendanceManagement.Application.Features.GetStudentSessions;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Application.Features.UpdateSession;
@@ -316,6 +317,23 @@ public class AttendanceController(IMediator mediator) : BaseController
             var command = new CancelSessionCommand { SessionId = sessionId };
             await mediator.Send(command, cancellationToken);
             return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("students/{studentId}/sessions")]
+    [ProducesResponseType(typeof(ApiResponse<GetStudentSessionsResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetStudentSessions(Guid studentId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetStudentSessionsQuery(studentId);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {

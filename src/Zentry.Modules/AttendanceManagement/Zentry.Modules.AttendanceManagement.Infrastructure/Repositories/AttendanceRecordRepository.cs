@@ -4,12 +4,21 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 using Zentry.SharedKernel.Constants.Attendance;
 
-// Có thể cần nếu bạn dùng NotFoundException ở đây
-
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttendanceRecordRepository
 {
+    public async Task<List<AttendanceRecord>> GetAttendanceRecordsByStudentIdAndSessionIdsAsync(
+        Guid studentId,
+        List<Guid> sessionIds,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.AttendanceRecords
+            .AsNoTracking()
+            .Where(ar => ar.StudentId == studentId &&
+                         sessionIds.Contains(ar.SessionId))
+            .ToListAsync(cancellationToken);
+    }
     public async Task<List<AttendanceRecord>> GetAttendanceBySessionIdsAsync(List<Guid> sessionIds,
         CancellationToken cancellationToken)
     {
