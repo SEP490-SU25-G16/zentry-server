@@ -6,6 +6,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Courses.CreateCours
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.DeleteCourse;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourseById;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourses;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetLecturerSemesterCourses;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.UpdateCourse;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
@@ -95,6 +96,36 @@ public class CoursesController(IMediator mediator) : BaseController
             var command = new DeleteCourseCommand(id);
             await mediator.Send(command, cancellationToken);
             return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("lecturer/{lecturerId}")]
+    [ProducesResponseType(typeof(GetLecturerSemesterCoursesResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetLecturerSemesterCourses(
+        [FromRoute] Guid lecturerId,
+        [FromQuery] string semester)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(semester))
+            {
+                return BadRequest("Semester parameter is required.");
+            }
+
+            var query = new GetLecturerSemesterCoursesQuery
+            {
+                LecturerId = lecturerId,
+                Semester = semester
+            };
+
+            var result = await mediator.Send(query);
+
+            return HandleResult(result);
         }
         catch (Exception ex)
         {

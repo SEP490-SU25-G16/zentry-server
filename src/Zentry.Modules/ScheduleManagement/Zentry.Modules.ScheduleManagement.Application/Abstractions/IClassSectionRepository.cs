@@ -7,6 +7,8 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IClassSectionRepository : IRepository<ClassSection, Guid>
 {
+    Task<List<ClassSection>> GetLecturerClassSectionsInSemesterAsync(Guid lecturerId, Semester semester,
+        CancellationToken cancellationToken);
     Task<(List<ClassSection> Items, int TotalCount)> GetPagedClassSectionsAsync(
         ClassSectionListCriteria criteria,
         CancellationToken cancellationToken);

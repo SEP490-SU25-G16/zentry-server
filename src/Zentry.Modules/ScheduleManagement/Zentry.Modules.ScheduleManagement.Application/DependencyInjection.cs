@@ -11,6 +11,7 @@ public static class DependencyCollection
     {
         services.AddScoped<IUserScheduleService, UserScheduleService>();
         services.AddScoped<IFileProcessor<ScheduleImportDto>, ScheduleFileProcessor>();
+        services.AddScoped<IAttendanceCalculationService, AttendanceCalculationService>();
         return services;
     }
 }

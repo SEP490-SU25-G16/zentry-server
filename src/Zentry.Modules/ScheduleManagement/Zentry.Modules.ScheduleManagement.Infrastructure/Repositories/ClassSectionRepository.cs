@@ -95,6 +95,22 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+
+    public async Task<List<ClassSection>> GetLecturerClassSectionsInSemesterAsync(
+        Guid lecturerId,
+        Semester semester,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .AsNoTracking()
+            .Include(cs => cs.Course)
+            .Include(cs => cs.Schedules)
+            .Include(cs => cs.Enrollments)
+            .Where(cs => cs.LecturerId == lecturerId && cs.Semester == semester)
+            .Where(cs => !cs.IsDeleted)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<(List<ClassSection> Items, int TotalCount)> GetPagedClassSectionsAsync(
         ClassSectionListCriteria criteria,
         CancellationToken cancellationToken)
