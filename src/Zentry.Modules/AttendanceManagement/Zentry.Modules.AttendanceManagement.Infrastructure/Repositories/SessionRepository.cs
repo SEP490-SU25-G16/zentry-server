@@ -10,6 +10,16 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Repositories;
 
 public class SessionRepository(AttendanceDbContext dbContext) : ISessionRepository
 {
+    public async Task<Session?> GetSessionsWithAttendanceRecordsByIdAsync(
+        Guid sessionId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Sessions
+            .AsNoTracking()
+            .Include(s => s.AttendanceRecords)
+            .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
+    }
+
     public async Task<List<Session>> GetSessionsWithAttendanceRecordsByScheduleIdsAsync(
         List<Guid> scheduleIds,
         CancellationToken cancellationToken)
@@ -21,6 +31,7 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
             .OrderBy(s => s.StartTime)
             .ToListAsync(cancellationToken);
     }
+
     public async Task<List<Session>> GetUpcomingSessionsByScheduleIdsAsync(
         List<Guid> scheduleIds,
         CancellationToken cancellationToken)

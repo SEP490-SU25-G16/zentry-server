@@ -72,23 +72,23 @@ public class GetSessionFinalAttendanceQueryHandler(
             finalAttendance.Add(new FinalAttendanceDto
             {
                 StudentId = studentId,
-                StudentFullName = user?.FullName,
+                StudentCode = user?.StudentCode,
+                FullName = user?.FullName,
                 Email = user?.Email,
-                Status = attendanceStatus.ToString(),
+                AttendanceStatus = attendanceStatus.ToString().ToLower(),
 
                 EnrollmentId = enrollment.Id,
                 EnrolledAt = enrollment.EnrolledAt,
                 EnrollmentStatus = enrollment.Status,
-
                 SessionId = request.SessionId,
                 ClassSectionId = classSectionId,
                 ScheduleId = session.ScheduleId,
                 CourseId = courseId,
                 ClassInfo = classInfo,
-                SessionStartTime = session.StartTime
+                SessionStartTime = session.StartTime,
             });
         }
 
-        return finalAttendance.OrderBy(fa => fa.StudentFullName).ToList();
+        return finalAttendance.OrderBy(fa => fa.FullName).ToList();
     }
 }
