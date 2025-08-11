@@ -10,7 +10,7 @@ public interface IAttendanceRecordRepository : IRepository<AttendanceRecord, Gui
         List<Guid> sessionIds,
         CancellationToken cancellationToken);
 
-    Task<List<AttendanceRecord>> GetAttendanceBySessionIdsAsync(List<Guid> sessionIds,
+    Task<List<AttendanceRecord>> GetAttendanceRecordsBySessionIdsAsync(List<Guid> sessionIds,
         CancellationToken cancellationToken);
 
     Task<(int TotalSessions, int AttendedSessions)> GetAttendanceStatsAsync(Guid studentId, Guid courseId);

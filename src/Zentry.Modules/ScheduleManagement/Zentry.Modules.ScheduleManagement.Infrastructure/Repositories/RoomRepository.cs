@@ -9,6 +9,10 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
 {
+    public async Task<int> CountTotalRoomsAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Rooms.CountAsync(cancellationToken);
+    }
     public async Task<List<Room>> GetByRoomNamesAsync(List<string> roomNames, CancellationToken cancellationToken)
     {
         return await dbContext.Rooms

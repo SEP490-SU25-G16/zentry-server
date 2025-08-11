@@ -6,6 +6,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface ICourseRepository : IRepository<Course, Guid>
 {
+    Task<int> CountTotalCoursesAsync(CancellationToken cancellationToken);
     Task<bool> IsCodeUniqueAsync(string code, CancellationToken cancellationToken);
 
     Task<Tuple<List<Course>, int>> GetPagedCoursesAsync(CourseListCriteria criteria,

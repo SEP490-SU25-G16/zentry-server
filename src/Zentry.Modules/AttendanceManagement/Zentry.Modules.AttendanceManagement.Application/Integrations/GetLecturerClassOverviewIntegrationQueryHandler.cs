@@ -22,7 +22,7 @@ public class GetLecturerClassOverviewIntegrationQueryHandler(
 
         // Lấy tất cả attendance records cho các sessions này
         var sessionIds = sessions.Select(s => s.Id).ToList();
-        var attendanceRecords = await attendanceRepository.GetAttendanceBySessionIdsAsync(sessionIds, cancellationToken);
+        var attendanceRecords = await attendanceRepository.GetAttendanceRecordsBySessionIdsAsync(sessionIds, cancellationToken);
 
         // Ánh xạ dữ liệu sang DTOs
         var sessionDtos = sessions.Select(s => new OverviewSessionDto

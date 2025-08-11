@@ -1,3 +1,4 @@
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
@@ -7,8 +8,9 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IClassSectionRepository : IRepository<ClassSection, Guid>
 {
-    Task<List<Semester>> GetDistinctSemestersAsync(CancellationToken cancellationToken);
-
+    Task<int> CountTotalClassSectionsAsync(CancellationToken cancellationToken);
+    Task<List<ClassSectionInYearDto>> GetClassSectionsByYearAsync(string year, CancellationToken cancellationToken);
+    Task<Dictionary<string, int>> CountClassSectionsBySemestersAsync(string yearString, CancellationToken cancellationToken);
     Task<List<ClassSection>> GetClassSectionsDetailsByIdsAsync(
         List<Guid> classSectionIds,
         CancellationToken cancellationToken);

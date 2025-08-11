@@ -9,6 +9,10 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
 {
+    public async Task<int> CountTotalCoursesAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Courses.CountAsync(cancellationToken);
+    }
     public async Task AddAsync(Course entity, CancellationToken cancellationToken)
     {
         await dbContext.Courses.AddAsync(entity, cancellationToken);

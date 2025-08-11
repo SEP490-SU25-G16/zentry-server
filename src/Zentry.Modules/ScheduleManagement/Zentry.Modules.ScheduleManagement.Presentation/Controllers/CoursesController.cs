@@ -7,6 +7,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Courses.DeleteCours
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourseById;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourses;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetLecturerSemesterCourses;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetTotalCourseCount;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.UpdateCourse;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
@@ -126,6 +127,19 @@ public class CoursesController(IMediator mediator) : BaseController
             var result = await mediator.Send(query);
 
             return HandleResult(result);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+    [HttpGet("total-courses")]
+    public async Task<IActionResult> GetTotalCourses(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var count = await mediator.Send(new GetTotalCourseCountQuery(), cancellationToken);
+            return HandleResult(count);
         }
         catch (Exception ex)
         {

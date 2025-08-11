@@ -4,13 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.Modules.ConfigurationManagement.Persistence;
+using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Configuration;
 
 namespace Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 
 public class GetListAttributeDefinitionQueryHandler(
     ConfigurationDbContext dbContext)
-    : IRequestHandler<GetListAttributeDefinitionQuery, GetListAttributeDefinitionResponse>
+    : IQueryHandler<GetListAttributeDefinitionQuery, GetListAttributeDefinitionResponse>
 {
     public async Task<GetListAttributeDefinitionResponse> Handle(GetListAttributeDefinitionQuery query,
         CancellationToken cancellationToken)

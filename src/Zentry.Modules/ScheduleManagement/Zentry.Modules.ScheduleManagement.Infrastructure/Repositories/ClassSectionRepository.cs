@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
@@ -9,6 +10,43 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSectionRepository
 {
+    public async Task<int> CountTotalClassSectionsAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections.Where(cs => !cs.IsDeleted).CountAsync(cancellationToken);
+    }
+    public async Task<List<ClassSectionInYearDto>> GetClassSectionsByYearAsync(string year, CancellationToken cancellationToken)
+    {
+        var sql = @"
+            SELECT
+                ""Id"",
+                ""Semester""
+            FROM ""ClassSections""
+            WHERE RIGHT(""Semester"", 2) = {0} AND ""IsDeleted"" = false";
+
+        return await dbContext.Database
+            .SqlQueryRaw<ClassSectionInYearDto>(sql, year)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Dictionary<string, int>> CountClassSectionsBySemestersAsync(string yearString,
+        CancellationToken cancellationToken)
+    {
+        var sql = @"
+            SELECT
+                ""Semester"" AS ""Semester"",
+                COUNT(CAST(""Id"" AS TEXT)) AS ""ClassSectionCount""
+            FROM ""ClassSections""
+            WHERE RIGHT(""Semester"", 2) = {0} AND ""IsDeleted"" = false
+            GROUP BY ""Semester""
+            ORDER BY ""Semester""";
+
+        var results = await dbContext.Database
+            .SqlQueryRaw<SemesterClassSectionCountDto>(sql, yearString)
+            .ToListAsync(cancellationToken);
+
+        return results.ToDictionary(r => r.Semester, r => r.ClassSectionCount);
+    }
+
     public async Task<List<Semester>> GetDistinctSemestersAsync(CancellationToken cancellationToken)
     {
         return await dbContext.ClassSections

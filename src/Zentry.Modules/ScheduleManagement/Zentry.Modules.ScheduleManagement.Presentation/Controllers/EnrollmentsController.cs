@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollMultipleStudents;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollStudent;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentCountBySemester;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -70,6 +71,23 @@ public class EnrollmentsController(IMediator mediator) : BaseController
             };
             var response = await mediator.Send(command, cancellationToken);
             return HandleResult(response, "Students bulk enrolled successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("student-count/year/{year}")]
+    [ProducesResponseType(typeof(ApiResponse<GetStudentCountBySemesterResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetStudentCountByYear(int year, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetStudentCountBySemesterQuery(year);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {

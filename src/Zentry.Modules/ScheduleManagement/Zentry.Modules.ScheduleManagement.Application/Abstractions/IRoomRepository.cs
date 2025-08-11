@@ -6,6 +6,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IRoomRepository : IRepository<Room, Guid>
 {
+    Task<int> CountTotalRoomsAsync(CancellationToken cancellationToken);
     Task<bool> IsRoomNameUniqueAsync(string roomName, CancellationToken cancellationToken);
 
     Task<Tuple<List<Room>, int>> GetPagedRoomsAsync(RoomListCriteria criteria, CancellationToken cancellationToken);

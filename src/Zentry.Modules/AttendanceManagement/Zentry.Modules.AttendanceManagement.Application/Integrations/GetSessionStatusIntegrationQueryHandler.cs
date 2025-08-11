@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
@@ -8,9 +9,9 @@ namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 public class GetSessionStatusIntegrationQueryHandler(
     ISessionRepository sessionRepository,
     ILogger<GetSessionStatusIntegrationQueryHandler> logger)
-    : IRequestHandler<GetSessionStatusIntegrationQuery, SessionStatusDto?>
+    : IQueryHandler<GetSessionStatusIntegrationQuery, SessionStatusDto>
 {
-    public async Task<SessionStatusDto?> Handle(GetSessionStatusIntegrationQuery request,
+    public async Task<SessionStatusDto> Handle(GetSessionStatusIntegrationQuery request,
         CancellationToken cancellationToken)
     {
         // Logic để lấy session của scheduleId và ngày hôm đó

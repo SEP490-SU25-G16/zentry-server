@@ -6,6 +6,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.CreateRoom;
 using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.DeleteRoom;
 using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.GetRoomById;
 using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.GetRooms;
+using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.GetTotalRoomCount;
 using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.UpdateRoom;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
@@ -99,6 +100,19 @@ public class RoomsController(IMediator mediator) : BaseController
             var command = new DeleteRoomCommand(id);
             await mediator.Send(command, cancellationToken);
             return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+    [HttpGet("total-rooms")]
+    public async Task<IActionResult> GetTotalRooms(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var count = await mediator.Send(new GetTotalRoomCountQuery(), cancellationToken);
+            return HandleResult(count);
         }
         catch (Exception ex)
         {

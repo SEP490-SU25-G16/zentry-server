@@ -19,7 +19,7 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
                          sessionIds.Contains(ar.SessionId))
             .ToListAsync(cancellationToken);
     }
-    public async Task<List<AttendanceRecord>> GetAttendanceBySessionIdsAsync(List<Guid> sessionIds,
+    public async Task<List<AttendanceRecord>> GetAttendanceRecordsBySessionIdsAsync(List<Guid> sessionIds,
         CancellationToken cancellationToken)
     {
         return await dbContext.AttendanceRecords

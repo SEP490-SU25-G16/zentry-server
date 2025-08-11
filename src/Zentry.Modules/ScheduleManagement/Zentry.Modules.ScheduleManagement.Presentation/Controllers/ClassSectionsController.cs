@@ -8,6 +8,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.Delet
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetAllClassSectionsWithEnrollmentCount;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassOverview;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSectionById;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSectionCountBySemester;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSections;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSessions;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSessionsByClassSectionId;
@@ -19,6 +20,8 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLectur
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerWeeklyOverview;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetAttendanceRateByYearAndSemester;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetTotalClassSectionCount; // Thêm dòng này
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
@@ -270,16 +273,50 @@ public class ClassSectionsController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
-    [HttpGet("student-count/year/{year}")]
-    [ProducesResponseType(typeof(ApiResponse<GetStudentCountBySemesterResponse>), StatusCodes.Status200OK)]
+
+    [HttpGet("class-section-count/year/{year}")]
+    [ProducesResponseType(typeof(ApiResponse<GetClassSectionCountBySemesterResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetStudentCountByYear(int year, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetClassSectionCountByYear(int year, CancellationToken cancellationToken)
     {
         try
         {
-            var query = new GetStudentCountBySemesterQuery(year);
+            var query = new GetClassSectionCountBySemesterQuery(year);
             var response = await mediator.Send(query, cancellationToken);
             return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    // === API liên quan đến các báo cáo (Reports) ===
+    [HttpGet("attendance-rate/year/{year}")]
+    [ProducesResponseType(typeof(ApiResponse<GetAttendanceRateByYearAndSemesterResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAttendanceRateByYearAndSemester(int year, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetAttendanceRateByYearAndSemesterQuery(year);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("total-class-sections")]
+    public async Task<IActionResult> GetTotalClassSections(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var count = await mediator.Send(new GetTotalClassSectionCountQuery(), cancellationToken);
+            return HandleResult(count);
         }
         catch (Exception ex)
         {
