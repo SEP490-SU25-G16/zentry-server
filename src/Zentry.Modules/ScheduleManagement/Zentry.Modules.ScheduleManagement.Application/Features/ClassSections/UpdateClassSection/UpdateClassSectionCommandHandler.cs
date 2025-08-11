@@ -4,7 +4,9 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 
-public class UpdateClassSectionCommandHandler(IClassSectionRepository classSectionRepository)
+public class UpdateClassSectionCommandHandler(
+    IScheduleRepository scheduleRepository,
+    IClassSectionRepository classSectionRepository)
     : ICommandHandler<UpdateClassSectionCommand, bool>
 {
     public async Task<bool> Handle(UpdateClassSectionCommand command, CancellationToken cancellationToken)
@@ -13,6 +15,16 @@ public class UpdateClassSectionCommandHandler(IClassSectionRepository classSecti
 
         if (classSection is null || classSection.IsDeleted)
             throw new ResourceNotFoundException("Class Section", command.Id);
+
+        var hasActiveSchedule =
+            await scheduleRepository.HasActiveScheduleByClassSectionIdAsync(classSection.Id, cancellationToken);
+
+        if (hasActiveSchedule)
+        {
+            throw new ScheduleConflictException(
+                $"Class section with ID '{classSection.Id}' can not be updated because it  is already active.");
+        }
+
         if (command.SectionCode != null &&
             await classSectionRepository.IsExistClassSectionBySectionCodeAsync(command.Id, command.SectionCode,
                 cancellationToken))
