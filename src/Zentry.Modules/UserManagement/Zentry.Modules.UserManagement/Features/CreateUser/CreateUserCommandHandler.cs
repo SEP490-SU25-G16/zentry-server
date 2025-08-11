@@ -1,6 +1,5 @@
-﻿// ... (Các using statements)
-
-using MediatR;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
@@ -13,7 +12,8 @@ namespace Zentry.Modules.UserManagement.Features.CreateUser;
 public class CreateUserCommandHandler(
     IUserRepository userRepository,
     IPasswordHasher passwordHasher,
-    IMediator mediator)
+    IMediator mediator,
+    ILogger<CreateUserCommandHandler> logger)
     : ICommandHandler<CreateUserCommand, CreateUserResponse>
 {
     public async Task<CreateUserResponse> Handle(CreateUserCommand command, CancellationToken cancellationToken)
@@ -30,6 +30,14 @@ public class CreateUserCommandHandler(
         await userRepository.AddAsync(account, user, cancellationToken);
 
         var userAttributes = new Dictionary<string, string>();
+        if (command.Attributes != null)
+        {
+            foreach (var attribute in command.Attributes)
+            {
+                userAttributes[attribute.Key] = attribute.Value;
+            }
+        }
+
         if (Equals(account.Role, Role.Student))
         {
             var studentCode = await GenerateUniqueStudentCodeAsync(cancellationToken);
@@ -38,7 +46,7 @@ public class CreateUserCommandHandler(
         else if (Equals(account.Role, Role.Lecturer))
         {
             var lecturerCode = await GenerateUniqueLecturerCodeAsync(cancellationToken);
-            userAttributes["LecturerCode"] = lecturerCode;
+            userAttributes["EmployeeCode"] = lecturerCode;
         }
 
         var createAttributesCommand = new CreateUserAttributesIntegrationCommand(
@@ -49,9 +57,11 @@ public class CreateUserCommandHandler(
 
         if (!integrationResponse.Success)
         {
-            // Ngoại lệ mới: IntegrationException
             throw new IntegrationException($"Failed to create user attributes: {integrationResponse.Message}");
         }
+
+        var getAttributesQuery = new GetUserAttributesIntegrationQuery(user.Id);
+        var attributesResponse = await mediator.Send(getAttributesQuery, cancellationToken);
 
         return new CreateUserResponse
         {
@@ -61,17 +71,20 @@ public class CreateUserCommandHandler(
             FullName = user.FullName,
             Role = account.Role.ToString(),
             Status = account.Status.ToString(),
-            CreatedAt = account.CreatedAt
+            CreatedAt = account.CreatedAt,
+            Attributes = attributesResponse.Attributes,
+
+            SkippedAttributes = integrationResponse.SkippedAttributes
         };
     }
 
     private Task<string> GenerateUniqueStudentCodeAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult($"S{new Random().Next(10000, 99999)}");
+        return Task.FromResult($"STU{new Random().Next(10000, 99999)}");
     }
 
     private Task<string> GenerateUniqueLecturerCodeAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult($"L{new Random().Next(1000, 9999)}");
+        return Task.FromResult($"EMP{new Random().Next(1000, 9999)}");
     }
 }

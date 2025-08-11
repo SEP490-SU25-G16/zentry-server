@@ -71,11 +71,17 @@ public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fi
         try
         {
             var response = await mediator.Send(command);
-            return HandleCreated(response, nameof(GetUserDetail), new { id = response.UserId });
+
+            if (response.SkippedAttributes.Count == 0)
+                return HandleCreated(response, nameof(GetUserDetail), new { id = response.UserId });
+            var skippedKeys = string.Join(", ", response.SkippedAttributes);
+            var message = $"Đã tạo user thành công, nhưng một số thuộc tính sau không hợp lệ: {skippedKeys}";
+
+            return HandlePartialSuccess(response, message);
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+        catch (ResourceNotFoundException ex)
         {
-            return Conflict(ApiResponse.ErrorResult(ErrorCodes.UserAlreadyExists, ex.Message));
+            return HandleConflict(ErrorCodes.UserAlreadyExists, ex.Message);
         }
         catch (Exception ex)
         {
@@ -96,21 +102,17 @@ public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fi
         {
             var response = await mediator.Send(command);
 
-            if (!response.Success)
-            {
-                // Sử dụng các ErrorCodes cụ thể thay vì kiểm tra message
-                if (response.Message?.Contains("User not found") == true)
-                    return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound, response.Message));
+            if (response.Success) return HandleResult(response);
+            if (response.Message?.Contains("User not found") == true)
+                return NotFound(ApiResponse.ErrorResult(ErrorCodes.UserNotFound, response.Message));
 
-                if (response.Message?.Contains("Associated account not found") == true ||
-                    response.Message?.Contains("Account not found") == true)
-                    return NotFound(ApiResponse.ErrorResult(ErrorCodes.AccountNotFound, response.Message));
+            if (response.Message?.Contains("Associated account not found") == true ||
+                response.Message?.Contains("Account not found") == true)
+                return NotFound(ApiResponse.ErrorResult(ErrorCodes.AccountNotFound, response.Message));
 
-                if (response.Message != null)
-                    return BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message));
-            }
-
-            return HandleResult(response);
+            return response.Message != null
+                ? BadRequest(ApiResponse.ErrorResult(ErrorCodes.BusinessLogicError, response.Message))
+                : HandleResult(response);
         }
         catch (Exception ex)
         {

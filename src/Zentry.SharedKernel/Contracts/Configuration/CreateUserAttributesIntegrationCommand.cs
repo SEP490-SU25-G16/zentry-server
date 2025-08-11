@@ -10,5 +10,6 @@ public record CreateUserAttributesIntegrationCommand(
 
 public record CreateUserAttributesIntegrationResponse(
     bool Success,
-    string Message
+    string Message,
+    List<string> SkippedAttributes
 );

@@ -16,6 +16,8 @@ public class CreateUserAttributesIntegrationCommandHandler(
         CreateUserAttributesIntegrationCommand command,
         CancellationToken cancellationToken)
     {
+        var skippedAttributes = new List<string>();
+
         try
         {
             logger.LogInformation("Creating user attributes for UserId: {UserId} from provided data.",
@@ -42,6 +44,7 @@ public class CreateUserAttributesIntegrationCommandHandler(
                 else
                 {
                     logger.LogWarning("Attribute with key '{AttributeKey}' not found in AttributeDefinitions.", kvp.Key);
+                    skippedAttributes.Add(kvp.Key);
                 }
             }
 
@@ -54,13 +57,13 @@ public class CreateUserAttributesIntegrationCommandHandler(
             logger.LogInformation("Successfully created {Count} user attributes for UserId: {UserId}",
                 newUserAttributes.Count, command.UserId);
 
-            return new CreateUserAttributesIntegrationResponse(true, "User attributes created successfully.");
+            return new CreateUserAttributesIntegrationResponse(true, "User attributes created successfully.", skippedAttributes);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to create user attributes for UserId: {UserId} - {Message}", command.UserId,
                 ex.Message);
-            return new CreateUserAttributesIntegrationResponse(false, ex.Message);
+            return new CreateUserAttributesIntegrationResponse(false, ex.Message, skippedAttributes);
         }
     }
 }

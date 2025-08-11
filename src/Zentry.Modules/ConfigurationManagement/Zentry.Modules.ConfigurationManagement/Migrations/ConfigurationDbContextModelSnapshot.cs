@@ -237,6 +237,17 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                     b.Navigation("AttributeDefinition");
                 });
 
+            modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.UserAttribute", b =>
+                {
+                    b.HasOne("Zentry.Modules.ConfigurationManagement.Entities.AttributeDefinition", "AttributeDefinition")
+                        .WithMany()
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AttributeDefinition");
+                });
+
             modelBuilder.Entity("Zentry.Modules.ConfigurationManagement.Entities.AttributeDefinition", b =>
                 {
                     b.Navigation("Options");
