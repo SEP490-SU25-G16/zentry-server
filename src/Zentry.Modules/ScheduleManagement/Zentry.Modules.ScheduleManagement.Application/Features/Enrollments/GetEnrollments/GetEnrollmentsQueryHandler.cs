@@ -1,13 +1,11 @@
-﻿// File: Zentry.Modules.ScheduleManagement.Application.Features.GetEnrollments/GetEnrollmentsQueryHandler.cs
-
-using MediatR;
+﻿using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetEnrollments;
 
 public class GetEnrollmentsQueryHandler(
     IEnrollmentRepository enrollmentRepository,

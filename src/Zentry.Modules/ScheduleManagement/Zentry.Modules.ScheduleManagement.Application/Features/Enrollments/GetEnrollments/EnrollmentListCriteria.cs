@@ -1,6 +1,6 @@
 ﻿using Zentry.SharedKernel.Constants.Schedule;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetEnrollments;
 
 public class EnrollmentListCriteria
 {

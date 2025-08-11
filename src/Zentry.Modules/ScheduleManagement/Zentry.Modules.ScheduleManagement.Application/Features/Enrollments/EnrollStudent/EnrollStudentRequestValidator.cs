@@ -1,7 +1,7 @@
 using FluentValidation;
 using Zentry.SharedKernel.Abstractions.Models;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollStudent;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollStudent;
 
 public class EnrollStudentRequestValidator : BaseValidator<EnrollStudentRequest>
 {

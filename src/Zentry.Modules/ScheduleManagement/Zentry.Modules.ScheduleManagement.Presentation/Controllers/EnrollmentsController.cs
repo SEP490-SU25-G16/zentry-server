@@ -1,18 +1,23 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollMultipleStudents;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollStudent;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentCountBySemester;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollMultipleStudents;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollStudent;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.ImportEnrollments;
+using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/enrollments")]
-public class EnrollmentsController(IMediator mediator) : BaseController
+public class EnrollmentController(IMediator mediator, IFileProcessor<EnrollmentImportDto> fileProcessor)
+    : BaseController
 {
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<GetEnrollmentsResponse>), StatusCodes.Status200OK)]
@@ -88,6 +93,48 @@ public class EnrollmentsController(IMediator mediator) : BaseController
             var query = new GetStudentCountBySemesterQuery(year);
             var response = await mediator.Send(query, cancellationToken);
             return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("import")]
+    [ProducesResponseType(typeof(ApiResponse<ImportEnrollmentsResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ImportEnrollments([FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file.Length == 0) return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không được rỗng."));
+
+        List<EnrollmentImportDto> enrollmentsToImport;
+        try
+        {
+            enrollmentsToImport = await fileProcessor.ProcessFileAsync(file, cancellationToken);
+        }
+        catch (InvalidFileFormatException ex)
+        {
+            return BadRequest(ApiResponse.ErrorResult("INVALID_FILE_FORMAT", ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+
+        if (enrollmentsToImport.Count == 0)
+            return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không chứa dữ liệu hợp lệ."));
+
+        var command = new ImportEnrollmentsCommand(enrollmentsToImport);
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+            if (response.Success)
+                return HandleResult(response, $"Import thành công {response.ImportedCount} đăng ký.");
+
+            return HandlePartialSuccess(response,
+                $"Đã import thành công {response.ImportedCount} đăng ký.",
+                $"Có {response.FailedCount} lỗi trong file.");
         }
         catch (Exception ex)
         {

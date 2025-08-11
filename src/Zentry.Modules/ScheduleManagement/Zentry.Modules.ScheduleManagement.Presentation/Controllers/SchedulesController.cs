@@ -181,8 +181,6 @@ public class SchedulesController(
             return HandleError(ex);
         }
 
-        // Validation thủ công này vẫn cần thiết vì nó liên quan đến file processor,
-        // không phải request DTO.
         if (!schedulesToImport.Any())
             return BadRequest(ApiResponse.ErrorResult("INVALID_INPUT", "File không chứa dữ liệu hợp lệ."));
 

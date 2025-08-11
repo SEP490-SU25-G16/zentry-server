@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -164,7 +164,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsAsync(Guid studentId, Guid classSectionId, CancellationToken cancellationToken)
+    public async Task<bool> IsEnrolledAsync(Guid studentId, Guid classSectionId, CancellationToken cancellationToken)
     {
         return await dbContext.Enrollments
             .AsNoTracking()

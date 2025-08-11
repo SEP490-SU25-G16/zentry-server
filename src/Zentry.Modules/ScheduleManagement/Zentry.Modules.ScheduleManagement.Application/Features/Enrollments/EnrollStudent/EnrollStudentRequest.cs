@@ -1,4 +1,4 @@
-﻿namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollStudent;
+﻿namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollStudent;
 
 public class EnrollStudentRequest
 {

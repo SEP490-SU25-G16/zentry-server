@@ -1,6 +1,6 @@
 using Zentry.SharedKernel.Abstractions.Application;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollMultipleStudents;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollMultipleStudents;
 
 public class BulkEnrollStudentsCommand : ICommand<BulkEnrollmentResponse>
 {

@@ -1,4 +1,4 @@
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollMultipleStudents;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollMultipleStudents;
 
 public class BulkEnrollStudentsRequest
 {

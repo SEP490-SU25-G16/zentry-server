@@ -5,7 +5,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Exceptions;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollStudent;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollStudent;
 
 public class EnrollStudentCommandHandler(
     IEnrollmentRepository enrollmentRepository,
@@ -25,7 +25,7 @@ public class EnrollStudentCommandHandler(
             throw new ResourceNotFoundException("ClassSection", command.ClassSectionId);
 
         var alreadyEnrolled =
-            await enrollmentRepository.ExistsAsync(command.StudentId, command.ClassSectionId, cancellationToken);
+            await enrollmentRepository.IsEnrolledAsync(command.StudentId, command.ClassSectionId, cancellationToken);
         if (alreadyEnrolled)
             throw new UserAlreadyExistsException(command.StudentId.ToString());
 

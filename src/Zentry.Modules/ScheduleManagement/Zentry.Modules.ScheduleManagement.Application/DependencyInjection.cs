@@ -10,8 +10,10 @@ public static class DependencyCollection
     public static IServiceCollection AddScheduleApplication(this IServiceCollection services)
     {
         services.AddScoped<IUserScheduleService, UserScheduleService>();
-        services.AddScoped<IFileProcessor<ScheduleImportDto>, ScheduleFileProcessor>();
         services.AddScoped<IAttendanceCalculationService, AttendanceCalculationService>();
+        services.AddScoped<IFileProcessor<ScheduleImportDto>, ScheduleFileProcessor>();
+        services.AddScoped<IFileProcessor<EnrollmentImportDto>, EnrollmentFileProcessor>();
+
         return services;
     }
 }

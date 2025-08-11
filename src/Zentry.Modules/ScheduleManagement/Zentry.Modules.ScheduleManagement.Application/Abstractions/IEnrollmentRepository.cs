@@ -1,5 +1,5 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Data;
@@ -14,7 +14,7 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
     Task<List<EnrollmentWithClassSectionDto>> GetActiveEnrollmentsByStudentIdAsync(
         Guid studentId, CancellationToken cancellationToken);
 
-    Task<bool> ExistsAsync(Guid studentId, Guid scheduleId, CancellationToken cancellationToken);
+    Task<bool> IsEnrolledAsync(Guid studentId, Guid scheduleId, CancellationToken cancellationToken);
 
     Task<(List<Enrollment> Enrollments, int TotalCount)> GetPagedEnrollmentsAsync(
         EnrollmentListCriteria criteria,

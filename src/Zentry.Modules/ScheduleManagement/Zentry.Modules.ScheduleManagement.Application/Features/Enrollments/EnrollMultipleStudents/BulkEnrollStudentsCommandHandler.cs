@@ -5,7 +5,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Exceptions;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.EnrollMultipleStudents;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollMultipleStudents;
 
 public class BulkEnrollStudentsCommandHandler(
     IEnrollmentRepository enrollmentRepository,
