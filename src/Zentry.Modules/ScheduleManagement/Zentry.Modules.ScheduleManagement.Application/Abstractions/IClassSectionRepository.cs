@@ -8,6 +8,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IClassSectionRepository : IRepository<ClassSection, Guid>
 {
+    Task<List<CourseWithClassSectionCountDto>> GetTopCoursesWithClassSectionCountAsync(int count, CancellationToken cancellationToken);
     Task<int> CountTotalClassSectionsAsync(CancellationToken cancellationToken);
     Task<List<ClassSectionInYearDto>> GetClassSectionsByYearAsync(string year, CancellationToken cancellationToken);
     Task<Dictionary<string, int>> CountClassSectionsBySemestersAsync(string yearString, CancellationToken cancellationToken);

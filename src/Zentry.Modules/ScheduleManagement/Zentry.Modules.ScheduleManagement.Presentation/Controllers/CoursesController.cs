@@ -7,6 +7,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Courses.DeleteCours
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourseById;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourses;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetLecturerSemesterCourses;
+using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetTopCoursesWithClassSectionCount;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetTotalCourseCount;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.UpdateCourse;
 using Zentry.SharedKernel.Abstractions.Models;
@@ -133,6 +134,7 @@ public class CoursesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpGet("total-courses")]
     public async Task<IActionResult> GetTotalCourses(CancellationToken cancellationToken)
     {
@@ -140,6 +142,22 @@ public class CoursesController(IMediator mediator) : BaseController
         {
             var count = await mediator.Send(new GetTotalCourseCountQuery(), cancellationToken);
             return HandleResult(count);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("top-courses")]
+    public async Task<IActionResult> GetTopCoursesWithClassSectionCount([FromQuery] int count = 5,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = new GetTopCoursesWithClassSectionCountQuery(count);
+            var result = await mediator.Send(query, cancellationToken);
+            return HandleResult(result);
         }
         catch (Exception ex)
         {

@@ -10,11 +10,42 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSectionRepository
 {
+    public async Task<List<CourseWithClassSectionCountDto>> GetTopCoursesWithClassSectionCountAsync(
+        int count,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .AsNoTracking()
+            .Where(cs => !cs.IsDeleted)
+            .GroupBy(cs => cs.CourseId)
+            .Select(g => new
+            {
+                CourseId = g.Key,
+                ClassSectionCount = g.Count()
+            })
+            .OrderByDescending(x => x.ClassSectionCount)
+            .Take(count)
+            .Join(
+                dbContext.Courses,
+                groupedCourse => groupedCourse.CourseId,
+                course => course.Id,
+                (groupedCourse, course) => new CourseWithClassSectionCountDto
+                {
+                    CourseId = groupedCourse.CourseId,
+                    CourseName = course.Name,
+                    ClassSectionCount = groupedCourse.ClassSectionCount
+                }
+            )
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<int> CountTotalClassSectionsAsync(CancellationToken cancellationToken)
     {
         return await dbContext.ClassSections.Where(cs => !cs.IsDeleted).CountAsync(cancellationToken);
     }
-    public async Task<List<ClassSectionInYearDto>> GetClassSectionsByYearAsync(string year, CancellationToken cancellationToken)
+
+    public async Task<List<ClassSectionInYearDto>> GetClassSectionsByYearAsync(string year,
+        CancellationToken cancellationToken)
     {
         var sql = @"
             SELECT
