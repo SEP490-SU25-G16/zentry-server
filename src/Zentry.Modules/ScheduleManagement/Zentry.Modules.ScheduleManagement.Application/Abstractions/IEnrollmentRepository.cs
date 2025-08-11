@@ -1,12 +1,16 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
+using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Data;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
 {
+    Task<Dictionary<string, int>> CountStudentsByYearAsync(string yearString,
+        CancellationToken cancellationToken);
+    Task<Dictionary<string, int>> CountStudentsBySemestersAsync(List<Semester> semesters, CancellationToken cancellationToken);
     Task<List<EnrollmentWithClassSectionDto>> GetActiveEnrollmentsByStudentIdAsync(
         Guid studentId, CancellationToken cancellationToken);
 

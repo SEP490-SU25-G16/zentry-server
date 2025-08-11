@@ -7,6 +7,7 @@ namespace Zentry.Modules.DeviceManagement.Abstractions;
 
 public interface IDeviceRepository : IRepository<Device, Guid>
 {
+    Task<int> CountAllAsync(CancellationToken cancellationToken);
     Task<List<Device>> GetByIdsAsync(List<Guid> deviceIds, CancellationToken cancellationToken);
     Task<IEnumerable<Device>> GetByAccountIdAsync(Guid accountId, CancellationToken cancellationToken);
     Task<Device?> GetByDeviceTokenAsync(string deviceToken, CancellationToken cancellationToken);

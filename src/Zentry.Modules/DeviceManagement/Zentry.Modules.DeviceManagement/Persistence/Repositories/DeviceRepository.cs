@@ -9,6 +9,11 @@ namespace Zentry.Modules.DeviceManagement.Persistence.Repositories;
 
 public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
 {
+    public async Task<int> CountAllAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices.CountAsync(cancellationToken);
+    }
+
     public async Task<Device?> GetActiveDeviceForUserAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await dbContext.Devices

@@ -103,12 +103,12 @@ public class CoursesController(IMediator mediator) : BaseController
         }
     }
 
-    [HttpGet("lecturer/{lecturerId}")]
+    [HttpGet("lecturer/{lecturerId}/semesters/{semester}")]
     [ProducesResponseType(typeof(GetLecturerSemesterCoursesResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLecturerSemesterCourses(
         [FromRoute] Guid lecturerId,
-        [FromQuery] string semester)
+        [FromRoute] string semester)
     {
         try
         {

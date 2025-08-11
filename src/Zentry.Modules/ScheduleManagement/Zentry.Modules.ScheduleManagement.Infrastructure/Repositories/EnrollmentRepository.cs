@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
+using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 using Zentry.SharedKernel.Constants.Schedule;
 
@@ -10,6 +11,64 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepository
 {
+    public async Task<Dictionary<string, int>> CountStudentsByYearAsync(string yearString,
+        CancellationToken cancellationToken)
+    {
+        var sql = @"
+        SELECT cs.""Semester"", COUNT(DISTINCT e.""StudentId"") as ""StudentCount""
+        FROM ""Enrollments"" e
+        INNER JOIN ""ClassSections"" cs ON e.""ClassSectionId"" = cs.""Id""
+        WHERE RIGHT(cs.""Semester"", 2) = {0}
+          AND e.""Status"" = {1}
+          AND cs.""IsDeleted"" = false
+        GROUP BY cs.""Semester""";
+
+        var results = await dbContext.Database
+            .SqlQueryRaw<SemesterStudentCountDto>(sql, yearString, EnrollmentStatus.Active.ToString())
+            .ToListAsync(cancellationToken);
+
+        return results.ToDictionary(r => r.Semester, r => r.StudentCount);
+    }
+
+    public async Task<Dictionary<string, int>> CountStudentsBySemestersAsync(List<Semester> semesters,
+        CancellationToken cancellationToken)
+    {
+        if (semesters.Count == 0)
+            return new Dictionary<string, int>();
+
+        var semesterValues = semesters.Select(s => s.Value).ToList();
+
+        // Step 1: Get all enrollments with active status first
+        var activeEnrollments = await dbContext.Enrollments
+            .AsNoTracking()
+            .Where(e => e.Status == EnrollmentStatus.Active)
+            .Select(e => new { e.StudentId, e.ClassSectionId })
+            .ToListAsync(cancellationToken);
+
+        // Step 2: Get class sections for the specified semesters
+        var relevantClassSections = await dbContext.ClassSections
+            .AsNoTracking()
+            .Where(cs => !cs.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        // Step 3: Filter on client side and join
+        var filteredClassSections = relevantClassSections
+            .Where(cs => semesterValues.Contains(cs.Semester.Value))
+            .ToDictionary(cs => cs.Id, cs => cs.Semester.Value);
+
+        // Step 4: Join and count on client side
+        var result = activeEnrollments
+            .Where(e => filteredClassSections.ContainsKey(e.ClassSectionId))
+            .Select(e => new { e.StudentId, SemesterValue = filteredClassSections[e.ClassSectionId] })
+            .GroupBy(x => x.SemesterValue)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(x => x.StudentId).Distinct().Count()
+            );
+
+        return result;
+    }
+
     public async Task<List<EnrollmentWithClassSectionDto>> GetActiveEnrollmentsByStudentIdAsync(
         Guid studentId, CancellationToken cancellationToken)
     {

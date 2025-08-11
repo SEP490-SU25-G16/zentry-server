@@ -12,6 +12,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetCl
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSessions;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSessionsByClassSectionId;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentClasses;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentCountBySemester;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;
@@ -263,6 +264,22 @@ public class ClassSectionsController(IMediator mediator) : BaseController
             var command = new AssignLecturerCommand(classSectionId, lecturerId);
             var result = await mediator.Send(command, cancellationToken);
             return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+    [HttpGet("student-count/year/{year}")]
+    [ProducesResponseType(typeof(ApiResponse<GetStudentCountBySemesterResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetStudentCountByYear(int year, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetStudentCountBySemesterQuery(year);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {

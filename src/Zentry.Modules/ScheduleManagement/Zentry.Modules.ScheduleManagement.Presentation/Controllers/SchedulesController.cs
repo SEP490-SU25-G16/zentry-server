@@ -142,7 +142,6 @@ public class SchedulesController(
         [FromQuery] int year,
         CancellationToken cancellationToken)
     {
-        // Validation thủ công này vẫn cần thiết vì không có request DTO
         if (month < 1 || month > 12 || year < 1900 || year > 2100)
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Month or year is out of valid range."));
 

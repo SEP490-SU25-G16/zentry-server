@@ -5,6 +5,7 @@ using Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
 using Zentry.Modules.DeviceManagement.Features.DeleteDevicesForInactiveStudent;
 using Zentry.Modules.DeviceManagement.Features.GetDeviceById;
 using Zentry.Modules.DeviceManagement.Features.GetDevices;
+using Zentry.Modules.DeviceManagement.Features.GetTotalDevices;
 using Zentry.Modules.DeviceManagement.Features.RegisterDevice;
 using Zentry.Modules.DeviceManagement.Features.RequestDeviceChange;
 using Zentry.SharedKernel.Abstractions.Models;
@@ -225,6 +226,22 @@ public class DevicesController(IMediator mediator) : BaseController
             var command = new DeleteDevicesForInactiveStudentCommand { StudentId = studentId };
             await mediator.Send(command, cancellationToken);
             return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+    [HttpGet("total")]
+    [ProducesResponseType(typeof(ApiResponse<GetTotalDevicesResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetTotalDevices(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetTotalDevicesQuery();
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {

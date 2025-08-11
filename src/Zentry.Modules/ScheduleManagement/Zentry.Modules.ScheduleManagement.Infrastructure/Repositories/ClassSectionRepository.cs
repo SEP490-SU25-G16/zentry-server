@@ -9,6 +9,17 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
 public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSectionRepository
 {
+    public async Task<List<Semester>> GetDistinctSemestersAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted)
+            .Where(c => !c.IsDeleted)
+            .Select(cs => cs.Semester)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<ClassSection>> GetClassSectionsDetailsByIdsAsync(
         List<Guid> classSectionIds,
         CancellationToken cancellationToken)

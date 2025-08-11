@@ -10,7 +10,7 @@ public class Semester : ValueObject
         Value = value;
     }
 
-    private string Value { get; }
+    public string Value { get; }
 
     public static Semester Create(string semesterString)
     {
