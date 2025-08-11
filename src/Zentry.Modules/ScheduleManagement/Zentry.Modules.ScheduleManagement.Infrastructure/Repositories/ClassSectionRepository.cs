@@ -96,6 +96,9 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         return await dbContext.ClassSections
             .AsNoTracking()
             .Include(cs => cs.Course)
+            .Include(cs => cs.Schedules)
+            .ThenInclude(s => s.Room)
+            .Include(cs => cs.Enrollments)
             .Where(cs => classSectionIds.Contains(cs.Id) && !cs.IsDeleted)
             .ToListAsync(cancellationToken);
     }

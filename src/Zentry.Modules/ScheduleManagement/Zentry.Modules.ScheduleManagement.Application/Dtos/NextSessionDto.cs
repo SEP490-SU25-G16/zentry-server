@@ -14,5 +14,7 @@ public class NextSessionDto
     public TimeOnly EndTime { get; set; }
     public string RoomInfo { get; set; } = string.Empty;
     public int EnrolledStudents { get; set; }
+    public string? LecturerName { get; set; } = string.Empty;
+    public string AttendanceStatus { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
 }

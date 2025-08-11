@@ -5,6 +5,11 @@ namespace Zentry.Modules.AttendanceManagement.Application.Abstractions;
 
 public interface ISessionRepository : IRepository<Session, Guid>
 {
+    public Task<List<Session>> GetSessionsByScheduleIdsAndDateRangeAsync(
+        List<Guid> scheduleIds,
+        DateTime startUtc,
+        DateTime endUtc,
+        CancellationToken cancellationToken);
     Task<Session?> GetSessionsWithAttendanceRecordsByIdAsync(Guid sessionId, CancellationToken cancellationToken);
 
     Task<List<Session>> GetSessionsWithAttendanceRecordsByScheduleIdsAsync(List<Guid> scheduleIds,

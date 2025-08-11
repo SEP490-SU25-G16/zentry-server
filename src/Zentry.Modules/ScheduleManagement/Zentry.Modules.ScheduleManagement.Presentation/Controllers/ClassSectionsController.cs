@@ -20,7 +20,9 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLectur
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetAttendanceRateByYearAndSemester;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetTotalClassSectionCount; // Thêm dòng này
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetTotalClassSectionCount;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentNextSessions;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentWeeklyReview; // Thêm dòng này
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
@@ -158,7 +160,7 @@ public class ClassSectionsController(IMediator mediator) : BaseController
 
     // === API liên quan đến vai trò giảng viên ===
 
-    [HttpGet("{lecturerId}/home")]
+    [HttpGet("lecturers/{lecturerId}/home")]
     [ProducesResponseType(typeof(ApiResponse<LecturerHomeResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetLecturerHome(Guid lecturerId, CancellationToken cancellationToken)
@@ -173,6 +175,30 @@ public class ClassSectionsController(IMediator mediator) : BaseController
             {
                 NextSessions = nextSessions,
                 WeeklyOverview = weeklyOverview
+            };
+
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("students/{studentId}/home")]
+    [ProducesResponseType(typeof(ApiResponse<StudentHomeResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetStudentHome(Guid studentId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var nextSessions = await mediator.Send(new GetStudentNextSessionsQuery(studentId), cancellationToken);
+            var weeklyReview = await mediator.Send(new GetStudentWeeklyReviewQuery(studentId), cancellationToken);
+
+            var response = new StudentHomeResponse
+            {
+                NextSessions = nextSessions,
+                WeeklyReview = weeklyReview
             };
 
             return HandleResult(response);
