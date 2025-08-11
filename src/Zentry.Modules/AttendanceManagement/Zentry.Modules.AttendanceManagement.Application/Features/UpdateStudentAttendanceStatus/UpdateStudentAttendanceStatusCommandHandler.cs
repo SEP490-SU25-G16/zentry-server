@@ -22,20 +22,34 @@ public class UpdateStudentAttendanceStatusCommandHandler(
             throw new NotFoundException(
                 $"AttendanceRecord for UserId '{request.UserId}' and SessionId '{request.SessionId}' not found.");
 
-        if (!Equals(attendanceRecord.Status, AttendanceStatus.Absent))
+        if (!Equals(attendanceRecord.Status, AttendanceStatus.Absent) ||
+            !Equals(attendanceRecord.Status, AttendanceStatus.Present))
             throw new BusinessRuleException(
                 "INVALID_STATUS_UPDATE",
-                $"Chỉ có thể cập nhật trạng thái điểm danh từ 'Absent' sang 'Present'. Trạng thái hiện tại: '{attendanceRecord.Status}''."
+                $"Chỉ có thể cập nhật trạng thái điểm danh từ 'Absent' hoặc 'Present'  . Trạng thái hiện tại: '{attendanceRecord.Status}''."
             );
 
 
-        const double newPercentageAttended = 100.0;
+        if (Equals(attendanceRecord.Status, AttendanceStatus.Absent))
+        {
+            const double newPercentageAttended = 100.0;
 
-        attendanceRecord.Update(
-            AttendanceStatus.Present,
-            true,
-            percentageAttended: newPercentageAttended
-        );
+            attendanceRecord.Update(
+                AttendanceStatus.Present,
+                true,
+                percentageAttended: newPercentageAttended
+            );
+        }
+        else
+        {
+            const double newPercentageAttended = 0;
+
+            attendanceRecord.Update(
+                AttendanceStatus.Absent,
+                true,
+                percentageAttended: newPercentageAttended
+            );
+        }
 
         await attendanceRecordRepository.UpdateAsync(attendanceRecord, cancellationToken);
         await attendanceRecordRepository.SaveChangesAsync(cancellationToken);
