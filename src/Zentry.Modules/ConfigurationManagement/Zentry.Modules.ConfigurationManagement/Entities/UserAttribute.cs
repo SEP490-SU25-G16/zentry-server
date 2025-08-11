@@ -22,7 +22,7 @@ public class UserAttribute : AggregateRoot<Guid>
 
     [Required] public Guid AttributeId { get; private set; }
 
-    [StringLength(255)] // Giới hạn độ dài của giá trị thuộc tính người dùng
+    [StringLength(255)]
     public string AttributeValue { get; private set; }
 
     public DateTime CreatedAt { get; private set; }

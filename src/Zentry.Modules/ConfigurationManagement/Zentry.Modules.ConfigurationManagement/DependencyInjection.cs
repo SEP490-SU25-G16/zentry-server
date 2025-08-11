@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting; // Thêm using này
+using Microsoft.Extensions.Logging; // Thêm using này
 using Zentry.Modules.ConfigurationManagement.Abstractions;
 using Zentry.Modules.ConfigurationManagement.Persistence;
 using Zentry.Modules.ConfigurationManagement.Services;
@@ -18,9 +20,26 @@ public static class DependencyInjection
                 b => b.MigrationsAssembly("Zentry.Modules.ConfigurationManagement")
             ));
 
-        // Đã xóa phần đăng ký MediatR và Validators
-
         services.AddScoped<IAttributeService, AttributeService>();
         return services;
+    }
+
+    public static async Task UseConfigurationDbSeed(this IHost host)
+    {
+        using var scope = host.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<ConfigurationDbContext>>();
+
+        try
+        {
+            var context = services.GetRequiredService<ConfigurationDbContext>();
+            await context.Database.MigrateAsync();
+            await ConfigurationDbContext.SeedDataAsync(context, logger);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while seeding the Configuration database.");
+            throw;
+        }
     }
 }

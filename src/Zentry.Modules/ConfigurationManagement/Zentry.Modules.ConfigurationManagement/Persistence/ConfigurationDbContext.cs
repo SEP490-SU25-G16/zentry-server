@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Zentry.Modules.ConfigurationManagement.Entities;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence;
@@ -14,5 +15,10 @@ public class ConfigurationDbContext(DbContextOptions<ConfigurationDbContext> opt
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ConfigurationDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+    }
+
+    public static async Task SeedDataAsync(ConfigurationDbContext context, ILogger logger)
+    {
+        await ConfigurationDbContextSeed.SeedAsync(context, logger);
     }
 }

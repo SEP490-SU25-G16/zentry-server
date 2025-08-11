@@ -128,7 +128,7 @@ app.MapHealthChecks("/health");
 
 
 // ===== DATABASE MIGRATION CODE =====
-await RunDatabaseMigrationsAsync(app);
+await RunDatabaseMigrationsAndSeedDataAsync(app);
 
 app.Run();
 
@@ -141,8 +141,7 @@ static bool IsGuidFormatError(string? errorMessage)
            errorMessage.Contains("is not valid", StringComparison.OrdinalIgnoreCase) ||
            errorMessage.Contains("format", StringComparison.OrdinalIgnoreCase);
 }
-
-static async Task RunDatabaseMigrationsAsync(WebApplication app)
+static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -168,6 +167,7 @@ static async Task RunDatabaseMigrationsAsync(WebApplication app)
     };
 
     foreach (var (contextType, contextName) in migrations)
+    {
         await retryPolicy.ExecuteAsync(async () =>
         {
             var dbContext = (DbContext)serviceProvider.GetRequiredService(contextType);
@@ -175,4 +175,17 @@ static async Task RunDatabaseMigrationsAsync(WebApplication app)
             await dbContext.Database.MigrateAsync();
             logger.LogInformation("{ContextName} migrations applied successfully.", contextName);
         });
+
+        // Thêm đoạn code seed data cho ConfigurationDbContext
+        if (contextType == typeof(ConfigurationDbContext))
+        {
+            await retryPolicy.ExecuteAsync(async () =>
+            {
+                var configContext = serviceProvider.GetRequiredService<ConfigurationDbContext>();
+                logger.LogInformation("Seeding data for ConfigurationDbContext...");
+                await ConfigurationDbContext.SeedDataAsync(configContext, logger);
+                logger.LogInformation("ConfigurationDbContext data seeded successfully.");
+            });
+        }
+    }
 }
