@@ -14,5 +14,6 @@ public record GetUserByIdAndRoleIntegrationResponse(
     string? PhoneNumber,
     Role Role,
     string Status,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    Dictionary<string, string> Attributes
 );

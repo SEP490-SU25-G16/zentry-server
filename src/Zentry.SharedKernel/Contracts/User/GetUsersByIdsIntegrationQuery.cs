@@ -13,5 +13,5 @@ public class BasicUserInfoDto
     public string? FullName { get; set; }
     public string? Email { get; set; }
     public string? StudentCode { get; set; }
-
+    public Dictionary<string, string> Attributes { get; set; } = new();
 }

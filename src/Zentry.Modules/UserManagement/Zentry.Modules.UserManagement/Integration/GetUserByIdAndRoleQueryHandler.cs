@@ -1,15 +1,17 @@
 ﻿// Trong Zentry.Modules.UserManagement.Integration
 
+using MediatR;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Integration;
 
-public class GetUserByIdAndRoleQueryHandler(IUserRepository userRepository)
+public class GetUserByIdAndRoleQueryHandler(IUserRepository userRepository, IMediator mediator)
     : IQueryHandler<GetUserByIdAndRoleIntegrationQuery, GetUserByIdAndRoleIntegrationResponse>
 {
     public async Task<GetUserByIdAndRoleIntegrationResponse> Handle(
@@ -47,6 +49,10 @@ public class GetUserByIdAndRoleQueryHandler(IUserRepository userRepository)
             );
         }
 
+        var attributesQuery = new GetUserAttributesForUsersIntegrationQuery(new List<Guid> { integrationQuery.UserId });
+        var attributesResponse = await mediator.Send(attributesQuery, cancellationToken);
+        var userAttributes = attributesResponse.UserAttributes.GetValueOrDefault(integrationQuery.UserId, new Dictionary<string, string>());
+
         var response = new GetUserByIdAndRoleIntegrationResponse(
             user.Id,
             account.Id,
@@ -55,7 +61,8 @@ public class GetUserByIdAndRoleQueryHandler(IUserRepository userRepository)
             user.PhoneNumber,
             account.Role,
             account.Status.ToString(),
-            account.CreatedAt
+            account.CreatedAt,
+            userAttributes
         );
 
         return response;

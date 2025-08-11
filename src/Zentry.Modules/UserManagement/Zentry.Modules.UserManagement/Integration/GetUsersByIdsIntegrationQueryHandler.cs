@@ -1,10 +1,12 @@
+using MediatR;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.UserManagement.Integration;
 
-public class GetUsersByIdsIntegrationQueryHandler(IUserRepository userRepository)
+public class GetUsersByIdsIntegrationQueryHandler(IUserRepository userRepository, IMediator mediator)
     : IQueryHandler<GetUsersByIdsIntegrationQuery, GetUsersByIdsIntegrationResponse>
 {
     public async Task<GetUsersByIdsIntegrationResponse> Handle(
@@ -13,14 +15,21 @@ public class GetUsersByIdsIntegrationQueryHandler(IUserRepository userRepository
     {
         if (request.UserIds.Count == 0) return new GetUsersByIdsIntegrationResponse(new List<BasicUserInfoDto>());
 
-        // Giả sử GetUsersByIdsAsync có thể lấy được thông tin Account hoặc thông tin User trực tiếp có Phone Number
         var users = await userRepository.GetUsersByIdsAsync(request.UserIds, cancellationToken);
 
-        var dtos = users.Select(u => new BasicUserInfoDto
+        var userAttributesQuery = new GetUserAttributesForUsersIntegrationQuery(users.Select(u => u.Id).ToList());
+        var userAttributesResponse = await mediator.Send(userAttributesQuery, cancellationToken);
+
+        var dtos = users.Select(u =>
         {
-            Id = u.Id,
-            FullName = u.FullName,
-            Email = u.Account?.Email // Giả sử Email trên Account
+            var attributes = userAttributesResponse.UserAttributes.GetValueOrDefault(u.Id, new Dictionary<string, string>());
+            return new BasicUserInfoDto
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Email = u.Account?.Email,
+                Attributes = attributes
+            };
         }).ToList();
 
         return new GetUsersByIdsIntegrationResponse(dtos);

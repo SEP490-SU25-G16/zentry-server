@@ -6,10 +6,10 @@ using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.UserManagement.Integration;
 
-public class GetUsersByRoleQueryHandler(UserDbContext userDbContext)
-    : IQueryHandler<GetUsersByRoleIntegrationQuery, GetUsersByRoleIntegrationResponse>
+public class GetUserIdsByRoleQueryHandler(UserDbContext userDbContext)
+    : IQueryHandler<GetUserIdsByRoleIntegrationQuery, GetUserIdsByRoleIntegrationResponse>
 {
-    public async Task<GetUsersByRoleIntegrationResponse> Handle(GetUsersByRoleIntegrationQuery request,
+    public async Task<GetUserIdsByRoleIntegrationResponse> Handle(GetUserIdsByRoleIntegrationQuery request,
         CancellationToken cancellationToken)
     {
         var accountIdsWithRole = await userDbContext.Accounts
@@ -23,6 +23,6 @@ public class GetUsersByRoleQueryHandler(UserDbContext userDbContext)
             .Where(u => accountIdsWithRole.Contains(u.AccountId))
             .Select(u => u.Id)
             .ToListAsync(cancellationToken);
-        return new GetUsersByRoleIntegrationResponse(userIds);
+        return new GetUserIdsByRoleIntegrationResponse(userIds);
     }
 }
