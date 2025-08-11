@@ -49,7 +49,6 @@
         <ProjectReference Include="..\Zentry.Modules\DeviceManagement\Zentry.Modules.DeviceManagement\Zentry.Modules.DeviceManagement.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\FaceId\Zentry.Modules.FaceId.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\NotificationService\Zentry.Modules.NotificationService\Zentry.Modules.NotificationService.csproj"/>
-        <ProjectReference Include="..\Zentry.Modules\ReportingService\Zentry.Modules.ReportingService\Zentry.Modules.ReportingService.csproj"/>
 
         <ProjectReference Include="..\Zentry.Modules\ScheduleManagement\Zentry.Modules.ScheduleManagement.Application\Zentry.Modules.ScheduleManagement.Application.csproj"/>
         <ProjectReference Include="..\Zentry.Modules\ScheduleManagement\Zentry.Modules.ScheduleManagement.Domain\Zentry.Modules.ScheduleManagement.Domain.csproj"/>

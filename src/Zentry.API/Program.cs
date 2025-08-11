@@ -16,8 +16,6 @@ using Zentry.Modules.DeviceManagement.Persistence;
 using Zentry.Modules.FaceId;
 using Zentry.Modules.NotificationService;
 using Zentry.Modules.NotificationService.Hubs;
-using Zentry.Modules.ReportingService;
-using Zentry.Modules.ReportingService.Persistence;
 using Zentry.Modules.ScheduleManagement.Application;
 using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -112,7 +110,6 @@ builder.Services.AddConfigurationInfrastructure(builder.Configuration);
 builder.Services.AddDeviceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceApplication();
-builder.Services.AddReportingInfrastructure(builder.Configuration);
 builder.Services.AddNotificationModule(builder.Configuration);
 builder.Services.AddFaceIdInfrastructure(builder.Configuration);
 
@@ -167,7 +164,6 @@ static async Task RunDatabaseMigrationsAsync(WebApplication app)
         (typeof(ScheduleDbContext), "ScheduleDbContext"),
         (typeof(DeviceDbContext), "DeviceManagementDbContext"),
         (typeof(ConfigurationDbContext), "ConfigurationDbContext"),
-        (typeof(ReportingDbContext), "ReportingDbContext"),
         (typeof(UserDbContext), "UserDbContext")
     };
 
