@@ -8,10 +8,6 @@ public class UpdateAttributeDefinitionRequestValidator : BaseValidator<UpdateAtt
 {
     public UpdateAttributeDefinitionRequestValidator()
     {
-        RuleFor(x => x.AttributeId)
-            .NotEmpty()
-            .WithMessage("AttributeId là bắt buộc.");
-
         RuleFor(x => x.DisplayName)
             .MaximumLength(255)
             .WithMessage("Tên hiển thị không được vượt quá 255 ký tự.")

@@ -4,7 +4,7 @@ namespace Zentry.Modules.ConfigurationManagement.Features.UpdateAttributeDefinit
 
 public class UpdateAttributeDefinitionRequest
 {
-    public Guid AttributeId { get; set; }
+    public Guid? AttributeId { get; set; }
     public string? DisplayName { get; set; }
     public string? Description { get; set; }
     public string? DataType { get; set; }
