@@ -100,7 +100,8 @@ public class ValidationExceptionMiddleware(RequestDelegate next, ILogger<Validat
             // Server Errors (HTTP 500)
             ConfigurationException => // Specific configuration issues are internal server errors
                 (500, ApiResponse.ErrorResult(ErrorCodes.ConfigurationError, exception.Message)),
-
+            IntegrationException =>
+                (500, ApiResponse.ErrorResult(ErrorCodes.InternalServerError, "An integration error occurred.")),
             // General Business Logic Exception (catch-all for custom business exceptions)
             // This must come AFTER all specific BusinessLogicException derived classes
             BusinessLogicException =>
@@ -196,7 +197,9 @@ public class ValidationExceptionMiddleware(RequestDelegate next, ILogger<Validat
             case ConfigurationException:
                 logger.LogError(exception, "System configuration error occurred: {Message}", exception.Message);
                 break;
-
+            case IntegrationException:
+                logger.LogError(exception, "Internal integration error occurred: {Message}", exception.Message);
+                break;
             // General BusinessLogicException (catch-all for custom business exceptions not covered above)
             // This should be after all specific custom exceptions
             case BusinessLogicException:

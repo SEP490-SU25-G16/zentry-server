@@ -23,7 +23,7 @@ public class UserAttributeConfiguration : IEntityTypeConfiguration<UserAttribute
 
         builder.Property(ua => ua.AttributeValue)
             .IsRequired()
-            .HasMaxLength(1000); // Assuming max length for attribute value
+            .HasMaxLength(1000);
 
         builder.Property(ua => ua.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -34,9 +34,15 @@ public class UserAttributeConfiguration : IEntityTypeConfiguration<UserAttribute
             .ValueGeneratedOnAddOrUpdate();
 
         builder.HasIndex(ua => new { ua.UserId, ua.AttributeId })
-            .IsUnique(); // A user can have only one value per attribute
+            .IsUnique();
 
         builder.HasIndex(ua => ua.UserId);
         builder.HasIndex(ua => ua.AttributeId);
+
+        // --- Cấu hình mối quan hệ ---
+        builder.HasOne(ua => ua.AttributeDefinition)
+            .WithMany()
+            .HasForeignKey(ua => ua.AttributeId)
+            .IsRequired();
     }
 }

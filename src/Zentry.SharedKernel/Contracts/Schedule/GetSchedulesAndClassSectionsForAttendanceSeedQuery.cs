@@ -2,8 +2,8 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.SharedKernel.Contracts.Schedule;
 
-public record
-    GetSchedulesAndClassSectionsForAttendanceSeedQuery : IQuery<GetSchedulesAndClassSectionsForAttendanceSeedResponse>;
+public record GetSchedulesAndClassSectionsForAttendanceSeedQuery
+    : IQuery<GetSchedulesAndClassSectionsForAttendanceSeedResponse>;
 
 public record GetSchedulesAndClassSectionsForAttendanceSeedResponse(
     List<SeededScheduleDto> Schedules,
@@ -14,7 +14,7 @@ public record SeededScheduleDto
 {
     public Guid Id { get; init; }
     public Guid ClassSectionId { get; init; }
-    public Guid RoomId { get; init; } // Có thể không cần nếu Attendance không dùng
+    public Guid RoomId { get; init; }
     public string WeekDay { get; init; }
     public TimeOnly StartTime { get; init; }
     public TimeOnly EndTime { get; init; }

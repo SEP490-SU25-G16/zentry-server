@@ -22,6 +22,8 @@ public class UserAttribute : AggregateRoot<Guid>
 
     [Required] public Guid AttributeId { get; private set; }
 
+    public virtual AttributeDefinition? AttributeDefinition { get; private set; }
+
     [StringLength(255)]
     public string AttributeValue { get; private set; }
 
