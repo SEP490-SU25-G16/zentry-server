@@ -232,7 +232,7 @@ public class DevicesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
-    [HttpGet("total")]
+    [HttpGet("total-devices")]
     [ProducesResponseType(typeof(ApiResponse<GetTotalDevicesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTotalDevices(CancellationToken cancellationToken)

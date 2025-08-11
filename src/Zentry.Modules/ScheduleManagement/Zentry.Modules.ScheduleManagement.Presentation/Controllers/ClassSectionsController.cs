@@ -13,7 +13,6 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetCl
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSessions;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSessionsByClassSectionId;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentClasses;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentCountBySemester;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;

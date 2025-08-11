@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentCountBySemester;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollMultipleStudents;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollStudent;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetStudentCountBySemester;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.ImportEnrollments;
 using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;

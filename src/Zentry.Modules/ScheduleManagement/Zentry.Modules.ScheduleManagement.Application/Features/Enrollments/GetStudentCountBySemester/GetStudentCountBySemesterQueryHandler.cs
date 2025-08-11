@@ -1,8 +1,7 @@
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentCountBySemester;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetStudentCountBySemester;
 
 public class GetStudentCountBySemesterQueryHandler(
     IEnrollmentRepository enrollmentRepository

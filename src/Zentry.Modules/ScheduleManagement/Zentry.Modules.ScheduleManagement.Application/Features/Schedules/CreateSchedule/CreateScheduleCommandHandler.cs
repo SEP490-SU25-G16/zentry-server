@@ -52,15 +52,13 @@ public class CreateScheduleCommandHandler(
         var scheduleCreatedEvent = new ScheduleCreatedMessage(
             schedule.Id,
             schedule.ClassSectionId,
-            schedule.RoomId,
             lecturerId,
             schedule.WeekDay.ToString(),
             schedule.StartTime,
             schedule.EndTime,
             schedule.StartDate,
             schedule.EndDate,
-            classSection.CourseId,
-            schedule.CreatedAt
+            classSection.CourseId
         );
 
         await publishEndpoint.Publish(scheduleCreatedEvent, cancellationToken);

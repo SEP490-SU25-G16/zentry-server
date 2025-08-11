@@ -3,10 +3,6 @@ using System.Text.Json;
 
 namespace Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 
-/// <summary>
-///     Value Object linh hoạt để lưu trữ config snapshot của session
-///     Sử dụng Dictionary để có thể mở rộng config mà không cần thay đổi schema
-/// </summary>
 public record SessionConfigSnapshot
 {
     private readonly Dictionary<string, string> _configs;
@@ -17,7 +13,7 @@ public record SessionConfigSnapshot
 
     public SessionConfigSnapshot(Dictionary<string, string> configs)
     {
-        _configs = configs ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        _configs = configs;
     }
 
     // Indexer để truy cập config dễ dàng
@@ -145,8 +141,13 @@ public record SessionConfigSnapshot
     // Merge configs từ dictionary khác
     public SessionConfigSnapshot Merge(Dictionary<string, string> additionalConfigs)
     {
-        var merged = new Dictionary<string, string>(_configs);
-        foreach (var kvp in additionalConfigs) merged[kvp.Key] = kvp.Value;
+        var merged =
+            new Dictionary<string, string>(_configs, StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in additionalConfigs)
+        {
+            merged[kvp.Key] = kvp.Value;
+        }
+
         return new SessionConfigSnapshot(merged);
     }
 

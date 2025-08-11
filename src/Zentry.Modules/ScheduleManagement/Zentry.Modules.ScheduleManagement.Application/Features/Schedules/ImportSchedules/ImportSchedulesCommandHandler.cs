@@ -147,15 +147,13 @@ public class ImportSchedulesCommandHandler(
                 var scheduleCreatedEvent = new ScheduleCreatedMessage(
                     schedule.Id,
                     schedule.ClassSectionId,
-                    schedule.RoomId,
                     null,
                     schedule.WeekDay.ToString(),
                     schedule.StartTime,
                     schedule.EndTime,
                     schedule.StartDate,
                     schedule.EndDate,
-                    classSectionsWithCourses[schedule.ClassSectionId],
-                    schedule.CreatedAt
+                    classSectionsWithCourses[schedule.ClassSectionId]
                 );
                 await publishEndpoint.Publish(scheduleCreatedEvent, cancellationToken);
             }

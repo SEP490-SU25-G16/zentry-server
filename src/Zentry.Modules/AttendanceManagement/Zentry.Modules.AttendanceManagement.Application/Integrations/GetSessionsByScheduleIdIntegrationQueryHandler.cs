@@ -11,10 +11,8 @@ public class GetSessionsByScheduleIdIntegrationQueryHandler(ISessionRepository s
         GetSessionsByScheduleIdIntegrationQuery query,
         CancellationToken cancellationToken)
     {
-        // Sử dụng repository để lấy tất cả sessions của một scheduleId
         var sessions = await sessionRepository.GetSessionsByScheduleIdAsync(query.ScheduleId, cancellationToken);
 
-        // Ánh xạ từ Domain Entity (Session) sang DTO (Response)
         var response = sessions.Select(s => new GetSessionsByScheduleIdIntegrationResponse
         {
             SessionId = s.Id,
