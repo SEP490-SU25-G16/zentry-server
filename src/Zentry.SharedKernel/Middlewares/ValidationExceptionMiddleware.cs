@@ -90,7 +90,8 @@ public class ValidationExceptionMiddleware(RequestDelegate next, ILogger<Validat
                 (404, ApiResponse.ErrorResult(ErrorCodes.ResourceNotFound, exception.Message)),
             FileNotFoundException => // Standard .NET Exception
                 (404, ApiResponse.ErrorResult(ErrorCodes.ResourceNotFound, exception.Message)),
-
+            DuplicateOptionLabelException =>
+                (400, ApiResponse.ErrorResult(ErrorCodes.DuplicateOptionLabel, exception.Message)),
 
             // Bad Request / Business Logic errors (HTTP 400) - specific
             AttendanceCalculationFailedException =>
@@ -185,7 +186,9 @@ public class ValidationExceptionMiddleware(RequestDelegate next, ILogger<Validat
             case JsonException: // Standard .NET exception for JSON parsing issues
                 logger.LogInformation(exception, "Validation error occurred: {Message}", exception.Message);
                 break;
-
+            case DuplicateOptionLabelException: // Log lỗi này ở mức Information hoặc Warning
+                logger.LogWarning(exception, "Validation error occurred: {Message}", exception.Message);
+                break;
             // Business rule violations or logic issues - Warning level (unless critical)
             case BusinessRuleException: // Catch specific business rules
             case AttendanceCalculationFailedException: // Specific business logic that's a bad request

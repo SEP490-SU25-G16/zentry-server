@@ -31,6 +31,7 @@ public static class ErrorCodes
     public const string InvalidSettingScope = "INVALID_SETTING_SCOPE";
     public const string SelectionOptionsRequired = "SELECTION_OPTIONS_REQUIRED";
     public const string SettingAlreadyExists = "SETTING_ALREADY_EXISTS";
+    public const string DuplicateOptionLabel = "DUPLICATE_OPTION_LABEL";
 
     // Schedule management
     public const string ScheduleConflict = "SCHEDULE_CONFLICT";

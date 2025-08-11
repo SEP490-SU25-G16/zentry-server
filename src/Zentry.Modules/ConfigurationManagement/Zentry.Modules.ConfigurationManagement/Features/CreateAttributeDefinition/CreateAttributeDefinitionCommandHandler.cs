@@ -67,6 +67,21 @@ public class CreateAttributeDefinitionCommandHandler(
             {
                 if (request.Options != null && request.Options.Count != 0)
                 {
+                    var duplicateLabels = request.Options
+                        .GroupBy(o => o.DisplayLabel)
+                        .Where(g => g.Count() > 1)
+                        .Select(g => g.Key)
+                        .ToList();
+
+                    if (duplicateLabels.Any())
+                    {
+                        var duplicated = string.Join(", ", duplicateLabels);
+                        logger.LogWarning("Duplicate option labels found: {DuplicatedLabels}", duplicated);
+                        throw new DuplicateOptionLabelException(
+                            $"Các nhãn hiển thị ('DisplayLabel') không được trùng lặp. Các nhãn bị trùng: {duplicated}"
+                        );
+                    }
+
                     foreach (var newOption in request.Options.Select(optionDto => Option.Create(
                                  attributeDefinition.Id,
                                  optionDto.Value,
