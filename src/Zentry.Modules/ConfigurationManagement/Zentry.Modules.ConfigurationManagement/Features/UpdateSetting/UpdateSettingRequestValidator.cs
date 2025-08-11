@@ -8,10 +8,6 @@ public class UpdateSettingRequestValidator : BaseValidator<UpdateSettingRequest>
 {
     public UpdateSettingRequestValidator()
     {
-        RuleFor(x => x.SettingId)
-            .NotEmpty()
-            .WithMessage("SettingId là bắt buộc.");
-
         RuleFor(x => x.Value)
             .NotEmpty()
             .WithMessage(ErrorMessages.Settings.ValueRequired)
