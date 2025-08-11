@@ -17,13 +17,16 @@ public class AssignLecturerCommandHandler(
         var classSection = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
         if (classSection is null) throw new NotFoundException("ClassSection", command.ClassSectionId);
 
-        var hasActiveSchedule =
-            await scheduleRepository.HasActiveScheduleByClassSectionIdAsync(classSection.Id, cancellationToken);
-
-        if (hasActiveSchedule)
+        if (classSection.LecturerId.HasValue)
         {
-            throw new ScheduleConflictException(
-                $"Class section with ID '{command.ClassSectionId}' can not be updated because it  is already active.");
+            var hasActiveSchedule =
+                await scheduleRepository.HasActiveScheduleByClassSectionIdAsync(classSection.Id, cancellationToken);
+
+            if (hasActiveSchedule)
+            {
+                throw new ScheduleConflictException(
+                    $"Class section with ID '{command.ClassSectionId}' can not be updated because it  is already active.");
+            }
         }
 
         classSection.AssignLecturer(command.LecturerId);
