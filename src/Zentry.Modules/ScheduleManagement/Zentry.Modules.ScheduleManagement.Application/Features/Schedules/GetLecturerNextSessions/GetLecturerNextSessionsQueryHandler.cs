@@ -3,6 +3,7 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
+using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;
 
@@ -42,10 +43,10 @@ public class GetLecturerNextSessionsQueryHandler(
                 ClassTitle = $"{correspondingClassSection.Course?.Name} - {correspondingClassSection.SectionCode}",
                 CourseCode = correspondingClassSection.Course?.Code ?? string.Empty,
                 SectionCode = correspondingClassSection.SectionCode,
-                StartDate = DateOnly.FromDateTime(session.StartTime.ToLocalTime()),
-                StartTime = TimeOnly.FromDateTime(session.StartTime.ToLocalTime()),
-                EndDate = DateOnly.FromDateTime(session.EndTime.ToLocalTime()),
-                EndTime = TimeOnly.FromDateTime(session.EndTime.ToLocalTime()),
+                StartDate = session.StartTime.ToVietnamLocalTime().ToDateOnly(),
+                StartTime = session.StartTime.ToVietnamLocalTime().ToTimeOnly(),
+                EndDate = session.EndTime.ToVietnamLocalTime().ToDateOnly(),
+                EndTime = session.EndTime.ToVietnamLocalTime().ToTimeOnly(),
                 RoomInfo = $"{room?.RoomName} ({room?.Building})",
                 EnrolledStudents = correspondingClassSection.Enrollments.Count,
                 Status = session.Status
