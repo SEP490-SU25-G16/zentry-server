@@ -16,7 +16,13 @@ public class GetMonthlyCalendarQueryHandler(
     public async Task<MonthlyCalendarResponseDto> Handle(GetMonthlyCalendarQuery request,
         CancellationToken cancellationToken)
     {
-        var response = new MonthlyCalendarResponseDto();
+        var response = new MonthlyCalendarResponseDto
+        {
+            CalendarDays = new List<DailyScheduleDto>()
+        };
+
+        // Tạo timezone info cho Vietnam
+        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
         var startDate = new DateTime(request.Year, request.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var endDate = startDate.AddMonths(1).AddDays(-1);
@@ -45,7 +51,7 @@ public class GetMonthlyCalendarQueryHandler(
         }
 
         var allSessionsForMonth = new List<GetSessionsByScheduleIdAndDateIntegrationResponse>();
-        if (sessionLookups.Count != 0) // Chỉ gọi nếu có lookups để tránh gọi Mediator với list rỗng
+        if (sessionLookups.Count != 0)
         {
             var distinctSessionLookups = sessionLookups
                 .GroupBy(x => new { x.ScheduleId, x.Date })
@@ -58,22 +64,29 @@ public class GetMonthlyCalendarQueryHandler(
             );
         }
 
-        // FIX: Tạo dictionary với key đúng - sử dụng Vietnam local date thay vì UTC date
+        // Tạo dictionary để lookup session
         var sessionLookupDict = allSessionsForMonth
             .ToDictionary(
                 s => (s.ScheduleId, DateOnly.FromDateTime(s.StartTime.ToVietnamLocalTime().Date)),
                 s => s.SessionId
             );
 
+        // Bước 2: Xây dựng response với định dạng chính xác
         for (var currentDate = startDate; currentDate <= endDate; currentDate = currentDate.AddDays(1))
         {
             var currentDateOnly = DateOnly.FromDateTime(currentDate);
-            var dailyScheduleDto = new DailyScheduleDto
-            {
-                Date = currentDate
-            };
 
             if (dailySchedulesMap.TryGetValue(currentDateOnly, out var schedulesOnThisDay))
+            {
+                // Chuyển đổi UTC date sang Vietnam time để hiển thị trong response
+                var vietnamDateTime = TimeZoneInfo.ConvertTimeFromUtc(currentDate, vietnamTimeZone);
+
+                var dailyScheduleDto = new DailyScheduleDto
+                {
+                    Date = vietnamDateTime, // Sử dụng Vietnam time
+                    Classes = new List<CalendarClassDto>()
+                };
+
                 foreach (var scheduleProjection in schedulesOnThisDay)
                 {
                     Guid? sessionId = null;
@@ -81,9 +94,12 @@ public class GetMonthlyCalendarQueryHandler(
                             out var foundSessionId))
                         sessionId = foundSessionId;
 
+                    // Format StartTime as TimeOnly string (HH:mm:ss)
+                    var startTimeString = scheduleProjection.StartTime.ToString("HH:mm:ss");
+
                     dailyScheduleDto.Classes.Add(new CalendarClassDto
                     {
-                        StartTime = scheduleProjection.StartTime,
+                        StartTime = startTimeString,
                         CourseName = scheduleProjection.CourseName,
                         SectionCode = scheduleProjection.SectionCode,
                         RoomName = scheduleProjection.RoomName,
@@ -93,7 +109,11 @@ public class GetMonthlyCalendarQueryHandler(
                     });
                 }
 
-            if (dailyScheduleDto.Classes.Count != 0) response.CalendarDays.Add(dailyScheduleDto);
+                if (dailyScheduleDto.Classes.Count > 0)
+                {
+                    response.CalendarDays.Add(dailyScheduleDto);
+                }
+            }
         }
 
         return response;
