@@ -18,9 +18,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       # Chuỗi kết nối cho database cục bộ (sử dụng pgvector)
       - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      # Chuỗi kết nối cho các module khác (dùng Neon)
-      - ConnectionStrings__DefaultConnection=Host=ep-hidden-paper-a1dczukc-pooler.ap-southeast-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_GF4Jzpevoti5;SSL Mode=Require;
+        # Chuỗi kết nối cho các module khác (dùng Neon)
+      #      - ConnectionStrings__DefaultConnection=Host=ep-hidden-paper-a1dczukc-pooler.ap-southeast-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_GF4Jzpevoti5;SSL Mode=Require;
       #      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
+      - ConnectionStrings__DefaultConnection=Host=zentry.c2pgywcgsk5m.us-east-1.rds.amazonaws.com;Port=5432;Database=zentry;Username=postgres;Password=zentry_owner;
       - Redis_ConnectionString=redis:6379
       - UseMarten=true
       - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
