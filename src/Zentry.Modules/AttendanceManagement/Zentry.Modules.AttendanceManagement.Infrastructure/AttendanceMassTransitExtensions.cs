@@ -18,6 +18,7 @@ public static class AttendanceMassTransitExtensions
         configurator.AddConsumer<BatchedSessionFinalAttendanceConsumer>();
         configurator.AddConsumer<UpdateRoundsConsumer>();
         configurator.AddConsumer<DeleteScheduleSessionsConsumer>();
+        configurator.AddConsumer<SessionCreatedAttendanceConsumer>();
     }
 
     public static void ConfigureAttendanceReceiveEndpoints(this IRabbitMqBusFactoryConfigurator cfg,
@@ -35,6 +36,7 @@ public static class AttendanceMassTransitExtensions
             e.ConfigureConsumer<BatchedSessionFinalAttendanceConsumer>(context);
             e.ConfigureConsumer<UpdateRoundsConsumer>(context);
             e.ConfigureConsumer<DeleteScheduleSessionsConsumer>(context);
+            e.ConfigureConsumer<SessionCreatedAttendanceConsumer>(context);
             e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
         });
 

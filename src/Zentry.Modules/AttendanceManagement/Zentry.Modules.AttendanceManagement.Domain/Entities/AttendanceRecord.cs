@@ -50,7 +50,7 @@ public class AttendanceRecord : AggregateRoot<Guid>
 
         if (isManual.HasValue) IsManual = isManual.Value;
         if (expiredAt.HasValue) ExpiredAt = expiredAt.Value;
-        if (percentageAttended.HasValue) PercentageAttended = percentageAttended.Value; // Cập nhật percentage
+        if (percentageAttended.HasValue) PercentageAttended = percentageAttended.Value;
         UpdatedAt = DateTime.UtcNow;
     }
 }

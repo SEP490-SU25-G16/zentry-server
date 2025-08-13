@@ -128,13 +128,17 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .Select(s => new ScheduleProjectionDto
             {
                 ScheduleId = s.Id,
-                ClassSectionId = s.ClassSectionId,
-                RoomId = s.RoomId,
-                RoomName = s.Room!.RoomName,
-                Building = s.Room.Building,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
-                WeekDay = s.WeekDay
+                WeekDay = s.WeekDay,
+                ClassSectionId = s.ClassSection!.Id,
+                SectionCode = s.ClassSection.SectionCode,
+                CourseId = s.ClassSection.Course!.Id,
+                CourseCode = s.ClassSection.Course.Code,
+                CourseName = s.ClassSection.Course.Name,
+                RoomId = s.Room!.Id,
+                RoomName = s.Room.RoomName,
+                Building = s.Room.Building
             })
             .ToListAsync(cancellationToken);
     }

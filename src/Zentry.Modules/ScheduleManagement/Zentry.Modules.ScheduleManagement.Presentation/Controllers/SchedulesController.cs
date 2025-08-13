@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.CreateSchedule;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailySchedules;
-using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetMonthlyCalendar;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerMonthlyCalendar;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetScheduleDetail;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentDailySchedules;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentMonthlyCalendar;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.ImportSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.SoftDeleteSchedule;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.UpdateSchedule;
@@ -147,7 +148,31 @@ public class SchedulesController(
 
         try
         {
-            var query = new GetMonthlyCalendarQuery(lecturerId, month, year);
+            var query = new GetLecturerMonthlyCalendarQuery(lecturerId, month, year);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("student/{studentId}/monthly-calendar")]
+    [ProducesResponseType(typeof(ApiResponse<MonthlyCalendarResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetStudentMonthlyCalendar(
+        Guid studentId,
+        [FromQuery] int month,
+        [FromQuery] int year,
+        CancellationToken cancellationToken)
+    {
+        if (month < 1 || month > 12 || year < 1900 || year > 2100)
+            return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Month or year is out of valid range."));
+
+        try
+        {
+            var query = new GetStudentMonthlyCalendarQuery(studentId, month, year);
             var response = await mediator.Send(query, cancellationToken);
             return HandleResult(response);
         }

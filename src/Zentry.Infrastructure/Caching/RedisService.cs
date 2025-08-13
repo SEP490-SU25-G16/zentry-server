@@ -9,20 +9,18 @@ public class RedisService : IRedisService
     private readonly IDatabase _database;
     private readonly ILogger<RedisService> _logger;
 
-    // Thay đổi constructor để nhận IConnectionMultiplexer
     public RedisService(IConnectionMultiplexer redisConnection, ILogger<RedisService> logger)
     {
         _logger = logger;
         try
         {
-            // Lấy database từ ConnectionMultiplexer đã được inject
             _database = redisConnection.GetDatabase();
             _logger.LogInformation("RedisService initialized. Connected to Redis.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to initialize RedisService with existing ConnectionMultiplexer.");
-            throw; // Re-throw the exception if initialization fails
+            throw;
         }
     }
 

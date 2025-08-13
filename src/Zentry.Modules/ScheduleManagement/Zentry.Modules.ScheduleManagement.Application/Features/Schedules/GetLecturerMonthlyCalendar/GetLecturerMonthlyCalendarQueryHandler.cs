@@ -6,23 +6,20 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Extensions;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetMonthlyCalendar;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerMonthlyCalendar;
 
-public class GetMonthlyCalendarQueryHandler(
+public class GetLecturerMonthlyCalendarQueryHandler(
     IScheduleRepository scheduleRepository,
     IMediator mediator
-) : IQueryHandler<GetMonthlyCalendarQuery, MonthlyCalendarResponseDto>
+) : IQueryHandler<GetLecturerMonthlyCalendarQuery, MonthlyCalendarResponseDto>
 {
-    public async Task<MonthlyCalendarResponseDto> Handle(GetMonthlyCalendarQuery request,
+    public async Task<MonthlyCalendarResponseDto> Handle(GetLecturerMonthlyCalendarQuery request,
         CancellationToken cancellationToken)
     {
         var response = new MonthlyCalendarResponseDto
         {
             CalendarDays = new List<DailyScheduleDto>()
         };
-
-        // Tạo timezone info cho Vietnam
-        var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 
         var startDate = new DateTime(request.Year, request.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var endDate = startDate.AddMonths(1).AddDays(-1);
@@ -79,7 +76,7 @@ public class GetMonthlyCalendarQueryHandler(
             if (dailySchedulesMap.TryGetValue(currentDateOnly, out var schedulesOnThisDay))
             {
                 // Chuyển đổi UTC date sang Vietnam time để hiển thị trong response
-                var vietnamDateTime = TimeZoneInfo.ConvertTimeFromUtc(currentDate, vietnamTimeZone);
+                var vietnamDateTime = currentDate.ToVietnamLocalTime();
 
                 var dailyScheduleDto = new DailyScheduleDto
                 {

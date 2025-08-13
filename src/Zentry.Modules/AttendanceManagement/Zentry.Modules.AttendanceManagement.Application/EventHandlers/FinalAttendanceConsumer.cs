@@ -44,7 +44,6 @@ public class FinalAttendanceConsumer(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error acquiring processing lock for session {SessionId}. Aborting.", sessionId);
-            // Re-throw to allow MassTransit's retry mechanism to handle this.
             throw;
         }
 
@@ -87,103 +86,108 @@ public class FinalAttendanceConsumer(
 
         IReadOnlyList<StudentTrack> relevantStudentTracks;
         List<Round> completedRounds;
-        List<Round> finalizedRounds;
+        List<AttendanceRecord> allAttendanceRecords;
 
         try
         {
             var allRounds = await roundRepository.GetRoundsBySessionIdAsync(sessionId, cancellationToken);
             completedRounds = allRounds.Where(r => Equals(r.Status, RoundStatus.Completed)).ToList();
-            finalizedRounds = allRounds.Where(r => Equals(r.Status, RoundStatus.Finalized)).ToList();
 
-            relevantStudentTracks =
-                await studentTrackRepository.GetStudentTracksBySessionIdAsync(sessionId, cancellationToken);
+            // Get all attendance records for this session (should include Future status records)
+            allAttendanceRecords = await attendanceRecordRepository
+                .GetAttendanceRecordsBySessionIdAsync(sessionId, cancellationToken);
 
-            if (relevantStudentTracks == null)
+            // Get student tracks (students who were actually tracked/scanned during session)
+            relevantStudentTracks = await studentTrackRepository
+                .GetStudentTracksBySessionIdAsync(sessionId, cancellationToken);
+
+            if (allAttendanceRecords == null || allAttendanceRecords.Count == 0)
             {
-                logger.LogError("GetStudentTracksBySessionIdAsync returned null for Session {SessionId}", sessionId);
-                throw new InvalidOperationException($"Student tracks not found for session {sessionId}");
+                logger.LogError(
+                    "No AttendanceRecords found for Session {SessionId}. Records should be created when session is created.",
+                    sessionId);
+                throw new InvalidOperationException($"Attendance records not found for session {sessionId}");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error fetching initial data for session {SessionId}. Aborting process.", sessionId);
-            throw; // Re-throw to indicate a critical failure.
+            throw;
         }
 
         logger.LogInformation(
-            "Session {SessionId} status: {CompletedRounds} completed rounds, {FinalizedRounds} finalized rounds, {ActualRounds} rounds used for calculation",
-            sessionId, completedRounds.Count, finalizedRounds.Count, actualRoundsCount);
-
-        if (relevantStudentTracks.Count == 0)
-        {
-            logger.LogInformation(
-                "No relevant StudentTracks found for Session {SessionId}. No final attendance records to create/update.",
-                sessionId);
-            return;
-        }
+            "Session {SessionId} status: {CompletedRounds} completed rounds, {ActualRounds} rounds used for calculation, {TotalAttendanceRecords} total attendance records, {TrackedStudents} tracked students",
+            sessionId, completedRounds.Count, actualRoundsCount, allAttendanceRecords.Count, relevantStudentTracks.Count);
 
         var attendanceRecordsToProcess = new List<AttendanceRecord>();
 
-        foreach (var studentTrack in relevantStudentTracks)
+        // Create a dictionary of student tracks for faster lookup
+        var studentTrackDict = relevantStudentTracks.ToDictionary(st => st.StudentId, st => st);
+
+        // Process each attendance record
+        foreach (var attendanceRecord in allAttendanceRecords)
+        {
             try
             {
-                var attendedCompletedRounds = studentTrack.Rounds
-                    .Count(rp => completedRounds.Any(r => r.Id == rp.RoundId) && rp.IsAttended);
+                AttendanceStatus newStatus;
+                double percentage;
+                var oldStatus = attendanceRecord.Status;
 
-                var percentage = 0.0;
-                if (actualRoundsCount > 0) percentage = (double)attendedCompletedRounds / actualRoundsCount * 100.0;
-
-                logger.LogDebug(
-                    "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds).",
-                    studentTrack.Id, sessionId, percentage, attendedCompletedRounds, actualRoundsCount);
-
-                var existingAttendanceRecord =
-                    await attendanceRecordRepository.GetByUserIdAndSessionIdAsync(studentTrack.StudentId, sessionId,
-                        cancellationToken);
-
-                var newStatus = percentage >= AttendanceThresholdPercentage
-                    ? AttendanceStatus.Present
-                    : AttendanceStatus.Absent;
-
-                if (existingAttendanceRecord is null)
+                // Check if student was tracked (participated in the session)
+                if (studentTrackDict.TryGetValue(attendanceRecord.StudentId, out var studentTrack))
                 {
-                    existingAttendanceRecord =
-                        AttendanceRecord.Create(studentTrack.StudentId, sessionId, newStatus, false, percentage);
-                    logger.LogInformation(
-                        "Creating new AttendanceRecord for Student {StudentId} in Session {SessionId}. Status: {Status}, Percentage: {Percentage:F2}%",
-                        studentTrack.Id, sessionId, newStatus, percentage);
+                    // Student participated - calculate actual attendance percentage
+                    var attendedCompletedRounds = studentTrack.Rounds
+                        .Count(rp => completedRounds.Any(r => r.Id == rp.RoundId) && rp.IsAttended);
+
+                    percentage = actualRoundsCount > 0 ? (double)attendedCompletedRounds / actualRoundsCount * 100.0 : 0.0;
+                    newStatus = percentage >= AttendanceThresholdPercentage ? AttendanceStatus.Present : AttendanceStatus.Absent;
+
+                    logger.LogDebug(
+                        "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds)",
+                        attendanceRecord.StudentId, sessionId, percentage, attendedCompletedRounds, actualRoundsCount);
                 }
                 else
                 {
-                    if (!Equals(existingAttendanceRecord.Status, newStatus) ||
-                        Math.Abs(existingAttendanceRecord.PercentageAttended - percentage) > 0.01)
-                    {
-                        existingAttendanceRecord.Update(newStatus, false, null, percentage);
-                        logger.LogInformation(
-                            "Updating existing AttendanceRecord for Student {StudentId} in Session {SessionId}. New Status: {NewStatus}, New Percentage: {NewPercentage:F2}%",
-                            studentTrack.StudentId, sessionId, newStatus, percentage);
-                    }
-                    else
-                    {
-                        logger.LogDebug(
-                            "AttendanceRecord for Student {StudentId} in Session {SessionId} remains unchanged.",
-                            studentTrack.StudentId, sessionId);
-                    }
+                    // Student did not participate (was not tracked/scanned) -> Absent
+                    newStatus = AttendanceStatus.Absent;
+                    percentage = 0.0;
+
+                    logger.LogDebug(
+                        "Student {StudentId} in Session {SessionId} was not tracked (did not participate) -> marked as Absent",
+                        attendanceRecord.StudentId, sessionId);
                 }
 
-                attendanceRecordsToProcess.Add(existingAttendanceRecord);
+                // Update attendance record if there are changes
+                if (!Equals(attendanceRecord.Status, newStatus) ||
+                    Math.Abs(attendanceRecord.PercentageAttended - percentage) > 0.01)
+                {
+                    attendanceRecord.Update(newStatus, false, null, percentage);
+
+                    logger.LogInformation(
+                        "Updated AttendanceRecord for Student {StudentId} in Session {SessionId}: {OldStatus} -> {NewStatus}, Percentage: {Percentage:F2}%",
+                        attendanceRecord.StudentId, sessionId, oldStatus, newStatus, percentage);
+                }
+                else
+                {
+                    logger.LogDebug(
+                        "AttendanceRecord for Student {StudentId} in Session {SessionId} remains unchanged",
+                        attendanceRecord.StudentId, sessionId);
+                }
+
+                attendanceRecordsToProcess.Add(attendanceRecord);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex,
-                    "Error processing student track for student {StudentId} in session {SessionId}. Skipping this student.",
-                    studentTrack.Id, sessionId);
-                // Continue to the next student
+                    "Error processing attendance record for student {StudentId} in session {SessionId}. Skipping this student.",
+                    attendanceRecord.StudentId, sessionId);
             }
+        }
 
         try
         {
-            // Batch save all records
+            // Batch save all updated records
             foreach (var record in attendanceRecordsToProcess)
                 await attendanceRecordRepository.AddOrUpdateAsync(record, cancellationToken);
 
@@ -195,8 +199,13 @@ public class FinalAttendanceConsumer(
             throw;
         }
 
+        // Log final statistics
+        var presentCount = attendanceRecordsToProcess.Count(r => Equals(r.Status, AttendanceStatus.Present));
+        var absentCount = attendanceRecordsToProcess.Count(r => Equals(r.Status, AttendanceStatus.Absent));
+        var futureCount = attendanceRecordsToProcess.Count(r => Equals(r.Status, AttendanceStatus.Future));
+
         logger.LogInformation(
-            "Finished processing final attendance for Session {SessionId}. Created/Updated {Count} attendance records based on {ActualRounds} actual rounds.",
-            sessionId, attendanceRecordsToProcess.Count, actualRoundsCount);
+            "Finished processing final attendance for Session {SessionId}. Updated {Total} records: {Present} Present, {Absent} Absent, {Future} Future (based on {ActualRounds} actual rounds)",
+            sessionId, attendanceRecordsToProcess.Count, presentCount, absentCount, futureCount, actualRoundsCount);
     }
 }

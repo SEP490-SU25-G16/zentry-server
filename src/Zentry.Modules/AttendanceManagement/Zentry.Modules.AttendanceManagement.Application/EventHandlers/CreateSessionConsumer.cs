@@ -148,6 +148,18 @@ public class CreateSessionConsumer(
                 {
                     var currentSessionConfigSnapshot = session.SessionConfigs;
 
+                    // Publish SessionCreatedMessage to trigger attendance record creation
+                    var sessionCreatedMessage = new SessionCreatedMessage(
+                        session.Id,
+                        session.ScheduleId,
+                        session.StartTime,
+                        session.EndTime,
+                        session.SessionNumber,
+                        session.CreatedAt
+                    );
+                    await publishEndpoint.Publish(sessionCreatedMessage, context.CancellationToken);
+                    logger.LogInformation("Published SessionCreatedMessage for SessionId: {SessionId}.", session.Id);
+
                     if (currentSessionConfigSnapshot.TotalAttendanceRounds > 0)
                     {
                         var createRoundsMessage = new CreateRoundsMessage(
