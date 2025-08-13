@@ -1,3 +1,4 @@
+using NpgsqlTypes;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.FaceId.Features.VerifyFaceId;
@@ -21,5 +22,5 @@ public class VerifyFaceIdResponse
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
     public string Timestamp { get; set; } = DateTime.UtcNow.ToString("o");
-    public float? Similarity { get; set; }
+    public float Similarity { get; set; }
 }

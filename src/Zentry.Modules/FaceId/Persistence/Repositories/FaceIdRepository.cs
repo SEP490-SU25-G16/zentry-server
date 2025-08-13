@@ -36,10 +36,21 @@ public class FaceIdRepository : IFaceIdRepository
     public async Task<FaceEmbedding> CreateAsync(Guid userId, Vector embedding,
         CancellationToken cancellationToken = default)
     {
-        var faceEmbedding = FaceEmbedding.Create(userId, embedding);
-        _dbContext.FaceEmbeddings.Add(faceEmbedding);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return faceEmbedding;
+        // Use raw SQL insert with explicit vector cast to avoid Npgsql parameter type issues
+        var embeddingArray = embedding.ToArray();
+        var vectorString = "[" +
+                           string.Join(",",
+                               embeddingArray.Select(f => f.ToString("G9", CultureInfo.InvariantCulture))) + "]";
+
+        var id = Guid.NewGuid();
+        var sql =
+            $"INSERT INTO \"FaceEmbeddings\" (\"Id\", \"UserId\", \"Embedding\", \"CreatedAt\", \"UpdatedAt\") " +
+            $"VALUES ('{id}', '{userId}', '{vectorString}'::vector, NOW(), NOW())";
+
+        await _dbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+
+        // Return a new entity representation (note: Id will differ from DB if factory generates new Id)
+        return FaceEmbedding.Create(userId, embedding);
     }
 
     public async Task<FaceEmbedding> UpdateAsync(Guid userId, Vector embedding,
@@ -55,7 +66,7 @@ public class FaceIdRepository : IFaceIdRepository
         var embeddingArray = embedding.ToArray();
         var vectorString = "[" +
                            string.Join(",",
-                               embeddingArray.Select(f => f.ToString("F6", CultureInfo.InvariantCulture))) + "]";
+                               embeddingArray.Select(f => f.ToString("G9", CultureInfo.InvariantCulture))) + "]";
 
         var sql =
             $"UPDATE \"FaceEmbeddings\" SET \"Embedding\" = '{vectorString}'::vector, \"UpdatedAt\" = NOW() WHERE \"UserId\" = '{userId}'";

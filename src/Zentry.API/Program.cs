@@ -16,6 +16,7 @@ using Zentry.Modules.DeviceManagement.Persistence;
 using Zentry.Modules.FaceId;
 using Zentry.Modules.NotificationService;
 using Zentry.Modules.NotificationService.Hubs;
+using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.Modules.ScheduleManagement.Application;
 using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -163,7 +164,8 @@ static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
         (typeof(ScheduleDbContext), "ScheduleDbContext"),
         (typeof(DeviceDbContext), "DeviceManagementDbContext"),
         (typeof(ConfigurationDbContext), "ConfigurationDbContext"),
-        (typeof(UserDbContext), "UserDbContext")
+        (typeof(UserDbContext), "UserDbContext"),
+        (typeof(NotificationDbContext), "NotificationDbContext")
     };
 
     foreach (var (contextType, contextName) in migrations)

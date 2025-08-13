@@ -12,33 +12,24 @@ namespace Zentry.Modules.FaceId.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "FaceEmbeddings",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Embedding = table.Column<Vector>(type: "vector(512)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FaceEmbeddings", x => x.Id);
-                });
+            // Idempotent creation to avoid failing when table already exists
+            migrationBuilder.Sql(@"CREATE TABLE IF NOT EXISTS ""FaceEmbeddings"" (
+    ""Id"" uuid NOT NULL,
+    ""UserId"" uuid NOT NULL,
+    ""Embedding"" vector(512) NOT NULL,
+    ""CreatedAt"" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ""UpdatedAt"" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT ""PK_FaceEmbeddings"" PRIMARY KEY (""Id"")
+);");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_FaceEmbeddings_UserId",
-                table: "FaceEmbeddings",
-                column: "UserId",
-                unique: true);
+            migrationBuilder.Sql(@"CREATE UNIQUE INDEX IF NOT EXISTS ""IX_FaceEmbeddings_UserId"" ON ""FaceEmbeddings"" (""UserId"");");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "FaceEmbeddings");
+            migrationBuilder.Sql(@"DROP INDEX IF EXISTS ""IX_FaceEmbeddings_UserId"";");
+            migrationBuilder.Sql(@"DROP TABLE IF EXISTS ""FaceEmbeddings"";");
         }
     }
 }
