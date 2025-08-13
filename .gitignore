@@ -210,3 +210,4 @@ FakesAssemblies/
 
 # JetBrains Rider
 *.sln.iml
+.env
