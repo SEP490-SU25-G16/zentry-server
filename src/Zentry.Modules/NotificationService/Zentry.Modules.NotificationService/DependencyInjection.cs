@@ -15,7 +15,9 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<NotificationDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(
+                configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly("Zentry.Modules.NotificationService")));
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));

@@ -12,8 +12,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       # Chuỗi kết nối cho database cục bộ (sử dụng pgvector)
       - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
+      # Chuỗi kết nối mặc định cho các module sử dụng EF Core (trỏ tới container postgres)
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       # Chuỗi kết nối cho các module khác (dùng Neon)
-      - ConnectionStrings__DefaultConnection=Host=ep-hidden-paper-a1dczukc-pooler.ap-southeast-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_GF4Jzpevoti5;SSL Mode=Require;
+      #      - ConnectionStrings__DefaultConnection=Host=ep-hidden-paper-a1dczukc-pooler.ap-southeast-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_GF4Jzpevoti5;SSL Mode=Require;
       - Redis_ConnectionString=redis:6379
       - UseMarten=true
       - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
@@ -33,7 +35,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -46,7 +48,7 @@ services:
     volumes:
       - redis-data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -62,7 +64,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin -d zentry" ]
+      test: ["CMD-SHELL", "pg_isready -U admin -d zentry"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -80,7 +82,7 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
+      test: ["CMD", "rabbitmqctl", "status"]
       interval: 15s
       timeout: 5s
       retries: 5

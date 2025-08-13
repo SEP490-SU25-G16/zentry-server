@@ -6,9 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Pgvector.EntityFrameworkCore" Version="0.2.2"/>
-    </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Pgvector.EntityFrameworkCore" Version="0.2.2"/>
+	</ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
