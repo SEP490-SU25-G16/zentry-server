@@ -109,7 +109,6 @@ public class AttendanceController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSessionFinalAttendance(Guid sessionId, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             var query = new GetSessionFinalAttendanceQuery(sessionId);

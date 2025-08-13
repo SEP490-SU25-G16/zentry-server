@@ -72,7 +72,7 @@ public class GetSessionFinalAttendanceQueryHandler(
             finalAttendance.Add(new FinalAttendanceDto
             {
                 StudentId = studentId,
-                StudentCode = user?.StudentCode,
+                StudentCode = user?.Code,
                 FullName = user?.FullName,
                 Email = user?.Email,
                 AttendanceStatus = attendanceStatus.ToString().ToLower(),

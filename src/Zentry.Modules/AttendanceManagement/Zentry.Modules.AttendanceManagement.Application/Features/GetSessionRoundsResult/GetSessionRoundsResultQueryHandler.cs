@@ -49,13 +49,12 @@ public class GetSessionRoundsResultQueryHandler(
             var roundTrack = await roundTrackRepository.GetByIdAsync(round.Id, cancellationToken);
 
             var studentAttendances = new List<StudentAttendanceDto>();
-            if (roundTrack != null && roundTrack.Students.Any())
+            if (roundTrack != null && roundTrack.Students.Count != 0)
                 studentAttendances.AddRange(roundTrack.Students.Select(s => new StudentAttendanceDto
                 {
-                    StudentId = s.StudentId,
+                    StudentCode = s.StudentCode,
                     IsAttended = s.IsAttended,
                     AttendedTime = s.AttendedTime
-                    // Thêm StudentName nếu có thể lấy từ integration query
                 }));
 
             roundsResult.Add(new RoundResultDto
@@ -69,7 +68,6 @@ public class GetSessionRoundsResultQueryHandler(
             });
         }
 
-        // 4. Ánh xạ và trả về DTO cuối cùng
         return new SessionRoundsResultDto
         {
             SessionId = session.Id,

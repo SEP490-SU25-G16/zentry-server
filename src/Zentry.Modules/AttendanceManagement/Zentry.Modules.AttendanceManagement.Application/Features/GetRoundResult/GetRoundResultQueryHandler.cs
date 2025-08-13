@@ -102,7 +102,7 @@ public class GetRoundResultQueryHandler(
 
             return new StudentAttendanceDto
             {
-                StudentId = student.Id,
+                StudentCode = student.Code,
                 FullName = student.FullName,
                 IsAttended = isAttended,
                 AttendedTime = attendedTime

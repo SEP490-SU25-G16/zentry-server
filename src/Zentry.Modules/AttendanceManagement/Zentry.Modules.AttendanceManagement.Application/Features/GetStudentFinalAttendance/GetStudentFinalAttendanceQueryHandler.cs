@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
@@ -18,6 +19,8 @@ public class GetStudentFinalAttendanceQueryHandler(
     ILogger<GetStudentFinalAttendanceQueryHandler> logger)
     : IQueryHandler<GetStudentFinalAttendanceQuery, StudentFinalAttendanceDto>
 {
+    private const string StudentCodeKey = "StudentCode";
+
     public async Task<StudentFinalAttendanceDto> Handle(GetStudentFinalAttendanceQuery request,
         CancellationToken cancellationToken)
     {
@@ -25,50 +28,91 @@ public class GetStudentFinalAttendanceQueryHandler(
             "Handling GetStudentFinalAttendanceQuery for SessionId: {SessionId}, StudentId: {StudentId}",
             request.SessionId, request.StudentId);
 
-        // 1. Lấy thông tin Session và tổng số rounds
+        // Lấy thông tin session
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
         if (session is null)
             throw new NotFoundException("Session", $"Phiên học với ID '{request.SessionId}' không tìm thấy.");
 
-        // Lấy trạng thái của session ngay sau khi tìm thấy
         var sessionStatus = session.Status.ToString();
 
+        // Lấy thông tin rounds
         var allRounds = await roundRepository.GetRoundsBySessionIdAsync(request.SessionId, cancellationToken);
         var totalRounds = allRounds.Count;
-        if (totalRounds == 0)
-        {
-            logger.LogWarning("No rounds found for SessionId: {SessionId}.", request.SessionId);
-            return new StudentFinalAttendanceDto
-            {
-                StudentId = request.StudentId,
-                FullName = "Student Not Found",
-                SessionId = request.SessionId,
-                SessionStatus = sessionStatus,
-                FinalAttendancePercentage = 0,
-                TotalRounds = 0,
-                AttendedRoundsCount = 0,
-                MissedRoundsCount = 0
-            };
-        }
 
-        // 2. Lấy thông tin sinh viên từ UserManagement module
+        // Lấy thông tin student
         var studentInfo = await mediator.Send(
             new GetUserByIdAndRoleIntegrationQuery(request.StudentId, Role.Student),
             cancellationToken);
+
         if (studentInfo == null)
         {
             logger.LogWarning("Student with ID {StudentId} not found.", request.StudentId);
             throw new NotFoundException("Student", $"Sinh viên với ID '{request.StudentId}' không tìm thấy.");
         }
 
-        // 3. Lấy kết quả điểm danh của sinh viên từ Marten (StudentTrack)
-        var studentTrack =
-            await studentTrackRepository.GetBySessionIdAndUserIdAsync(request.SessionId, request.StudentId,
-                cancellationToken);
+        // Nếu không có rounds, trả về kết quả mặc định
+        if (totalRounds == 0)
+        {
+            logger.LogWarning("No rounds found for SessionId: {SessionId}.", request.SessionId);
+            return CreateDefaultAttendanceDto(request, studentInfo, sessionStatus);
+        }
 
-        // 4. Kết hợp dữ liệu và tính toán
+        // Lấy thông tin attendance của student
+        var studentTrack = await studentTrackRepository.GetBySessionIdAndUserIdAsync(
+            request.SessionId, request.StudentId, cancellationToken);
+
         var attendedRounds = studentTrack?.Rounds.ToDictionary(r => r.RoundId) ??
                              new Dictionary<Guid, RoundParticipation>();
+
+        // Tính toán attendance details
+        var (roundDetails, attendedRoundsCount) = CalculateRoundDetails(allRounds, attendedRounds);
+
+        var finalPercentage = totalRounds > 0 ? (double)attendedRoundsCount / totalRounds * 100 : 0;
+
+        // Lấy student code từ attributes
+        var studentCode = GetStudentCode(studentInfo.Attributes);
+
+        return new StudentFinalAttendanceDto
+        {
+            StudentId = request.StudentId,
+            StudentCode = studentCode,
+            FullName = studentInfo.FullName,
+            SessionId = request.SessionId,
+            SessionStatus = sessionStatus,
+            FinalAttendancePercentage = finalPercentage,
+            TotalRounds = totalRounds,
+            AttendedRoundsCount = attendedRoundsCount,
+            MissedRoundsCount = totalRounds - attendedRoundsCount,
+            RoundDetails = roundDetails
+        };
+    }
+
+    private static StudentFinalAttendanceDto CreateDefaultAttendanceDto(
+        GetStudentFinalAttendanceQuery request,
+        GetUserByIdAndRoleIntegrationResponse studentInfo,
+        string sessionStatus)
+    {
+        var studentCode = GetStudentCode(studentInfo.Attributes);
+
+        return new StudentFinalAttendanceDto
+        {
+            StudentId = request.StudentId,
+            StudentCode = studentCode,
+            FullName = studentInfo.FullName,
+            SessionId = request.SessionId,
+            SessionStatus = sessionStatus,
+            FinalAttendancePercentage = 0,
+            TotalRounds = 0,
+            AttendedRoundsCount = 0,
+            MissedRoundsCount = 0,
+            RoundDetails = []
+        };
+    }
+
+    private static (List<RoundAttendanceDetailDto> roundDetails, int attendedCount) CalculateRoundDetails(
+        IReadOnlyList<Round> allRounds,
+        Dictionary<Guid, RoundParticipation> attendedRounds)
+    {
         var roundDetails = new List<RoundAttendanceDetailDto>();
         var attendedRoundsCount = 0;
 
@@ -86,20 +130,17 @@ public class GetStudentFinalAttendanceQueryHandler(
             });
         }
 
-        var finalPercentage = totalRounds > 0 ? (double)attendedRoundsCount / totalRounds * 100 : 0;
+        return (roundDetails, attendedRoundsCount);
+    }
 
-        // 5. Ánh xạ và trả về DTO
-        return new StudentFinalAttendanceDto
+    private static string GetStudentCode(Dictionary<string, string> attributes)
+    {
+        if (attributes.TryGetValue(StudentCodeKey, out var studentCode) &&
+            !string.IsNullOrEmpty(studentCode))
         {
-            StudentId = request.StudentId,
-            FullName = studentInfo.FullName,
-            SessionId = request.SessionId,
-            SessionStatus = sessionStatus,
-            FinalAttendancePercentage = finalPercentage,
-            TotalRounds = totalRounds,
-            AttendedRoundsCount = attendedRoundsCount,
-            MissedRoundsCount = totalRounds - attendedRoundsCount,
-            RoundDetails = roundDetails
-        };
+            return studentCode;
+        }
+
+        return string.Empty;
     }
 }

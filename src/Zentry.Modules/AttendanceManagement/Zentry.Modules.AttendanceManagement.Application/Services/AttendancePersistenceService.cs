@@ -5,6 +5,7 @@ using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Contracts.Device;
+using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Services;
 
@@ -81,6 +82,7 @@ public class AttendancePersistenceService(
                 mergedStudentsInRoundTrack.Add(studentId, new StudentAttendanceInRound
                 {
                     StudentId = studentId,
+                    StudentCode = string.Empty,
                     DeviceId = usedDeviceIdString,
                     IsAttended = isAttended,
                     AttendedTime = attendedTime
@@ -116,6 +118,21 @@ public class AttendancePersistenceService(
             studentTracksToUpdate.Add(studentTrack);
         }
 
+        var studentIds = mergedStudentsInRoundTrack.Values
+            .Select(s => s.StudentId)
+            .Distinct()
+            .ToList();
+        var users = await mediator.Send(new GetUsersByIdsIntegrationQuery(studentIds), CancellationToken.None);
+        var usersLookup = users.Users?
+                              .ToDictionary(u => u.Id, u => u)
+                          ?? new Dictionary<Guid, BasicUserInfoDto>();
+        foreach (var attendancePair in mergedStudentsInRoundTrack)
+        {
+            if (usersLookup.TryGetValue(attendancePair.Value.StudentId, out var userInfo))
+            {
+                attendancePair.Value.StudentCode = userInfo.Code;
+            }
+        }
         roundTrack.Students = mergedStudentsInRoundTrack.Values.ToList();
 
         await roundTrackRepository.AddOrUpdateAsync(roundTrack, cancellationToken);
