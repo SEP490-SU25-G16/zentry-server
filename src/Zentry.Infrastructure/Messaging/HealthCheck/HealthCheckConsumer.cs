@@ -5,7 +5,7 @@ namespace Zentry.Infrastructure.Messaging.HealthCheck;
 /// <summary>
 /// Consumer để handle health check messages
 /// </summary>
-public abstract class HealthCheckConsumer : IConsumer<HealthCheckMessage>
+public class HealthCheckConsumer : IConsumer<HealthCheckMessage>
 {
     public Task Consume(ConsumeContext<HealthCheckMessage> context)
     {

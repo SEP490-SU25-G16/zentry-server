@@ -18,11 +18,12 @@ public static class HeartbeatConsumerExtensions
     {
         cfg.ReceiveEndpoint("heartbeat_queue", e =>
         {
-            e.ConfigureConsumer<HeartbeatConsumer>(context);
-            e.Durable = false; // Không cần persistent cho heartbeat
-            e.AutoDelete = true; // Tự động xóa khi không dùng
+            e.Durable = false;
+            e.AutoDelete = true;
             e.PrefetchCount = 1;
             e.ConcurrentMessageLimit = 1;
+            e.ConfigureConsumer<HeartbeatConsumer>(context);
+
         });
     }
 }

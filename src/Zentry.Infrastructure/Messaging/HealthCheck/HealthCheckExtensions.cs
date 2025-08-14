@@ -5,7 +5,6 @@ using RabbitMQ.Client;
 
 namespace Zentry.Infrastructure.Messaging.HealthCheck;
 
-
 /// <summary>
 /// Extension methods để đăng ký health checks
 /// </summary>
@@ -48,11 +47,11 @@ public static class HealthCheckExtensions
     {
         cfg.ReceiveEndpoint("health_check_queue", e =>
         {
-            e.ConfigureConsumer<HealthCheckConsumer>(context);
-            e.Durable = false; // Không cần persistent
-            e.AutoDelete = true; // Tự động xóa
+            e.Durable = false;
+            e.AutoDelete = true;
             e.PrefetchCount = 1;
             e.ConcurrentMessageLimit = 1;
+            e.ConfigureConsumer<HealthCheckConsumer>(context);
         });
     }
 }

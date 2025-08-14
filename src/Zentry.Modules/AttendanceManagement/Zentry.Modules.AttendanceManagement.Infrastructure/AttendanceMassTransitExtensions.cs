@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using Zentry.Modules.AttendanceManagement.Application.EventHandlers;
+using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Infrastructure;
 
@@ -145,8 +146,8 @@ public static class AttendanceMassTransitExtensions
         });
 
         // Dead letter exchanges
-        cfg.Send<object>(x => x.UseRoutingKeyFormatter(_ => "attendance_failed"));
-        cfg.Publish<object>(x => x.Durable = true);
+        cfg.Send<DeadLetterMessage>(x => x.UseRoutingKeyFormatter(_ => "attendance_failed"));
+        cfg.Publish<DeadLetterMessage>(x => x.Durable = true);
     }
 }
 
