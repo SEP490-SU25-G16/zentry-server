@@ -5,6 +5,7 @@ using Zentry.SharedKernel.Constants.Response;
 using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Helpers;
 
+
 namespace Zentry.SharedKernel.Extensions;
 
 [ApiController]

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
 using Zentry.Modules.DeviceManagement.Features.DeleteDevicesForInactiveStudent;
 using Zentry.Modules.DeviceManagement.Features.GetDeviceById;
@@ -12,14 +13,11 @@ using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
-// Assuming RegisterDeviceRequest is here
-// For [Authorize] attribute
-// For ClaimTypes
-
 namespace Zentry.Modules.DeviceManagement.Controllers;
 
 [ApiController]
 [Route("api/devices")]
+[EnableRateLimiting("FixedPolicy")]
 // [Authorize] // Apply authorization to ensure only authenticated users can access
 public class DevicesController(IMediator mediator) : BaseController
 {

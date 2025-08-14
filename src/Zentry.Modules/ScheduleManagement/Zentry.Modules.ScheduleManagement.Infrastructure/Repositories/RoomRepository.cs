@@ -13,6 +13,7 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
     {
         return await dbContext.Rooms.CountAsync(cancellationToken);
     }
+
     public async Task<List<Room>> GetByRoomNamesAsync(List<string> roomNames, CancellationToken cancellationToken)
     {
         return await dbContext.Rooms
@@ -40,9 +41,10 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
         return await dbContext.Rooms.FindAsync(new object[] { id }, cancellationToken);
     }
 
-    public async Task<bool> IsRoomNameUniqueAsync(string roomName, CancellationToken cancellationToken)
+    public async Task<bool> IsRoomNameUniqueAsync(string roomName, string building, CancellationToken cancellationToken)
     {
-        return !await dbContext.Rooms.AnyAsync(r => r.RoomName == roomName, cancellationToken);
+        return !await dbContext.Rooms.AnyAsync(r => r.RoomName == roomName && r.Building == building,
+            cancellationToken);
     }
 
     public async Task<bool> IsRoomNameUniqueExcludingSelfAsync(Guid roomId, string? roomName, string building,

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.CreateSchedule;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailySchedules;
@@ -21,6 +22,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/schedules")]
+[EnableRateLimiting("FixedPolicy")]
 public class SchedulesController(
     IMediator mediator,
     IFileProcessor<ScheduleImportDto> fileProcessor) : BaseController

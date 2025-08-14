@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Application.Features.CalculateRoundAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.CancelSession;
@@ -25,6 +26,7 @@ namespace Zentry.Modules.AttendanceManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/attendance")]
+[EnableRateLimiting("FixedPolicy")]
 public class AttendanceController(IMediator mediator) : BaseController
 {
     // Lấy kết quả điểm danh cuối cùng của một sinh viên trong một session

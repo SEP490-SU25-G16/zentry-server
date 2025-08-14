@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ConfigurationManagement.Features.CreateAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.CreateSetting;
 using Zentry.Modules.ConfigurationManagement.Features.DeleteAttributeDefinition;
@@ -16,6 +17,7 @@ namespace Zentry.Modules.ConfigurationManagement.Controllers;
 
 [ApiController]
 [Route("api/configurations")]
+[EnableRateLimiting("FixedPolicy")]
 public class ConfigurationsController(IMediator mediator) : BaseController
 {
     [HttpGet("settings")]

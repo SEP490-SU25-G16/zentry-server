@@ -123,11 +123,11 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             cancellationToken);
     }
 
-    public async Task<ClassSection?> GetBySectionCodeAndSemesterAsync(string sectionCode, Semester semester,
+    public async Task<ClassSection?> GetBySectionCodeAsync(string sectionCode,
         CancellationToken cancellationToken = default)
     {
         return await dbContext.ClassSections
-            .Where(cs => cs.SectionCode == sectionCode && cs.Semester == semester)
+            .Where(cs => cs.SectionCode == sectionCode)
             .FirstOrDefaultAsync(cancellationToken);
     }
 

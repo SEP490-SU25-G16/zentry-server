@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.UserManagement.Features.GetUserRequests;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
@@ -9,6 +10,7 @@ namespace Zentry.Modules.UserManagement.Controllers;
 
 [ApiController]
 [Route("api/user-requests")]
+[EnableRateLimiting("FixedPolicy")]
 public class UserRequestController(IMediator mediator) : BaseController
 {
     [HttpGet]

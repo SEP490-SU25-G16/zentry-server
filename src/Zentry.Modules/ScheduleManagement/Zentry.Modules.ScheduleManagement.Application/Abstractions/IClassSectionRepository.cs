@@ -30,6 +30,6 @@ public interface IClassSectionRepository : IRepository<ClassSection, Guid>
     Task<bool> IsExistClassSectionByCourseIdAsync(Guid courseId, CancellationToken cancellationToken);
     Task<bool> IsExistClassSectionBySectionCodeAsync(Guid id, string sectionCode, CancellationToken cancellationToken);
 
-    Task<ClassSection?> GetBySectionCodeAndSemesterAsync(string sectionCode, Semester semester,
+    Task<ClassSection?> GetBySectionCodeAsync(string sectionCode,
         CancellationToken cancellationToken = default);
 }

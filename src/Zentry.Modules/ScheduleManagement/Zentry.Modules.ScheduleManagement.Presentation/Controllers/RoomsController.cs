@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.CreateRoom;
 using Zentry.Modules.ScheduleManagement.Application.Features.Rooms.DeleteRoom;
@@ -15,6 +16,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/rooms")]
+[EnableRateLimiting("FixedPolicy")]
 public class RoomsController(IMediator mediator) : BaseController
 {
     [HttpGet]

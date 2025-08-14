@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.AssignLecturer;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.CreateClassSection;
@@ -28,6 +29,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/class-sections")]
+[EnableRateLimiting("FixedPolicy")]
 public class ClassSectionsController(IMediator mediator) : BaseController
 {
     // === API CRUD Cơ bản (Primary CRUD APIs) ===

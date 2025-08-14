@@ -14,7 +14,7 @@ public class DeleteCourseCommandHandler(
     {
         var course = await courseRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        if (course is null) throw new Exception($"Course with ID '{command.Id}' not found or already deleted.");
+        if (course is null) throw new ResourceNotFoundException("Course", command.Id);
         if (await classSectionRepository.IsExistClassSectionByCourseIdAsync(course.Id, cancellationToken))
         {
             if (await scheduleRepository.HasActiveScheduleInTermAsync(course.Id, cancellationToken))

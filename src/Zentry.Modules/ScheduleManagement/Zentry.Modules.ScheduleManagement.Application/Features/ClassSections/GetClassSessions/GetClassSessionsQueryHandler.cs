@@ -18,7 +18,7 @@ public class GetClassSessionsQueryHandler(
         var classSection = await classSectionRepository.GetByIdAsync(request.ClassId, cancellationToken);
         if (classSection is null)
         {
-            throw new NotFoundException($"Class section with ID {request.ClassId} not found.");
+            throw new ResourceNotFoundException($"Class section", request.ClassId);
         }
 
         var scheduleIds = classSection.Schedules.Select(s => s.Id).ToList();

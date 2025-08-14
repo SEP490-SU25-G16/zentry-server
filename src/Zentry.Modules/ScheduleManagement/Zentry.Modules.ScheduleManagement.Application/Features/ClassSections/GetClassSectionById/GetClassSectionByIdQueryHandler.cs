@@ -45,6 +45,7 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
             CourseCode = cs.Course?.Code,
             CourseName = cs.Course?.Name,
             LecturerId = cs.LecturerId,
+            LecturerCode = lecturerInfo != null ? GetUserCode(lecturerInfo.Attributes) : null,
             LecturerFullName = lecturerInfo?.FullName ?? "Unassigned Lecturer",
             LecturerEmail = lecturerInfo?.Email,
             SectionCode = cs.SectionCode,
@@ -90,5 +91,16 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
         };
 
         return response;
+    }
+
+    private static string GetUserCode(Dictionary<string, string> attributes)
+    {
+        if (attributes.TryGetValue("EmployeeCode", out var employeeCode) &&
+            !string.IsNullOrEmpty(employeeCode))
+        {
+            return employeeCode;
+        }
+
+        return string.Empty;
     }
 }

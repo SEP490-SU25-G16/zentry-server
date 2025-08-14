@@ -2,6 +2,8 @@ namespace Zentry.SharedKernel.Constants.Response;
 
 public static class ErrorCodes
 {
+    public const string RateLimitExceeded = "RATE_LIMIT_EXCEEDED";
+
     // General errors
     public const string ValidationError = "VALIDATION_ERROR";
     public const string InternalServerError = "INTERNAL_SERVER_ERROR";
