@@ -8,7 +8,6 @@ using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.CancelSession;
 
-
 public class CancelSessionCommandHandler(
     ISessionRepository sessionRepository,
     IRoundRepository roundRepository,
@@ -43,12 +42,8 @@ public class CancelSessionCommandHandler(
         if (rounds.Any())
         {
             foreach (var round in rounds)
-            {
                 if (!Equals(round.Status, RoundStatus.Completed))
-                {
                     round.CancelRound();
-                }
-            }
 
             await roundRepository.UpdateRangeAsync(rounds, cancellationToken);
         }

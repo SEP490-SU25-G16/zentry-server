@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Zentry.Infrastructure.Messaging.Heartbeat;
 
 /// <summary>
-/// Service để warm-up RabbitMQ connections và đảm bảo consumers ready
+///     Service để warm-up RabbitMQ connections và đảm bảo consumers ready
 /// </summary>
 public class RabbitMqWarmupService(IServiceProvider serviceProvider, ILogger<RabbitMqWarmupService> logger)
     : BackgroundService
@@ -17,15 +17,14 @@ public class RabbitMqWarmupService(IServiceProvider serviceProvider, ILogger<Rab
         await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
-        {
             try
             {
                 using var scope = serviceProvider.CreateScope();
                 var bus = scope.ServiceProvider.GetRequiredService<IBus>();
-                
+
                 // Warm-up connection bằng cách gửi một heartbeat message
                 await WarmupConnections(bus);
-                
+
                 // Chạy mỗi 30 phút để maintain connections
                 await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
             }
@@ -40,7 +39,6 @@ public class RabbitMqWarmupService(IServiceProvider serviceProvider, ILogger<Rab
                 // Retry sau 5 phút nếu có lỗi
                 await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
             }
-        }
     }
 
     private async Task WarmupConnections(IBus bus)
@@ -76,5 +74,3 @@ public class RabbitMqWarmupService(IServiceProvider serviceProvider, ILogger<Rab
         await base.StopAsync(cancellationToken);
     }
 }
-
-

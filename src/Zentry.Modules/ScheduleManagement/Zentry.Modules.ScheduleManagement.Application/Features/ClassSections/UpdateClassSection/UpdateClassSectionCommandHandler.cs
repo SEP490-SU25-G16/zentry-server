@@ -20,10 +20,8 @@ public class UpdateClassSectionCommandHandler(
             await scheduleRepository.HasActiveScheduleByClassSectionIdAsync(classSection.Id, cancellationToken);
 
         if (hasActiveSchedule)
-        {
             throw new ScheduleConflictException(
                 $"Class section with ID '{classSection.Id}' can not be updated because it  is already active.");
-        }
 
         if (command.SectionCode != null &&
             await classSectionRepository.IsExistClassSectionBySectionCodeAsync(command.Id, command.SectionCode,

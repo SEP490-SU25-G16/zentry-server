@@ -1,7 +1,7 @@
 namespace Zentry.Infrastructure.Messaging.Heartbeat;
 
 /// <summary>
-/// Message để test connection
+///     Message để test connection
 /// </summary>
 public record RabbitMqHeartbeatMessage
 {

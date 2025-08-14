@@ -18,19 +18,13 @@ public class GetUsersByIdsIntegrationQueryHandler(IUserRepository userRepository
         CancellationToken cancellationToken)
     {
         // Early return nếu không có user IDs
-        if (request.UserIds.Count == 0)
-        {
-            return new GetUsersByIdsIntegrationResponse(new List<BasicUserInfoDto>());
-        }
+        if (request.UserIds.Count == 0) return new GetUsersByIdsIntegrationResponse(new List<BasicUserInfoDto>());
 
         // Lấy thông tin users
         var users = await userRepository.GetUsersByIdsAsync(request.UserIds, cancellationToken);
 
         // Nếu không tìm thấy users nào, trả về empty response
-        if (!users.Any())
-        {
-            return new GetUsersByIdsIntegrationResponse(new List<BasicUserInfoDto>());
-        }
+        if (!users.Any()) return new GetUsersByIdsIntegrationResponse(new List<BasicUserInfoDto>());
 
         // Lấy attributes cho tất cả users
         var userIds = users.Select(u => u.Id).ToList();
@@ -39,7 +33,7 @@ public class GetUsersByIdsIntegrationQueryHandler(IUserRepository userRepository
 
         // Tạo DTOs
         var dtos = users.Select(user => CreateBasicUserInfoDto(user, userAttributesResponse))
-                       .ToList();
+            .ToList();
 
         return new GetUsersByIdsIntegrationResponse(dtos);
     }
@@ -69,15 +63,11 @@ public class GetUsersByIdsIntegrationQueryHandler(IUserRepository userRepository
     {
         if (attributes.TryGetValue(StudentCodeKey, out var studentCode) &&
             !string.IsNullOrEmpty(studentCode))
-        {
             return studentCode;
-        }
 
         if (attributes.TryGetValue(EmployeeCodeKey, out var employeeCode) &&
             !string.IsNullOrEmpty(employeeCode))
-        {
             return employeeCode;
-        }
 
         return string.Empty;
     }

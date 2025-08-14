@@ -1,6 +1,5 @@
 using MediatR;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Schedule;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.UpdateSchedule;
 

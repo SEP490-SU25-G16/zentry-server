@@ -7,6 +7,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.Assig
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.CreateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.DeleteClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetAllClassSectionsWithEnrollmentCount;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetAttendanceRateByYearAndSemester;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassOverview;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSectionById;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSectionCountBySemester;
@@ -14,16 +15,17 @@ using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetCl
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetClassSessions;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetSessionsByClassSectionId;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentClasses;
+using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetTotalClassSectionCount;
 using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.UpdateClassSection;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailyReportQuery;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerWeeklyOverview;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentNextSessions;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentWeeklyReview;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetAttendanceRateByYearAndSemester;
-using Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetTotalClassSectionCount;
-using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentNextSessions;
-using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentWeeklyReview; // Thêm dòng này
+
+// Thêm dòng này
 
 namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 

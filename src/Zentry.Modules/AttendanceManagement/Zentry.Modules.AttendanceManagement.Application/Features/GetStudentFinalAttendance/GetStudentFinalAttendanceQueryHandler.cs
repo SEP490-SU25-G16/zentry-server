@@ -137,9 +137,7 @@ public class GetStudentFinalAttendanceQueryHandler(
     {
         if (attributes.TryGetValue(StudentCodeKey, out var studentCode) &&
             !string.IsNullOrEmpty(studentCode))
-        {
             return studentCode;
-        }
 
         return string.Empty;
     }

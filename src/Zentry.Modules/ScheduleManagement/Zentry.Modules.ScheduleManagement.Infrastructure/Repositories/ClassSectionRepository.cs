@@ -78,17 +78,6 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         return results.ToDictionary(r => r.Semester, r => r.ClassSectionCount);
     }
 
-    public async Task<List<Semester>> GetDistinctSemestersAsync(CancellationToken cancellationToken)
-    {
-        return await dbContext.ClassSections
-            .AsNoTracking()
-            .Where(c => !c.IsDeleted)
-            .Where(c => !c.IsDeleted)
-            .Select(cs => cs.Semester)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<List<ClassSection>> GetClassSectionsDetailsByIdsAsync(
         List<Guid> classSectionIds,
         CancellationToken cancellationToken)
@@ -282,5 +271,16 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             dbContext.ClassSections.Update(classSection);
             await SaveChangesAsync(cancellationToken);
         }
+    }
+
+    public async Task<List<Semester>> GetDistinctSemestersAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted)
+            .Where(c => !c.IsDeleted)
+            .Select(cs => cs.Semester)
+            .Distinct()
+            .ToListAsync(cancellationToken);
     }
 }

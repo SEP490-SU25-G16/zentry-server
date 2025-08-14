@@ -21,17 +21,20 @@ public class DeleteScheduleSessionsConsumer(
         try
         {
             // Bước 1: Lấy tất cả sessions liên quan đến schedule đã xóa
-            var sessionsToDelete = await sessionRepository.GetSessionsByScheduleIdAsync(message.ScheduleId, context.CancellationToken);
+            var sessionsToDelete =
+                await sessionRepository.GetSessionsByScheduleIdAsync(message.ScheduleId, context.CancellationToken);
 
             if (!sessionsToDelete.Any())
             {
-                logger.LogInformation("No sessions found for ScheduleId: {ScheduleId}. No action needed.", message.ScheduleId);
+                logger.LogInformation("No sessions found for ScheduleId: {ScheduleId}. No action needed.",
+                    message.ScheduleId);
                 return;
             }
 
             // Bước 2: Lấy tất cả rounds liên quan đến các sessions đó
             var sessionIds = sessionsToDelete.Select(s => s.Id).ToList();
-            var roundsToDelete = await roundRepository.GetRoundsBySessionIdsAsync(sessionIds, context.CancellationToken);
+            var roundsToDelete =
+                await roundRepository.GetRoundsBySessionIdsAsync(sessionIds, context.CancellationToken);
 
             if (roundsToDelete.Count != 0)
             {

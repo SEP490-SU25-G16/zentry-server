@@ -20,10 +20,7 @@ public class GetLecturerNextSessionsQueryHandler(
         var response =
             await mediator.Send(new CheckUserExistIntegrationQuery(request.LecturerId), cancellationToken);
 
-        if (response.IsExist == false)
-        {
-            throw new ResourceNotFoundException("Lecturer", request.LecturerId);
-        }
+        if (response.IsExist == false) throw new ResourceNotFoundException("Lecturer", request.LecturerId);
 
         var nextSessions = new List<NextSessionDto>();
 
@@ -31,10 +28,8 @@ public class GetLecturerNextSessionsQueryHandler(
             await classSectionRepository.GetLecturerClassSectionsAsync(request.LecturerId, cancellationToken);
 
         if (classSections.Count == 0)
-        {
             throw new ResourceNotFoundException(
                 $"Lecturer with id {request.LecturerId} is not assigned to any class section.");
-        }
 
         var allScheduleIds = classSections.SelectMany(cs => cs.Schedules.Select(s => s.Id)).ToList();
 

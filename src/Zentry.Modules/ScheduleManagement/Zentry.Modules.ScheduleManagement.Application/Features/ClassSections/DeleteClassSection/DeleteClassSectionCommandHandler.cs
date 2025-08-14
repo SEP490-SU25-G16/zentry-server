@@ -13,10 +13,7 @@ public class DeleteClassSectionCommandHandler(
     {
         var classSection = await classSectionRepository.GetByIdAsync(command.Id, cancellationToken);
 
-        if (classSection is null)
-        {
-            throw new ResourceNotFoundException("CLASS SECTION", command.Id);
-        }
+        if (classSection is null) throw new ResourceNotFoundException("CLASS SECTION", command.Id);
 
         if (classSection.Enrollments.Count != 0)
         {
@@ -24,10 +21,8 @@ public class DeleteClassSectionCommandHandler(
                 await scheduleRepository.HasActiveScheduleByClassSectionIdAsync(classSection.Id, cancellationToken);
 
             if (hasActiveSchedule)
-            {
                 throw new ResourceCannotBeDeletedException(
                     $"Class section with ID '{command.Id}' has active enrollments and a running schedule, so it cannot be deleted.");
-            }
 
             await classSectionRepository.SoftDeleteAsync(command.Id, cancellationToken);
         }

@@ -128,14 +128,10 @@ public class Session : AggregateRoot<Guid>
     public void CancelSession()
     {
         if (!Equals(Status, SessionStatus.Active))
-        {
             throw new BusinessRuleException("ONLY_CANCEL_PENDING_SESSION", "Chỉ có thể cancel session đang pending.");
-        }
-        else
-        {
-            Status = SessionStatus.Cancelled;
-            UpdatedAt = DateTime.UtcNow;
-        }
+
+        Status = SessionStatus.Cancelled;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void MissedSession()

@@ -85,7 +85,7 @@ public class GetSessionFinalAttendanceQueryHandler(
                 ScheduleId = session.ScheduleId,
                 CourseId = courseId,
                 ClassInfo = classInfo,
-                SessionStartTime = session.StartTime,
+                SessionStartTime = session.StartTime
             });
         }
 

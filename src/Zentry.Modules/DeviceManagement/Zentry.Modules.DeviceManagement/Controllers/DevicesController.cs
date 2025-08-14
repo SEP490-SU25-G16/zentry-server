@@ -212,12 +212,14 @@ public class DevicesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpDelete("student/{studentId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
 // [Authorize(Roles = "Admin")] // Cần có authorization phù hợp
-    public async Task<IActionResult> DeleteDevicesForInactiveStudent(Guid studentId, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteDevicesForInactiveStudent(Guid studentId,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -230,6 +232,7 @@ public class DevicesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpGet("total-devices")]
     [ProducesResponseType(typeof(ApiResponse<GetTotalDevicesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]

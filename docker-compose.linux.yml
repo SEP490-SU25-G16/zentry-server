@@ -18,16 +18,39 @@
       - ASPNETCORE_ENVIRONMENT=Development
       # Chuỗi kết nối cho database cục bộ (sử dụng pgvector)
       - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
+#      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       - ConnectionStrings__DefaultConnection=Host=zentry.c2pgywcgsk5m.us-east-1.rds.amazonaws.com;Port=5432;Database=zentry;Username=postgres;Password=zentry_owner;
+
       - Redis_ConnectionString=redis:6379
       - UseMarten=true
       - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-      - RabbitMQ_ConnectionString=rabbitmq://admin:pass@rabbitmq:5672/
+      # Sửa chuỗi kết nối RabbitMQ
+      - RabbitMQ_ConnectionString=amqp://admin:pass@rabbitmq:5672/
       # ----------------------------------------
       - Jwt__Secret=a-super-secret-key-that-is-long-enough-for-hs256-algorithm
       - Jwt__Issuer=https://zentry.local
       - Jwt__Audience=https://zentry.local
       - Jwt__ExpirationMinutes=60
+      # Thêm cấu hình Rate Limiting để đồng bộ
+      - RateLimiting__FixedWindow__PermitLimit=100
+      - RateLimiting__FixedWindow__WindowMinutes=1
+      - RateLimiting__FixedWindow__QueueLimit=10
+      - RateLimiting__SlidingWindow__PermitLimit=50
+      - RateLimiting__SlidingWindow__WindowMinutes=1
+      - RateLimiting__SlidingWindow__SegmentsPerWindow=6
+      - RateLimiting__SlidingWindow__QueueLimit=5
+      - RateLimiting__TokenBucket__TokenLimit=100
+      - RateLimiting__TokenBucket__ReplenishmentPeriodSeconds=10
+      - RateLimiting__TokenBucket__TokensPerPeriod=20
+      - RateLimiting__TokenBucket__QueueLimit=10
+      - RateLimiting__Concurrency__PermitLimit=50
+      - RateLimiting__Concurrency__QueueLimit=20
+      - RateLimiting__AuthPolicy__PermitLimit=5
+      - RateLimiting__AuthPolicy__WindowMinutes=1
+      - RateLimiting__AuthPolicy__QueueLimit=0
+      - RateLimiting__GlobalLimiter__PermitLimit=200
+      - RateLimiting__GlobalLimiter__WindowMinutes=1
+      - RateLimiting__GlobalLimiter__AutoReplenishment=true
     volumes:
       - ./src/Zentry.API:/app:Z
     depends_on:
@@ -73,19 +96,25 @@
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:4.0-management-alpine
+    # Sửa image và cấu hình để đồng bộ
+    build:
+      context: .
+      dockerfile: Dockerfile.rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=pass
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
       test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   redis-data:
   postgres-data:
+  rabbitmq-data:

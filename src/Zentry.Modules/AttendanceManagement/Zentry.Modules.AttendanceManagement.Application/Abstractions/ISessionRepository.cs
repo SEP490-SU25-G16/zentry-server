@@ -10,6 +10,7 @@ public interface ISessionRepository : IRepository<Session, Guid>
         DateTime startUtc,
         DateTime endUtc,
         CancellationToken cancellationToken);
+
     Task<Session?> GetSessionsWithAttendanceRecordsByIdAsync(Guid sessionId, CancellationToken cancellationToken);
 
     Task<List<Session>> GetSessionsWithAttendanceRecordsByScheduleIdsAsync(List<Guid> scheduleIds,

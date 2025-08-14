@@ -24,9 +24,7 @@ public class GetSessionsByClassSectionQueryHandler(
             await scheduleRepository.GetSchedulesByClassSectionIdAsync(request.ClassSectionId, cancellationToken);
 
         if (schedules.Count is 0)
-        {
             throw new ResourceNotFoundException("Schedule for CLASS SECTION", request.ClassSectionId);
-        }
 
         var sessionDtos = new List<SessionDto>();
 

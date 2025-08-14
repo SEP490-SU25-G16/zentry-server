@@ -3,7 +3,7 @@ using MassTransit;
 namespace Zentry.Infrastructure.Messaging.HealthCheck;
 
 /// <summary>
-/// Consumer để handle health check messages
+///     Consumer để handle health check messages
 /// </summary>
 public class HealthCheckConsumer : IConsumer<HealthCheckMessage>
 {

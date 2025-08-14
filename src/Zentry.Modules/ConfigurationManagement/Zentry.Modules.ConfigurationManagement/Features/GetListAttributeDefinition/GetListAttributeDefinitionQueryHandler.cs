@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.ConfigurationManagement.Dtos;
 using Zentry.Modules.ConfigurationManagement.Entities;

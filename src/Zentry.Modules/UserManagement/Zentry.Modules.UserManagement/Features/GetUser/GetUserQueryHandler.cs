@@ -17,25 +17,16 @@ public class GetUserQueryHandler(IUserRepository userRepository, IMediator media
     {
         // Lấy thông tin user trước
         var user = await userRepository.GetByIdAsync(query.UserId, cancellationToken);
-        if (user is null)
-        {
-            throw new ResourceNotFoundException(nameof(User), query.UserId);
-        }
+        if (user is null) throw new ResourceNotFoundException(nameof(User), query.UserId);
 
         // Sau đó lấy account
         var account = await userRepository.GetAccountByUserId(query.UserId);
 
         // Kiểm tra user tồn tại
-        if (user is null)
-        {
-            throw new ResourceNotFoundException(nameof(User), query.UserId);
-        }
+        if (user is null) throw new ResourceNotFoundException(nameof(User), query.UserId);
 
         // Kiểm tra account tồn tại
-        if (account is null)
-        {
-            throw new ResourceNotFoundException("Account", query.UserId);
-        }
+        if (account is null) throw new ResourceNotFoundException("Account", query.UserId);
 
         // Lấy attributes của user
         var getAttributesQuery = new GetUserAttributesIntegrationQuery(user.Id);
@@ -66,15 +57,11 @@ public class GetUserQueryHandler(IUserRepository userRepository, IMediator media
     {
         if (attributes.TryGetValue(StudentCodeKey, out var studentCode) &&
             !string.IsNullOrEmpty(studentCode))
-        {
             return studentCode;
-        }
 
         if (attributes.TryGetValue(EmployeeCodeKey, out var employeeCode) &&
             !string.IsNullOrEmpty(employeeCode))
-        {
             return employeeCode;
-        }
 
         return string.Empty;
     }

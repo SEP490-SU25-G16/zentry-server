@@ -18,9 +18,7 @@ public class DeleteCourseCommandHandler(
         if (await classSectionRepository.IsExistClassSectionByCourseIdAsync(course.Id, cancellationToken))
         {
             if (await scheduleRepository.HasActiveScheduleInTermAsync(course.Id, cancellationToken))
-            {
                 throw new ResourceCannotBeDeletedException($"Course with ID '{command.Id}' can not be deleted.");
-            }
 
             await courseRepository.SoftDeleteAsync(command.Id, cancellationToken);
         }

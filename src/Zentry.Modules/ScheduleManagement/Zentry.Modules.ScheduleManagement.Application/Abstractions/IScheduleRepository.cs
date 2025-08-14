@@ -8,8 +8,11 @@ namespace Zentry.Modules.ScheduleManagement.Application.Abstractions;
 
 public interface IScheduleRepository : IRepository<Schedule, Guid>
 {
-    Task<List<Schedule>> GetSchedulesByClassSectionIdsAsync(List<Guid> classSectionIds, CancellationToken cancellationToken);
+    Task<List<Schedule>> GetSchedulesByClassSectionIdsAsync(List<Guid> classSectionIds,
+        CancellationToken cancellationToken);
+
     Task SoftDeleteAsync(Schedule entity, CancellationToken cancellationToken);
+
     Task<bool> IsRoomAvailableForUpdateAsync(Guid roomId, WeekDayEnum weekDay, TimeOnly startTime, TimeOnly endTime,
         DateOnly startDate, DateOnly endDate, Guid scheduleIdToExclude, CancellationToken cancellationToken);
 

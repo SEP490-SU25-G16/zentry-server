@@ -18,6 +18,7 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
             .Where(ar => ar.StudentId == studentId && sessionIds.Contains(ar.SessionId))
             .ToListAsync(cancellationToken);
     }
+
     public async Task<List<AttendanceRecord>> GetAttendanceRecordsByStudentIdAndSessionIdsAsync(
         Guid studentId,
         List<Guid> sessionIds,
@@ -29,6 +30,7 @@ public class AttendanceRecordRepository(AttendanceDbContext dbContext) : IAttend
                          sessionIds.Contains(ar.SessionId))
             .ToListAsync(cancellationToken);
     }
+
     public async Task<List<AttendanceRecord>> GetAttendanceRecordsBySessionIdsAsync(List<Guid> sessionIds,
         CancellationToken cancellationToken)
     {

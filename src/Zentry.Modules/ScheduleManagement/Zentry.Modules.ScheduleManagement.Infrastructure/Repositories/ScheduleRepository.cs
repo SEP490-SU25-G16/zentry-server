@@ -466,6 +466,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         dbContext.Schedules.Update(entity);
         await SaveChangesAsync(cancellationToken);
     }
+
     public async Task<List<Schedule>> GetSchedulesByClassSectionIdsAsync(
         List<Guid> classSectionIds,
         CancellationToken cancellationToken)

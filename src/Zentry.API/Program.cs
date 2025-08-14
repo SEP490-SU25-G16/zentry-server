@@ -1,13 +1,14 @@
+using System.Text.Json;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Polly;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Zentry.Infrastructure;
 using Zentry.Infrastructure.Messaging.HealthCheck;
 using Zentry.Infrastructure.Messaging.Heartbeat;
@@ -83,8 +84,8 @@ builder.Services.AddRateLimiter(options =>
 
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: partition => new FixedWindowRateLimiterOptions
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
                 PermitLimit = 200,
@@ -102,7 +103,7 @@ builder.Services.AddRateLimiter(options =>
         );
 
         await context.HttpContext.Response.WriteAsync(
-            System.Text.Json.JsonSerializer.Serialize(apiResponse),
+            JsonSerializer.Serialize(apiResponse),
             token
         );
     };
@@ -304,7 +305,6 @@ static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
         });
 
         if (contextType == typeof(ConfigurationDbContext))
-        {
             await retryPolicy.ExecuteAsync(async () =>
             {
                 var configContext = serviceProvider.GetRequiredService<ConfigurationDbContext>();
@@ -312,6 +312,5 @@ static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
                 await ConfigurationDbContext.SeedDataAsync(configContext, logger);
                 logger.LogInformation("ConfigurationDbContext data seeded successfully.");
             });
-        }
     }
 }

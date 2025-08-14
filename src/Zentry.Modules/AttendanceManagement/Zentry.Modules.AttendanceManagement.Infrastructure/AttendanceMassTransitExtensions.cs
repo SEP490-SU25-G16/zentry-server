@@ -10,13 +10,16 @@ public static class AttendanceMassTransitExtensions
     {
         configurator.AddConsumer<CreateRoundsConsumer>(typeof(CreateRoundsConsumerDefinition));
         configurator.AddConsumer<CreateSessionConsumer>(typeof(CreateSessionConsumerDefinition));
-        configurator.AddConsumer<GenerateScheduleWhitelistConsumer>(typeof(GenerateScheduleWhitelistConsumerDefinition));
+        configurator.AddConsumer<GenerateScheduleWhitelistConsumer>(
+            typeof(GenerateScheduleWhitelistConsumerDefinition));
         configurator.AddConsumer<SubmitScanDataConsumer>(typeof(SubmitScanDataConsumerDefinition));
         configurator.AddConsumer<FinalAttendanceConsumer>(typeof(FinalAttendanceConsumerDefinition));
         configurator.AddConsumer<CalculateRoundAttendanceConsumer>(typeof(CalculateRoundAttendanceConsumerDefinition));
-        configurator.AddConsumer<ProcessActiveRoundForEndSessionConsumer>(typeof(ProcessActiveRoundForEndSessionConsumerDefinition));
+        configurator.AddConsumer<ProcessActiveRoundForEndSessionConsumer>(
+            typeof(ProcessActiveRoundForEndSessionConsumerDefinition));
         configurator.AddConsumer<AssignLecturerConsumer>(typeof(AssignLecturerConsumerDefinition));
-        configurator.AddConsumer<BatchedSessionFinalAttendanceConsumer>(typeof(BatchedSessionFinalAttendanceConsumerDefinition));
+        configurator.AddConsumer<BatchedSessionFinalAttendanceConsumer>(
+            typeof(BatchedSessionFinalAttendanceConsumerDefinition));
         configurator.AddConsumer<UpdateRoundsConsumer>(typeof(UpdateRoundsConsumerDefinition));
         configurator.AddConsumer<DeleteScheduleSessionsConsumer>(typeof(DeleteScheduleSessionsConsumerDefinition));
         configurator.AddConsumer<SessionCreatedAttendanceConsumer>(typeof(SessionCreatedAttendanceConsumerDefinition));
@@ -202,16 +205,20 @@ public class CalculateRoundAttendanceConsumerDefinition : ConsumerDefinition<Cal
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
         IConsumerConfigurator<CalculateRoundAttendanceConsumer> consumerConfigurator, IRegistrationContext context)
     {
-        consumerConfigurator.UseMessageRetry(r => r.Exponential(8, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(3)));
+        consumerConfigurator.UseMessageRetry(r =>
+            r.Exponential(8, TimeSpan.FromSeconds(5), TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(3)));
     }
 }
 
-public class ProcessActiveRoundForEndSessionConsumerDefinition : ConsumerDefinition<ProcessActiveRoundForEndSessionConsumer>
+public class
+    ProcessActiveRoundForEndSessionConsumerDefinition : ConsumerDefinition<ProcessActiveRoundForEndSessionConsumer>
 {
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<ProcessActiveRoundForEndSessionConsumer> consumerConfigurator, IRegistrationContext context)
+        IConsumerConfigurator<ProcessActiveRoundForEndSessionConsumer> consumerConfigurator,
+        IRegistrationContext context)
     {
-        consumerConfigurator.UseMessageRetry(r => r.Exponential(12, TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(10), TimeSpan.FromSeconds(5)));
+        consumerConfigurator.UseMessageRetry(r =>
+            r.Exponential(12, TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(10), TimeSpan.FromSeconds(5)));
     }
 }
 

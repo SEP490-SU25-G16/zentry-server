@@ -116,10 +116,7 @@ public class CoursesController(IMediator mediator) : BaseController
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(semester))
-            {
-                return BadRequest("Semester parameter is required.");
-            }
+            if (string.IsNullOrWhiteSpace(semester)) return BadRequest("Semester parameter is required.");
 
             var query = new GetLecturerSemesterCoursesQuery
             {

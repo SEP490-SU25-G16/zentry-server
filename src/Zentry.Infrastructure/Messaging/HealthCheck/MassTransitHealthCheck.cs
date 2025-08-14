@@ -4,9 +4,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Zentry.Infrastructure.Messaging.HealthCheck;
 
-
 /// <summary>
-/// Health check cho MassTransit bus
+///     Health check cho MassTransit bus
 /// </summary>
 public class MassTransitHealthCheck(IBus bus, ILogger<MassTransitHealthCheck> logger) : IHealthCheck
 {

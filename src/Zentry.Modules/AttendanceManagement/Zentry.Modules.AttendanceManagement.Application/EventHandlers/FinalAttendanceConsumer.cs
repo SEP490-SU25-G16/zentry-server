@@ -117,7 +117,8 @@ public class FinalAttendanceConsumer(
 
         logger.LogInformation(
             "Session {SessionId} status: {CompletedRounds} completed rounds, {ActualRounds} rounds used for calculation, {TotalAttendanceRecords} total attendance records, {TrackedStudents} tracked students",
-            sessionId, completedRounds.Count, actualRoundsCount, allAttendanceRecords.Count, relevantStudentTracks.Count);
+            sessionId, completedRounds.Count, actualRoundsCount, allAttendanceRecords.Count,
+            relevantStudentTracks.Count);
 
         var attendanceRecordsToProcess = new List<AttendanceRecord>();
 
@@ -126,7 +127,6 @@ public class FinalAttendanceConsumer(
 
         // Process each attendance record
         foreach (var attendanceRecord in allAttendanceRecords)
-        {
             try
             {
                 AttendanceStatus newStatus;
@@ -140,8 +140,12 @@ public class FinalAttendanceConsumer(
                     var attendedCompletedRounds = studentTrack.Rounds
                         .Count(rp => completedRounds.Any(r => r.Id == rp.RoundId) && rp.IsAttended);
 
-                    percentage = actualRoundsCount > 0 ? (double)attendedCompletedRounds / actualRoundsCount * 100.0 : 0.0;
-                    newStatus = percentage >= AttendanceThresholdPercentage ? AttendanceStatus.Present : AttendanceStatus.Absent;
+                    percentage = actualRoundsCount > 0
+                        ? (double)attendedCompletedRounds / actualRoundsCount * 100.0
+                        : 0.0;
+                    newStatus = percentage >= AttendanceThresholdPercentage
+                        ? AttendanceStatus.Present
+                        : AttendanceStatus.Absent;
 
                     logger.LogDebug(
                         "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds)",
@@ -183,7 +187,6 @@ public class FinalAttendanceConsumer(
                     "Error processing attendance record for student {StudentId} in session {SessionId}. Skipping this student.",
                     attendanceRecord.StudentId, sessionId);
             }
-        }
 
         try
         {

@@ -45,12 +45,8 @@ public class GetAttendanceDataByScheduleIdsIntegrationQueryHandler(
 
             var scheduleAttendanceRecords = new List<OverviewAttendanceDto>();
             foreach (var session in scheduleSessions)
-            {
                 if (attendanceRecordsBySessionId.TryGetValue(session.Id, out var records))
-                {
                     scheduleAttendanceRecords.AddRange(records);
-                }
-            }
 
             response.Add(new GetAttendanceDataByScheduleIdsIntegrationResponse
             {

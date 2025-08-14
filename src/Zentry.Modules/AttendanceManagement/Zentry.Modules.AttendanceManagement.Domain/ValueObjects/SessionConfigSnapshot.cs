@@ -143,10 +143,7 @@ public record SessionConfigSnapshot
     {
         var merged =
             new Dictionary<string, string>(_configs, StringComparer.OrdinalIgnoreCase);
-        foreach (var kvp in additionalConfigs)
-        {
-            merged[kvp.Key] = kvp.Value;
-        }
+        foreach (var kvp in additionalConfigs) merged[kvp.Key] = kvp.Value;
 
         return new SessionConfigSnapshot(merged);
     }

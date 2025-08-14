@@ -16,4 +16,3 @@ public class ClassOverviewDto
     public List<string> RoomInfos { get; set; } = [];
     public string? SemesterInfo { get; set; }
 }
-

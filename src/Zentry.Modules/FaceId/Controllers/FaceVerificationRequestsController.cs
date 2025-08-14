@@ -31,48 +31,11 @@ public class FaceVerificationRequestsController : ControllerBase
         _redis = redis;
     }
 
-    public class CreateFaceVerificationRequestDto
-    {
-        public Guid LecturerId { get; set; }
-        public Guid SessionId { get; set; }
-        public Guid? ClassSectionId { get; set; }
-        public List<Guid>? RecipientUserIds { get; set; }
-        public int? ExpiresInMinutes { get; set; }
-        public string? Title { get; set; }
-        public string? Body { get; set; }
-    }
-
-    public class CreateFaceVerificationResponseDto
-    {
-        public required Guid RequestId { get; init; }
-        public required Guid SessionId { get; init; }
-        public required DateTime ExpiresAt { get; init; }
-        public required int TotalRecipients { get; init; }
-    }
-
-    private record FaceVerificationRequestMeta(
-        Guid RequestId,
-        Guid SessionId,
-        Guid LecturerId,
-        Guid? ClassSectionId,
-        DateTime ExpiresAt,
-        string? Title,
-        string? Body,
-        List<Guid> Recipients
-    );
-
-    private record FaceVerificationReceipt(
-        Guid RequestId,
-        Guid UserId,
-        bool Success,
-        float Similarity,
-        DateTime VerifiedAt
-    );
-
     [HttpPost]
     [ProducesResponseType(typeof(CreateFaceVerificationResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] CreateFaceVerificationRequestDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateFaceVerificationRequestDto request,
+        CancellationToken cancellationToken)
     {
         if (request.LecturerId == Guid.Empty)
             return BadRequest(new { Message = "LecturerId is required" });
@@ -80,7 +43,8 @@ public class FaceVerificationRequestsController : ControllerBase
         if (request.SessionId == Guid.Empty)
             return BadRequest(new { Message = "SessionId is required" });
 
-        if ((request.ClassSectionId is null || request.ClassSectionId == Guid.Empty) && (request.RecipientUserIds is null || request.RecipientUserIds.Count == 0))
+        if ((request.ClassSectionId is null || request.ClassSectionId == Guid.Empty) &&
+            (request.RecipientUserIds is null || request.RecipientUserIds.Count == 0))
             return BadRequest(new { Message = "Provide either ClassSectionId or RecipientUserIds" });
 
         try
@@ -93,7 +57,9 @@ public class FaceVerificationRequestsController : ControllerBase
             }
             else
             {
-                var resp = await _mediator.Send(new GetStudentIdsByClassSectionIdIntegrationQuery(request.ClassSectionId!.Value), cancellationToken);
+                var resp = await _mediator.Send(
+                    new GetStudentIdsByClassSectionIdIntegrationQuery(request.ClassSectionId!.Value),
+                    cancellationToken);
                 recipients = resp.StudentIds.Distinct().ToList();
             }
 
@@ -121,7 +87,9 @@ public class FaceVerificationRequestsController : ControllerBase
 
             // 3) Push notifications
             var title = string.IsNullOrWhiteSpace(request.Title) ? "Yêu cầu xác thực Face ID" : request.Title!;
-            var body = string.IsNullOrWhiteSpace(request.Body) ? "Vui lòng xác thực khuôn mặt để tiếp tục." : request.Body!;
+            var body = string.IsNullOrWhiteSpace(request.Body)
+                ? "Vui lòng xác thực khuôn mặt để tiếp tục."
+                : request.Body!;
             var deeplink = $"zentry://face-verify?requestId={requestId}&sessionId={request.SessionId}";
 
             var publishTasks = recipients.Select(userId => _publishEndpoint.Publish(new NotificationCreatedEvent
@@ -155,7 +123,8 @@ public class FaceVerificationRequestsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create face verification request for session {SessionId}", request.SessionId);
+            _logger.LogError(ex, "Failed to create face verification request for session {SessionId}",
+                request.SessionId);
             return StatusCode(500, new { Message = "Internal server error" });
         }
     }
@@ -226,20 +195,10 @@ public class FaceVerificationRequestsController : ControllerBase
 
         return Ok(new
         {
-            Success = result.Success,
-            Similarity = result.Similarity,
-            VerifiedAt = receipt.VerifiedAt
+            result.Success,
+            result.Similarity,
+            receipt.VerifiedAt
         });
-    }
-
-    public class FaceVerificationStatusResponse
-    {
-        public required Guid RequestId { get; init; }
-        public required Guid SessionId { get; init; }
-        public required DateTime ExpiresAt { get; init; }
-        public required int TotalRecipients { get; init; }
-        public required int TotalVerified { get; init; }
-        public required List<Guid> VerifiedUserIds { get; init; }
     }
 
     [HttpGet("{requestId:guid}/status")]
@@ -267,6 +226,52 @@ public class FaceVerificationRequestsController : ControllerBase
 
         return Ok(response);
     }
+
+    public class CreateFaceVerificationRequestDto
+    {
+        public Guid LecturerId { get; set; }
+        public Guid SessionId { get; set; }
+        public Guid? ClassSectionId { get; set; }
+        public List<Guid>? RecipientUserIds { get; set; }
+        public int? ExpiresInMinutes { get; set; }
+        public string? Title { get; set; }
+        public string? Body { get; set; }
+    }
+
+    public class CreateFaceVerificationResponseDto
+    {
+        public required Guid RequestId { get; init; }
+        public required Guid SessionId { get; init; }
+        public required DateTime ExpiresAt { get; init; }
+        public required int TotalRecipients { get; init; }
+    }
+
+    private record FaceVerificationRequestMeta(
+        Guid RequestId,
+        Guid SessionId,
+        Guid LecturerId,
+        Guid? ClassSectionId,
+        DateTime ExpiresAt,
+        string? Title,
+        string? Body,
+        List<Guid> Recipients
+    );
+
+    private record FaceVerificationReceipt(
+        Guid RequestId,
+        Guid UserId,
+        bool Success,
+        float Similarity,
+        DateTime VerifiedAt
+    );
+
+    public class FaceVerificationStatusResponse
+    {
+        public required Guid RequestId { get; init; }
+        public required Guid SessionId { get; init; }
+        public required DateTime ExpiresAt { get; init; }
+        public required int TotalRecipients { get; init; }
+        public required int TotalVerified { get; init; }
+        public required List<Guid> VerifiedUserIds { get; init; }
+    }
 }
-
-

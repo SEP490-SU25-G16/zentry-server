@@ -4,9 +4,8 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
-using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Constants.Attendance;
-using Zentry.SharedKernel.Exceptions;
+using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
@@ -56,8 +55,8 @@ public class UpdateSessionConsumer(
                     var newLocalEndTime = sessionDate.ToDateTime(newEndTime.Value);
 
                     session.Update(
-                        startTime: newLocalStartTime.ToUtcFromVietnamLocalTime(),
-                        endTime: newLocalEndTime.ToUtcFromVietnamLocalTime()
+                        newLocalStartTime.ToUtcFromVietnamLocalTime(),
+                        newLocalEndTime.ToUtcFromVietnamLocalTime()
                     );
                 }
 

@@ -18,10 +18,7 @@ public class AssignLecturerCommandHandler(
     public async Task<AssignLecturerResponse> Handle(AssignLecturerCommand command, CancellationToken cancellationToken)
     {
         var response = await mediator.Send(new CheckUserExistIntegrationQuery(command.LecturerId), cancellationToken);
-        if (response.IsExist == false)
-        {
-            throw new UserNotFoundException(command.LecturerId);
-        }
+        if (response.IsExist == false) throw new UserNotFoundException(command.LecturerId);
 
         var classSection = await classSectionRepository.GetByIdAsync(command.ClassSectionId, cancellationToken);
         if (classSection is null) throw new ResourceNotFoundException("ClassSection", command.ClassSectionId);
@@ -32,10 +29,8 @@ public class AssignLecturerCommandHandler(
                 await scheduleRepository.HasActiveScheduleByClassSectionIdAsync(classSection.Id, cancellationToken);
 
             if (hasActiveSchedule)
-            {
                 throw new ScheduleConflictException(
                     $"Class section with ID '{command.ClassSectionId}' can not be updated because it  is already active.");
-            }
         }
 
         classSection.AssignLecturer(command.LecturerId);

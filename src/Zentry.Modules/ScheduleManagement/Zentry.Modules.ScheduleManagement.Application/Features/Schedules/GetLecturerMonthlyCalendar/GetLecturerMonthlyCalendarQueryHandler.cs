@@ -106,10 +106,7 @@ public class GetLecturerMonthlyCalendarQueryHandler(
                     });
                 }
 
-                if (dailyScheduleDto.Classes.Count > 0)
-                {
-                    response.CalendarDays.Add(dailyScheduleDto);
-                }
+                if (dailyScheduleDto.Classes.Count > 0) response.CalendarDays.Add(dailyScheduleDto);
             }
         }
 

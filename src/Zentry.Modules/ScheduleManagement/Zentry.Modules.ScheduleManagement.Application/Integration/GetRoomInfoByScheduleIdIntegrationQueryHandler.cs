@@ -1,4 +1,3 @@
-using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
@@ -16,10 +15,7 @@ public class GetRoomInfoByScheduleIdIntegrationQueryHandler(
     {
         var schedule =
             await scheduleRepository.GetScheduleDetailsWithRelationsAsync(request.ScheduleId, cancellationToken);
-        if (schedule == null)
-        {
-            throw new ResourceNotFoundException("Schedule", request.ScheduleId);
-        }
+        if (schedule == null) throw new ResourceNotFoundException("Schedule", request.ScheduleId);
 
         return new GetRoomInfoByScheduleIdIntegrationResponse(
             $"{schedule.RoomName} ({schedule.Building})",

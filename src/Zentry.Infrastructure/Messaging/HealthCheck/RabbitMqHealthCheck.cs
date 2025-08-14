@@ -1,5 +1,3 @@
-using MassTransit;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -7,7 +5,7 @@ using RabbitMQ.Client;
 namespace Zentry.Infrastructure.Messaging.HealthCheck;
 
 /// <summary>
-/// Health check cho RabbitMQ connection
+///     Health check cho RabbitMQ connection
 /// </summary>
 public class RabbitMqHealthCheck(IConnectionFactory connectionFactory, ILogger<RabbitMqHealthCheck> logger)
     : IHealthCheck

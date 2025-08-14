@@ -23,7 +23,7 @@ public class UpdateStudentAttendanceStatusCommandHandler(
                 $"AttendanceRecord for UserId '{request.UserId}' and SessionId '{request.SessionId}' not found.");
 
         if (!(Equals(attendanceRecord.Status, AttendanceStatus.Absent) ||
-            Equals(attendanceRecord.Status, AttendanceStatus.Present)))
+              Equals(attendanceRecord.Status, AttendanceStatus.Present)))
             throw new BusinessRuleException(
                 "INVALID_STATUS_UPDATE",
                 $"Chỉ có thể cập nhật trạng thái điểm danh từ 'Absent' hoặc 'Present'  . Trạng thái hiện tại: '{attendanceRecord.Status}''."

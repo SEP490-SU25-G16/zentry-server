@@ -64,7 +64,6 @@ public class ImportEnrollmentsCommandHandler(
 
         // 4. Xử lý từng dòng dữ liệu hợp lệ
         foreach (var enrollmentDto in validEnrollmentsToProcess)
-        {
             try
             {
                 // Tìm StudentId và ClassSectionId
@@ -116,7 +115,6 @@ public class ImportEnrollmentsCommandHandler(
                     Message = $"Lỗi khi chuẩn bị dữ liệu: {ex.Message}"
                 });
             }
-        }
 
         // 5. Lưu vào database và publish events
         try

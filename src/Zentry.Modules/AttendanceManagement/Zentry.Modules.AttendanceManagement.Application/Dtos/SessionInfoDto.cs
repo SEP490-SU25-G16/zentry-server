@@ -1,6 +1,5 @@
 namespace Zentry.Modules.AttendanceManagement.Application.Dtos;
 
-
 public class SessionInfoDto
 {
     public Guid SessionId { get; set; }

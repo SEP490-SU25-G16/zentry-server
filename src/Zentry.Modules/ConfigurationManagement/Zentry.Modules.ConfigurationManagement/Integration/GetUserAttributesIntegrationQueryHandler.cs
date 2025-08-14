@@ -25,7 +25,7 @@ public class GetUserAttributesIntegrationQueryHandler(
                 .Where(ua => ua.UserId == query.UserId)
                 .Select(ua => new
                 {
-                    Key = ua.AttributeDefinition!.Key,
+                    ua.AttributeDefinition!.Key,
                     Value = ua.AttributeValue
                 })
                 .ToDictionaryAsync(
@@ -35,9 +35,7 @@ public class GetUserAttributesIntegrationQueryHandler(
                 );
 
             if (userAttributes.Count == 0)
-            {
                 logger.LogWarning("No user attributes found for UserId: {UserId}", query.UserId);
-            }
 
             return new GetUserAttributesIntegrationResponse(userAttributes);
         }

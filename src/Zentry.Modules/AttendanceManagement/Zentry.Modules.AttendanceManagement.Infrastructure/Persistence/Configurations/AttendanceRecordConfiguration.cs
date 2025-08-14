@@ -1,4 +1,5 @@
 // Zentry.Modules.AttendanceManagement.Infrastructure/Persistence/Configurations/AttendanceRecordConfiguration.cs
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;

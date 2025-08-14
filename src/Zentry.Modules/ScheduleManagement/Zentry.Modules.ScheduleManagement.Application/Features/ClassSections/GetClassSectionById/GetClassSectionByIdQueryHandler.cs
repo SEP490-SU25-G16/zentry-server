@@ -97,9 +97,7 @@ public class GetClassSectionByIdQueryHandler(IClassSectionRepository classSectio
     {
         if (attributes.TryGetValue("EmployeeCode", out var employeeCode) &&
             !string.IsNullOrEmpty(employeeCode))
-        {
             return employeeCode;
-        }
 
         return string.Empty;
     }

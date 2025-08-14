@@ -24,16 +24,11 @@ public class UpdateScheduleCommandHandler(
         logger.LogInformation("Attempting to update schedule {ScheduleId}.", command.ScheduleId);
 
         var schedule = await scheduleRepository.GetByIdAsync(command.ScheduleId, cancellationToken);
-        if (schedule is null)
-        {
-            throw new ResourceNotFoundException("Schedule", $"ID '{command.ScheduleId}' not found.");
-        }
+        if (schedule is null) throw new ResourceNotFoundException("Schedule", $"ID '{command.ScheduleId}' not found.");
 
         if (schedule.StartDate <= DateOnly.FromDateTime(DateTime.UtcNow))
-        {
             throw new BusinessRuleException("CANNOT_UPDATE_STARTED_SCHEDULE",
                 "Không thể cập nhật lịch học đã bắt đầu.");
-        }
 
         var oldStartDate = schedule.StartDate;
         var oldEndDate = schedule.EndDate;
@@ -42,10 +37,7 @@ public class UpdateScheduleCommandHandler(
         if (command.RoomId.HasValue)
         {
             var room = await roomRepository.GetByIdAsync(command.RoomId.Value, cancellationToken);
-            if (room is null)
-            {
-                throw new ResourceNotFoundException("Room", $"ID '{command.RoomId.Value}' not found.");
-            }
+            if (room is null) throw new ResourceNotFoundException("Room", $"ID '{command.RoomId.Value}' not found.");
         }
 
         var newWeekDay = command.WeekDay != null ? WeekDayEnum.FromName(command.WeekDay) : schedule.WeekDay;
@@ -58,22 +50,18 @@ public class UpdateScheduleCommandHandler(
         if (newRoomId != schedule.RoomId || !Equals(newWeekDay, schedule.WeekDay) ||
             newStartTime != schedule.StartTime ||
             newEndTime != schedule.EndTime || newStartDate != schedule.StartDate || newEndDate != schedule.EndDate)
-        {
             if (!await scheduleRepository.IsRoomAvailableForUpdateAsync(newRoomId, newWeekDay, newStartTime, newEndTime,
                     newStartDate, newEndDate, schedule.Id, cancellationToken))
-            {
                 throw new BusinessRuleException("ROOM_BOOKED",
                     $"Phòng đã được đặt vào {newWeekDay} từ {newStartTime} đến {newEndTime} trong khoảng thời gian này.");
-            }
-        }
 
         schedule.Update(
-            roomId: command.RoomId,
-            startDate: command.StartDate,
-            endDate: command.EndDate,
-            startTime: command.StartTime,
-            endTime: command.EndTime,
-            weekDay: command.WeekDay != null ? WeekDayEnum.FromName(command.WeekDay) : null
+            command.RoomId,
+            command.StartDate,
+            command.EndDate,
+            command.StartTime,
+            command.EndTime,
+            command.WeekDay != null ? WeekDayEnum.FromName(command.WeekDay) : null
         );
 
         await scheduleRepository.UpdateAsync(schedule, cancellationToken);

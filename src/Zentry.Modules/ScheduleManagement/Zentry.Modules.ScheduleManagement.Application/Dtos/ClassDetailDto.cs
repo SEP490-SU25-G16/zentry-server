@@ -4,5 +4,5 @@ public class ClassDetailDto
 {
     public ClassOverviewDto Overview { get; set; } = null!;
 
-    public List<SessionDetailDto> Sessions { get; set; } = new List<SessionDetailDto>();
+    public List<SessionDetailDto> Sessions { get; set; } = new();
 }

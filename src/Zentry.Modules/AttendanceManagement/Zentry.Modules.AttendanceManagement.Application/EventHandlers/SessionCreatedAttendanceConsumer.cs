@@ -29,7 +29,8 @@ public class SessionCreatedAttendanceConsumer(
             var session = await sessionRepository.GetByIdAsync(message.SessionId, context.CancellationToken);
             if (session == null)
             {
-                logger.LogWarning("Session {SessionId} not found. Skipping attendance record creation.", message.SessionId);
+                logger.LogWarning("Session {SessionId} not found. Skipping attendance record creation.",
+                    message.SessionId);
                 return;
             }
 
@@ -78,12 +79,12 @@ public class SessionCreatedAttendanceConsumer(
 
             // Create Future attendance records for students who don't have records yet
             var futureAttendanceRecords = studentsNeedingRecords.Select(studentId =>
-                AttendanceRecord.Create(
-                    studentId,
-                    message.SessionId,
-                    AttendanceStatus.Future,
-                    isManual: false,
-                    percentageAttended: 0.0))
+                    AttendanceRecord.Create(
+                        studentId,
+                        message.SessionId,
+                        AttendanceStatus.Future,
+                        false,
+                        0.0))
                 .ToList();
 
             // Save all future attendance records

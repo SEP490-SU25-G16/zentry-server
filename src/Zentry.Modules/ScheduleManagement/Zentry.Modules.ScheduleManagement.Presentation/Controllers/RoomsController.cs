@@ -108,6 +108,7 @@ public class RoomsController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpGet("total-rooms")]
     public async Task<IActionResult> GetTotalRooms(CancellationToken cancellationToken)
     {

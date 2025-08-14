@@ -1,11 +1,10 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Zentry.Infrastructure.Messaging.External;
 
 namespace Zentry.Infrastructure.Messaging.Heartbeat;
 
 /// <summary>
-/// Consumer để xử lý heartbeat messages (không làm gì, chỉ để maintain connection)
+///     Consumer để xử lý heartbeat messages (không làm gì, chỉ để maintain connection)
 /// </summary>
 public class HeartbeatConsumer(ILogger<HeartbeatConsumer> logger) : IConsumer<RabbitMqHeartbeatMessage>
 {

@@ -13,6 +13,7 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
     {
         return await dbContext.Courses.CountAsync(cancellationToken);
     }
+
     public async Task AddAsync(Course entity, CancellationToken cancellationToken)
     {
         await dbContext.Courses.AddAsync(entity, cancellationToken);

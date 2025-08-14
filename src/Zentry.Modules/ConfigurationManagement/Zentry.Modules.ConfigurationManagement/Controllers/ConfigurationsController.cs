@@ -56,6 +56,50 @@ public class ConfigurationsController(IMediator mediator) : BaseController
         }
     }
 
+    #region Delete Operations
+
+    [HttpDelete("definitions/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteAttributeDefinition(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteAttributeDefinitionCommand { AttributeId = id };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    #endregion
+
+    [HttpDelete("settings/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteSetting(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new DeleteSettingCommand { SettingId = id };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
     #region Create Operations
 
     [HttpPost("definitions")]
@@ -117,48 +161,4 @@ public class ConfigurationsController(IMediator mediator) : BaseController
     }
 
     #endregion
-
-    #region Delete Operations
-
-    [HttpDelete("definitions/{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteAttributeDefinition(
-        [FromRoute] Guid id,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var command = new DeleteAttributeDefinitionCommand { AttributeId = id };
-            await mediator.Send(command, cancellationToken);
-            return HandleNoContent();
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex);
-        }
-    }
-
-    #endregion
-
-    [HttpDelete("settings/{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteSetting(
-        [FromRoute] Guid id,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var command = new DeleteSettingCommand { SettingId = id };
-            await mediator.Send(command, cancellationToken);
-            return HandleNoContent();
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex);
-        }
-    }
 }

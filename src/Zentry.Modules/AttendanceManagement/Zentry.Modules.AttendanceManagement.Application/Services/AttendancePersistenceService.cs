@@ -127,12 +127,9 @@ public class AttendancePersistenceService(
                               .ToDictionary(u => u.Id, u => u)
                           ?? new Dictionary<Guid, BasicUserInfoDto>();
         foreach (var attendancePair in mergedStudentsInRoundTrack)
-        {
             if (usersLookup.TryGetValue(attendancePair.Value.StudentId, out var userInfo))
-            {
                 attendancePair.Value.StudentCode = userInfo.Code;
-            }
-        }
+
         roundTrack.Students = mergedStudentsInRoundTrack.Values.ToList();
 
         await roundTrackRepository.AddOrUpdateAsync(roundTrack, cancellationToken);

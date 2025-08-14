@@ -4,10 +4,10 @@ using Zentry.SharedKernel.Contracts.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 
-
 public class GetStudentAttendanceStatusForSessionsIntegrationQueryHandler(
     IAttendanceRecordRepository attendanceRecordRepository)
-    : IQueryHandler<GetStudentAttendanceStatusForSessionsIntegrationQuery, GetStudentAttendanceStatusForSessionsIntegrationResponse>
+    : IQueryHandler<GetStudentAttendanceStatusForSessionsIntegrationQuery,
+        GetStudentAttendanceStatusForSessionsIntegrationResponse>
 {
     public async Task<GetStudentAttendanceStatusForSessionsIntegrationResponse> Handle(
         GetStudentAttendanceStatusForSessionsIntegrationQuery query,

@@ -30,23 +30,22 @@ public class CreateUserAttributesIntegrationCommandHandler(
             var newUserAttributes = new List<UserAttribute>();
 
             foreach (var kvp in command.UserAttributes)
-            {
                 if (attributeDefinitions.TryGetValue(kvp.Key, out var definition))
                 {
                     newUserAttributes.Add(
                         UserAttribute.Create(
-                            userId: command.UserId,
-                            attributeId: definition.Id,
-                            attributeValue: kvp.Value
+                            command.UserId,
+                            definition.Id,
+                            kvp.Value
                         )
                     );
                 }
                 else
                 {
-                    logger.LogWarning("Attribute with key '{AttributeKey}' not found in AttributeDefinitions.", kvp.Key);
+                    logger.LogWarning("Attribute with key '{AttributeKey}' not found in AttributeDefinitions.",
+                        kvp.Key);
                     skippedAttributes.Add(kvp.Key);
                 }
-            }
 
             if (newUserAttributes.Count > 0)
             {
@@ -57,7 +56,8 @@ public class CreateUserAttributesIntegrationCommandHandler(
             logger.LogInformation("Successfully created {Count} user attributes for UserId: {UserId}",
                 newUserAttributes.Count, command.UserId);
 
-            return new CreateUserAttributesIntegrationResponse(true, "User attributes created successfully.", skippedAttributes);
+            return new CreateUserAttributesIntegrationResponse(true, "User attributes created successfully.",
+                skippedAttributes);
         }
         catch (Exception ex)
         {

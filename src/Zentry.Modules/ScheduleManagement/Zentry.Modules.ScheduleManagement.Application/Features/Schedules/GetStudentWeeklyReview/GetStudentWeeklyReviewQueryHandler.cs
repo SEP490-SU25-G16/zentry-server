@@ -27,7 +27,7 @@ public class GetStudentWeeklyReviewQueryHandler(
         var weeklyReview = new WeeklyReviewDto
         {
             WeekStart = startOfWeekVietnam.ToDateOnly(),
-            WeekEnd = endOfWeekVietnam.ToDateOnly(),
+            WeekEnd = endOfWeekVietnam.ToDateOnly()
         };
 
         // 1. Lấy danh sách các lớp học của sinh viên

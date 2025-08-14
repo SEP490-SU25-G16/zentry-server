@@ -4,7 +4,10 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.Rooms.GetRooms;
 
 public class GetRoomsQuery : IQuery<GetRoomsResponse>
 {
-    public GetRoomsQuery() { }
+    public GetRoomsQuery()
+    {
+    }
+
     public GetRoomsQuery(int pageNumber, int pageSize, string? searchTerm = null, string? building = null,
         string? sortBy = null, string? sortOrder = null)
     {

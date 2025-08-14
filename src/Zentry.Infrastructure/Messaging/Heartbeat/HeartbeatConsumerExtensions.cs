@@ -2,9 +2,8 @@ using MassTransit;
 
 namespace Zentry.Infrastructure.Messaging.Heartbeat;
 
-
 /// <summary>
-/// Extension để đăng ký heartbeat consumer
+///     Extension để đăng ký heartbeat consumer
 /// </summary>
 public static class HeartbeatConsumerExtensions
 {
@@ -23,7 +22,6 @@ public static class HeartbeatConsumerExtensions
             e.PrefetchCount = 1;
             e.ConcurrentMessageLimit = 1;
             e.ConfigureConsumer<HeartbeatConsumer>(context);
-
         });
     }
 }

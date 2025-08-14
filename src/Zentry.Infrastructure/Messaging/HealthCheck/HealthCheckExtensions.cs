@@ -6,7 +6,7 @@ using RabbitMQ.Client;
 namespace Zentry.Infrastructure.Messaging.HealthCheck;
 
 /// <summary>
-/// Extension methods để đăng ký health checks
+///     Extension methods để đăng ký health checks
 /// </summary>
 public static class HealthCheckExtensions
 {
@@ -16,11 +16,13 @@ public static class HealthCheckExtensions
         // Đăng ký ConnectionFactory cho health check
         services.AddSingleton<IConnectionFactory>(provider =>
         {
-            var factory = new ConnectionFactory();
-            factory.Uri = new Uri(connectionString);
-            factory.AutomaticRecoveryEnabled = true;
-            factory.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
-            factory.RequestedHeartbeat = TimeSpan.FromSeconds(30);
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(connectionString),
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
+                RequestedHeartbeat = TimeSpan.FromSeconds(30)
+            };
 
             return factory;
         });
@@ -28,11 +30,11 @@ public static class HealthCheckExtensions
         // Đăng ký health checks
         services.AddHealthChecks()
             .AddCheck<RabbitMqHealthCheck>("rabbitmq",
-                failureStatus: HealthStatus.Unhealthy,
-                tags: new[] { "ready", "rabbitmq" })
+                HealthStatus.Unhealthy,
+                new[] { "ready", "rabbitmq" })
             .AddCheck<MassTransitHealthCheck>("masstransit",
-                failureStatus: HealthStatus.Unhealthy,
-                tags: new[] { "ready", "masstransit" });
+                HealthStatus.Unhealthy,
+                new[] { "ready", "masstransit" });
 
         return services;
     }

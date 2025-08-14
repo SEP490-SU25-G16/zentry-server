@@ -31,12 +31,8 @@ public class CreateUserCommandHandler(
 
         var userAttributes = new Dictionary<string, string>();
         if (command.Attributes != null)
-        {
             foreach (var attribute in command.Attributes)
-            {
                 userAttributes[attribute.Key] = attribute.Value;
-            }
-        }
 
         if (Equals(account.Role, Role.Student))
         {
@@ -50,15 +46,13 @@ public class CreateUserCommandHandler(
         }
 
         var createAttributesCommand = new CreateUserAttributesIntegrationCommand(
-            UserId: user.Id,
-            UserAttributes: userAttributes
+            user.Id,
+            userAttributes
         );
         var integrationResponse = await mediator.Send(createAttributesCommand, cancellationToken);
 
         if (!integrationResponse.Success)
-        {
             throw new IntegrationException($"Failed to create user attributes: {integrationResponse.Message}");
-        }
 
         var getAttributesQuery = new GetUserAttributesIntegrationQuery(user.Id);
         var attributesResponse = await mediator.Send(getAttributesQuery, cancellationToken);

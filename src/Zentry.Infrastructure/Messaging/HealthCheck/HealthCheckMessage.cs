@@ -1,8 +1,7 @@
 namespace Zentry.Infrastructure.Messaging.HealthCheck;
 
-
 /// <summary>
-/// Message để test health check
+///     Message để test health check
 /// </summary>
 public record HealthCheckMessage
 {

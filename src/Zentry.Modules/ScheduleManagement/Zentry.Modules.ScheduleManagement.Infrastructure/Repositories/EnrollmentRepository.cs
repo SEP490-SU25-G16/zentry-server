@@ -24,7 +24,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         GROUP BY cs.""Semester""";
 
         var results = await dbContext.Database
-            .SqlQueryRaw<SemesterStudentCountDto>(sql, yearString, EnrollmentStatus.Active.ToString())
+            .SqlQueryRaw<SemesterStudentCountDto>(sql, yearString, EnrollmentStatus.Active)
             .ToListAsync(cancellationToken);
 
         return results.ToDictionary(r => r.Semester, r => r.StudentCount);
