@@ -7,7 +7,11 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Zentry.Infrastructure;
+using Zentry.Infrastructure.Messaging.External;
+using Zentry.Infrastructure.Messaging.HealthCheck;
+using Zentry.Infrastructure.Messaging.Heartbeat;
 using Zentry.Modules.AttendanceManagement.Application;
 using Zentry.Modules.AttendanceManagement.Infrastructure;
 using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
@@ -160,25 +164,63 @@ builder.Services.AddAuthorization();
 // --- Thêm health check ---
 builder.Services.AddHealthChecks();
 
+builder.Services.AddRabbitMqHealthChecks(builder.Configuration["RabbitMQ_ConnectionString"]!);
+
 // ===== CẤU HÌNH MASSTRANSIT =====
 builder.Services.AddMassTransit(x =>
 {
+    x.AddHeartbeatConsumer();
+    x.AddHealthCheckConsumer();
     x.AddAttendanceMassTransitConsumers();
     x.AddUserMassTransitConsumers();
     x.AddNotificationMassTransitConsumers();
+
+
     x.UsingRabbitMq((context, cfg) =>
     {
         var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
             throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured.");
 
-        cfg.Host(new Uri(rabbitMqConnectionString));
+        cfg.Host(new Uri(rabbitMqConnectionString), h =>
+        {
+            // Cải thiện connection settings
+            h.Heartbeat(TimeSpan.FromSeconds(30)); // Tăng heartbeat để tránh connection drop
+            h.RequestedConnectionTimeout(TimeSpan.FromSeconds(30));
+            h.PublisherConfirmation = true; // Đảm bảo message được gửi thành công
 
+            // Connection recovery
+            h.RequestedChannelMax(100);
+        });
+
+        // Global settings cho tất cả endpoints
+        cfg.UseDelayedMessageScheduler();
+        cfg.UseInMemoryOutbox(); // Đảm bảo message delivery
+
+        // Message serialization
+        cfg.UseRawJsonSerializer();
+        cfg.ConfigureJsonSerializerOptions(options =>
+        {
+            options.PropertyNamingPolicy = null;
+            return options;
+        });
+
+        // Global retry policy
+        cfg.UseMessageRetry(r =>
+        {
+            r.Exponential(10, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(5), TimeSpan.FromSeconds(2));
+            r.Handle<TimeoutException>();
+            r.Handle<InvalidOperationException>();
+        });
+        cfg.ConfigureHeartbeatEndpoint(context);
+        cfg.ConfigureHealthCheckEndpoint(context);
         cfg.ConfigureAttendanceReceiveEndpoints(context);
         cfg.ConfigureUserReceiveEndpoints(context);
         cfg.ConfigureNotificationReceiveEndpoints(context);
     });
 });
+
+builder.Services.AddHostedService<RabbitMqWarmupService>();
 
 // --- Đăng ký các module ---
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -198,7 +240,6 @@ var app = builder.Build();
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 
-// *** QUAN TRỌNG: Thêm Rate Limiting middleware ***
 app.UseRateLimiter();
 
 app.UseValidationExceptionMiddleware();
@@ -206,6 +247,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
 app.MapHealthChecks("/health");
 
 // ===== DATABASE MIGRATION CODE =====
