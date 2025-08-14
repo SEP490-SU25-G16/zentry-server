@@ -9,7 +9,6 @@ using Polly;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Zentry.Infrastructure;
-using Zentry.Infrastructure.Messaging.External;
 using Zentry.Infrastructure.Messaging.HealthCheck;
 using Zentry.Infrastructure.Messaging.Heartbeat;
 using Zentry.Modules.AttendanceManagement.Application;
@@ -67,35 +66,31 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 10;
     });
 
-    // Concurrency Limiter - Giới hạn số request đồng thời
     options.AddConcurrencyLimiter("ConcurrencyPolicy", opt =>
     {
-        opt.PermitLimit = 50; // Tối đa 50 request đồng thời
+        opt.PermitLimit = 50;
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 20;
     });
 
-    // Policy riêng cho các endpoint nhạy cảm (login, register, etc.)
     options.AddFixedWindowLimiter("AuthPolicy", opt =>
     {
-        opt.PermitLimit = 5; // Chỉ cho phép 5 requests
-        opt.Window = TimeSpan.FromMinutes(1); // Trong 1 phút
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0; // Không cho phép queue
+        opt.QueueLimit = 0;
     });
 
-    // Global rate limiter cho tất cả requests
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 200, // 200 requests per IP
-                Window = TimeSpan.FromMinutes(1) // trong 1 phút
+                PermitLimit = 200,
+                Window = TimeSpan.FromMinutes(1)
             }));
 
-    // Cấu hình response khi bị rate limit
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -185,9 +180,9 @@ builder.Services.AddMassTransit(x =>
         cfg.Host(new Uri(rabbitMqConnectionString), h =>
         {
             // Cải thiện connection settings
-            h.Heartbeat(TimeSpan.FromSeconds(30)); // Tăng heartbeat để tránh connection drop
+            h.Heartbeat(TimeSpan.FromSeconds(30));
             h.RequestedConnectionTimeout(TimeSpan.FromSeconds(30));
-            h.PublisherConfirmation = true; // Đảm bảo message được gửi thành công
+            h.PublisherConfirmation = true;
 
             // Connection recovery
             h.RequestedChannelMax(100);
@@ -195,7 +190,7 @@ builder.Services.AddMassTransit(x =>
 
         // Global settings cho tất cả endpoints
         cfg.UseDelayedMessageScheduler();
-        cfg.UseInMemoryOutbox(); // Đảm bảo message delivery
+        cfg.UseInMemoryOutbox(context);
 
         // Message serialization
         cfg.UseRawJsonSerializer();

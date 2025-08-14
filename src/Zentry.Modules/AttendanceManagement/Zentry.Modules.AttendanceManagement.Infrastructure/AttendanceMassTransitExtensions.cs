@@ -145,7 +145,7 @@ public static class AttendanceMassTransitExtensions
         });
 
         // Dead letter exchanges
-        cfg.Send<object>(x => x.UseRoutingKeyFormatter(context => "attendance_failed"));
+        cfg.Send<object>(x => x.UseRoutingKeyFormatter(_ => "attendance_failed"));
         cfg.Publish<object>(x => x.Durable = true);
     }
 }
