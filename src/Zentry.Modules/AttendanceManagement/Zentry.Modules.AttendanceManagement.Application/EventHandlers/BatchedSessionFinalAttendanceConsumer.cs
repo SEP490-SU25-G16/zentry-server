@@ -98,7 +98,7 @@ public class BatchedSessionFinalAttendanceConsumer(
                 var completedRoundsCount = allRounds.Count(r => Equals(r.Status, RoundStatus.Completed));
 
                 // Publish final attendance processing
-                var finalMessage = new SessionFinalAttendanceToProcess
+                var finalMessage = new SessionFinalAttendanceToProcessMessage
                 {
                     SessionId = message.SessionId,
                     ActualRoundsCount = completedRoundsCount

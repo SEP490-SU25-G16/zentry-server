@@ -41,7 +41,6 @@ public class AuthController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RequestResetPassword([FromBody] RequestResetPasswordCommand command)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             await mediator.Send(command);

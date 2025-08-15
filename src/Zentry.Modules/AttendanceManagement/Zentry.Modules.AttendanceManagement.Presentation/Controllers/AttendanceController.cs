@@ -13,6 +13,8 @@ using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionInfo;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRounds;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetStudentFinalAttendance;
 using Zentry.Modules.AttendanceManagement.Application.Features.GetStudentSessions;
+using Zentry.Modules.AttendanceManagement.Application.Features.HandleAttendanceUpdateRequest;
+using Zentry.Modules.AttendanceManagement.Application.Features.RequestAttendanceUpdate;
 using Zentry.Modules.AttendanceManagement.Application.Features.StartSession;
 using Zentry.Modules.AttendanceManagement.Application.Features.SubmitScanData;
 using Zentry.Modules.AttendanceManagement.Application.Features.UpdateSession;
@@ -335,6 +337,85 @@ public class AttendanceController(IMediator mediator) : BaseController
             var query = new GetStudentSessionsQuery(studentId);
             var response = await mediator.Send(query, cancellationToken);
             return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("sessions/{sessionId}/students/{studentId}/request-update")]
+    [ProducesResponseType(typeof(ApiResponse<RequestAttendanceUpdateResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> RequestAttendanceUpdate(
+        Guid sessionId,
+        Guid studentId,
+        [FromBody] RequestAttendanceUpdateRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new RequestAttendanceUpdateCommand
+            {
+                StudentId = studentId,
+                SessionId = sessionId,
+                Reason = request.Reason
+            };
+
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response, "Attendance update request submitted successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("attendance-request/{userRequestId}/accept")]
+    [ProducesResponseType(typeof(ApiResponse<HandleAttendanceUpdateRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AcceptAttendanceUpdateRequest(
+        Guid userRequestId,
+        CancellationToken cancellationToken)
+    {
+        var command = new HandleAttendanceUpdateRequestCommand
+        {
+            UserRequestId = userRequestId,
+            IsAccepted = true
+        };
+
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response, "Attendance update request accepted successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("attendance-request/{userRequestId}/reject")]
+    [ProducesResponseType(typeof(ApiResponse<HandleAttendanceUpdateRequestResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RejectAttendanceUpdateRequest(
+        Guid userRequestId,
+        CancellationToken cancellationToken)
+    {
+        var command = new HandleAttendanceUpdateRequestCommand
+        {
+            UserRequestId = userRequestId,
+            IsAccepted = false
+        };
+
+        try
+        {
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response, "Attendance update request rejected successfully.");
         }
         catch (Exception ex)
         {

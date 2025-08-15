@@ -1,6 +1,6 @@
 namespace Zentry.SharedKernel.Contracts.Events;
 
-public class SessionFinalAttendanceToProcess
+public class SessionFinalAttendanceToProcessMessage
 {
     public Guid SessionId { get; set; }
     public int ActualRoundsCount { get; set; }

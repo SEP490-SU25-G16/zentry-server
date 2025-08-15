@@ -23,11 +23,8 @@ public static class DependencyInjection
                 b => b.MigrationsAssembly("Zentry.Modules.UserManagement")
             ));
 
-        // Đã xóa phần đăng ký MediatR và Validators
-
-        // Register services (Real implementations)
         services.AddTransient<IJwtService, JwtService>();
-        services.AddTransient<IEmailService, SendGridEmailService>();
+
         services.AddTransient<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IFileProcessor<UserImportDto>, UserFileProcessor>();
         return services;

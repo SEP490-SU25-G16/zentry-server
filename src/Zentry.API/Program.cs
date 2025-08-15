@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Polly;
 using Zentry.Infrastructure;
 using Zentry.Infrastructure.Messaging.HealthCheck;
@@ -38,13 +39,12 @@ var builder = WebApplication.CreateBuilder(args);
 // ===== CẤU HÌNH RATE LIMITING =====
 builder.Services.AddRateLimiter(options =>
 {
-    // Fixed Window Policy - Giới hạn số request trong một khoảng thời gian cố định
     options.AddFixedWindowLimiter("FixedPolicy", opt =>
     {
-        opt.PermitLimit = 100; // Cho phép tối đa 100 requests
-        opt.Window = TimeSpan.FromMinutes(1); // Trong 1 phút
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 10; // Queue tối đa 10 requests chờ
+        opt.QueueLimit = 10;
     });
 
     // Sliding Window Policy - Cho phép giới hạn linh hoạt hơn
@@ -217,7 +217,7 @@ builder.Services.AddMassTransit(x =>
 });
 
 builder.Services.AddHostedService<RabbitMqWarmupService>();
-
+builder.Services.AddMemoryCache();
 // --- Đăng ký các module ---
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddUserInfrastructure(builder.Configuration);
@@ -229,7 +229,6 @@ builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceApplication();
 builder.Services.AddNotificationModule(builder.Configuration);
 builder.Services.AddFaceIdInfrastructure(builder.Configuration);
-
 var app = builder.Build();
 
 // ===== CẤU HÌNH MIDDLEWARE PIPELINE =====
@@ -243,15 +242,21 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
+
+// Cấu hình lại Health Checks
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
-    Predicate = check => check.Tags.Contains("ready")
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = HealthCheckResponseWriter.WriteResponse
 });
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
     Predicate = _ => false
 });
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = HealthCheckResponseWriter.WriteResponse
+});
 
 // ===== DATABASE MIGRATION CODE =====
 await RunDatabaseMigrationsAndSeedDataAsync(app);
@@ -312,5 +317,27 @@ static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
                 await ConfigurationDbContext.SeedDataAsync(configContext, logger);
                 logger.LogInformation("ConfigurationDbContext data seeded successfully.");
             });
+    }
+}
+// Thêm HealthCheckResponseWriter helper class
+public static class HealthCheckResponseWriter
+{
+    public static Task WriteResponse(HttpContext httpContext, HealthReport result)
+    {
+        httpContext.Response.ContentType = "application/json";
+        var json = new
+        {
+            status = result.Status.ToString(),
+            results = result.Entries.ToDictionary(
+                entry => entry.Key,
+                entry => new
+                {
+                    status = entry.Value.Status.ToString(),
+                    description = entry.Value.Description,
+                    data = entry.Value.Data
+                })
+        };
+        return httpContext.Response.WriteAsync(
+            JsonSerializer.Serialize(json, new JsonSerializerOptions { WriteIndented = true }));
     }
 }

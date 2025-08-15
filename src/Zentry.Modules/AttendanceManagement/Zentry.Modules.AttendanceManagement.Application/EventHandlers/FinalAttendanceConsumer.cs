@@ -15,11 +15,11 @@ public class FinalAttendanceConsumer(
     IRoundRepository roundRepository,
     IAttendanceRecordRepository attendanceRecordRepository,
     IRedisService redisService)
-    : IConsumer<SessionFinalAttendanceToProcess>
+    : IConsumer<SessionFinalAttendanceToProcessMessage>
 {
     private const double AttendanceThresholdPercentage = 75.0;
 
-    public async Task Consume(ConsumeContext<SessionFinalAttendanceToProcess> context)
+    public async Task Consume(ConsumeContext<SessionFinalAttendanceToProcessMessage> context)
     {
         var sessionId = context.Message.SessionId;
         var actualRoundsCount = context.Message.ActualRoundsCount;
