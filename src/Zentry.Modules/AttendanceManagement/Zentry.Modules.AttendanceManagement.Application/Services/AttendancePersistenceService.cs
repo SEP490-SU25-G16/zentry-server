@@ -34,7 +34,7 @@ public class AttendancePersistenceService(
             .Select(Guid.Parse)
             .ToList();
 
-        var roundTrack = await roundTrackRepository.GetByIdAsync(roundId, cancellationToken);
+        var roundTrack = await roundTrackRepository.GetRoundTracksByRoundIdAsync(roundId, cancellationToken);
         if (roundTrack == null)
         {
             roundTrack = new RoundTrack(currentRound.Id, currentRound.SessionId, currentRound.RoundNumber,

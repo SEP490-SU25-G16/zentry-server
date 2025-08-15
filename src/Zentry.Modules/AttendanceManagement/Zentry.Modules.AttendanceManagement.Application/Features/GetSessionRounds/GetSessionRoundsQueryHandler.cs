@@ -10,7 +10,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Features.GetSessionRou
 
 public class GetSessionRoundsQueryHandler(
     IRoundRepository roundRepository,
-    IAttendanceRecordRepository attendanceRecordRepository,
+    IRoundTrackRepository roundTrackRepository,
     ISessionRepository sessionRepository,
     IMediator mediator)
     : IQueryHandler<GetSessionRoundsQuery, List<RoundAttendanceDto>>
@@ -20,12 +20,12 @@ public class GetSessionRoundsQueryHandler(
     {
         var rounds = await roundRepository.GetRoundsBySessionIdAsync(request.SessionId, cancellationToken);
         if (rounds is null || rounds.Count == 0)
-            throw new NotFoundException("Rounds for Session", request.SessionId);
+            throw new ResourceNotFoundException("Rounds for Session", request.SessionId);
 
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
 
         if (session is null)
-            throw new NotFoundException("Session", request.SessionId);
+            throw new ResourceNotFoundException("Session", request.SessionId);
 
         var classSectionResponse =
             await mediator.Send(
@@ -42,11 +42,14 @@ public class GetSessionRoundsQueryHandler(
             new CountActiveStudentsByClassSectionIdIntegrationQuery(classSectionId),
             cancellationToken);
 
-        var allAttendanceRecords = await attendanceRecordRepository.GetAttendanceRecordsBySessionIdAsync(
-            request.SessionId, cancellationToken);
+        var roundIds = rounds.Select(r => r.Id).ToList();
+
+        var roundTracks = await roundTrackRepository.GetRoundTracksByRoundIdsAsync(roundIds, cancellationToken);
+
+        var roundTrackMap = roundTracks.ToDictionary(rt => rt.Id);
 
         var result = (from round in rounds
-            let attendedCount = allAttendanceRecords.Count(ar => Equals(ar.Status, AttendanceStatus.Present))
+            let roundTrack = roundTrackMap.GetValueOrDefault(round.Id)
             select new RoundAttendanceDto
             {
                 RoundId = round.Id,
@@ -54,7 +57,7 @@ public class GetSessionRoundsQueryHandler(
                 RoundNumber = round.RoundNumber,
                 StartTime = round.StartTime,
                 EndTime = round.EndTime,
-                AttendedCount = attendedCount,
+                AttendedCount = roundTrack?.Students?.Count ?? 0,
                 TotalStudents = totalStudentsCountResponse.TotalStudents,
                 Status = round.Status.ToString()
             }).ToList();

@@ -46,7 +46,7 @@ public class GetSessionRoundsResultQueryHandler(
         var roundsResult = new List<RoundResultDto>();
         foreach (var round in rounds)
         {
-            var roundTrack = await roundTrackRepository.GetByIdAsync(round.Id, cancellationToken);
+            var roundTrack = await roundTrackRepository.GetRoundTracksByRoundIdAsync(round.Id, cancellationToken);
 
             var studentAttendances = new List<StudentAttendanceDto>();
             if (roundTrack != null && roundTrack.Students.Count != 0)

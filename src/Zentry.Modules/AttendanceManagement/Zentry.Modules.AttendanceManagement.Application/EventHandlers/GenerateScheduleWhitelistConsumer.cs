@@ -95,7 +95,6 @@ public class GenerateScheduleWhitelistConsumer(
 
             if (existingWhitelist != null)
             {
-                // Whitelist đã tồn tại, chỉ cần thêm device của giảng viên.
                 whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
                 logger.LogInformation("Whitelist already exists for Schedule {ScheduleId}. Adding lecturer device.",
                     message.ScheduleId);
