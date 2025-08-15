@@ -7,6 +7,7 @@ using Zentry.Infrastructure.Caching;
 using Zentry.Modules.FaceId.Features.VerifyFaceId;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
+using Zentry.Modules.FaceId.Interfaces;
 
 namespace Zentry.Modules.FaceId.Controllers;
 
@@ -18,17 +19,20 @@ public class FaceVerificationRequestsController : ControllerBase
     private readonly IMediator _mediator;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IRedisService _redis;
+    private readonly IFaceIdRepository _repository;
 
     public FaceVerificationRequestsController(
         ILogger<FaceVerificationRequestsController> logger,
         IMediator mediator,
         IPublishEndpoint publishEndpoint,
-        IRedisService redis)
+        IRedisService redis,
+        IFaceIdRepository repository)
     {
         _logger = logger;
         _mediator = mediator;
         _publishEndpoint = publishEndpoint;
         _redis = redis;
+        _repository = repository;
     }
 
     public class CreateFaceVerificationRequestDto
@@ -48,6 +52,7 @@ public class FaceVerificationRequestsController : ControllerBase
         public required Guid SessionId { get; init; }
         public required DateTime ExpiresAt { get; init; }
         public required int TotalRecipients { get; init; }
+        public required float Threshold { get; init; }
     }
 
     private record FaceVerificationRequestMeta(
@@ -105,6 +110,7 @@ public class FaceVerificationRequestsController : ControllerBase
             var now = DateTime.UtcNow;
             var expiresInMinutes = Math.Max(1, request.ExpiresInMinutes.GetValueOrDefault(30));
             var expiresAt = now.AddMinutes(expiresInMinutes);
+            var threshold = 0.7f;
 
             var meta = new FaceVerificationRequestMeta(
                 requestId,
@@ -118,6 +124,12 @@ public class FaceVerificationRequestsController : ControllerBase
 
             var metaKey = $"faceid:req:{requestId}:meta";
             await _redis.SetAsync(metaKey, meta, expiresAt - now);
+
+            // Persist requests (one per recipient) to DB for auditing/expiry
+            foreach (var uid in recipients)
+            {
+                await _mediator.Send(new PersistVerifyRequestCommand(requestId, uid, request.LecturerId, request.SessionId, request.ClassSectionId, threshold, expiresAt), cancellationToken);
+            }
 
             // 3) Push notifications
             var title = string.IsNullOrWhiteSpace(request.Title) ? "Yêu cầu xác thực Face ID" : request.Title!;
@@ -148,7 +160,8 @@ public class FaceVerificationRequestsController : ControllerBase
                 RequestId = requestId,
                 SessionId = request.SessionId,
                 ExpiresAt = expiresAt,
-                TotalRecipients = recipients.Count
+                TotalRecipients = recipients.Count,
+                Threshold = threshold
             };
 
             return CreatedAtAction(nameof(Create), new { id = requestId }, response);
@@ -181,7 +194,7 @@ public class FaceVerificationRequestsController : ControllerBase
         if (meta is null)
             return NotFound(new { Message = "Request not found or expired" });
         if (DateTime.UtcNow > meta.ExpiresAt)
-            return BadRequest(new { Message = "Request expired" });
+            return StatusCode(StatusCodes.Status410Gone, new { Message = "Request expired" });
 
         var parsedUserId = Guid.Parse(userId);
         if (!meta.Recipients.Contains(parsedUserId))
@@ -195,7 +208,7 @@ public class FaceVerificationRequestsController : ControllerBase
         Buffer.BlockCopy(embeddingBytes, 0, embeddingArray, 0, embeddingBytes.Length);
 
         // verify via FaceId module handler
-        var cmd = new VerifyFaceIdCommand(parsedUserId, embeddingArray, threshold ?? 0.7f);
+        var cmd = new VerifyFaceIdCommand(parsedUserId, embeddingArray, threshold ?? 0.7f, requestId);
         var result = await _mediator.Send(cmd, cancellationToken);
 
         // store receipt regardless of success for auditing
@@ -222,6 +235,14 @@ public class FaceVerificationRequestsController : ControllerBase
                 current.Add(parsedUserId);
                 await _redis.SetAsync(verifiedKey, current, ttl);
             }
+
+            // Mark DB request completed for this user
+            await _mediator.Send(new CompleteVerifyRequestCommand(parsedUserId, meta.SessionId, requestId, true, result.Similarity), cancellationToken);
+        }
+        else
+        {
+            // Record failed attempt
+            await _mediator.Send(new CompleteVerifyRequestCommand(parsedUserId, meta.SessionId, requestId, false, result.Similarity, completeIfFailed: true), cancellationToken);
         }
 
         return Ok(new
@@ -266,6 +287,44 @@ public class FaceVerificationRequestsController : ControllerBase
         };
 
         return Ok(response);
+    }
+
+    [HttpPatch("{requestId:guid}/cancel")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Cancel(Guid requestId, CancellationToken cancellationToken)
+    {
+        var metaKey = $"faceid:req:{requestId}:meta";
+        var meta = await _redis.GetAsync<FaceVerificationRequestMeta>(metaKey);
+        if (meta is null)
+            return NotFound(new { Message = "Request not found or expired" });
+
+        // Notify recipients that the verification session ended early
+        var title = "Phiên xác thực kết thúc";
+        var body = "Giảng viên đã kết thúc phiên học sớm. Bạn không cần xác thực nữa.";
+        var publishTasks = meta.Recipients.Select(userId => _publishEndpoint.Publish(new NotificationCreatedEvent
+        {
+            Title = title,
+            Body = body,
+            RecipientUserId = userId,
+            Type = NotificationType.All,
+            Data = new Dictionary<string, string>
+            {
+                ["type"] = "FACE_VERIFICATION_CANCELED",
+                ["requestId"] = requestId.ToString(),
+                ["sessionId"] = meta.SessionId.ToString(),
+                ["action"] = "CLOSE_VERIFY"
+            }
+        }, cancellationToken));
+        await Task.WhenAll(publishTasks);
+
+        await _repository.CancelVerifyRequestsByGroupAsync(requestId, cancellationToken);
+
+        // Also remove redis keys so clients stop seeing it
+        await _redis.RemoveAsync(metaKey);
+        await _redis.RemoveAsync($"faceid:req:{requestId}:verified");
+
+        return NoContent();
     }
 }
 

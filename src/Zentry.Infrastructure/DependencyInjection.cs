@@ -5,6 +5,9 @@ using Serilog;
 using StackExchange.Redis;
 using Zentry.Infrastructure.Caching;
 using Zentry.Infrastructure.Logging;
+using Zentry.Infrastructure.Security.Encryption;
+using Zentry.Infrastructure.Services;
+using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Infrastructure;
 
@@ -45,6 +48,15 @@ public static class DependencyInjection
 
         // Đăng ký IRedisService, nó sẽ nhận IConnectionMultiplexer và ILogger từ DI
         services.AddScoped<IRedisService, RedisService>();
+
+        // ✅ Đăng ký ISessionService
+        services.AddScoped<ISessionService, RedisSessionService>();
+        
+        // ✅ Đăng ký IRateLimitingService
+        services.AddScoped<IRateLimitingService, RateLimitingService>();
+
+        // Encryption service for FaceId embeddings
+        services.AddSingleton<DataProtectionService>();
 
         return services;
     }

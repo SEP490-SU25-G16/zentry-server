@@ -1,218 +1,208 @@
-# Zentry Face ID Integration Guide - Complete Setup
+## Zentry FaceID — Business Logic & API Design
 
-## 🎯 Overview
+### Mục tiêu
 
-This guide demonstrates the complete integration of Face ID functionality between Zentry Android app and Zentry server.
+- Cung cấp xác thực danh tính dựa trên embedding khuôn mặt (vector 512 chiều) cho điểm danh và các nghiệp vụ liên quan.
+- Hỗ trợ xác thực đơn lẻ và xác thực theo phiên/lớp học ở quy mô lớn (batch verification).
 
-## ✅ Server Setup (COMPLETED)
+## Kiến trúc tổng quan
 
-### API Endpoints Available:
+- API layer: `Controllers` nhận multipart/form-data hoặc JSON → gửi `MediatR` command.
+- Application layer: `CommandHandler` thực thi nghiệp vụ, gọi `IFaceIdRepository`.
+- Persistence: `PostgreSQL + pgvector` lưu `FaceEmbedding` (vector(512)) và `FaceIdVerifyRequest` (audit/phiên xác thực). Dùng raw SQL để insert/update vector.
+- Caching/Orchestration: `Redis` lưu metadata request, receipts, danh sách users đã verified; TTL theo thời gian hết hạn.
+- Messaging: `MassTransit` publish `NotificationCreatedEvent` cho client recipients (deeplink xác thực).
+- Tích hợp: cập nhật trạng thái `HasFaceId` của user qua `UserManagement.UpdateFaceIdCommand`.
 
-- `POST /api/faceid/register` - Register new Face ID ✅
-- `POST /api/faceid/update` - Update existing Face ID ✅
-- `POST /api/faceid/verify` - Verify Face ID ✅
+Các file chính:
 
-### Database:
+- `Controllers`: `src/Zentry.Modules/FaceId/Controllers/FaceIdController.cs`, `FaceVerificationRequestsController.cs`
+- `Handlers`: `Features/RegisterFaceId/*`, `Features/UpdateFaceId/*`, `Features/VerifyFaceId/*`
+- `Repository`: `Interfaces/IFaceIdRepository.cs`, `Persistence/Repositories/FaceIdRepository.cs`
+- `Entities`: `Entities/FaceEmbedding.cs`, `Entities/FaceIdVerifyRequest.cs`
+- `Persistence`: `Persistence/FaceIdDbContext.cs`, `Persistence/Configurations/FaceEmbeddingConfiguration.cs`
+- `DI`: `DependencyInjection.cs` (UseNpgsql + UseVector, migrations, MediatR)
 
-- ✅ PostgreSQL with pgvector extension
-- ✅ FaceEmbeddings table with 512-dimensional vectors
-- ✅ Vector similarity search using cosine distance
+## Data Model
 
-## 🔧 Server Configuration
+### Bảng FaceEmbeddings
 
-### 1. Docker Services Running:
+- Thuộc tính: `Id (Guid)`, `UserId (Guid, unique)`, `Embedding (vector(512))`, `CreatedAt`, `UpdatedAt`.
+- Index: unique trên `UserId` để mỗi user chỉ có một embedding.
+- Ghi/đọc vector: raw SQL dùng cú pháp `'[f1,...]'::vector` (định dạng by `InvariantCulture` 6 chữ số thập phân).
 
-```bash
-✅ zentry-api          - http://localhost:8080 (HEALTHY)
-✅ postgres (pgvector) - Port 5432 with vector extension
-✅ redis               - Port 6379
-✅ rabbitmq            - Port 5672, Management UI: 15672
-```
+### Bảng FaceIdVerifyRequests
 
-### 2. Fixed Issues:
+- Audit từng lời mời xác thực trong một nhóm request (phiên).
+- Thuộc tính: `Id`, `RequestGroupId`, `TargetUserId`, `InitiatorUserId?`, `SessionId?`, `ClassSectionId?`, `Threshold`, `Status`, `CreatedAt`, `ExpiresAt`, `CompletedAt?`, `Matched?`, `Similarity?`.
+- Trạng thái: `Pending`, `Completed`, `Expired`, `Canceled`.
 
-- ✅ **Container Health**: Added `/health` endpoint and curl
-- ✅ **Database Migration**: Created `AddFaceIdFields` migration
-- ✅ **Vector Extension**: Updated to `pgvector/pgvector:pg16` image
-- ✅ **Entity Framework**: Fixed vector operations with raw SQL
-- ✅ **Namespace Conflicts**: Fixed UpdateFaceIdCommand conflicts
+### Redis Keys
 
-## 📱 Android App Setup (COMPLETED)
+- `faceid:req:{requestId}:meta` → metadata phiên: recipients, session, lecturer, expiresAt, title/body.
+- `faceid:req:{requestId}:user:{userId}` → biên nhận xác thực từng user: success, similarity, verifiedAt.
+- `faceid:req:{requestId}:verified` → danh sách `Guid` đã xác thực thành công.
 
-### 1. Network Configuration:
+## Business Logic
 
-```java
-// RetrofitClient.java - Updated BASE_URL
-private static final String BASE_URL = "http://10.0.2.2:8080/";  // For Android emulator
-```
+### Đăng ký FaceID (Register)
 
-### 2. Permissions Added:
+- Input: `userId` (GUID), `embedding` (file nhị phân float32; 4 bytes/float; 512 phần tử).
+- Nếu user đã có embedding → từ chối và hướng dẫn sử dụng Update.
+- Chuyển bytes → float[] → `Pgvector.Vector` → lưu DB bằng raw SQL insert; cập nhật `HasFaceId = true` trong UserManagement.
 
-```xml
-<!-- AndroidManifest.xml -->
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.CAMERA" />
-```
+### Cập nhật FaceID (Update)
 
-### 3. Network Security Config:
+- Yêu cầu user đã có embedding.
+- Tiền kiểm similarity giữa embedding mới và đang lưu với ngưỡng 0.7. Nếu < ngưỡng → từ chối update.
+- Nếu đạt ngưỡng → cập nhật vector bằng raw SQL update; cập nhật `HasFaceId` (đồng thời cập nhật thời gian gần nhất).
 
-```xml
-<!-- network_security_config.xml -->
-<domain-config cleartextTrafficPermitted="true">
-    <domain includeSubdomains="false">localhost</domain>
-    <domain includeSubdomains="false">10.0.2.2</domain>
-    <domain includeSubdomains="false">127.0.0.1</domain>
-</domain-config>
-```
+### Xác thực FaceID đơn lẻ (Verify)
 
-## 🧪 Integration Test Results
+- Nếu user chưa có embedding → trả `Success=false` với thông điệp phù hợp.
+- Chuyển embedding và tính similarity qua SQL: `similarity = 1 - (Embedding <=> input_vector)`.
+- So với `threshold` (mặc định 0.7, có thể override), trả về `Success` và `Similarity`. Luôn HTTP 200, kết quả nằm trong body.
 
-### Test Summary:
+### Batch verification theo phiên/lớp (Requests)
 
-```bash
-✅ API Health: PASSED - Server accessible from Android perspective
-✅ User Endpoint: PASSED - Login/auth endpoints working
-❌ Face ID Registration: Expected failure (user already has Face ID)
-✅ Face ID Verification: PASSED - Face verification working perfectly
-```
+1. Tạo request (`Create`):
+   - Xác định recipients từ `RecipientUserIds` hoặc từ `ClassSectionId` (qua query integration).
+   - Lưu `meta` vào Redis với TTL; persist một `FaceIdVerifyRequest` cho mỗi recipient vào DB.
+   - Publish `NotificationCreatedEvent` kèm deeplink: `zentry://face-verify?requestId=...`.
+2. Người học xác thực (`Verify by requestId`):
+   - Kiểm tra user thuộc recipients và chưa hết hạn.
+   - Chuyển embedding, gọi `VerifyFaceIdCommand` với `threshold` (mặc định 0.7).
+   - Lưu receipt vào Redis và thêm user vào danh sách `verified` nếu thành công.
+   - Ghi kết quả vào DB (`CompleteVerifyRequestCommand`): `Completed + Matched/Similarity`.
+3. Theo dõi trạng thái (`Status`):
+   - Đọc meta và danh sách `verified` từ Redis để trả tổng recipients và số đã xác thực.
+4. Hủy phiên (`Cancel`):
+   - Gửi thông báo kết thúc, cập nhật DB các request `Pending` → `Canceled`, xóa meta/verified khỏi Redis.
 
-**Overall: 3/4 tests passed** (100% success rate for valid scenarios)
+### Tính tương đồng và ngưỡng
 
-## 🚀 How to Test Full Flow
+- Sử dụng `pgvector` cosine distance operator `<=>`. `similarity = 1 - distance`.
+- Ngưỡng mặc định: 0.7 cho verify và update. Có thể truyền `threshold` khi verify.
 
-### 1. Start Zentry Server:
+## API Design
 
-```bash
-cd zentry-server
-docker-compose up -d
-```
+### 1) FaceIdController
 
-### 2. Verify Server Health:
+#### POST `api/faceid/register`
 
-```bash
-curl http://localhost:8080/health
-# Expected: HTTP 200 OK
-```
+- Content-Type: multipart/form-data
+- Form fields:
+  - `userId`: string (GUID)
+  - `embedding`: file nhị phân (512 float32)
+- 200: `RegisterFaceIdResponse { Success, Message, Timestamp }`
+- 400: thiếu `userId`/`embedding`; 500: lỗi nội bộ
 
-### 3. Test Android Integration:
-
-```bash
-python test_android_integration.py
-```
-
-### 4. Build Android App:
+Ví dụ:
 
 ```bash
-cd zentry-app
-./gradlew assembleDebug
+curl -X POST http://localhost:8080/api/faceid/register \
+  -F "userId=8a4bd080-ad27-4711-8bb9-199caff56743" \
+  -F "embedding=@/path/to/embedding.bin"
 ```
 
-### 5. Install on Emulator/Device:
+#### POST `api/faceid/update`
 
-```bash
-adb install app/build/outputs/apk/debug/app-debug.apk
+- Content-Type: multipart/form-data
+- Form fields: `userId`, `embedding`
+- 200: `UpdateFaceIdResponse { Success, Message }` (thất bại nếu similarity < 0.7)
+- 400: thiếu input; 500
+
+#### POST `api/faceid/verify`
+
+- Content-Type: multipart/form-data
+- Form fields: `userId`, `embedding`, `threshold?` (float)
+- 200: `VerifyFaceIdResponse { Success, Message, Timestamp, Similarity }`
+  - Lưu ý: luôn 200; `Success` phản ánh kết quả xác thực.
+
+### 2) FaceVerificationRequestsController
+
+#### POST `api/faceid/requests`
+
+- Body (JSON):
+
+```json
+{
+  "LecturerId": "<guid>",
+  "SessionId": "<guid>",
+  "ClassSectionId": "<guid?>",
+  "RecipientUserIds": ["<guid>", "<guid>"],
+  "ExpiresInMinutes": 30,
+  "Title": "Yêu cầu xác thực Face ID",
+  "Body": "Vui lòng xác thực khuôn mặt để tiếp tục."
+}
 ```
 
-## 🔄 Face ID Flow
+- 201: `{ RequestId, SessionId, ExpiresAt, TotalRecipients, Threshold }`
+- 400: thiếu dữ liệu hoặc không có recipients; 500
 
-### Registration Flow:
+#### POST `api/faceid/requests/{requestId}/verify`
 
-1. **Android**: User opens Face ID registration
-2. **Android**: Camera captures face → FaceNet generates 512-dim embedding
-3. **Android**: `POST /api/faceid/register` with embedding bytes
-4. **Server**: Stores embedding in PostgreSQL with pgvector
-5. **Server**: Updates user's `HasFaceId = true`
+- Content-Type: multipart/form-data
+- Form fields: `userId`, `embedding`, `threshold?`
+- 200: `{ Success, Similarity, VerifiedAt }`
+- 400: input không hợp lệ/không thuộc recipients
+- 404: request không tồn tại/expired
+- 410: expired
 
-### Verification Flow:
+#### GET `api/faceid/requests/{requestId}/status`
 
-1. **Android**: User attempts Face ID login
-2. **Android**: Camera captures face → FaceNet generates embedding
-3. **Android**: `POST /api/faceid/verify` with embedding bytes
-4. **Server**: Compares with stored embedding using cosine similarity
-5. **Server**: Returns success if similarity > threshold (0.7)
+- 200: `{ RequestId, SessionId, ExpiresAt, TotalRecipients, TotalVerified, VerifiedUserIds }`
+- 404: not found/expired
 
-## 📊 API Specifications
+#### PATCH `api/faceid/requests/{requestId}/cancel`
 
-### Register Face ID:
+- 204 No Content
+- 404 nếu không tồn tại/expired
 
-```http
-POST /api/faceid/register
-Content-Type: multipart/form-data
+## Xử lý lỗi và mã trạng thái
 
-userId: "8a4bd080-ad27-4711-8bb9-199caff56743"
-embedding: [binary file with 512 float32 values]
-```
+- Register/Update: 400 khi thiếu input; 200 với `Success=false` cho case nghiệp vụ (đã có/không tồn tại); 500 khi exception.
+- Verify đơn lẻ: luôn 200; `Success=false` nếu không đạt ngưỡng hoặc chưa có embedding.
+- Batch verify: 400/404/410 như mô tả; 200 body chứa kết quả; 500 khi exception.
 
-### Verify Face ID:
+## Bảo mật và tuân thủ
 
-```http
-POST /api/faceid/verify
-Content-Type: multipart/form-data
+- Yêu cầu xác thực/ủy quyền: chỉ giảng viên được tạo/hủy request; sinh viên chỉ verify cho chính họ.
+- Giới hạn kích thước upload; kiểm tra content-type; validate số phần tử embedding (khuyến nghị: đúng 512 floats).
+- Bảo vệ dữ liệu sinh trắc học: cân nhắc mã hóa at-rest, hạn chế truy cập, thiết lập retention/xóa dữ liệu theo chính sách.
+- Rate limiting và audit logging cho endpoints `verify`/`update`.
+- Raw SQL với embedding string được tạo server-side; nếu mở rộng nhận dữ liệu từ nguồn khác, cần parameterize để tránh injection.
 
-userId: "8a4bd080-ad27-4711-8bb9-199caff56743"
-embedding: [binary file with 512 float32 values]
-```
+## Cấu hình & Triển khai
 
-### Response Format:
+- PostgreSQL với `pgvector`; cấu hình `UseVector()` và migration trong `DependencyInjection.cs`.
+- Redis để lưu meta/receipts/danh sách verified với TTL = `expiresAt - now` (tối thiểu 1s).
+- MassTransit/RabbitMQ để push `NotificationCreatedEvent` đến recipients; kèm `deeplink` và `action` cho client.
+- Ngưỡng `threshold`: mặc định 0.7; cho phép override qua param; có thể nâng cấp để cấu hình qua appsettings.
+
+## Ví dụ phản hồi
 
 ```json
 {
   "Success": true,
-  "Message": "Face ID verification successful",
-  "Timestamp": "2025-01-23T16:14:34.2579477Z"
+  "Message": "Face ID verified successfully",
+  "Timestamp": "2025-08-10T10:00:00Z",
+  "Similarity": 0.83
 }
 ```
 
-## 🎯 Next Steps
+## Phụ lục: Tham chiếu mã nguồn
 
-### For Development:
+- `Controllers`: `src/Zentry.Modules/FaceId/Controllers/FaceIdController.cs`, `src/Zentry.Modules/FaceId/Controllers/FaceVerificationRequestsController.cs`
+- `Handlers`: `src/Zentry.Modules/FaceId/Features/RegisterFaceId/*`, `src/Zentry.Modules/FaceId/Features/UpdateFaceId/*`, `src/Zentry.Modules/FaceId/Features/VerifyFaceId/*`
+- `Repository`: `src/Zentry.Modules/FaceId/Interfaces/IFaceIdRepository.cs`, `src/Zentry.Modules/FaceId/Persistence/Repositories/FaceIdRepository.cs`
+- `Entities`: `src/Zentry.Modules/FaceId/Entities/FaceEmbedding.cs`, `src/Zentry.Modules/FaceId/Entities/FaceIdVerifyRequest.cs`
+- `Persistence`: `src/Zentry.Modules/FaceId/Persistence/FaceIdDbContext.cs`, `src/Zentry.Modules/FaceId/Persistence/Configurations/FaceEmbeddingConfiguration.cs`
+- `DI`: `src/Zentry.Modules/FaceId/DependencyInjection.cs`
 
-1. ✅ Server and database setup complete
-2. ✅ Android network configuration complete
-3. ✅ API integration verified
-4. 🔄 Build and test Android app
-5. 🔄 Test Face ID registration in app
-6. 🔄 Test Face ID verification in app
+## Đề xuất cải tiến
 
-### For Production:
-
-1. Update BASE_URL to production server
-2. Remove `android:usesCleartextTraffic="true"`
-3. Update network security config for HTTPS only
-4. Add proper SSL certificate validation
-5. Implement proper authentication flow
-
-## 🐛 Troubleshooting
-
-### Common Issues:
-
-**Android can't connect to server:**
-
-- ✅ Check emulator uses `10.0.2.2:8080`
-- ✅ For real device, use PC's IP address
-- ✅ Ensure INTERNET permission is added
-- ✅ Verify network security config
-
-**Face ID API returns 400:**
-
-- ✅ Check user exists in database
-- ✅ Verify embedding is 512 dimensions
-- ✅ For registration, user shouldn't have existing Face ID
-
-**Container unhealthy:**
-
-- ✅ Check `/health` endpoint accessible
-- ✅ Verify curl is installed in container
-- ✅ Check database migration status
-
-## 🎉 Success Metrics
-
-- ✅ **Server Health**: API responding correctly
-- ✅ **Database**: PostgreSQL + pgvector working
-- ✅ **Network**: Android can reach server APIs
-- ✅ **Face ID Storage**: Embeddings stored successfully
-- ✅ **Face ID Verification**: Similarity calculation working
-- ✅ **Integration**: Full flow tested and verified
-
-**Status: READY FOR ANDROID APP TESTING** 🚀
+- Thêm validate số lượng phần tử embedding = 512 trước khi insert/update/verify.
+- Trả 404 khi user không có embedding ở verify đơn lẻ (hiện trả 200 với `Success=false`) nếu muốn chuẩn REST hơn.
+- Cho phép cấu hình ngưỡng theo từng lớp/phiên trong `Create` (hiện đang cố định 0.7 khi persist).
+- Lưu similarity/log chi tiết (ẩn thông tin nhạy cảm) để phục vụ phân tích lỗi và tối ưu mô hình.

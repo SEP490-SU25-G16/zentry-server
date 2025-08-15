@@ -38,20 +38,16 @@ public class DevicesController(IMediator mediator) : BaseController
         if (string.IsNullOrWhiteSpace(request.AndroidId))
             return BadRequest("Android ID is required for device registration.");
 
-        // 1. Lấy UserId từ JWT (đã được middleware xác thực và gán vào HttpContext.User)
-        // Đây là cách an toàn và chuẩn để lấy UserId của người dùng đã đăng nhập.
-        // var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        // if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-        // {
-        //     // Trường hợp này hiếm khi xảy ra nếu Authorization attribute hoạt động đúng,
-        //     // nhưng là một kiểm tra an toàn nếu JWT hợp lệ nhưng không có claim User ID.
-        //     return Unauthorized("User ID claim not found or invalid in token."); // Có thể chuyển thành HandleError
-        // }
-        var userId = request.UserId;
+        // ✅ Lấy UserId từ session context (đã được validate bởi middleware)
+        var userId = HttpContext.Items["UserId"] as Guid?;
+        if (!userId.HasValue)
+        {
+            return Unauthorized("User not authenticated");
+        }
 
         var command = new RegisterDeviceCommand
         {
-            UserId = new Guid(userId),
+            UserId = userId.Value, // ✅ Sử dụng userId từ session
             DeviceName = request.DeviceName,
             AndroidId = request.AndroidId,
             Platform = request.Platform,
@@ -153,6 +149,15 @@ public class DevicesController(IMediator mediator) : BaseController
         if (string.IsNullOrWhiteSpace(command.DeviceName))
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Tên thiết bị là bắt buộc."));
 
+        // ✅ Lấy UserId từ session context
+        var userId = HttpContext.Items["UserId"] as Guid?;
+        if (!userId.HasValue)
+        {
+            return Unauthorized("User not authenticated");
+        }
+
+        // ✅ Gán userId từ session vào command
+        command.UserId = userId.Value;
 
         try
         {

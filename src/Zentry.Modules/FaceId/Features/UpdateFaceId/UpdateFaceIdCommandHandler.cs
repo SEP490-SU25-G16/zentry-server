@@ -1,5 +1,4 @@
 using MediatR;
-using Pgvector;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 
@@ -9,6 +8,7 @@ public class UpdateFaceIdCommandHandler : ICommandHandler<UpdateFaceIdCommand, U
 {
     private readonly IFaceIdRepository _faceIdRepository;
     private readonly IMediator _mediator;
+    private const float UpdateSimilarityThreshold = 0.7f;
 
     public UpdateFaceIdCommandHandler(IFaceIdRepository faceIdRepository, IMediator mediator)
     {
@@ -29,11 +29,22 @@ public class UpdateFaceIdCommandHandler : ICommandHandler<UpdateFaceIdCommand, U
                     Message = "User does not have a registered Face ID. Use register instead."
                 };
 
-            // Convert float array to Vector
-            var embedding = new Vector(command.EmbeddingArray);
+            // Verify similarity with existing embedding before allowing update (now accepts float[] directly)
+            var (isMatch, similarity) = await _faceIdRepository.VerifyAsync(
+                command.UserId,
+                command.EmbeddingArray,
+                UpdateSimilarityThreshold,
+                cancellationToken);
 
-            // Update embedding in database
-            await _faceIdRepository.UpdateAsync(command.UserId, embedding, cancellationToken);
+            if (!isMatch)
+                return new UpdateFaceIdResponse
+                {
+                    Success = false,
+                    Message = $"Face ID update rejected: similarity {similarity:F3} below threshold {UpdateSimilarityThreshold}"
+                };
+
+            // Update embedding in database (now accepts float[] directly)
+            await _faceIdRepository.UpdateAsync(command.UserId, command.EmbeddingArray, cancellationToken);
 
             // Update user's face ID status (to update the LastUpdated timestamp)
             var updateFaceIdCommand =

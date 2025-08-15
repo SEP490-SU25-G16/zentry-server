@@ -18,9 +18,9 @@ public class FaceEmbeddingConfiguration : IEntityTypeConfiguration<FaceEmbedding
         builder.Property(e => e.UserId)
             .IsRequired();
 
-        builder.Property(e => e.Embedding)
-            .HasColumnType("vector(512)")
-            .IsRequired();
+        builder.Property(e => e.EncryptedEmbedding)
+            .HasColumnType("bytea")
+            .IsRequired(false);
 
         builder.Property(e => e.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")

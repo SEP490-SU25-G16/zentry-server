@@ -123,6 +123,8 @@ app.UseHttpsRedirection();
 app.UseValidationExceptionMiddleware();
 app.UseAuthentication();
 app.UseAuthorization();
+// ✅ Thêm Device Validation Middleware - sử dụng factory pattern
+app.UseDeviceValidationMiddleware();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 app.MapHealthChecks("/health");

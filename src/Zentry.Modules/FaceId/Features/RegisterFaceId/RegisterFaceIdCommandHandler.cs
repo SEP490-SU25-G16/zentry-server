@@ -1,5 +1,4 @@
 using MediatR;
-using Pgvector;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.Modules.UserManagement.Features.UpdateFaceId;
 using Zentry.SharedKernel.Abstractions.Application;
@@ -30,11 +29,8 @@ public class RegisterFaceIdCommandHandler : ICommandHandler<RegisterFaceIdComman
                     Message = "User already has a registered Face ID. Use update instead."
                 };
 
-            // Convert float array to Vector
-            var embedding = new Vector(command.EmbeddingArray);
-
-            // Save embedding to database
-            await _faceIdRepository.CreateAsync(command.UserId, embedding, cancellationToken);
+            // Save embedding to database (now accepts float[] directly)
+            await _faceIdRepository.CreateAsync(command.UserId, command.EmbeddingArray, cancellationToken);
 
             // Update user's face ID status
             var updateFaceIdCommand = new UpdateFaceIdCommand(command.UserId, true);

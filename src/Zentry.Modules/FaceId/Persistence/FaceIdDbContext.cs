@@ -6,6 +6,7 @@ namespace Zentry.Modules.FaceId.Persistence;
 public class FaceIdDbContext(DbContextOptions<FaceIdDbContext> options) : DbContext(options)
 {
     public DbSet<FaceEmbedding> FaceEmbeddings { get; set; }
+    public DbSet<FaceIdVerifyRequest> FaceIdVerifyRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
