@@ -20,7 +20,7 @@ public class FaceEmbeddingConfiguration : IEntityTypeConfiguration<FaceEmbedding
 
         builder.Property(e => e.EncryptedEmbedding)
             .HasColumnType("bytea")
-            .IsRequired(false);
+            .IsRequired();
 
         builder.Property(e => e.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
