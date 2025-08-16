@@ -18,7 +18,7 @@ public class GetLecturerMonthlyCalendarQueryHandler(
     {
         var response = new MonthlyCalendarResponseDto
         {
-            CalendarDays = new List<DailyScheduleDto>()
+            CalendarDays = []
         };
 
         var startDate = new DateTime(request.Year, request.Month, 1, 0, 0, 0, DateTimeKind.Utc);
