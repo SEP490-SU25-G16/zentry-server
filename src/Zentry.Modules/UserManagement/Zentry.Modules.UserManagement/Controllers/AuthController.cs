@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.UserManagement.Features.ResetPassword;
 using Zentry.Modules.UserManagement.Features.SignIn;
+using Zentry.Modules.UserManagement.Features.UpdatePassword;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
 
@@ -64,6 +65,24 @@ public class AuthController(IMediator mediator) : BaseController
         {
             await mediator.Send(command);
             return HandleResult("Password has been reset successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("{id}/password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePassword(Guid id, [FromBody] UpdatePasswordRequest request)
+    {
+        var command = new UpdatePasswordCommand(id, request.NewPassword);
+        try
+        {
+            await mediator.Send(command);
+            return HandleNoContent();
         }
         catch (Exception ex)
         {

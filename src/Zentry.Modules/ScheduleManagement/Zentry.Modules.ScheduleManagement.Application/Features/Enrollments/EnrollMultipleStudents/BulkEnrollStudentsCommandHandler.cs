@@ -10,6 +10,7 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.Enr
 public class BulkEnrollStudentsCommandHandler(
     IEnrollmentRepository enrollmentRepository,
     IClassSectionRepository classSectionRepository,
+    IScheduleRepository scheduleRepository,
     IUserScheduleService userLookupService)
     : ICommandHandler<BulkEnrollStudentsCommand, BulkEnrollmentResponse>
 {
@@ -29,6 +30,29 @@ public class BulkEnrollStudentsCommandHandler(
         // Get existing enrollments for this class section to avoid duplicates
         var existingEnrollments = await enrollmentRepository
             .GetEnrollmentsByClassSectionAsync(command.ClassSectionId, cancellationToken);
+
+        var total = existingEnrollments.Count + command.StudentIds.Count;
+        var listSchedule =
+            await scheduleRepository.GetSchedulesByClassSectionIdAsync(command.ClassSectionId, cancellationToken);
+        var scheduleWithMinCapacity = listSchedule
+            .Where(s => s.Room! != null!)
+            .OrderBy(s => s.Room!.Capacity)
+            .FirstOrDefault();
+        if (scheduleWithMinCapacity is null)
+        {
+            throw new ResourceNotFoundException("No schedule with room found");
+        }
+
+        var minRoomCapacity = scheduleWithMinCapacity!.Room!.Capacity;
+        var roundIdWithMinCapacity = scheduleWithMinCapacity.Id;
+        if (total > minRoomCapacity)
+        {
+            throw new RoomCapacityNotEnoughForSchedule(
+                roundIdWithMinCapacity.ToString(),
+                scheduleWithMinCapacity.Id.ToString(),
+                command.ClassSectionId.ToString());
+        }
+
         var existingStudentIds = existingEnrollments.Select(e => e.StudentId).ToHashSet();
 
         var enrollmentsToAdd = new List<Enrollment>();

@@ -36,7 +36,7 @@ public class CreateRoomRequestValidator : BaseValidator<CreateRoomRequest>
             .WithMessage("Sức chứa là bắt buộc.")
             .GreaterThan(0)
             .WithMessage("Sức chứa phải lớn hơn 0.")
-            .LessThanOrEqualTo(1000)
-            .WithMessage("Sức chứa không được vượt quá 1000.");
+            .LessThanOrEqualTo(50)
+            .WithMessage("Sức chứa không được vượt quá 100.");
     }
 }

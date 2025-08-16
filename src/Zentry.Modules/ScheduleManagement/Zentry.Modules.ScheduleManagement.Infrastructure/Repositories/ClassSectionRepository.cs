@@ -166,7 +166,11 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         dbContext.ClassSections.Update(entity);
         await SaveChangesAsync(cancellationToken);
     }
-
+    public async Task UpdateRangeAsync(IEnumerable<ClassSection> entities, CancellationToken cancellationToken)
+    {
+        dbContext.ClassSections.UpdateRange(entities);
+        await SaveChangesAsync(cancellationToken);
+    }
     public async Task DeleteAsync(ClassSection entity, CancellationToken cancellationToken)
     {
         dbContext.ClassSections.Remove(entity);

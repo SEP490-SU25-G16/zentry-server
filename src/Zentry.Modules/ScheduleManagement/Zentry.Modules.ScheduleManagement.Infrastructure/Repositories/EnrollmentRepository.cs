@@ -16,7 +16,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
     {
         var sql = @"
         SELECT cs.""Semester"", COUNT(DISTINCT e.""StudentId"") as ""StudentCount""
-        FROM ""Enrollments"" e
+        FROM ""Enrollments"" 
         INNER JOIN ""ClassSections"" cs ON e.""ClassSectionId"" = cs.""Id""
         WHERE RIGHT(cs.""Semester"", 2) = {0}
           AND e.""Status"" = {1}
@@ -209,6 +209,13 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         dbContext.Enrollments.Remove(entity);
         await SaveChangesAsync(cancellationToken);
     }
+
+    public async Task DeleteRangeAsync(IEnumerable<Enrollment> enrollments, CancellationToken cancellationToken)
+    {
+        dbContext.Enrollments.RemoveRange(enrollments);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
 
     public async Task<(List<Enrollment> Enrollments, int TotalCount)> GetPagedEnrollmentsAsync(
         EnrollmentListCriteria criteria,

@@ -36,4 +36,6 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
     Task<List<EnrollmentProjectionDto>> GetEnrollmentsWithClassSectionProjectionsByStudentIdAsync(
         Guid studentId,
         CancellationToken cancellationToken);
+
+    Task DeleteRangeAsync(IEnumerable<Enrollment> enrollments, CancellationToken cancellationToken);
 }

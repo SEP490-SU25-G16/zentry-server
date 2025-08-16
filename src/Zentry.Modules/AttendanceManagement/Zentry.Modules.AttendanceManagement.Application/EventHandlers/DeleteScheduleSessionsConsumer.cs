@@ -1,6 +1,7 @@
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
+using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
@@ -20,18 +21,19 @@ public class DeleteScheduleSessionsConsumer(
 
         try
         {
-            // Bước 1: Lấy tất cả sessions liên quan đến schedule đã xóa
             var sessionsToDelete =
-                await sessionRepository.GetSessionsByScheduleIdAsync(message.ScheduleId, context.CancellationToken);
+                (await sessionRepository.GetSessionsByScheduleIdAsync(message.ScheduleId, context.CancellationToken))
+                .Where(s => Equals(s.Status, SessionStatus.Pending))
+                .ToList();
 
-            if (!sessionsToDelete.Any())
+            if (sessionsToDelete.Count == 0)
             {
-                logger.LogInformation("No sessions found for ScheduleId: {ScheduleId}. No action needed.",
+                logger.LogInformation(
+                    "No sessions found or able to delete for ScheduleId: {ScheduleId}. No action needed.",
                     message.ScheduleId);
                 return;
             }
 
-            // Bước 2: Lấy tất cả rounds liên quan đến các sessions đó
             var sessionIds = sessionsToDelete.Select(s => s.Id).ToList();
             var roundsToDelete =
                 await roundRepository.GetRoundsBySessionIdsAsync(sessionIds, context.CancellationToken);
@@ -43,7 +45,6 @@ public class DeleteScheduleSessionsConsumer(
                     roundsToDelete.Count, message.ScheduleId);
             }
 
-            // Bước 4: Xóa sessions
             await sessionRepository.DeleteRangeAsync(sessionsToDelete, context.CancellationToken);
             logger.LogInformation("Successfully deleted {NumSessions} sessions for ScheduleId: {ScheduleId}.",
                 sessionsToDelete.Count, message.ScheduleId);

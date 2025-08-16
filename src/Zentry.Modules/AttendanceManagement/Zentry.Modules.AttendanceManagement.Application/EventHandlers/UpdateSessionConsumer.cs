@@ -1,5 +1,3 @@
-// Trong Zentry.Modules.AttendanceManagement.Application.EventHandlers
-
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
@@ -34,13 +32,16 @@ public class UpdateSessionConsumer(
             }
 
             var sessionsToUpdate = new List<Session>();
+            var skippedSessions = new List<(Guid SessionId, SessionStatus Status)>();
 
             foreach (var session in sessions)
             {
-                if (Equals(session.Status, SessionStatus.Active) || Equals(session.Status, SessionStatus.Completed))
+                // Chỉ update những session có status là Pending
+                if (!Equals(session.Status, SessionStatus.Pending))
                 {
-                    logger.LogWarning(
-                        "Skipping session {SessionId} for update as its status is {Status}.",
+                    skippedSessions.Add((session.Id, session.Status));
+                    logger.LogInformation(
+                        "Skipping session {SessionId} for update as its status is {Status} (only Pending sessions can be updated).",
                         session.Id, session.Status);
                     continue;
                 }
@@ -54,25 +55,45 @@ public class UpdateSessionConsumer(
                     var newLocalStartTime = sessionDate.ToDateTime(newStartTime.Value);
                     var newLocalEndTime = sessionDate.ToDateTime(newEndTime.Value);
 
-                    session.Update(
-                        newLocalStartTime.ToUtcFromVietnamLocalTime(),
-                        newLocalEndTime.ToUtcFromVietnamLocalTime()
-                    );
-                }
+                    var newUtcStartTime = newLocalStartTime.ToUtcFromVietnamLocalTime();
+                    var newUtcEndTime = newLocalEndTime.ToUtcFromVietnamLocalTime();
 
-                sessionsToUpdate.Add(session);
+                    // Chỉ update nếu thực sự có thay đổi
+                    if (session.StartTime != newUtcStartTime || session.EndTime != newUtcEndTime)
+                    {
+                        session.Update(newUtcStartTime, newUtcEndTime);
+                        sessionsToUpdate.Add(session);
+
+                        logger.LogDebug(
+                            "Session {SessionId} will be updated: {OldStart} -> {NewStart}, {OldEnd} -> {NewEnd}",
+                            session.Id, session.StartTime, newUtcStartTime, session.EndTime, newUtcEndTime);
+                    }
+                }
             }
 
-            if (sessionsToUpdate.Count != 0)
+            // Log summary của các sessions bị skip
+            if (skippedSessions.Count > 0)
+            {
+                var statusGroups = skippedSessions.GroupBy(s => s.Status).ToDictionary(g => g.Key, g => g.Count());
+                var statusSummary = string.Join(", ", statusGroups.Select(kv => $"{kv.Key}: {kv.Value}"));
+                logger.LogInformation(
+                    "Skipped {TotalSkipped} sessions for ScheduleId {ScheduleId} by status: {StatusSummary}",
+                    skippedSessions.Count, message.ScheduleId, statusSummary);
+            }
+
+            if (sessionsToUpdate.Count > 0)
             {
                 await sessionRepository.UpdateRangeAsync(sessionsToUpdate, context.CancellationToken);
                 await sessionRepository.SaveChangesAsync(context.CancellationToken);
-                logger.LogInformation("Successfully updated {NumSessions} sessions for ScheduleId: {ScheduleId}.",
-                    sessionsToUpdate.Count, message.ScheduleId);
+                logger.LogInformation(
+                    "Successfully updated {UpdatedCount} pending sessions for ScheduleId: {ScheduleId} (Total sessions: {TotalSessions}, Skipped: {SkippedCount}).",
+                    sessionsToUpdate.Count, message.ScheduleId, sessions.Count, skippedSessions.Count);
             }
             else
             {
-                logger.LogInformation("No sessions to update for ScheduleId: {ScheduleId}.", message.ScheduleId);
+                logger.LogInformation(
+                    "No pending sessions to update for ScheduleId: {ScheduleId} (Total sessions: {TotalSessions}, All skipped: {SkippedCount}).",
+                    message.ScheduleId, sessions.Count, skippedSessions.Count);
             }
         }
         catch (Exception ex)

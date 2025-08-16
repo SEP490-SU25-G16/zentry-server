@@ -84,6 +84,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         return await dbContext.Schedules
             .AsNoTracking()
             .Where(s => s.ClassSectionId == classSectionId && !s.IsDeleted)
+            .Include(s => s.ClassSection)
+            .Include(s => s.Room)
             .ToListAsync(cancellationToken);
     }
 

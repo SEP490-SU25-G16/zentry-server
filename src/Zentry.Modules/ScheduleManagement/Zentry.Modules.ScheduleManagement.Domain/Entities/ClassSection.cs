@@ -67,7 +67,7 @@ public class ClassSection : AggregateRoot<Guid>
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void AssignLecturer(Guid lecturerId)
+    public void AssignLecturer(Guid? lecturerId)
     {
         if (LecturerId == lecturerId) return;
         LecturerId = lecturerId;
