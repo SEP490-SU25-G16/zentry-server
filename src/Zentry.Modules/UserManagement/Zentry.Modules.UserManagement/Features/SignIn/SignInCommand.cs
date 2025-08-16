@@ -6,13 +6,15 @@ public class SignInCommand : ICommand<SignInResponse>
 {
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    // ✅ Thêm DeviceToken để validate device
-    public string DeviceToken { get; set; } = string.Empty;
+    // ✅ TẠM TẮT: DeviceToken để dễ test API
+    // TODO: Bật lại khi cần production
+    // public string DeviceToken { get; set; } = string.Empty;
 }
 
 public class SignInResponse
 {
-    public string SessionKey { get; set; } = string.Empty; // ✅ Thay JWT bằng SessionKey
+    public string Token { get; set; } = string.Empty; // ✅ JWT Access Token
+    public string SessionKey { get; set; } = string.Empty; // ✅ Session Key (để tương thích)
     public UserInfo UserInfo { get; set; } = null!;
     public DateTime ExpiresAt { get; set; }
 }

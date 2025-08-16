@@ -1,10 +1,14 @@
 using MassTransit;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
+using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
@@ -16,7 +20,8 @@ public class ProcessActiveRoundForEndSessionConsumer(
     IPublishEndpoint publishEndpoint,
     IRedisService redisService,
     IAttendanceCalculationService attendanceCalculationService,
-    IAttendancePersistenceService attendancePersistenceService)
+    IAttendancePersistenceService attendancePersistenceService,
+    IMediator mediator)
     : IConsumer<ProcessActiveRoundForEndSessionMessage>
 {
     public async Task Consume(ConsumeContext<ProcessActiveRoundForEndSessionMessage> context)
@@ -99,6 +104,9 @@ public class ProcessActiveRoundForEndSessionConsumer(
                 "SessionFinalAttendanceToProcess message published for Session {SessionId} with {ActualRounds} actual rounds.",
                 session.Id, completedRoundsCount);
 
+            // Send notifications to students about session ending early
+            await NotifyStudentsAboutSessionEndingEarly(session, context.CancellationToken);
+
             logger.LogInformation("Active round {RoundId} processing completed successfully", activeRound.Id);
         }
         catch (Exception ex)
@@ -109,6 +117,75 @@ public class ProcessActiveRoundForEndSessionConsumer(
 
             // Rethrow to trigger retry mechanism
             throw;
+        }
+    }
+
+    private async Task NotifyStudentsAboutSessionEndingEarly(Session session, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // 1. Get ClassSectionId from ScheduleId
+            var classSectionResponse = await mediator.Send(
+                new GetClassSectionByScheduleIdIntegrationQuery(session.ScheduleId), 
+                cancellationToken);
+
+            if (classSectionResponse.ClassSectionId == Guid.Empty)
+            {
+                logger.LogWarning("Could not find ClassSection for Schedule {ScheduleId}, skipping notifications", 
+                    session.ScheduleId);
+                return;
+            }
+
+            // 2. Get all student IDs enrolled in this class section
+            var studentIdsResponse = await mediator.Send(
+                new GetStudentIdsByClassSectionIdIntegrationQuery(classSectionResponse.ClassSectionId), 
+                cancellationToken);
+
+            if (studentIdsResponse.StudentIds.Count == 0)
+            {
+                logger.LogInformation("No students found for ClassSection {ClassSectionId}, skipping notifications", 
+                    classSectionResponse.ClassSectionId);
+                return;
+            }
+
+            // 3. Create deeplink to StudentScheduleClassDetailFragment
+            var deeplink = $"zentry://schedule-detail?scheduleId={session.ScheduleId}&classSectionId={classSectionResponse.ClassSectionId}";
+
+            // 4. Send notifications to all students
+            var title = "Tiết học đã kết thúc sớm";
+            var body = "Giảng viên đã kết thúc tiết học sớm hơn dự kiến.";
+
+            var notificationTasks = studentIdsResponse.StudentIds.Select(studentId => 
+                publishEndpoint.Publish(new NotificationCreatedEvent
+                {
+                    Title = title,
+                    Body = body,
+                    RecipientUserId = studentId,
+                    Type = NotificationType.All, // Both InApp and Push
+                    Data = new Dictionary<string, string>
+                    {
+                        ["type"] = "SESSION_ENDED_EARLY",
+                        ["sessionId"] = session.Id.ToString(),
+                        ["scheduleId"] = session.ScheduleId.ToString(),
+                        ["classSectionId"] = classSectionResponse.ClassSectionId.ToString(),
+                        ["deeplink"] = deeplink,
+                        ["action"] = "VIEW_SCHEDULE_DETAIL",
+                        ["courseName"] = classSectionResponse.CourseName,
+                        ["sectionCode"] = classSectionResponse.SectionCode
+                    }
+                }, cancellationToken));
+
+            await Task.WhenAll(notificationTasks);
+
+            logger.LogInformation(
+                "Session ended early notifications sent to {StudentCount} students for Session {SessionId}",
+                studentIdsResponse.StudentIds.Count, session.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send session ended early notifications for Session {SessionId}", 
+                session.Id);
+            // Don't throw - notification failure shouldn't prevent session from ending
         }
     }
 }

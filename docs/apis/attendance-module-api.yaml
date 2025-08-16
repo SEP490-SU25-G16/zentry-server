@@ -516,6 +516,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /attendance/sessions/{sessionId}/end:
+    post:
+      summary: End an attendance session (UC-Attendance-03)
+      operationId: endAttendanceSession
+      tags:
+        - Attendance Sessions
+      description: |
+        Allows a lecturer to end an active attendance session.
+        - **Role**: Lecturer.
+        - **Prerequisites**: Lecturer must be authenticated and assigned to the session.
+        - **Behavior**: 
+          - Ends the session and finalizes all pending rounds
+          - Sends notifications to all enrolled students about session ending early
+          - Notifications include deep link to StudentScheduleClassDetailFragment
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the session to end
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EndSessionRequest'
+      responses:
+        '200':
+          description: Session ended successfully. Notifications sent to students.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EndSessionResponse'
+        '400':
+          description: Invalid request or session not in active status
+        '403':
+          description: Lecturer not assigned to this session
+        '404':
+          description: Session not found
+
 components:
   securitySchemes:
     bearerAuth:
