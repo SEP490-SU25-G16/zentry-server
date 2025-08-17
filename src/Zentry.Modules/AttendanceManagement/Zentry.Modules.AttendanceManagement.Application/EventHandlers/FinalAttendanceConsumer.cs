@@ -22,7 +22,7 @@ public class FinalAttendanceConsumer(
     : IConsumer<SessionFinalAttendanceToProcessMessage>
 {
     private const double DefaultAttendanceThresholdPercentage = 75.0;
-    private const string AttendanceThresholdConfigKey = "attendance_threshold_percentage";
+    private const string AttendanceThresholdConfigKey = "AttendanceThresholdPercentage";
 
     public async Task Consume(ConsumeContext<SessionFinalAttendanceToProcessMessage> context)
     {

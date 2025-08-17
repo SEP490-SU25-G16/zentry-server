@@ -93,7 +93,7 @@ public static class ConfigurationDbContextSeed
 
                 // New attendance threshold setting
                 AttributeDefinition.Create(
-                    "attendance_threshold_percentage",
+                    "AttendanceThresholdPercentage",
                     "Ngưỡng điểm danh tối thiểu (%)",
                     "Tỷ lệ phần trăm tối thiểu để được coi là có mặt trong phiên học",
                     DataType.Decimal,
@@ -119,7 +119,7 @@ public static class ConfigurationDbContextSeed
             var totalRoundsId = attributeDefinitions.Single(ad => ad.Key == "TotalAttendanceRounds").Id;
             var absentReportId = attributeDefinitions.Single(ad => ad.Key == "AbsentReportGracePeriodHours").Id;
             var manualAdjId = attributeDefinitions.Single(ad => ad.Key == "ManualAdjustmentGracePeriodHours").Id;
-            var attendanceThresholdId = attributeDefinitions.Single(ad => ad.Key == "attendance_threshold_percentage").Id;
+            var attendanceThresholdId = attributeDefinitions.Single(ad => ad.Key == "AttendanceThresholdPercentage").Id;
 
             settings.Add(Setting.Create(
                 attendanceWindowId,

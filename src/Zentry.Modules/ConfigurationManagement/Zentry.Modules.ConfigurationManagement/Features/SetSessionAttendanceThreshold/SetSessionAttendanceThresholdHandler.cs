@@ -18,7 +18,7 @@ public class SetSessionAttendanceThresholdHandler(
     ILogger<SetSessionAttendanceThresholdHandler> logger)
     : ICommandHandler<SetSessionAttendanceThresholdCommand, SetSessionAttendanceThresholdResponse>
 {
-    private const string AttendanceThresholdKey = "attendance_threshold_percentage";
+    private const string AttendanceThresholdKey = "AttendanceThresholdPercentage";
 
     public async Task<SetSessionAttendanceThresholdResponse> Handle(
         SetSessionAttendanceThresholdCommand command,
