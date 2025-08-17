@@ -77,6 +77,12 @@ public class FaceIdVerifyRequest : AggregateRoot<Guid>
         Status = FaceIdVerifyRequestStatus.Canceled;
         CompletedAt = DateTime.UtcNow;
     }
+
+    // ✅ Thêm: Method để cập nhật NotificationId
+    public void UpdateNotificationId(string notificationId)
+    {
+        NotificationId = notificationId;
+    }
 }
 
 public enum FaceIdVerifyRequestStatus

@@ -33,7 +33,7 @@ public class PersistVerifyRequestCommandHandler(IFaceIdRepository repository)
 public record CompleteVerifyRequestCommand(
     Guid TargetUserId,
     Guid? SessionId,
-    Guid RequestId,
+    Guid RequestGroupId,  // ← Đổi từ RequestId thành RequestGroupId
     bool Matched,
     float Similarity,
     bool completeIfFailed = false) : ICommand<bool>;
@@ -43,14 +43,44 @@ public class CompleteVerifyRequestCommandHandler(IFaceIdRepository repository)
 {
     public async Task<bool> Handle(CompleteVerifyRequestCommand command, CancellationToken cancellationToken)
     {
-        // This is a simplified completion; a real impl would locate exact request entity by id
-        var req = await repository.GetVerifyRequestAsync(command.RequestId, cancellationToken);
-        if (req is null) return false;
+        // ✅ Sửa: Tìm kiếm bằng RequestGroupId và TargetUserId
+        var request = await repository.GetVerifyRequestByGroupAndUserAsync(
+            command.RequestGroupId, 
+            command.TargetUserId, 
+            cancellationToken);
+            
+        if (request is null) return false;
 
         if (command.Matched || command.completeIfFailed)
         {
-            await repository.CompleteVerifyRequestAsync(req, command.Matched, command.Similarity, cancellationToken);
+            await repository.CompleteVerifyRequestAsync(request, command.Matched, command.Similarity, cancellationToken);
         }
+        return true;
+    }
+}
+
+// ✅ Thêm: Command để cập nhật NotificationId
+public record UpdateNotificationIdCommand(
+    Guid RequestGroupId,
+    Guid TargetUserId,
+    string NotificationId) : ICommand<bool>;
+
+public class UpdateNotificationIdCommandHandler(IFaceIdRepository repository)
+    : ICommandHandler<UpdateNotificationIdCommand, bool>
+{
+    public async Task<bool> Handle(UpdateNotificationIdCommand command, CancellationToken cancellationToken)
+    {
+        var request = await repository.GetVerifyRequestByGroupAndUserAsync(
+            command.RequestGroupId, 
+            command.TargetUserId, 
+            cancellationToken);
+            
+        if (request is null) return false;
+
+        // Cập nhật NotificationId
+        request.UpdateNotificationId(command.NotificationId);
+        await repository.UpdateVerifyRequestAsync(request, cancellationToken);
+        
         return true;
     }
 }

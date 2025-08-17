@@ -17,7 +17,7 @@ public static class DependencyInjection
         services.AddDbContext<FaceIdDbContext>(options =>
             // Sử dụng chuỗi kết nối FaceIdConnection
             options.UseNpgsql(
-                configuration.GetConnectionString("FaceIdConnection"),
+                configuration.GetConnectionString("DefaultConnection"),
                 b =>
                 {
                     b.MigrationsAssembly("Zentry.Modules.FaceId");
@@ -33,10 +33,6 @@ public static class DependencyInjection
         // Register MediatR handlers
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-
-        // Register DbMigrationService
-        services.AddHostedService<FaceIdDbMigrationService>();
-
         return services;
     }
 }

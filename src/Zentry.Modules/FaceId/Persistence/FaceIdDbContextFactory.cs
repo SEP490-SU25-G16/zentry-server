@@ -20,7 +20,7 @@ public class FaceIdDbContextFactory : IDesignTimeDbContextFactory<FaceIdDbContex
 
         if (string.IsNullOrEmpty(connectionString))
             // Fallback connection string for development
-            connectionString = "Host=localhost;Database=zentry;Username=admin;Password=pass";
+            connectionString = "Host=localhost;Database=ZentryDb;Username=postgres;Password=postgres";
 
         optionsBuilder.UseNpgsql(connectionString,
             b =>

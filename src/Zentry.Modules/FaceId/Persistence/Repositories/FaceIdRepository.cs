@@ -176,6 +176,53 @@ public class FaceIdRepository : IFaceIdRepository
         }
     }
 
+    // New methods for session-based management
+    public async Task<List<FaceIdVerifyRequest>> GetActiveVerifyRequestsBySessionAsync(Guid sessionId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.SessionId == sessionId && r.Status == FaceIdVerifyRequestStatus.Pending && r.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task CancelVerifyRequestsBySessionAsync(Guid sessionId, CancellationToken cancellationToken = default)
+    {
+        var items = await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.SessionId == sessionId && r.Status == FaceIdVerifyRequestStatus.Pending)
+            .ToListAsync(cancellationToken);
+        
+        foreach (var r in items)
+        {
+            r.Cancel();
+        }
+        
+        if (items.Count > 0)
+        {
+            _dbContext.FaceIdVerifyRequests.UpdateRange(items);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    public async Task<List<FaceIdVerifyRequest>> GetExpiredVerifyRequestsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.Status == FaceIdVerifyRequestStatus.Pending && r.ExpiresAt <= DateTime.UtcNow)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task MarkVerifyRequestsAsExpiredAsync(List<FaceIdVerifyRequest> requests, CancellationToken cancellationToken = default)
+    {
+        foreach (var request in requests)
+        {
+            request.MarkExpired();
+        }
+        
+        if (requests.Count > 0)
+        {
+            _dbContext.FaceIdVerifyRequests.UpdateRange(requests);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
     public async Task AddAsync(FaceEmbedding entity, CancellationToken cancellationToken = default)
     {
         _dbContext.FaceEmbeddings.Add(entity);
@@ -291,5 +338,25 @@ public class FaceIdRepository : IFaceIdRepository
 
         // Combine both lists
         return usersWithFaceId.Concat(usersWithoutFaceId);
+    }
+    
+    // ✅ Thêm method mới
+    public async Task<FaceIdVerifyRequest?> GetVerifyRequestByGroupAndUserAsync(
+        Guid requestGroupId, 
+        Guid targetUserId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FaceIdVerifyRequests
+            .FirstOrDefaultAsync(r => 
+                r.RequestGroupId == requestGroupId && 
+                r.TargetUserId == targetUserId, 
+                cancellationToken);
+    }
+
+    // ✅ Thêm: Method để cập nhật verify request
+    public async Task UpdateVerifyRequestAsync(FaceIdVerifyRequest request, CancellationToken cancellationToken = default)
+    {
+        _dbContext.FaceIdVerifyRequests.Update(request);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

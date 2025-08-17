@@ -11,7 +11,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       # Chuỗi kết nối cho database cục bộ (sử dụng pgvector)
-      - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
+#      - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       # Chuỗi kết nối mặc định cho các module sử dụng EF Core (trỏ tới container postgres)
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
       # Chuỗi kết nối cho các module khác (dùng Neon)
