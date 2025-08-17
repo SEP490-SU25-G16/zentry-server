@@ -12,8 +12,8 @@ using Zentry.Modules.NotificationService.Persistence.Repository;
 namespace Zentry.Modules.NotificationService.Migrations
 {
     [DbContext(typeof(NotificationDbContext))]
-    [Migration("20250817092954_Notification")]
-    partial class Notification
+    [Migration("20250817150023_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
