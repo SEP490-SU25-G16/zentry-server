@@ -1,5 +1,4 @@
 using FluentValidation;
-using Zentry.Modules.AttendanceManagement.Application.Features.UpdateSession;
 using Zentry.SharedKernel.Abstractions.Models;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Features.UpdateSession;

@@ -1,7 +1,7 @@
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Contracts.Attendance;
 
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 
@@ -26,12 +26,8 @@ public class GetStudentAttendanceForSchedulesIntegrationQueryHandler(
         var attendanceData = new Dictionary<Guid, string>();
 
         foreach (var record in attendanceRecords)
-        {
             if (sessionToScheduleMap.TryGetValue(record.SessionId, out var scheduleId))
-            {
                 attendanceData[scheduleId] = record.Status.ToString();
-            }
-        }
 
         // Tạo danh sách DTO response
         var result = request.ScheduleIds.Select(scheduleId => new StudentAttendanceForScheduleDto

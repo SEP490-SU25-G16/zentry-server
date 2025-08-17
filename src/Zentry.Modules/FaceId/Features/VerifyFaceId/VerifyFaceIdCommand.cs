@@ -1,4 +1,3 @@
-using NpgsqlTypes;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.FaceId.Features.VerifyFaceId;

@@ -22,7 +22,6 @@ public class HandleDeviceChangeRequestHandler(
         logger.LogInformation("Admin is {Action} device change request for UserRequestId: {UserRequestId}.",
             action, command.UserRequestId);
 
-        // Gọi integration command để cập nhật UserRequest status
         var userRequestResponse = await mediator.Send(
             new UpdateUserRequestStatusIntegrationCommand(command.UserRequestId, command.IsAccepted),
             cancellationToken);
@@ -32,7 +31,6 @@ public class HandleDeviceChangeRequestHandler(
 
         if (command.IsAccepted)
         {
-            // Logic chấp nhận (Accept)
             var currentActiveDevice = await deviceRepository.GetActiveDeviceForUserAsync(userId, cancellationToken);
             var deactivatedDeviceId = Guid.Empty;
 
@@ -81,8 +79,6 @@ public class HandleDeviceChangeRequestHandler(
             };
         }
 
-        // Logic từ chối (Reject)
-        // Lấy device đang pending và chuyển status sang Rejected (nếu cần, vì nó đã bị từ chối)
         var pendingDevice =
             await deviceRepository.GetPendingDeviceForUserAsync(userId, relatedDeviceId, cancellationToken);
         if (pendingDevice is not null)

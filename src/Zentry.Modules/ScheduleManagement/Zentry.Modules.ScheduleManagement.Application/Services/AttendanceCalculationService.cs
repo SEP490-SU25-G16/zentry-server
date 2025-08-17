@@ -1,6 +1,6 @@
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
-using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Contracts.Attendance;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Services;
 
@@ -16,10 +16,7 @@ public class AttendanceCalculationService : IAttendanceCalculationService
             .Select(s => s.Id)
             .ToList();
 
-        if (enrolledStudentsCount == 0 || completedSessionIds.Count == 0)
-        {
-            return 0;
-        }
+        if (enrolledStudentsCount == 0 || completedSessionIds.Count == 0) return 0;
 
         var totalPresentCount = classAttendanceRecords
             .Count(ar =>
@@ -27,12 +24,9 @@ public class AttendanceCalculationService : IAttendanceCalculationService
 
         var totalExpectedPresentCount = enrolledStudentsCount * completedSessionIds.Count;
 
-        if (totalExpectedPresentCount == 0)
-        {
-            return 0;
-        }
+        if (totalExpectedPresentCount == 0) return 0;
 
-        return ((double)totalPresentCount / totalExpectedPresentCount) * 100;
+        return (double)totalPresentCount / totalExpectedPresentCount * 100;
     }
 
     public double CalculateAttendanceRateForStudent(
@@ -42,11 +36,8 @@ public class AttendanceCalculationService : IAttendanceCalculationService
         var totalSessionsOfClass = schedules.Count;
         var attendedCount = attendanceRecords.Count(ar => ar.Status == AttendanceStatus.Present.ToString());
 
-        if (totalSessionsOfClass == 0)
-        {
-            return 0;
-        }
+        if (totalSessionsOfClass == 0) return 0;
 
-        return ((double)attendedCount / totalSessionsOfClass) * 100;
+        return (double)attendedCount / totalSessionsOfClass * 100;
     }
 }

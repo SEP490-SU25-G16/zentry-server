@@ -2,6 +2,8 @@ namespace Zentry.SharedKernel.Constants.Response;
 
 public static class ErrorCodes
 {
+    public const string RateLimitExceeded = "RATE_LIMIT_EXCEEDED";
+
     // General errors
     public const string ValidationError = "VALIDATION_ERROR";
     public const string InternalServerError = "INTERNAL_SERVER_ERROR";
@@ -38,6 +40,7 @@ public static class ErrorCodes
     public const string CourseCannotBeDeleted = "COURSE_CAN_NOT_BE_DELETED";
     public const string ClassSectionNotFound = "CLASS_SECTION_NOT_FOUND";
     public const string RoomNotAvailable = "ROOM_NOT_AVAILABLE";
+    public const string RoomCapacityNotEnough = "ROOM_CAPACITY_NOT_ENOUGH";
 
     // Device management
     public const string DeviceAlreadyRegistered = "DEVICE_ALREADY_REGISTERED";

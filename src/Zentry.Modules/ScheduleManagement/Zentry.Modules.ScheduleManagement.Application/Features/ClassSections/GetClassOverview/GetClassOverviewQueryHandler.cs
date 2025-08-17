@@ -20,18 +20,13 @@ public class GetClassOverviewQueryHandler(
         CancellationToken cancellationToken)
     {
         var classSection = await classSectionRepository.GetByIdAsync(request.ClassId, cancellationToken);
-        if (classSection is null)
-        {
-            throw new NotFoundException($"Class section with ID {request.ClassId} not found.");
-        }
+        if (classSection is null) throw new NotFoundException($"Class section with ID {request.ClassId} not found.");
 
         GetUserByIdAndRoleIntegrationResponse? lecturer = null;
         if (classSection.LecturerId.HasValue)
-        {
             lecturer = await mediator.Send(
                 new GetUserByIdAndRoleIntegrationQuery(
                     (Guid)classSection.LecturerId, Role.Lecturer), cancellationToken);
-        }
 
         var scheduleIds = classSection.Schedules.Select(s => s.Id).ToList();
         var overviewData =

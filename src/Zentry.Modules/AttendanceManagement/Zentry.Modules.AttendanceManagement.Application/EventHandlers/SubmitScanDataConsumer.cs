@@ -312,7 +312,7 @@ public class SubmitScanDataConsumer(
     {
         try
         {
-            var roundTrack = await roundTrackRepository.GetByIdAsync(roundId, cancellationToken);
+            var roundTrack = await roundTrackRepository.GetRoundTracksByRoundIdAsync(roundId, cancellationToken);
             if (roundTrack?.Students == null) return new List<string>();
 
             return roundTrack.Students

@@ -23,9 +23,7 @@ public class GetAttendanceRateByYearAndSemesterQueryHandler(
             await classSectionRepository.GetClassSectionsByYearAsync(yearString, cancellationToken);
 
         if (!classSectionsInYear.Any())
-        {
             return new GetAttendanceRateByYearAndSemesterResponse(new Dictionary<string, double>());
-        }
 
         var classSectionIds = classSectionsInYear.Select(cs => cs.Id).ToList();
 
@@ -62,12 +60,8 @@ public class GetAttendanceRateByYearAndSemesterQueryHandler(
                 // Lấy dữ liệu điểm danh
                 var classAttendanceRecords = new List<OverviewAttendanceDto>();
                 foreach (var schedule in classSchedules)
-                {
                     if (attendanceDataDict.TryGetValue(schedule.Id, out var data))
-                    {
                         classAttendanceRecords.AddRange(data.AttendanceRecords);
-                    }
-                }
 
                 // Cần một DTO cho sessions tương ứng từ schedules
                 var sessionDtos = classSchedules

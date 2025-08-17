@@ -9,7 +9,6 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.G
 
 public class GetAllClassSectionsWithEnrollmentCountQueryHandler(
     IClassSectionRepository classSectionRepository,
-    IEnrollmentRepository enrollmentRepository,
     IMediator mediator
 ) : IQueryHandler<GetAllClassSectionsWithEnrollmentCountQuery, List<ClassSectionWithEnrollmentCountDto>>
 {
@@ -17,31 +16,24 @@ public class GetAllClassSectionsWithEnrollmentCountQueryHandler(
         GetAllClassSectionsWithEnrollmentCountQuery request,
         CancellationToken cancellationToken)
     {
-        // Lấy tất cả ClassSection và đảm bảo include Course và Enrollment
-        var classSections = await classSectionRepository.GetAllAsync(cancellationToken);
+        var activeClassSections = (await classSectionRepository.GetAllAsync(cancellationToken)).ToList();
 
-        // Lọc ra các ClassSection đã xóa
-        var activeClassSections = classSections.Where(cs => !cs.IsDeleted).ToList();
+        if (activeClassSections.Count == 0) return [];
 
-        if (!activeClassSections.Any()) return new List<ClassSectionWithEnrollmentCountDto>();
-
-        // 1. Thu thập tất cả LecturerId cần tra cứu
         var lecturerIds = activeClassSections
             .Where(cs => cs.LecturerId.HasValue)
             .Select(cs => cs.LecturerId!.Value)
             .Distinct()
             .ToList();
 
-        // 2. Tra cứu tất cả giảng viên cùng một lúc bằng IMediator
         var lecturers = new Dictionary<Guid, BasicUserInfoDto>();
-        if (lecturerIds.Any())
+        if (lecturerIds.Count != 0)
         {
             var lecturerLookupResponse =
                 await mediator.Send(new GetUsersByIdsIntegrationQuery(lecturerIds), cancellationToken);
             lecturers = lecturerLookupResponse.Users.ToDictionary(u => u.Id, u => u);
         }
 
-        // 3. Ánh xạ DTO một cách hiệu quả
         var result = activeClassSections.Select(cs =>
         {
             BasicUserInfoDto? lecturerInfo = null;
@@ -60,8 +52,8 @@ public class GetAllClassSectionsWithEnrollmentCountQueryHandler(
                 CreatedAt = cs.CreatedAt,
                 UpdatedAt = cs.UpdatedAt,
                 EnrolledStudentsCount =
-                    cs.Enrollments?.Count(e => e.Status == EnrollmentStatus.Active) ??
-                    0 // Đếm sinh viên có status "Active"
+                    cs.Enrollments?.Count(e => Equals(e.Status, EnrollmentStatus.Active)) ??
+                    0
             };
         }).OrderBy(dto => dto.SectionCode).ToList();
 

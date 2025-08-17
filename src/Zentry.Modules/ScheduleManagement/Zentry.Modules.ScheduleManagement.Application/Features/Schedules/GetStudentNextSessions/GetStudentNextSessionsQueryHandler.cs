@@ -73,9 +73,8 @@ public class GetStudentNextSessionsQueryHandler(
             var lecturerName = "Unassigned Lecturer ";
             if (correspondingClassSection.LecturerId.HasValue &&
                 lecturerNameMap.TryGetValue(correspondingClassSection.LecturerId.Value, out var name))
-            {
-                if (name != null) lecturerName = name;
-            }
+                if (name != null)
+                    lecturerName = name;
 
             nextSessions.Add(new NextSessionDto
             {

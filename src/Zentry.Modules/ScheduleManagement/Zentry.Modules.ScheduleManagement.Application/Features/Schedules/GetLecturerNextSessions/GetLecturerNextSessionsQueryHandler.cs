@@ -3,6 +3,8 @@ using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
+using Zentry.SharedKernel.Contracts.User;
+using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerNextSessions;
@@ -15,10 +17,19 @@ public class GetLecturerNextSessionsQueryHandler(
     public async Task<List<NextSessionDto>> Handle(GetLecturerNextSessionsQuery request,
         CancellationToken cancellationToken)
     {
+        var response =
+            await mediator.Send(new CheckUserExistIntegrationQuery(request.LecturerId), cancellationToken);
+
+        if (response.IsExist == false) throw new ResourceNotFoundException("Lecturer", request.LecturerId);
+
         var nextSessions = new List<NextSessionDto>();
 
         var classSections =
             await classSectionRepository.GetLecturerClassSectionsAsync(request.LecturerId, cancellationToken);
+
+        if (classSections.Count == 0)
+            throw new ResourceNotFoundException(
+                $"Lecturer with id {request.LecturerId} is not assigned to any class section.");
 
         var allScheduleIds = classSections.SelectMany(cs => cs.Schedules.Select(s => s.Id)).ToList();
 

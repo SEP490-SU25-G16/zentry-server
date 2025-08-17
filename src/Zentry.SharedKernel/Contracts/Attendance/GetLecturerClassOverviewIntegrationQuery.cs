@@ -24,5 +24,3 @@ public record OverviewAttendanceDto
     public Guid StudentId { get; set; }
     public string Status { get; set; } = string.Empty;
 }
-
-

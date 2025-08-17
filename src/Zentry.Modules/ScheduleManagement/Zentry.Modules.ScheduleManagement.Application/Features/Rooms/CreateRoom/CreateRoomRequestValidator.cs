@@ -1,5 +1,6 @@
 using FluentValidation;
 using Zentry.SharedKernel.Abstractions.Models;
+using Zentry.SharedKernel.Helpers;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Rooms.CreateRoom;
 
@@ -14,6 +15,10 @@ public class CreateRoomRequestValidator : BaseValidator<CreateRoomRequest>
             .MaximumLength(100)
             .WithMessage("Tên phòng không được vượt quá 100 ký tự.");
 
+        RuleFor(x => x.RoomName)
+            .Must(name => !ValidatorHelper.ContainsInvalidCharacters(name))
+            .WithMessage("Tên phòng chứa ký tự đặc biệt không hợp lệ.");
+
         // Rule for Building
         RuleFor(x => x.Building)
             .NotEmpty()
@@ -21,13 +26,17 @@ public class CreateRoomRequestValidator : BaseValidator<CreateRoomRequest>
             .MaximumLength(100)
             .WithMessage("Tên tòa nhà không được vượt quá 100 ký tự.");
 
+        RuleFor(x => x.Building)
+            .Must(building => !ValidatorHelper.ContainsInvalidCharacters(building))
+            .WithMessage("Tên tòa nhà chứa ký tự đặc biệt không hợp lệ.");
+
         // Rule for Capacity
         RuleFor(x => x.Capacity)
             .NotNull()
             .WithMessage("Sức chứa là bắt buộc.")
             .GreaterThan(0)
             .WithMessage("Sức chứa phải lớn hơn 0.")
-            .LessThanOrEqualTo(1000)
-            .WithMessage("Sức chứa không được vượt quá 1000.");
+            .LessThanOrEqualTo(50)
+            .WithMessage("Sức chứa không được vượt quá 100.");
     }
 }

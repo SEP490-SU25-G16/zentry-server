@@ -1,9 +1,7 @@
 // Sử dụng IMediator và IPublishEndpoint để gửi message
 
-using MediatR;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
@@ -23,10 +21,7 @@ public class UpdateSessionCommandHandler(
     {
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
 
-        if (session is null)
-        {
-            throw new NotFoundException(nameof(Session), request.SessionId);
-        }
+        if (session is null) throw new NotFoundException(nameof(Session), request.SessionId);
 
         var oldLecturerId = session.LecturerId;
         var oldStartTime = session.StartTime;
@@ -35,14 +30,10 @@ public class UpdateSessionCommandHandler(
 
         session.Update(request.StartTime, request.EndTime);
         if (request.SessionConfigs != null && request.SessionConfigs.Any())
-        {
             session.UpdateConfigs(request.SessionConfigs);
-        }
 
         if (request.LecturerId.HasValue && session.Status == SessionStatus.Pending)
-        {
             session.AssignLecturer(request.LecturerId.Value);
-        }
 
         await sessionRepository.UpdateAsync(session, cancellationToken);
         await sessionRepository.SaveChangesAsync(cancellationToken);

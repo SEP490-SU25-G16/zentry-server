@@ -16,9 +16,7 @@ public class GetUserAttributesForUsersIntegrationQueryHandler(
         CancellationToken cancellationToken)
     {
         if (query.UserIds.Count == 0)
-        {
             return new GetUserAttributesForUsersIntegrationResponse(new Dictionary<Guid, Dictionary<string, string>>());
-        }
 
         try
         {
@@ -31,7 +29,7 @@ public class GetUserAttributesForUsersIntegrationQueryHandler(
                 .Select(ua => new
                 {
                     ua.UserId,
-                    Key = ua.AttributeDefinition!.Key,
+                    ua.AttributeDefinition!.Key,
                     Value = ua.AttributeValue
                 })
                 .ToListAsync(cancellationToken);

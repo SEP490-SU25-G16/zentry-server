@@ -23,10 +23,7 @@ public class GetStudentSessionsQueryHandler(
 
         var classSectionIds = enrollmentsResponse.ClassSectionIds;
 
-        if (classSectionIds.Count == 0)
-        {
-            return new GetStudentSessionsResponse(new List<StudentSessionDto>());
-        }
+        if (classSectionIds.Count == 0) return new GetStudentSessionsResponse(new List<StudentSessionDto>());
 
         // 2. Lấy tất cả ScheduleId và thông tin phòng học từ ScheduleManagement
         var schedulesWithRooms = await mediator.Send(
@@ -35,10 +32,7 @@ public class GetStudentSessionsQueryHandler(
 
         var scheduleIds = schedulesWithRooms.Schedules.Select(s => s.Id).ToList();
 
-        if (scheduleIds.Count == 0)
-        {
-            return new GetStudentSessionsResponse(new List<StudentSessionDto>());
-        }
+        if (scheduleIds.Count == 0) return new GetStudentSessionsResponse(new List<StudentSessionDto>());
 
         // 3. Lấy tất cả Sessions từ các ScheduleId
         var sessions = await sessionRepository.GetSessionsByScheduleIdsAsync(scheduleIds, cancellationToken);
@@ -60,10 +54,7 @@ public class GetStudentSessionsQueryHandler(
         foreach (var session in sessions.OrderBy(s => s.StartTime))
         {
             // Tìm Schedule tương ứng để lấy thông tin phòng
-            if (!scheduleToRoomMap.TryGetValue(session.ScheduleId, out var roomInfo))
-            {
-                roomInfo = "N/A";
-            }
+            if (!scheduleToRoomMap.TryGetValue(session.ScheduleId, out var roomInfo)) roomInfo = "N/A";
 
             // Tìm trạng thái điểm danh
             var attendanceStatus = attendanceStatusMap.GetValueOrDefault(session.Id, "Absent");

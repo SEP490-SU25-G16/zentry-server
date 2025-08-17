@@ -19,7 +19,7 @@ public class CreateClassSectionCommandHandler(
         var semester = Semester.Create(request.Semester);
 
         var existingSection =
-            await classSectionRepository.GetBySectionCodeAndSemesterAsync(request.SectionCode, semester,
+            await classSectionRepository.GetBySectionCodeAsync(request.SectionCode,
                 cancellationToken);
 
         if (existingSection is not null)

@@ -14,10 +14,7 @@ public class GetUserStatusIntegrationQueryHandler(IUserRepository userRepository
     {
         var account = await userRepository.GetAccountByUserId(integrationQuery.UserId);
 
-        if (account is null)
-        {
-            throw new ResourceNotFoundException("Account", integrationQuery.UserId);
-        }
+        if (account is null) throw new ResourceNotFoundException("Account", integrationQuery.UserId);
 
         return new GetUserStatusIntegrationResponse(account.Status);
     }

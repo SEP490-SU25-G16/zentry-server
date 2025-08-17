@@ -6,7 +6,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.ResetPassword;
 
-public class RequestResetPasswordHandler(UserDbContext dbContext, IEmailService emailService)
+public class RequestResetPasswordHandler(UserDbContext dbContext)
     : ICommandHandler<RequestResetPasswordCommand>
 {
     public async Task<Unit> Handle(RequestResetPasswordCommand request, CancellationToken cancellationToken)
@@ -29,7 +29,7 @@ public class RequestResetPasswordHandler(UserDbContext dbContext, IEmailService 
 
         var emailBody = $"Your password reset token is: {token}. It is valid for 1 hour. " +
                         $"Please use this token to reset your password on our website."; // Added more context
-        await emailService.SendEmailAsync(request.Email, "Password Reset Request for Zentry Account", emailBody);
+        // await emailService.SendEmailAsync(request.Email, "Password Reset Request for Zentry Account", emailBody);
 
         return Unit.Value;
     }

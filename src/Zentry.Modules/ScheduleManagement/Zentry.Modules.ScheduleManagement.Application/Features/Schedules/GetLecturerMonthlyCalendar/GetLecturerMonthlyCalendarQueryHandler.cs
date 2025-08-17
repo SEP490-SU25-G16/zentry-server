@@ -18,7 +18,7 @@ public class GetLecturerMonthlyCalendarQueryHandler(
     {
         var response = new MonthlyCalendarResponseDto
         {
-            CalendarDays = new List<DailyScheduleDto>()
+            CalendarDays = []
         };
 
         var startDate = new DateTime(request.Year, request.Month, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -106,10 +106,7 @@ public class GetLecturerMonthlyCalendarQueryHandler(
                     });
                 }
 
-                if (dailyScheduleDto.Classes.Count > 0)
-                {
-                    response.CalendarDays.Add(dailyScheduleDto);
-                }
+                if (dailyScheduleDto.Classes.Count > 0) response.CalendarDays.Add(dailyScheduleDto);
             }
         }
 

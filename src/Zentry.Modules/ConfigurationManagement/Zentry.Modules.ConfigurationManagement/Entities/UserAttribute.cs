@@ -24,8 +24,7 @@ public class UserAttribute : AggregateRoot<Guid>
 
     public virtual AttributeDefinition? AttributeDefinition { get; private set; }
 
-    [StringLength(255)]
-    public string AttributeValue { get; private set; }
+    [StringLength(255)] public string AttributeValue { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

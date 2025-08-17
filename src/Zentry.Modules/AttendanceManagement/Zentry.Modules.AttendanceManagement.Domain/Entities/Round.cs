@@ -56,9 +56,7 @@ public class Round : AggregateRoot<Guid>
     public void CancelRound()
     {
         if (!Equals(Status, RoundStatus.Active))
-        {
             throw new BusinessRuleException("ONLY_CANCEL_PENDING_ROUND", "Chỉ có thể cancel round đang pending.");
-        }
 
         Status = RoundStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;

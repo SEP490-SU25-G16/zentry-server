@@ -196,6 +196,12 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task DeleteRangeAsync(IEnumerable<Session> sessions, CancellationToken cancellationToken)
+    {
+        dbContext.Sessions.RemoveRange(sessions);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IEnumerable<Session>> GetSessionsByScheduleIdAndStatusAsync(Guid scheduleId, SessionStatus status,
         CancellationToken cancellationToken)
     {
@@ -209,11 +215,5 @@ public class SessionRepository(AttendanceDbContext dbContext) : ISessionReposito
         return await dbContext.Sessions
             .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId && s.Status == SessionStatus.Active,
                 cancellationToken);
-    }
-
-    public async Task DeleteRangeAsync(IEnumerable<Session> sessions, CancellationToken cancellationToken)
-    {
-        dbContext.Sessions.RemoveRange(sessions);
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

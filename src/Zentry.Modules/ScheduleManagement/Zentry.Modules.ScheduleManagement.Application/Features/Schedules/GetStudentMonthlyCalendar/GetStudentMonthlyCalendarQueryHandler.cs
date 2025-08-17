@@ -31,10 +31,7 @@ public class GetStudentMonthlyCalendarQueryHandler(
             cancellationToken
         );
 
-        if (studentEnrollments.Count == 0)
-        {
-            return response; // Trả về empty calendar nếu student không enroll lớp nào
-        }
+        if (studentEnrollments.Count == 0) return response; // Trả về empty calendar nếu student không enroll lớp nào
 
         var classSectionIds = studentEnrollments.Select(e => e.ClassSectionId).ToList();
 
@@ -119,10 +116,7 @@ public class GetStudentMonthlyCalendarQueryHandler(
                     });
                 }
 
-                if (dailyScheduleDto.Classes.Count > 0)
-                {
-                    response.CalendarDays.Add(dailyScheduleDto);
-                }
+                if (dailyScheduleDto.Classes.Count > 0) response.CalendarDays.Add(dailyScheduleDto);
             }
         }
 

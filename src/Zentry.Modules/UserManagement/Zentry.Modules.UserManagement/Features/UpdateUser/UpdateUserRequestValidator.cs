@@ -1,9 +1,10 @@
 using FluentValidation;
+using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Constants.User;
 
 namespace Zentry.Modules.UserManagement.Features.UpdateUser;
 
-public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
+public class UpdateUserRequestValidator : BaseValidator<UpdateUserRequest>
 {
     public UpdateUserRequestValidator()
     {

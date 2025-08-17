@@ -18,7 +18,6 @@ public class UpdateUserRequestStatusByIdCommandHandler(
         CancellationToken cancellationToken)
     {
         var userRequest = await userRequestRepository.GetByIdAsync(command.UserRequestId, cancellationToken);
-        // ... (phần kiểm tra ban đầu giữ nguyên) ...
         if (userRequest is null)
         {
             logger.LogWarning("UserRequest with ID {UserRequestId} not found.", command.UserRequestId);
@@ -26,9 +25,11 @@ public class UpdateUserRequestStatusByIdCommandHandler(
                 $"Yêu cầu người dùng với ID '{command.UserRequestId}' không tìm thấy.");
         }
 
-        if (!userRequest.RequestType.Equals(RequestType.UpdateDevice))
+        // Support both UpdateDevice and UpdateAttendance request types
+        if (!userRequest.RequestType.Equals(RequestType.UpdateDevice) &&
+            !userRequest.RequestType.Equals(RequestType.ClaimAttendance))
             throw new BusinessRuleException("INVALID_REQUEST_TYPE",
-                $"Loại yêu cầu không hợp lệ. Chỉ chấp nhận yêu cầu '{RequestType.UpdateDevice}'.");
+                $"Loại yêu cầu không hợp lệ. Chỉ chấp nhận yêu cầu '{RequestType.UpdateDevice}' hoặc '{RequestType.ClaimAttendance}'.");
 
         if (!userRequest.Status.Equals(RequestStatus.Pending))
             throw new BusinessRuleException("INVALID_REQUEST_STATUS",
@@ -41,6 +42,9 @@ public class UpdateUserRequestStatusByIdCommandHandler(
 
         await userRequestRepository.UpdateAsync(userRequest, cancellationToken);
         await userRequestRepository.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("UserRequest {UserRequestId} of type {RequestType} status updated to {Status}",
+            command.UserRequestId, userRequest.RequestType.ToString(), command.IsAccepted ? "Approved" : "Rejected");
 
         return new UpdateUserRequestStatusIntegrationResponse(userRequest.RequestedByUserId,
             userRequest.RelatedEntityId);

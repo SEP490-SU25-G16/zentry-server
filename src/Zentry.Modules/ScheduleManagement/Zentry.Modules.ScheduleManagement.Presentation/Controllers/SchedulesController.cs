@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.CreateSchedule;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailySchedules;
@@ -9,6 +10,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedu
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentDailySchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentMonthlyCalendar;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetTermWeek;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.ImportSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.SoftDeleteSchedule;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.UpdateSchedule;
@@ -21,6 +23,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/schedules")]
+[EnableRateLimiting("FixedPolicy")]
 public class SchedulesController(
     IMediator mediator,
     IFileProcessor<ScheduleImportDto> fileProcessor) : BaseController
@@ -264,6 +267,39 @@ public class SchedulesController(
             var command = new SoftDeleteScheduleCommand { ScheduleId = scheduleId };
             await mediator.Send(command, cancellationToken);
             return HandleNoContent();
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpGet("current-week-number")]
+    [ProducesResponseType(typeof(ApiResponse<GetCurrentWeekNumberResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCurrentWeekNumber(
+        [FromQuery] Guid classSectionId,
+        [FromQuery] string? date,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            DateOnly queryDate;
+            if (!string.IsNullOrEmpty(date))
+            {
+                if (!DateOnly.TryParseExact(date, "yyyy-MM-dd", out queryDate))
+                    return BadRequest(new ApiResponse
+                        { Success = false, Message = "Invalid date format. Use yyyy-MM-dd" });
+            }
+            else
+            {
+                queryDate = DateOnly.FromDateTime(DateTime.Today);
+            }
+
+            var query = new GetCurrentWeekNumberQuery(classSectionId, queryDate);
+            var response = await mediator.Send(query, cancellationToken);
+            return HandleResult(response);
         }
         catch (Exception ex)
         {

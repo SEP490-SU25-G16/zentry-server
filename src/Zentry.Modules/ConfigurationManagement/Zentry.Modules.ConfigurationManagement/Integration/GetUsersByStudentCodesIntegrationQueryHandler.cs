@@ -15,9 +15,7 @@ public class GetUsersByStudentCodesIntegrationQueryHandler(
         CancellationToken cancellationToken)
     {
         if (query.StudentCodes.Count == 0)
-        {
             return new GetUsersByStudentCodesIntegrationResponse(new Dictionary<string, Guid>());
-        }
 
         try
         {

@@ -1,8 +1,10 @@
+using MassTransit;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollMultipleStudents;
@@ -10,7 +12,9 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.Enr
 public class BulkEnrollStudentsCommandHandler(
     IEnrollmentRepository enrollmentRepository,
     IClassSectionRepository classSectionRepository,
-    IUserScheduleService userLookupService)
+    IScheduleRepository scheduleRepository,
+    IUserScheduleService userLookupService,
+    IPublishEndpoint publishEndpoint)
     : ICommandHandler<BulkEnrollStudentsCommand, BulkEnrollmentResponse>
 {
     public async Task<BulkEnrollmentResponse> Handle(BulkEnrollStudentsCommand command,
@@ -29,9 +33,33 @@ public class BulkEnrollStudentsCommandHandler(
         // Get existing enrollments for this class section to avoid duplicates
         var existingEnrollments = await enrollmentRepository
             .GetEnrollmentsByClassSectionAsync(command.ClassSectionId, cancellationToken);
+
+        var total = existingEnrollments.Count + command.StudentIds.Count;
+        var listSchedule =
+            await scheduleRepository.GetSchedulesByClassSectionIdAsync(command.ClassSectionId, cancellationToken);
+        var scheduleWithMinCapacity = listSchedule
+            .Where(s => s.Room! != null!)
+            .OrderBy(s => s.Room!.Capacity)
+            .FirstOrDefault();
+        if (scheduleWithMinCapacity is null)
+        {
+            throw new ResourceNotFoundException("No schedule with room found");
+        }
+
+        var minRoomCapacity = scheduleWithMinCapacity!.Room!.Capacity;
+        var roundIdWithMinCapacity = scheduleWithMinCapacity.Id;
+        if (total > minRoomCapacity)
+        {
+            throw new RoomCapacityNotEnoughForSchedule(
+                roundIdWithMinCapacity.ToString(),
+                scheduleWithMinCapacity.Id.ToString(),
+                command.ClassSectionId.ToString());
+        }
+
         var existingStudentIds = existingEnrollments.Select(e => e.StudentId).ToHashSet();
 
         var enrollmentsToAdd = new List<Enrollment>();
+        var successfulStudentIds = new List<Guid>();
         var successCount = 0;
         var failedCount = 0;
 
@@ -76,6 +104,7 @@ public class BulkEnrollStudentsCommandHandler(
                 result.EnrollmentId = enrollment.Id;
                 result.EnrollmentDate = enrollment.EnrolledAt;
                 successCount++;
+                successfulStudentIds.Add(studentId);
 
                 // Add to existing enrollments set to prevent duplicates in the same batch
                 existingStudentIds.Add(studentId);
@@ -97,6 +126,16 @@ public class BulkEnrollStudentsCommandHandler(
             {
                 await enrollmentRepository.BulkAddAsync(enrollmentsToAdd, cancellationToken);
                 await enrollmentRepository.SaveChangesAsync(cancellationToken);
+
+                // Publish event với danh sách student đã enroll thành công
+                if (successfulStudentIds.Any())
+                {
+                    var studentEnrolledMessage = new StudentEnrolledMessage(
+                        Guid.Empty, // Single student ID không cần thiết cho bulk
+                        command.ClassSectionId,
+                        successfulStudentIds);
+                    await publishEndpoint.Publish(studentEnrolledMessage, cancellationToken);
+                }
             }
             catch (Exception ex)
             {
@@ -111,6 +150,7 @@ public class BulkEnrollStudentsCommandHandler(
 
                 successCount = 0;
                 failedCount = response.Results.Count;
+                successfulStudentIds.Clear();
 
                 response.Errors.Add($"Bulk save failed: {ex.Message}");
             }

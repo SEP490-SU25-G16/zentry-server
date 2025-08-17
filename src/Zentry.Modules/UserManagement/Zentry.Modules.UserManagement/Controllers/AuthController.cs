@@ -1,17 +1,19 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.UserManagement.Features.ResetPassword;
 using Zentry.Modules.UserManagement.Features.SignIn;
+using Zentry.Modules.UserManagement.Features.UpdatePassword;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Extensions;
-using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IMediator mediator, ISessionService sessionService) : BaseController
+[EnableRateLimiting("FixedPolicy")]
+public class AuthController(IMediator mediator) : BaseController
 {
     [HttpPost("sign-in")]
     [ProducesResponseType(typeof(ApiResponse<SignInResponse>), StatusCodes.Status200OK)]
@@ -35,44 +37,11 @@ public class AuthController(IMediator mediator, ISessionService sessionService) 
         }
     }
 
-    // ✅ THÊM: Logout API
-    [HttpPost("logout")]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Logout()
-    {
-        try
-        {
-            // Lấy session key từ header
-            var sessionKey = Request.Headers["X-Session-Key"].FirstOrDefault();
-            if (string.IsNullOrEmpty(sessionKey))
-            {
-                return BadRequest(ApiResponse.ErrorResult("SESSION_KEY_REQUIRED", "Session key is required"));
-            }
-
-            // Revoke session
-            var success = await sessionService.RevokeSessionAsync(sessionKey);
-            if (success)
-            {
-                return HandleResult("Logged out successfully");
-            }
-            else
-            {
-                return BadRequest(ApiResponse.ErrorResult("LOGOUT_FAILED", "Failed to logout"));
-            }
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex);
-        }
-    }
-
     [HttpPost("reset-password/request")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RequestResetPassword([FromBody] RequestResetPasswordCommand command)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
         try
         {
             await mediator.Send(command);
@@ -96,6 +65,24 @@ public class AuthController(IMediator mediator, ISessionService sessionService) 
         {
             await mediator.Send(command);
             return HandleResult("Password has been reset successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPut("{id}/password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePassword(Guid id, [FromBody] UpdatePasswordRequest request)
+    {
+        var command = new UpdatePasswordCommand(id, request.NewPassword);
+        try
+        {
+            await mediator.Send(command);
+            return HandleNoContent();
         }
         catch (Exception ex)
         {

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.UserManagement.Dtos;
 using Zentry.Modules.UserManagement.Features.CreateUser;
 using Zentry.Modules.UserManagement.Features.DeleteUser;
@@ -19,6 +20,7 @@ namespace Zentry.Modules.UserManagement.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("FixedPolicy")]
 public class UserController(IMediator mediator, IFileProcessor<UserImportDto> fileProcessor) : BaseController
 {
     [HttpGet]

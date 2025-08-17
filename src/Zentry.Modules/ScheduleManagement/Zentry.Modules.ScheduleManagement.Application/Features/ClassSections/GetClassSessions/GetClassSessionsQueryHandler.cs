@@ -16,10 +16,7 @@ public class GetClassSessionsQueryHandler(
         CancellationToken cancellationToken)
     {
         var classSection = await classSectionRepository.GetByIdAsync(request.ClassId, cancellationToken);
-        if (classSection is null)
-        {
-            throw new NotFoundException($"Class section with ID {request.ClassId} not found.");
-        }
+        if (classSection is null) throw new ResourceNotFoundException("Class section", request.ClassId);
 
         var scheduleIds = classSection.Schedules.Select(s => s.Id).ToList();
         var allSessions =
@@ -37,12 +34,10 @@ public class GetClassSessionsQueryHandler(
             var attendanceRate = totalStudents > 0 ? (double)attendedCount / totalStudents * 100 : 0;
 
             // Lấy thông tin phòng học từ Schedule tương ứng
-            string roomInfo = "N/A";
+            var roomInfo = "N/A";
             if (schedulesDict.TryGetValue(sessionDto.ScheduleId, out var correspondingSchedule) &&
                 correspondingSchedule?.Room != null)
-            {
                 roomInfo = $"{correspondingSchedule.Room.RoomName} ({correspondingSchedule.Room.Building})";
-            }
 
             sessionsResponse.Add(new SessionDetailDto
             {

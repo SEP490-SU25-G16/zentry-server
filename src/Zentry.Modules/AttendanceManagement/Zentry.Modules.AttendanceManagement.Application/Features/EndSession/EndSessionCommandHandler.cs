@@ -186,7 +186,7 @@ public class EndSessionCommandHandler(
         var allRounds = await roundRepository.GetRoundsBySessionIdAsync(session.Id, cancellationToken);
         var completedRoundsCount = allRounds.Count(r => Equals(r.Status, RoundStatus.Completed));
 
-        var finalMessage = new SessionFinalAttendanceToProcess
+        var finalMessage = new SessionFinalAttendanceToProcessMessage
         {
             SessionId = session.Id,
             ActualRoundsCount = completedRoundsCount

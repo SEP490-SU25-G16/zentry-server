@@ -20,7 +20,6 @@ public class GetLecturerDailySchedulesQueryHandler(
     {
         var dayOfWeek = request.Date.DayOfWeek.ToWeekDayEnum();
 
-        // Bây giờ schedules là List<LecturerScheduleProjectionDto>
         var schedules = await scheduleRepository.GetLecturerSchedulesForDateAsync(
             request.LecturerId,
             request.Date,
@@ -30,13 +29,8 @@ public class GetLecturerDailySchedulesQueryHandler(
 
         var result = new List<LecturerDailyClassDto>();
 
-        foreach (var scheduleProjection in schedules) // Đổi tên biến để rõ ràng
+        foreach (var scheduleProjection in schedules)
         {
-            // Không cần kiểm tra null cho ClassSection, Course, Room nữa
-            // vì chúng đã được SELECT vào DTO nếu tồn tại trong query.
-            // Nếu có trường nào có thể null trong DB, hãy đảm bảo chúng được xử lý trong Select.
-
-            // Chuyển đổi DateTime request.Date thành DateOnly trước khi truyền vào Query
             var requestDateOnly = DateOnly.FromDateTime(request.Date);
 
             var currentSessionInfo = await mediator.Send(

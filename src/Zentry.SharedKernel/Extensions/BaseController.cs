@@ -82,6 +82,9 @@ public abstract class BaseController : ControllerBase
             ScheduleConflictException =>
                 Conflict(ApiResponse.ErrorResult(ErrorCodes.ScheduleConflict, ex.Message)),
 
+            RoomCapacityNotEnoughForSchedule =>
+                Conflict(ApiResponse.ErrorResult(ErrorCodes.RoomCapacityNotEnough, ex.Message)),
+
             ResourceCannotBeDeletedException =>
                 BadRequest(ApiResponse.ErrorResult(ErrorCodes.CourseCannotBeDeleted, ex.Message)),
 

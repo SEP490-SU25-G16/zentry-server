@@ -78,17 +78,6 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         return results.ToDictionary(r => r.Semester, r => r.ClassSectionCount);
     }
 
-    public async Task<List<Semester>> GetDistinctSemestersAsync(CancellationToken cancellationToken)
-    {
-        return await dbContext.ClassSections
-            .AsNoTracking()
-            .Where(c => !c.IsDeleted)
-            .Where(c => !c.IsDeleted)
-            .Select(cs => cs.Semester)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<List<ClassSection>> GetClassSectionsDetailsByIdsAsync(
         List<Guid> classSectionIds,
         CancellationToken cancellationToken)
@@ -123,11 +112,11 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             cancellationToken);
     }
 
-    public async Task<ClassSection?> GetBySectionCodeAndSemesterAsync(string sectionCode, Semester semester,
+    public async Task<ClassSection?> GetBySectionCodeAsync(string sectionCode,
         CancellationToken cancellationToken = default)
     {
         return await dbContext.ClassSections
-            .Where(cs => cs.SectionCode == sectionCode && cs.Semester == semester)
+            .Where(cs => cs.SectionCode == sectionCode)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -177,7 +166,11 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         dbContext.ClassSections.Update(entity);
         await SaveChangesAsync(cancellationToken);
     }
-
+    public async Task UpdateRangeAsync(IEnumerable<ClassSection> entities, CancellationToken cancellationToken)
+    {
+        dbContext.ClassSections.UpdateRange(entities);
+        await SaveChangesAsync(cancellationToken);
+    }
     public async Task DeleteAsync(ClassSection entity, CancellationToken cancellationToken)
     {
         dbContext.ClassSections.Remove(entity);
@@ -282,5 +275,16 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             dbContext.ClassSections.Update(classSection);
             await SaveChangesAsync(cancellationToken);
         }
+    }
+
+    public async Task<List<Semester>> GetDistinctSemestersAsync(CancellationToken cancellationToken)
+    {
+        return await dbContext.ClassSections
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted)
+            .Where(c => !c.IsDeleted)
+            .Select(cs => cs.Semester)
+            .Distinct()
+            .ToListAsync(cancellationToken);
     }
 }

@@ -1,6 +1,5 @@
 namespace Zentry.Modules.ScheduleManagement.Application.Dtos;
 
-
 public class NextSessionDto
 {
     public Guid SessionId { get; set; }

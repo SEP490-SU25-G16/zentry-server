@@ -1,6 +1,7 @@
 ﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Courses.GetCourseById;
 
@@ -11,7 +12,7 @@ public class GetCourseByIdQueryHandler(ICourseRepository courseRepository)
     {
         var course = await courseRepository.GetByIdAsync(query.Id, cancellationToken);
         if (course is null)
-            throw new Exception($"Course with ID '{query.Id}' not found.");
+            throw new ResourceNotFoundException("Course", query.Id);
         var courseDetailDto = new CourseDto
         {
             Id = course.Id,

@@ -3,6 +3,7 @@ namespace Zentry.Modules.AttendanceManagement.Application.Dtos;
 public class StudentFinalAttendanceDto
 {
     public Guid StudentId { get; set; }
+    public string? StudentCode { get; set; }
     public string? FullName { get; set; }
     public Guid SessionId { get; set; }
     public required string SessionStatus { get; set; }

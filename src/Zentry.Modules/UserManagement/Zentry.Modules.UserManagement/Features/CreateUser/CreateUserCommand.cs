@@ -2,7 +2,6 @@
 
 namespace Zentry.Modules.UserManagement.Features.CreateUser;
 
-
 public class CreateUserCommand : ICommand<CreateUserResponse>
 {
     public CreateUserCommand(CreateUserRequest request)
@@ -23,6 +22,7 @@ public class CreateUserCommand : ICommand<CreateUserResponse>
     public string Role { get; init; }
     public Dictionary<string, string>? Attributes { get; init; }
 }
+
 public class CreateUserResponse
 {
     public Guid UserId { get; set; }

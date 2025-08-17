@@ -24,7 +24,8 @@ public class DeleteAttributeDefinitionCommandHandler(
 
         if (definitionCheck is null)
         {
-            logger.LogWarning("Delete failed: AttributeDefinition with ID {AttributeId} not found.", command.AttributeId);
+            logger.LogWarning("Delete failed: AttributeDefinition with ID {AttributeId} not found.",
+                command.AttributeId);
             throw new ResourceNotFoundException("AttributeDefinition", command.AttributeId);
         }
 
@@ -33,7 +34,8 @@ public class DeleteAttributeDefinitionCommandHandler(
             logger.LogWarning(
                 "Deletion of AttributeDefinition {AttributeId} is not allowed. It is a core configuration.",
                 command.AttributeId);
-            throw new BusinessRuleException("CANNOT_DELETE_CORE_ATTRIBUTE", "Không thể xóa thuộc tính cấu hình cốt lõi.");
+            throw new BusinessRuleException("CANNOT_DELETE_CORE_ATTRIBUTE",
+                "Không thể xóa thuộc tính cấu hình cốt lõi.");
         }
 
         await dbContext.Options
@@ -43,18 +45,20 @@ public class DeleteAttributeDefinitionCommandHandler(
         await dbContext.Settings
             .Where(s => s.AttributeId == command.AttributeId)
             .ExecuteDeleteAsync(cancellationToken);
-        
+
         var affectedRows = await dbContext.AttributeDefinitions
             .Where(ad => ad.Id == command.AttributeId)
             .ExecuteDeleteAsync(cancellationToken);
 
         if (affectedRows == 0)
         {
-            logger.LogWarning("Delete failed: AttributeDefinition with ID {AttributeId} not found after checks.", command.AttributeId);
+            logger.LogWarning("Delete failed: AttributeDefinition with ID {AttributeId} not found after checks.",
+                command.AttributeId);
             throw new ResourceNotFoundException("AttributeDefinition", command.AttributeId);
         }
 
-        logger.LogInformation("Successfully deleted AttributeDefinition {AttributeId} and related entities.", command.AttributeId);
+        logger.LogInformation("Successfully deleted AttributeDefinition {AttributeId} and related entities.",
+            command.AttributeId);
 
         return Unit.Value;
     }

@@ -12,5 +12,5 @@ public class WeeklyOverviewDto
     public int SessionsThisWeek { get; set; }
     public int CompletedSessionsThisWeek { get; set; }
     public double AttendanceRate { get; set; }
-    public WeekProgressDto WeekProgress { get; set; } = new WeekProgressDto();
+    public WeekProgressDto WeekProgress { get; set; } = new();
 }

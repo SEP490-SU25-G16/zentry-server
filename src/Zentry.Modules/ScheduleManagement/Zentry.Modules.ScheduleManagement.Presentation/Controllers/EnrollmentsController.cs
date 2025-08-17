@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollMultipleStudents;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollStudent;
@@ -16,6 +17,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/enrollments")]
+[EnableRateLimiting("FixedPolicy")]
 public class EnrollmentController(IMediator mediator, IFileProcessor<EnrollmentImportDto> fileProcessor)
     : BaseController
 {

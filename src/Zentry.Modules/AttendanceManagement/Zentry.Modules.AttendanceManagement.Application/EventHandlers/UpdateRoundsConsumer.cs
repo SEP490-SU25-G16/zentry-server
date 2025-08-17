@@ -23,14 +23,17 @@ public class UpdateRoundsConsumer(
             var session = await sessionRepository.GetByIdAsync(message.SessionId, consumeContext.CancellationToken);
             if (session is null)
             {
-                logger.LogWarning("UpdateRounds failed: Session {SessionId} not found. Skipping round update.", message.SessionId);
+                logger.LogWarning("UpdateRounds failed: Session {SessionId} not found. Skipping round update.",
+                    message.SessionId);
                 return;
             }
 
-            var existingRounds = await roundRepository.GetRoundsBySessionIdAsync(session.Id, consumeContext.CancellationToken);
+            var existingRounds =
+                await roundRepository.GetRoundsBySessionIdAsync(session.Id, consumeContext.CancellationToken);
             await roundRepository.DeleteRangeAsync(existingRounds, consumeContext.CancellationToken);
             await roundRepository.SaveChangesAsync(consumeContext.CancellationToken);
-            logger.LogInformation("Deleted {NumRounds} existing rounds for Session {SessionId}.", existingRounds.Count, session.Id);
+            logger.LogInformation("Deleted {NumRounds} existing rounds for Session {SessionId}.", existingRounds.Count,
+                session.Id);
 
             var roundsToAdd = new List<Round>();
             var totalDuration = session.EndTime.Subtract(session.StartTime);
@@ -56,12 +59,14 @@ public class UpdateRoundsConsumer(
             {
                 await roundRepository.AddRangeAsync(roundsToAdd, consumeContext.CancellationToken);
                 await roundRepository.SaveChangesAsync(consumeContext.CancellationToken);
-                logger.LogInformation("Successfully created {NumRounds} new rounds for Session {SessionId}.", roundsToAdd.Count, session.Id);
+                logger.LogInformation("Successfully created {NumRounds} new rounds for Session {SessionId}.",
+                    roundsToAdd.Count, session.Id);
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "MassTransit Consumer: Error updating rounds for Session {SessionId}.", message.SessionId);
+            logger.LogError(ex, "MassTransit Consumer: Error updating rounds for Session {SessionId}.",
+                message.SessionId);
             throw;
         }
     }

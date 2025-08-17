@@ -120,7 +120,7 @@ public class CalculateRoundAttendanceConsumer(
         }
 
         // Publish final attendance processing message
-        var finalMessage = new SessionFinalAttendanceToProcess
+        var finalMessage = new SessionFinalAttendanceToProcessMessage
         {
             SessionId = sessionId,
             ActualRoundsCount = totalRounds

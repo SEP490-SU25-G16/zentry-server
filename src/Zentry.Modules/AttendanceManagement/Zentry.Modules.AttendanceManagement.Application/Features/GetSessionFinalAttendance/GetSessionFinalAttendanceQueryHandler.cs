@@ -72,7 +72,7 @@ public class GetSessionFinalAttendanceQueryHandler(
             finalAttendance.Add(new FinalAttendanceDto
             {
                 StudentId = studentId,
-                StudentCode = user?.StudentCode,
+                StudentCode = user?.Code,
                 FullName = user?.FullName,
                 Email = user?.Email,
                 AttendanceStatus = attendanceStatus.ToString().ToLower(),
@@ -85,7 +85,7 @@ public class GetSessionFinalAttendanceQueryHandler(
                 ScheduleId = session.ScheduleId,
                 CourseId = courseId,
                 ClassInfo = classInfo,
-                SessionStartTime = session.StartTime,
+                SessionStartTime = session.StartTime
             });
         }
 

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.CreateCourse;
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.DeleteCourse;
@@ -17,6 +18,7 @@ namespace Zentry.Modules.ScheduleManagement.Presentation.Controllers;
 
 [ApiController]
 [Route("api/courses")]
+[EnableRateLimiting("FixedPolicy")]
 public class CoursesController(IMediator mediator) : BaseController
 {
     [HttpGet]
@@ -114,10 +116,7 @@ public class CoursesController(IMediator mediator) : BaseController
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(semester))
-            {
-                return BadRequest("Semester parameter is required.");
-            }
+            if (string.IsNullOrWhiteSpace(semester)) return BadRequest("Semester parameter is required.");
 
             var query = new GetLecturerSemesterCoursesQuery
             {

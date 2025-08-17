@@ -84,6 +84,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         return await dbContext.Schedules
             .AsNoTracking()
             .Where(s => s.ClassSectionId == classSectionId && !s.IsDeleted)
+            .Include(s => s.ClassSection)
+            .Include(s => s.Room)
             .ToListAsync(cancellationToken);
     }
 
@@ -466,6 +468,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         dbContext.Schedules.Update(entity);
         await SaveChangesAsync(cancellationToken);
     }
+
     public async Task<List<Schedule>> GetSchedulesByClassSectionIdsAsync(
         List<Guid> classSectionIds,
         CancellationToken cancellationToken)
@@ -476,5 +479,10 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .Include(s => s.ClassSection)
             .Include(s => s.Room)
             .ToListAsync(cancellationToken);
+    }
+    public async Task DeleteRangeAsync(IEnumerable<Schedule> entities, CancellationToken cancellationToken)
+    {
+        dbContext.Schedules.RemoveRange(entities);
+        await SaveChangesAsync(cancellationToken);
     }
 }

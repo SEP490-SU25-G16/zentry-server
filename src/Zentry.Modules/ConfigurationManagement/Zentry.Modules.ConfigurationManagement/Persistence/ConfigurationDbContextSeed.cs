@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.ConfigurationManagement.Entities;
 using Zentry.SharedKernel.Constants.Configuration;
-using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.ConfigurationManagement.Persistence;
 
@@ -28,68 +27,80 @@ public static class ConfigurationDbContextSeed
         {
             var userScope = new List<ScopeType> { ScopeType.User };
             var sessionScope = new List<ScopeType> { ScopeType.Session };
+            var globalAndSessionScope = new List<ScopeType> { ScopeType.Global, ScopeType.Session };
 
             var attributeDefinitions = new List<AttributeDefinition>
             {
                 AttributeDefinition.Create(
-                    key: "StudentCode",
-                    displayName: "Mã số sinh viên",
-                    description: "Mã định danh duy nhất cho sinh viên",
-                    dataType: DataType.String,
-                    allowedScopeTypes: userScope,
-                    unit: null, 
-                    defaultValue: null, 
-                    isDeletable: false),
+                    "StudentCode",
+                    "Mã số sinh viên",
+                    "Mã định danh duy nhất cho sinh viên",
+                    DataType.String,
+                    userScope,
+                    null,
+                    null,
+                    false),
 
                 AttributeDefinition.Create(
-                    key: "EmployeeCode",
-                    displayName: "Mã số giảng viên",
-                    description: "Mã định danh duy nhất cho giảng viên",
-                    dataType: DataType.String,
-                    allowedScopeTypes: userScope,
-                    unit: null, 
-                    defaultValue: null, 
-                    isDeletable: false),
+                    "EmployeeCode",
+                    "Mã số giảng viên",
+                    "Mã định danh duy nhất cho giảng viên",
+                    DataType.String,
+                    userScope,
+                    null,
+                    null,
+                    false),
 
                 AttributeDefinition.Create(
-                    key: "AttendanceWindowMinutes",
-                    displayName: "Thời gian cho phép điểm danh",
-                    description: "Thời gian (phút) cho phép điểm danh sau khi bắt đầu phiên học",
-                    dataType: DataType.Int,
-                    allowedScopeTypes: sessionScope,
-                    unit: "minutes", 
-                    defaultValue: "15",
-                    isDeletable: false),
+                    "AttendanceWindowMinutes",
+                    "Thời gian cho phép điểm danh",
+                    "Thời gian (phút) cho phép điểm danh sau khi bắt đầu phiên học",
+                    DataType.Int,
+                    sessionScope,
+                    "minutes",
+                    "15",
+                    false),
 
                 AttributeDefinition.Create(
-                    key: "TotalAttendanceRounds",
-                    displayName: "Số lần điểm danh",
-                    description: "Tổng số lần điểm danh trong một phiên học",
-                    dataType: DataType.Int,
-                    allowedScopeTypes: sessionScope,
-                    unit: null, 
-                    defaultValue: "2",
-                    isDeletable: false),
+                    "TotalAttendanceRounds",
+                    "Số lần điểm danh",
+                    "Tổng số lần điểm danh trong một phiên học",
+                    DataType.Int,
+                    sessionScope,
+                    null,
+                    "2",
+                    false),
 
                 AttributeDefinition.Create(
-                    key: "AbsentReportGracePeriodHours",
-                    displayName: "Thời gian ân hạn báo vắng",
-                    description: "Thời gian (giờ) ân hạn để báo vắng có lý do sau khi phiên học kết thúc",
-                    dataType: DataType.Int,
-                    allowedScopeTypes: sessionScope,
-                    unit: "hours", 
-                    defaultValue: "24",
-                    isDeletable: false),
+                    "AbsentReportGracePeriodHours",
+                    "Thời gian ân hạn báo vắng",
+                    "Thời gian (giờ) ân hạn để báo vắng có lý do sau khi phiên học kết thúc",
+                    DataType.Int,
+                    sessionScope,
+                    "hours",
+                    "24",
+                    false),
 
                 AttributeDefinition.Create(
-                    key: "ManualAdjustmentGracePeriodHours",
-                    displayName: "Thời gian ân hạn điều chỉnh",
-                    description: "Thời gian (giờ) ân hạn để điều chỉnh điểm danh thủ công",
-                    dataType: DataType.Int,
-                    allowedScopeTypes: sessionScope,
-                    unit: "hours", 
-                    defaultValue: "24",
-                    isDeletable: false)
+                    "ManualAdjustmentGracePeriodHours",
+                    "Thời gian ân hạn điều chỉnh",
+                    "Thời gian (giờ) ân hạn để điều chỉnh điểm danh thủ công",
+                    DataType.Int,
+                    sessionScope,
+                    "hours",
+                    "24",
+                    false),
+
+                // New attendance threshold setting
+                AttributeDefinition.Create(
+                    "AttendanceThresholdPercentage",
+                    "Ngưỡng điểm danh tối thiểu (%)",
+                    "Tỷ lệ phần trăm tối thiểu để được coi là có mặt trong phiên học",
+                    DataType.Decimal,
+                    globalAndSessionScope,
+                    "%",
+                    "75.0",
+                    false)
             };
 
             await dbContext.AttributeDefinitions.AddRangeAsync(attributeDefinitions);
@@ -108,30 +119,38 @@ public static class ConfigurationDbContextSeed
             var totalRoundsId = attributeDefinitions.Single(ad => ad.Key == "TotalAttendanceRounds").Id;
             var absentReportId = attributeDefinitions.Single(ad => ad.Key == "AbsentReportGracePeriodHours").Id;
             var manualAdjId = attributeDefinitions.Single(ad => ad.Key == "ManualAdjustmentGracePeriodHours").Id;
+            var attendanceThresholdId = attributeDefinitions.Single(ad => ad.Key == "AttendanceThresholdPercentage").Id;
 
             settings.Add(Setting.Create(
-                attributeId: attendanceWindowId,
-                scopeType: ScopeType.Global,
-                scopeId: Guid.Empty,
-                value: "15"));
+                attendanceWindowId,
+                ScopeType.Global,
+                Guid.Empty,
+                "15"));
 
             settings.Add(Setting.Create(
-                attributeId: totalRoundsId,
-                scopeType: ScopeType.Global,
-                scopeId: Guid.Empty,
-                value: "2"));
+                totalRoundsId,
+                ScopeType.Global,
+                Guid.Empty,
+                "2"));
 
             settings.Add(Setting.Create(
-                attributeId: absentReportId,
-                scopeType: ScopeType.Global,
-                scopeId: Guid.Empty,
-                value: "24"));
+                absentReportId,
+                ScopeType.Global,
+                Guid.Empty,
+                "24"));
 
             settings.Add(Setting.Create(
-                attributeId: manualAdjId,
-                scopeType: ScopeType.Global,
-                scopeId: Guid.Empty,
-                value: "24"));
+                manualAdjId,
+                ScopeType.Global,
+                Guid.Empty,
+                "24"));
+
+            // Add global attendance threshold setting
+            settings.Add(Setting.Create(
+                attendanceThresholdId,
+                ScopeType.Global,
+                Guid.Empty,
+                "75.0"));
 
             await dbContext.Settings.AddRangeAsync(settings);
             await dbContext.SaveChangesAsync();

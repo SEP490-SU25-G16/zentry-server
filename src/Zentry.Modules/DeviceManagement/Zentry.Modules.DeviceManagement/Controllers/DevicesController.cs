@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
 using Zentry.Modules.DeviceManagement.Features.DeleteDevicesForInactiveStudent;
 using Zentry.Modules.DeviceManagement.Features.GetDeviceById;
@@ -12,42 +13,29 @@ using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Exceptions;
 using Zentry.SharedKernel.Extensions;
 
-// Assuming RegisterDeviceRequest is here
-// For [Authorize] attribute
-// For ClaimTypes
-
 namespace Zentry.Modules.DeviceManagement.Controllers;
 
 [ApiController]
 [Route("api/devices")]
-// [Authorize] // Apply authorization to ensure only authenticated users can access
+[EnableRateLimiting("FixedPolicy")]
 public class DevicesController(IMediator mediator) : BaseController
 {
     [HttpPost("register")]
     [ProducesResponseType(typeof(ApiResponse<RegisterDeviceResponse>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)] // For BusinessLogicException
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse),
         StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)] // If [Authorize] fails
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Register([FromBody] RegisterDeviceRequest request,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return HandleValidationError();
 
-        // Validate required fields
         if (string.IsNullOrWhiteSpace(request.AndroidId))
             return BadRequest("Android ID is required for device registration.");
-
-        // ✅ Lấy UserId từ session context (đã được validate bởi middleware)
-        var userId = HttpContext.Items["UserId"] as Guid?;
-        if (!userId.HasValue)
-        {
-            return Unauthorized("User not authenticated");
-        }
-
+        
         var command = new RegisterDeviceCommand
         {
-            UserId = userId.Value, // ✅ Sử dụng userId từ session
             DeviceName = request.DeviceName,
             AndroidId = request.AndroidId,
             Platform = request.Platform,
@@ -60,15 +48,11 @@ public class DevicesController(IMediator mediator) : BaseController
 
         try
         {
-            // 3. Gửi command tới MediatR để được xử lý bởi RegisterDeviceCommandHandler
             var response = await mediator.Send(command, cancellationToken);
-            // 4. Trả về phản hồi thành công (HTTP 201 Created)
-            // Cung cấp URL cho resource mới tạo nếu cần, hoặc đơn giản là trả về response
             return HandleCreated(response, nameof(Register), new { id = response.DeviceId });
         }
         catch (Exception ex)
         {
-            // Sử dụng HandleError để xử lý các loại ngoại lệ đã định nghĩa
             return HandleError(ex);
         }
     }
@@ -76,7 +60,6 @@ public class DevicesController(IMediator mediator) : BaseController
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<GetDevicesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    // [Authorize(Roles = "Admin")] // Có thể giới hạn quyền truy cập
     public async Task<IActionResult> GetDevices(
         [FromQuery] int? pageNumber,
         [FromQuery] int? pageSize,
@@ -149,15 +132,6 @@ public class DevicesController(IMediator mediator) : BaseController
         if (string.IsNullOrWhiteSpace(command.DeviceName))
             return BadRequest(ApiResponse.ErrorResult("VALIDATION_ERROR", "Tên thiết bị là bắt buộc."));
 
-        // ✅ Lấy UserId từ session context
-        var userId = HttpContext.Items["UserId"] as Guid?;
-        if (!userId.HasValue)
-        {
-            return Unauthorized("User not authenticated");
-        }
-
-        // ✅ Gán userId từ session vào command
-        command.UserId = userId.Value;
 
         try
         {
@@ -219,12 +193,13 @@ public class DevicesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpDelete("student/{studentId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-// [Authorize(Roles = "Admin")] // Cần có authorization phù hợp
-    public async Task<IActionResult> DeleteDevicesForInactiveStudent(Guid studentId, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteDevicesForInactiveStudent(Guid studentId,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -237,6 +212,7 @@ public class DevicesController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
     [HttpGet("total-devices")]
     [ProducesResponseType(typeof(ApiResponse<GetTotalDevicesResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]

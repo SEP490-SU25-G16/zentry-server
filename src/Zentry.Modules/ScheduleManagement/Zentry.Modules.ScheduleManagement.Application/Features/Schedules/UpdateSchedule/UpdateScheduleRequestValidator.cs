@@ -10,8 +10,10 @@ public class UpdateScheduleRequestValidator : BaseValidator<UpdateScheduleReques
     {
         // Yêu cầu ít nhất một trường phải có giá trị
         RuleFor(x => x)
-            .Must(x => x.RoomId.HasValue || x.StartDate.HasValue || x.EndDate.HasValue || x.StartTime.HasValue || x.EndTime.HasValue || !string.IsNullOrEmpty(x.WeekDay))
-            .WithMessage("Ít nhất một trong các trường sau phải có giá trị: RoomId, StartDate, EndDate, StartTime, EndTime, WeekDay.");
+            .Must(x => x.RoomId.HasValue || x.StartDate.HasValue || x.EndDate.HasValue || x.StartTime.HasValue ||
+                       x.EndTime.HasValue || !string.IsNullOrEmpty(x.WeekDay))
+            .WithMessage(
+                "Ít nhất một trong các trường sau phải có giá trị: RoomId, StartDate, EndDate, StartTime, EndTime, WeekDay.");
 
         // Các quy tắc validation cho từng trường riêng lẻ
         RuleFor(x => x.StartTime)

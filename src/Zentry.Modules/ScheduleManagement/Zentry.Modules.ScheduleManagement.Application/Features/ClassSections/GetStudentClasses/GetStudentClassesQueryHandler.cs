@@ -1,10 +1,12 @@
 using MediatR;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
+using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.User;
-using Zentry.Modules.ScheduleManagement.Application.Services; // Import service namespace
+
+// Import service namespace
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.GetStudentClasses;
 
@@ -23,10 +25,7 @@ public class GetStudentClassesQueryHandler(
             request.StudentId,
             cancellationToken);
 
-        if (enrollments.Count == 0)
-        {
-            return new GetStudentClassesResponse { Data = new List<StudentClassDto>() };
-        }
+        if (enrollments.Count == 0) return new GetStudentClassesResponse { Data = new List<StudentClassDto>() };
 
         var classSectionIds = enrollments.Select(e => e.ClassSectionId).Distinct().ToList();
 

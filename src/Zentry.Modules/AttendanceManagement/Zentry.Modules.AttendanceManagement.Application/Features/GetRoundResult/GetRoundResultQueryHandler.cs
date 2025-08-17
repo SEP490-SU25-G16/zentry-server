@@ -87,7 +87,7 @@ public class GetRoundResultQueryHandler(
             cancellationToken);
 
         var allStudents = usersResponse.Users;
-        var roundTrack = await roundTrackRepository.GetByIdAsync(request.RoundId, cancellationToken);
+        var roundTrack = await roundTrackRepository.GetRoundTracksByRoundIdAsync(request.RoundId, cancellationToken);
 
         var attendedStudentsMap = new Dictionary<Guid, (bool IsAttended, DateTime? AttendedTime)>();
         if (roundTrack != null && roundTrack.Students.Count != 0)
@@ -102,7 +102,7 @@ public class GetRoundResultQueryHandler(
 
             return new StudentAttendanceDto
             {
-                StudentId = student.Id,
+                StudentCode = student.Code,
                 FullName = student.FullName,
                 IsAttended = isAttended,
                 AttendedTime = attendedTime

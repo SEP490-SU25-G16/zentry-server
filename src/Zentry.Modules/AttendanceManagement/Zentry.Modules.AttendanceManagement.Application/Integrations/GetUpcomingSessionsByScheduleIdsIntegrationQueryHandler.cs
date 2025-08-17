@@ -5,13 +5,15 @@ using Zentry.SharedKernel.Contracts.Attendance;
 namespace Zentry.Modules.AttendanceManagement.Application.Integrations;
 
 public class GetUpcomingSessionsByScheduleIdsIntegrationQueryHandler(ISessionRepository sessionRepository)
-    : IQueryHandler<GetUpcomingSessionsByScheduleIdsIntegrationQuery, GetUpcomingSessionsByScheduleIdsIntegrationResponse>
+    : IQueryHandler<GetUpcomingSessionsByScheduleIdsIntegrationQuery,
+        GetUpcomingSessionsByScheduleIdsIntegrationResponse>
 {
     public async Task<GetUpcomingSessionsByScheduleIdsIntegrationResponse> Handle(
         GetUpcomingSessionsByScheduleIdsIntegrationQuery query,
         CancellationToken cancellationToken)
     {
-        var sessions = await sessionRepository.GetUpcomingSessionsByScheduleIdsAsync(query.ScheduleIds, cancellationToken);
+        var sessions =
+            await sessionRepository.GetUpcomingSessionsByScheduleIdsAsync(query.ScheduleIds, cancellationToken);
 
         var dtos = sessions.Select(s => new UpcomingSessionDto
         {
