@@ -23,6 +23,8 @@ public static class AttendanceMassTransitExtensions
         configurator.AddConsumer<UpdateRoundsConsumer>(typeof(UpdateRoundsConsumerDefinition));
         configurator.AddConsumer<DeleteScheduleSessionsConsumer>(typeof(DeleteScheduleSessionsConsumerDefinition));
         configurator.AddConsumer<SessionCreatedAttendanceConsumer>(typeof(SessionCreatedAttendanceConsumerDefinition));
+        configurator.AddConsumer<StudentEnrollmentWhitelistConsumer>(
+            typeof(StudentEnrollmentWhitelistConsumerDefinition));
     }
 
     public static void ConfigureAttendanceReceiveEndpoints(this IRabbitMqBusFactoryConfigurator cfg,
@@ -48,6 +50,7 @@ public static class AttendanceMassTransitExtensions
             e.ConfigureConsumer<UpdateRoundsConsumer>(context);
             e.ConfigureConsumer<DeleteScheduleSessionsConsumer>(context);
             e.ConfigureConsumer<SessionCreatedAttendanceConsumer>(context);
+            e.ConfigureConsumer<StudentEnrollmentWhitelistConsumer>(context);
 
             // Retry policy cải thiện
             e.UseMessageRetry(r =>
@@ -262,6 +265,15 @@ public class SessionCreatedAttendanceConsumerDefinition : ConsumerDefinition<Ses
 {
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
         IConsumerConfigurator<SessionCreatedAttendanceConsumer> consumerConfigurator, IRegistrationContext context)
+    {
+        consumerConfigurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+    }
+}
+
+public class StudentEnrollmentWhitelistConsumerDefinition : ConsumerDefinition<StudentEnrollmentWhitelistConsumer>
+{
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<StudentEnrollmentWhitelistConsumer> consumerConfigurator, IRegistrationContext context)
     {
         consumerConfigurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
     }
