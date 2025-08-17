@@ -8,6 +8,7 @@ using Zentry.Modules.ConfigurationManagement.Features.DeleteAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.DeleteSetting;
 using Zentry.Modules.ConfigurationManagement.Features.GetListAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.GetSettings;
+using Zentry.Modules.ConfigurationManagement.Features.SetSessionAttendanceThreshold;
 using Zentry.Modules.ConfigurationManagement.Features.UpdateAttributeDefinition;
 using Zentry.Modules.ConfigurationManagement.Features.UpdateSetting;
 using Zentry.SharedKernel.Abstractions.Models;
@@ -56,6 +57,37 @@ public class ConfigurationsController(IMediator mediator) : BaseController
         }
     }
 
+    #region Session-Specific Operations
+
+    [HttpPost("sessions/{sessionId}/attendance-threshold")]
+    [ProducesResponseType(typeof(ApiResponse<SetSessionAttendanceThresholdResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> SetSessionAttendanceThreshold(
+        [FromRoute] Guid sessionId,
+        [FromBody] SetSessionAttendanceThresholdRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new SetSessionAttendanceThresholdCommand
+            {
+                SessionId = sessionId,
+                ThresholdPercentage = request.ThresholdPercentage
+            };
+
+            var response = await mediator.Send(command, cancellationToken);
+            return HandleResult(response);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    #endregion
+
     #region Delete Operations
 
     [HttpDelete("definitions/{id}")]
@@ -78,8 +110,6 @@ public class ConfigurationsController(IMediator mediator) : BaseController
         }
     }
 
-    #endregion
-
     [HttpDelete("settings/{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
@@ -99,6 +129,8 @@ public class ConfigurationsController(IMediator mediator) : BaseController
             return HandleError(ex);
         }
     }
+
+    #endregion
 
     #region Create Operations
 

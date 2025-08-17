@@ -27,6 +27,7 @@ public static class ConfigurationDbContextSeed
         {
             var userScope = new List<ScopeType> { ScopeType.User };
             var sessionScope = new List<ScopeType> { ScopeType.Session };
+            var globalAndSessionScope = new List<ScopeType> { ScopeType.Global, ScopeType.Session };
 
             var attributeDefinitions = new List<AttributeDefinition>
             {
@@ -88,6 +89,17 @@ public static class ConfigurationDbContextSeed
                     sessionScope,
                     "hours",
                     "24",
+                    false),
+
+                // New attendance threshold setting
+                AttributeDefinition.Create(
+                    "attendance_threshold_percentage",
+                    "Ngưỡng điểm danh tối thiểu (%)",
+                    "Tỷ lệ phần trăm tối thiểu để được coi là có mặt trong phiên học",
+                    DataType.Decimal,
+                    globalAndSessionScope,
+                    "%",
+                    "75.0",
                     false)
             };
 
@@ -107,6 +119,7 @@ public static class ConfigurationDbContextSeed
             var totalRoundsId = attributeDefinitions.Single(ad => ad.Key == "TotalAttendanceRounds").Id;
             var absentReportId = attributeDefinitions.Single(ad => ad.Key == "AbsentReportGracePeriodHours").Id;
             var manualAdjId = attributeDefinitions.Single(ad => ad.Key == "ManualAdjustmentGracePeriodHours").Id;
+            var attendanceThresholdId = attributeDefinitions.Single(ad => ad.Key == "attendance_threshold_percentage").Id;
 
             settings.Add(Setting.Create(
                 attendanceWindowId,
@@ -131,6 +144,13 @@ public static class ConfigurationDbContextSeed
                 ScopeType.Global,
                 Guid.Empty,
                 "24"));
+
+            // Add global attendance threshold setting
+            settings.Add(Setting.Create(
+                attendanceThresholdId,
+                ScopeType.Global,
+                Guid.Empty,
+                "75.0"));
 
             await dbContext.Settings.AddRangeAsync(settings);
             await dbContext.SaveChangesAsync();

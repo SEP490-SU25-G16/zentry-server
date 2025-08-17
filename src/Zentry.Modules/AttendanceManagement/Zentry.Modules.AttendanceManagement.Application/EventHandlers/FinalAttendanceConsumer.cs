@@ -1,10 +1,13 @@
 using System.Globalization;
 using MassTransit;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Constants.Configuration;
+using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
@@ -14,10 +17,12 @@ public class FinalAttendanceConsumer(
     IStudentTrackRepository studentTrackRepository,
     IRoundRepository roundRepository,
     IAttendanceRecordRepository attendanceRecordRepository,
-    IRedisService redisService)
+    IRedisService redisService,
+    IMediator mediator)
     : IConsumer<SessionFinalAttendanceToProcessMessage>
 {
-    private const double AttendanceThresholdPercentage = 75.0;
+    private const double DefaultAttendanceThresholdPercentage = 75.0;
+    private const string AttendanceThresholdConfigKey = "attendance_threshold_percentage";
 
     public async Task Consume(ConsumeContext<SessionFinalAttendanceToProcessMessage> context)
     {
@@ -73,6 +78,63 @@ public class FinalAttendanceConsumer(
         }
     }
 
+    private async Task<double> GetAttendanceThresholdPercentageAsync(Guid sessionId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetHierarchicalSettingsIntegrationQuery(
+                AttributeKeys: [AttendanceThresholdConfigKey],
+                ScopeContexts:
+                [
+                    new ScopeContext(ScopeType.Global.ToString()),
+                    new ScopeContext(ScopeType.Session.ToString(), sessionId)
+                ]
+            );
+
+            var response = await mediator.Send(query, cancellationToken);
+
+            if (response.SettingsByKey.TryGetValue(AttendanceThresholdConfigKey, out var settingResult) &&
+                settingResult.EffectiveSetting != null &&
+                double.TryParse(settingResult.EffectiveSetting.Value, out var threshold))
+            {
+                var effectiveSetting = settingResult.EffectiveSetting;
+                logger.LogInformation(
+                    "Using attendance threshold from configuration: {Threshold}% from {ScopeType} scope (ID: {SettingId}, ScopeId: {ScopeId}). Total settings found: {TotalSettings}",
+                    threshold,
+                    effectiveSetting.ScopeType,
+                    effectiveSetting.Id,
+                    effectiveSetting.ScopeId,
+                    settingResult.AllMatchingSettings.Count);
+
+                // Log hierarchy for debugging
+                if (settingResult.AllMatchingSettings.Count <= 1) return threshold;
+                var hierarchy = settingResult.AllMatchingSettings
+                    .OrderBy(s => s.ScopeType == ScopeType.Global.ToString() ? 1 : 0) // Global first, then others
+                    .Select(s => $"{s.ScopeType}:{s.ScopeId}={s.Value}")
+                    .ToList();
+
+                logger.LogDebug("Setting hierarchy for '{ConfigKey}': [{Hierarchy}]",
+                    AttendanceThresholdConfigKey, string.Join(", ", hierarchy));
+
+                return threshold;
+            }
+
+            logger.LogWarning(
+                "Attendance threshold setting '{ConfigKey}' not found in any scope (Global, Session:{SessionId}). Using default value: {DefaultThreshold}%",
+                AttendanceThresholdConfigKey, sessionId, DefaultAttendanceThresholdPercentage);
+
+            return DefaultAttendanceThresholdPercentage;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex,
+                "Error retrieving attendance threshold from hierarchical configuration. Using default value: {DefaultThreshold}%",
+                DefaultAttendanceThresholdPercentage);
+            return DefaultAttendanceThresholdPercentage;
+        }
+    }
+
     private async Task ProcessFinalAttendance(Guid sessionId, int actualRoundsCount,
         CancellationToken cancellationToken)
     {
@@ -83,6 +145,9 @@ public class FinalAttendanceConsumer(
                 sessionId);
             return;
         }
+
+        // Get attendance threshold from hierarchical configuration (Global -> Session)
+        var attendanceThresholdPercentage = await GetAttendanceThresholdPercentageAsync(sessionId, cancellationToken);
 
         IReadOnlyList<StudentTrack> relevantStudentTracks;
         List<Round> completedRounds;
@@ -116,9 +181,9 @@ public class FinalAttendanceConsumer(
         }
 
         logger.LogInformation(
-            "Session {SessionId} status: {CompletedRounds} completed rounds, {ActualRounds} rounds used for calculation, {TotalAttendanceRecords} total attendance records, {TrackedStudents} tracked students",
+            "Session {SessionId} status: {CompletedRounds} completed rounds, {ActualRounds} rounds used for calculation, {TotalAttendanceRecords} total attendance records, {TrackedStudents} tracked students. Using threshold: {Threshold}%",
             sessionId, completedRounds.Count, actualRoundsCount, allAttendanceRecords.Count,
-            relevantStudentTracks.Count);
+            relevantStudentTracks.Count, attendanceThresholdPercentage);
 
         var attendanceRecordsToProcess = new List<AttendanceRecord>();
 
@@ -143,13 +208,14 @@ public class FinalAttendanceConsumer(
                     percentage = actualRoundsCount > 0
                         ? (double)attendedCompletedRounds / actualRoundsCount * 100.0
                         : 0.0;
-                    newStatus = percentage >= AttendanceThresholdPercentage
+                    newStatus = percentage >= attendanceThresholdPercentage
                         ? AttendanceStatus.Present
                         : AttendanceStatus.Absent;
 
                     logger.LogDebug(
-                        "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds)",
-                        attendanceRecord.StudentId, sessionId, percentage, attendedCompletedRounds, actualRoundsCount);
+                        "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds) - Threshold: {Threshold}%",
+                        attendanceRecord.StudentId, sessionId, percentage, attendedCompletedRounds, actualRoundsCount,
+                        attendanceThresholdPercentage);
                 }
                 else
                 {
@@ -169,8 +235,9 @@ public class FinalAttendanceConsumer(
                     attendanceRecord.Update(newStatus, false, null, percentage);
 
                     logger.LogInformation(
-                        "Updated AttendanceRecord for Student {StudentId} in Session {SessionId}: {OldStatus} -> {NewStatus}, Percentage: {Percentage:F2}%",
-                        attendanceRecord.StudentId, sessionId, oldStatus, newStatus, percentage);
+                        "Updated AttendanceRecord for Student {StudentId} in Session {SessionId}: {OldStatus} -> {NewStatus}, Percentage: {Percentage:F2}% (Threshold: {Threshold}%)",
+                        attendanceRecord.StudentId, sessionId, oldStatus, newStatus, percentage,
+                        attendanceThresholdPercentage);
                 }
                 else
                 {
@@ -208,7 +275,8 @@ public class FinalAttendanceConsumer(
         var futureCount = attendanceRecordsToProcess.Count(r => Equals(r.Status, AttendanceStatus.Future));
 
         logger.LogInformation(
-            "Finished processing final attendance for Session {SessionId}. Updated {Total} records: {Present} Present, {Absent} Absent, {Future} Future (based on {ActualRounds} actual rounds)",
-            sessionId, attendanceRecordsToProcess.Count, presentCount, absentCount, futureCount, actualRoundsCount);
+            "Finished processing final attendance for Session {SessionId}. Updated {Total} records: {Present} Present, {Absent} Absent, {Future} Future (based on {ActualRounds} actual rounds with {Threshold}% threshold)",
+            sessionId, attendanceRecordsToProcess.Count, presentCount, absentCount, futureCount, actualRoundsCount,
+            attendanceThresholdPercentage);
     }
 }
