@@ -1,8 +1,10 @@
-﻿using Zentry.Modules.ScheduleManagement.Application.Abstractions;
+﻿using MassTransit;
+using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Services;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollStudent;
@@ -10,7 +12,8 @@ namespace Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.Enr
 public class EnrollStudentCommandHandler(
     IEnrollmentRepository enrollmentRepository,
     IClassSectionRepository classSectionRepository,
-    IUserScheduleService userLookupService)
+    IUserScheduleService userLookupService,
+    IPublishEndpoint publishEndpoint)
     : ICommandHandler<EnrollStudentCommand, EnrollmentResponse>
 {
     public async Task<EnrollmentResponse> Handle(EnrollStudentCommand command, CancellationToken cancellationToken)
@@ -33,6 +36,10 @@ public class EnrollStudentCommandHandler(
 
         await enrollmentRepository.AddAsync(enrollment, cancellationToken);
         await enrollmentRepository.SaveChangesAsync(cancellationToken);
+
+        // Publish event để update whitelist
+        var studentEnrolledMessage = new StudentEnrolledMessage(command.StudentId, command.ClassSectionId);
+        await publishEndpoint.Publish(studentEnrolledMessage, cancellationToken);
 
         return new EnrollmentResponse
         {
