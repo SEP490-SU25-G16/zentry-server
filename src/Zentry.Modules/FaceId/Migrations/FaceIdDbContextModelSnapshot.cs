@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Pgvector;
 using Zentry.Modules.FaceId.Persistence;
 
 #nullable disable
@@ -34,9 +33,9 @@ namespace Zentry.Modules.FaceId.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<Vector>("Embedding")
+                    b.Property<byte[]>("EncryptedEmbedding")
                         .IsRequired()
-                        .HasColumnType("vector(512)");
+                        .HasColumnType("bytea");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
@@ -52,6 +51,73 @@ namespace Zentry.Modules.FaceId.Migrations
                         .IsUnique();
 
                     b.ToTable("FaceEmbeddings", (string)null);
+                });
+
+            modelBuilder.Entity("Zentry.Modules.FaceId.Entities.FaceIdVerifyRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ClassSectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("InitiatorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("Matched")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("NotificationId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid>("RequestGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<float?>("Similarity")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TargetUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<float>("Threshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("real")
+                        .HasDefaultValue(0.7f);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_FaceIdReq_ExpiresAt");
+
+                    b.HasIndex("SessionId", "Status")
+                        .HasDatabaseName("IX_FaceIdReq_Session_Status");
+
+                    b.HasIndex("RequestGroupId", "TargetUserId", "Status", "ExpiresAt")
+                        .HasDatabaseName("IX_FaceIdReq_Group_Target_Status_Exp");
+
+                    b.ToTable("FaceIdVerifyRequests", (string)null);
                 });
 #pragma warning restore 612, 618
         }

@@ -33,12 +33,9 @@ public class DevicesController(IMediator mediator) : BaseController
 
         if (string.IsNullOrWhiteSpace(request.AndroidId))
             return BadRequest("Android ID is required for device registration.");
-
-        var userId = request.UserId;
-
+        
         var command = new RegisterDeviceCommand
         {
-            UserId = new Guid(userId),
             DeviceName = request.DeviceName,
             AndroidId = request.AndroidId,
             Platform = request.Platform,

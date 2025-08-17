@@ -21,6 +21,8 @@ namespace Zentry.Modules.NotificationService.Migrations
                     Body = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    Deeplink = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Data = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -29,9 +31,19 @@ namespace Zentry.Modules.NotificationService.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notifications_Deeplink",
+                table: "Notifications",
+                column: "Deeplink");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_RecipientUserId",
                 table: "Notifications",
                 column: "RecipientUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_Type",
+                table: "Notifications",
+                column: "Type");
         }
 
         /// <inheritdoc />

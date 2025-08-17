@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
+using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.Device;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
@@ -11,8 +12,8 @@ namespace Zentry.Modules.DeviceManagement.Features.AcceptDeviceChangeRequest;
 public class HandleDeviceChangeRequestHandler(
     IDeviceRepository deviceRepository,
     ILogger<HandleDeviceChangeRequestHandler> logger,
-    IMediator mediator
-) : ICommandHandler<HandleDeviceChangeRequestCommand, HandleDeviceChangeRequestResponse>
+    IMediator mediator,
+    ISessionService sessionService) : ICommandHandler<HandleDeviceChangeRequestCommand, HandleDeviceChangeRequestResponse>
 {
     public async Task<HandleDeviceChangeRequestResponse> Handle(HandleDeviceChangeRequestCommand command,
         CancellationToken cancellationToken)
@@ -40,6 +41,10 @@ public class HandleDeviceChangeRequestHandler(
                 deactivatedDeviceId = currentActiveDevice.Id;
                 logger.LogInformation("Deactivated old device {DeviceId} for user {UserId}.", currentActiveDevice.Id,
                     userId);
+                
+                // ✅ Force logout user trên thiết bị cũ
+                await sessionService.RevokeAllUserSessionsAsync(userId);
+                logger.LogInformation("Force logged out user {UserId} from old device {DeviceId}.", userId, currentActiveDevice.Id);
             }
             else
             {

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.Modules.FaceId.Persistence;
 using Zentry.Modules.FaceId.Persistence.Repositories;
@@ -16,7 +17,7 @@ public static class DependencyInjection
         services.AddDbContext<FaceIdDbContext>(options =>
             // Sử dụng chuỗi kết nối FaceIdConnection
             options.UseNpgsql(
-                configuration.GetConnectionString("FaceIdConnection"),
+                configuration.GetConnectionString("DefaultConnection"),
                 b =>
                 {
                     b.MigrationsAssembly("Zentry.Modules.FaceId");
@@ -24,7 +25,7 @@ public static class DependencyInjection
                     // Enable pgvector extension
                     b.UseVector();
                 }
-            ));
+            ).ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
         // Register repositories
         services.AddScoped<IFaceIdRepository, FaceIdRepository>();
@@ -32,10 +33,6 @@ public static class DependencyInjection
         // Register MediatR handlers
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-
-        // Register DbMigrationService
-        services.AddHostedService<FaceIdDbMigrationService>();
-
         return services;
     }
 }

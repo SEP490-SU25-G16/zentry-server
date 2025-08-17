@@ -38,6 +38,10 @@ namespace Zentry.Modules.NotificationService.Migrations
                     b.Property<string>("Data")
                         .HasColumnType("text");
 
+                    b.Property<string>("Deeplink")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
@@ -49,9 +53,17 @@ namespace Zentry.Modules.NotificationService.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("Deeplink");
+
                     b.HasIndex("RecipientUserId");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("Notifications");
                 });

@@ -12,8 +12,8 @@ using Zentry.Modules.NotificationService.Persistence.Repository;
 namespace Zentry.Modules.NotificationService.Migrations
 {
     [DbContext(typeof(NotificationDbContext))]
-    [Migration("20250806005321_Initial")]
-    partial class Initial
+    [Migration("20250817092954_Notification")]
+    partial class Notification
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,6 +41,10 @@ namespace Zentry.Modules.NotificationService.Migrations
                     b.Property<string>("Data")
                         .HasColumnType("text");
 
+                    b.Property<string>("Deeplink")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
@@ -52,9 +56,17 @@ namespace Zentry.Modules.NotificationService.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("Deeplink");
+
                     b.HasIndex("RecipientUserId");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("Notifications");
                 });

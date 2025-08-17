@@ -44,10 +44,19 @@ public class NotificationSender(
     {
         try
         {
+            // ✅ Thêm: Extract deeplink từ Data dictionary
+            string? deeplink = null;
+            if (notificationEvent.Data != null && notificationEvent.Data.ContainsKey("deeplink"))
+            {
+                deeplink = notificationEvent.Data["deeplink"];
+            }
+
             var notification = Notification.Create(
                 notificationEvent.RecipientUserId,
                 notificationEvent.Title,
                 notificationEvent.Body,
+                notificationEvent.Type,  // ✅ Thêm: Truyền Type
+                deeplink,               // ✅ Thêm: Truyền Deeplink
                 notificationEvent.Data);
 
             await notificationRepository.AddAsync(notification, cancellationToken);
@@ -81,6 +90,8 @@ public class NotificationSender(
                 recipientUserId = notification.RecipientUserId,
                 createdAt = notification.CreatedAt,
                 isRead = notification.IsRead,
+                type = notification.Type,        // ✅ Thêm: Include Type
+                deeplink = notification.Deeplink, // ✅ Thêm: Include Deeplink
                 data = notification.Data
             };
 

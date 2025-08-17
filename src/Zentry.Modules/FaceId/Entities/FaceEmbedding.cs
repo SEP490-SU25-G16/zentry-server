@@ -1,36 +1,32 @@
-using Pgvector;
 using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.FaceId.Entities;
 
 public class FaceEmbedding : AggregateRoot<Guid>
 {
-    private FaceEmbedding() : base(Guid.Empty)
-    {
-        Embedding = null!; // Will be set by Entity Framework or factory method
-    }
+    private FaceEmbedding() : base(Guid.Empty) { }
 
-    private FaceEmbedding(Guid id, Guid userId, Vector embedding) : base(id)
+    private FaceEmbedding(Guid id, Guid userId, byte[]? encryptedEmbedding) : base(id)
     {
         UserId = userId;
-        Embedding = embedding;
+        EncryptedEmbedding = encryptedEmbedding;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public Guid UserId { get; private set; }
-    public Vector Embedding { get; private set; }
+    public byte[]? EncryptedEmbedding { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public static FaceEmbedding Create(Guid userId, Vector embedding)
+    public static FaceEmbedding Create(Guid userId, byte[]? encryptedEmbedding)
     {
-        return new FaceEmbedding(Guid.NewGuid(), userId, embedding);
+        return new FaceEmbedding(Guid.NewGuid(), userId, encryptedEmbedding);
     }
 
-    public void UpdateEmbedding(Vector embedding)
+    public void UpdateEncrypted(byte[] encryptedEmbedding)
     {
-        Embedding = embedding;
+        EncryptedEmbedding = encryptedEmbedding;
         UpdatedAt = DateTime.UtcNow;
     }
 }

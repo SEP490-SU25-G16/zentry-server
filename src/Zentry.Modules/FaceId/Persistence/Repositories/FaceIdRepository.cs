@@ -1,8 +1,11 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
-using Pgvector;
+using Npgsql;
+using NpgsqlTypes;
+using Zentry.Infrastructure.Security.Encryption;
 using Zentry.Modules.FaceId.Entities;
 using Zentry.Modules.FaceId.Interfaces;
+using Zentry.Modules.FaceId.Dtos;
 
 namespace Zentry.Modules.FaceId.Persistence.Repositories;
 
@@ -10,9 +13,12 @@ public class FaceIdRepository : IFaceIdRepository
 {
     private readonly FaceIdDbContext _dbContext;
 
-    public FaceIdRepository(FaceIdDbContext dbContext)
+    private readonly Zentry.Infrastructure.Security.Encryption.DataProtectionService _crypto;
+
+    public FaceIdRepository(FaceIdDbContext dbContext, Zentry.Infrastructure.Security.Encryption.DataProtectionService crypto)
     {
         _dbContext = dbContext;
+        _crypto = crypto;
     }
 
     public async Task<FaceEmbedding?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -27,59 +33,64 @@ public class FaceIdRepository : IFaceIdRepository
             .FirstOrDefaultAsync(e => e.UserId == userId, cancellationToken);
     }
 
+    public async Task<(Guid UserId, DateTime CreatedAt, DateTime UpdatedAt)?> GetMetaByUserIdAsync(Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        var res = await _dbContext.FaceEmbeddings
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .Select(e => new { e.UserId, e.CreatedAt, e.UpdatedAt })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (res is null) return null;
+        return (res.UserId, res.CreatedAt, res.UpdatedAt);
+    }
+
     public async Task<bool> ExistsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.FaceEmbeddings
             .AnyAsync(e => e.UserId == userId, cancellationToken);
     }
 
-    public async Task<FaceEmbedding> CreateAsync(Guid userId, Vector embedding,
+    public async Task<FaceEmbedding> CreateAsync(Guid userId, float[] embedding,
         CancellationToken cancellationToken = default)
     {
-        // Use raw SQL insert with explicit vector cast to avoid Npgsql parameter type issues
-        var embeddingArray = embedding.ToArray();
-        var vectorString = "[" +
-                           string.Join(",",
-                               embeddingArray.Select(f => f.ToString("G9", CultureInfo.InvariantCulture))) + "]";
+        // Encrypt embedding bytes
+        var rawBytes = new byte[embedding.Length * 4];
+        Buffer.BlockCopy(embedding, 0, rawBytes, 0, rawBytes.Length);
+        var encrypted = _crypto.Encrypt(rawBytes);
 
-        var id = Guid.NewGuid();
-        var sql =
-            $"INSERT INTO \"FaceEmbeddings\" (\"Id\", \"UserId\", \"Embedding\", \"CreatedAt\", \"UpdatedAt\") " +
-            $"VALUES ('{id}', '{userId}', '{vectorString}'::vector, NOW(), NOW())";
+        // Create entity and save using EF Core
+        var entity = FaceEmbedding.Create(userId, encrypted);
+        _dbContext.FaceEmbeddings.Add(entity);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await _dbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
-
-        // Return a new entity representation (note: Id will differ from DB if factory generates new Id)
-        return FaceEmbedding.Create(userId, embedding);
+        return entity;
     }
 
-    public async Task<FaceEmbedding> UpdateAsync(Guid userId, Vector embedding,
+    public async Task<FaceEmbedding> UpdateAsync(Guid userId, float[] embedding,
         CancellationToken cancellationToken = default)
     {
-        // Check if user has face ID using simple query
-        var exists = await _dbContext.FaceEmbeddings
-            .AnyAsync(e => e.UserId == userId, cancellationToken);
+        // Check if user has a face ID
+        var existingEntity = await _dbContext.FaceEmbeddings
+            .FirstOrDefaultAsync(e => e.UserId == userId, cancellationToken);
 
-        if (!exists) throw new InvalidOperationException($"Face embedding for user {userId} not found");
+        if (existingEntity == null) 
+            throw new InvalidOperationException($"Face embedding for user {userId} not found");
 
-        // Use raw SQL to update the vector to avoid Entity Framework issues
-        var embeddingArray = embedding.ToArray();
-        var vectorString = "[" +
-                           string.Join(",",
-                               embeddingArray.Select(f => f.ToString("G9", CultureInfo.InvariantCulture))) + "]";
+        // Encrypt embedding bytes
+        var rawBytes = new byte[embedding.Length * 4];
+        Buffer.BlockCopy(embedding, 0, rawBytes, 0, rawBytes.Length);
+        var encrypted = _crypto.Encrypt(rawBytes);
 
-        var sql =
-            $"UPDATE \"FaceEmbeddings\" SET \"Embedding\" = '{vectorString}'::vector, \"UpdatedAt\" = NOW() WHERE \"UserId\" = '{userId}'";
-        var rowsAffected = await _dbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        // Update entity using EF Core
+        existingEntity.UpdateEncrypted(encrypted);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
-        if (rowsAffected == 0)
-            throw new InvalidOperationException($"Failed to update face embedding for user {userId}");
-
-        // Return a new entity with updated data
-        return FaceEmbedding.Create(userId, embedding);
+        return existingEntity;
     }
 
-    public async Task<(bool IsMatch, float Similarity)> VerifyAsync(Guid userId, Vector embedding,
+    public async Task<(bool IsMatch, float Similarity)> VerifyAsync(Guid userId, float[] embedding,
         float threshold = 0.7f, CancellationToken cancellationToken = default)
     {
         try
@@ -90,24 +101,24 @@ public class FaceIdRepository : IFaceIdRepository
 
             if (!exists) return (false, 0);
 
-            // For verification, we'll use a simpler approach - compare with cosine distance in SQL
-            var embeddingArray = embedding.ToArray();
-            var vectorString = "[" +
-                               string.Join(",",
-                                   embeddingArray.Select(f => f.ToString("F6", CultureInfo.InvariantCulture))) + "]";
+            // Read encrypted payload and compute cosine in .NET
+        var row = await _dbContext.FaceEmbeddings
+            .AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .Select(e => e.EncryptedEmbedding)
+            .FirstOrDefaultAsync(cancellationToken);
 
-            var sql =
-                $@"SELECT (1 - (""Embedding"" <=> '{vectorString}'::vector))::real FROM ""FaceEmbeddings"" WHERE ""UserId"" = '{userId}'";
+        if (row == null) return (false, 0);
+        var decrypted = _crypto.Decrypt(row);
+        var stored = new float[decrypted.Length / 4];
+        Buffer.BlockCopy(decrypted, 0, stored, 0, decrypted.Length);
 
-            // Use raw ADO.NET to get the result
-            using var connection = _dbContext.Database.GetDbConnection();
-            await connection.OpenAsync(cancellationToken);
-            using var command = connection.CreateCommand();
-            command.CommandText = sql;
-            var result = await command.ExecuteScalarAsync(cancellationToken);
-            var similarity = result != null ? Convert.ToSingle(result) : 0f;
+            var query = embedding;
+            NormalizeL2Vector(stored);
+            NormalizeL2Vector(query);
 
-            return (similarity >= threshold, similarity);
+            var similarity = CalculateCosineSimilarity(stored, query);
+        return (similarity >= threshold, similarity);
         }
         catch (Exception)
         {
@@ -119,6 +130,97 @@ public class FaceIdRepository : IFaceIdRepository
     public async Task<IEnumerable<FaceEmbedding>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.FaceEmbeddings.ToListAsync(cancellationToken);
+    }
+
+    public async Task<FaceIdVerifyRequest> CreateVerifyRequestAsync(
+        Guid requestGroupId,
+        Guid targetUserId,
+        Guid? initiatorUserId,
+        Guid? sessionId,
+        Guid? classSectionId,
+        float threshold,
+        DateTime expiresAt,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = FaceIdVerifyRequest.Create(requestGroupId, targetUserId, initiatorUserId, sessionId, classSectionId, threshold, expiresAt);
+        _dbContext.FaceIdVerifyRequests.Add(entity);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return entity;
+    }
+
+    public async Task<FaceIdVerifyRequest?> GetVerifyRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FaceIdVerifyRequests.FindAsync(new object[] { requestId }, cancellationToken);
+    }
+
+    public async Task CompleteVerifyRequestAsync(FaceIdVerifyRequest request, bool matched, float similarity, CancellationToken cancellationToken = default)
+    {
+        request.MarkCompleted(matched, similarity);
+        _dbContext.FaceIdVerifyRequests.Update(request);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task CancelVerifyRequestsByGroupAsync(Guid requestGroupId, CancellationToken cancellationToken = default)
+    {
+        var items = await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.RequestGroupId == requestGroupId && r.Status == FaceIdVerifyRequestStatus.Pending)
+            .ToListAsync(cancellationToken);
+        foreach (var r in items)
+        {
+            r.Cancel();
+        }
+        if (items.Count > 0)
+        {
+            _dbContext.FaceIdVerifyRequests.UpdateRange(items);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    // New methods for session-based management
+    public async Task<List<FaceIdVerifyRequest>> GetActiveVerifyRequestsBySessionAsync(Guid sessionId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.SessionId == sessionId && r.Status == FaceIdVerifyRequestStatus.Pending && r.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task CancelVerifyRequestsBySessionAsync(Guid sessionId, CancellationToken cancellationToken = default)
+    {
+        var items = await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.SessionId == sessionId && r.Status == FaceIdVerifyRequestStatus.Pending)
+            .ToListAsync(cancellationToken);
+        
+        foreach (var r in items)
+        {
+            r.Cancel();
+        }
+        
+        if (items.Count > 0)
+        {
+            _dbContext.FaceIdVerifyRequests.UpdateRange(items);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    public async Task<List<FaceIdVerifyRequest>> GetExpiredVerifyRequestsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.Status == FaceIdVerifyRequestStatus.Pending && r.ExpiresAt <= DateTime.UtcNow)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task MarkVerifyRequestsAsExpiredAsync(List<FaceIdVerifyRequest> requests, CancellationToken cancellationToken = default)
+    {
+        foreach (var request in requests)
+        {
+            request.MarkExpired();
+        }
+        
+        if (requests.Count > 0)
+        {
+            _dbContext.FaceIdVerifyRequests.UpdateRange(requests);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 
     public async Task AddAsync(FaceEmbedding entity, CancellationToken cancellationToken = default)
@@ -175,9 +277,86 @@ public class FaceIdRepository : IFaceIdRepository
         return dotProduct / (magnitude1 * magnitude2);
     }
 
+    private static void NormalizeL2Vector(float[] v)
+    {
+        double sum = 0;
+        for (int i = 0; i < v.Length; i++) sum += v[i] * v[i];
+        var norm = Math.Sqrt(sum);
+        if (norm == 0) return;
+        for (int i = 0; i < v.Length; i++) v[i] = (float)(v[i] / norm);
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdAsync(id, cancellationToken);
         if (entity != null) await DeleteAsync(entity, cancellationToken);
+    }
+
+    public async Task<IEnumerable<UserFaceIdStatusDto>> GetAllUsersWithFaceIdStatusAsync(CancellationToken cancellationToken = default)
+    {
+        // Get all users with Face ID status
+        var usersWithFaceId = await _dbContext.FaceEmbeddings
+            .AsNoTracking()
+            .Select(e => new UserFaceIdStatusDto(
+                e.UserId,
+                true,
+                e.CreatedAt,
+                e.UpdatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        // Note: This method currently only returns users who have Face ID
+        // To get ALL users (including those without Face ID), you would need to:
+        // 1. Join with a Users table, or
+        // 2. Accept a list of all user IDs as parameter, or
+        // 3. Create a separate endpoint for getting all users from UserManagement module
+        
+        return usersWithFaceId;
+    }
+
+    public async Task<IEnumerable<UserFaceIdStatusDto>> GetUsersFaceIdStatusAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
+    {
+        var userIdsList = userIds.ToList();
+        
+        // Get Face ID status for requested users
+        var usersWithFaceId = await _dbContext.FaceEmbeddings
+            .AsNoTracking()
+            .Where(e => userIdsList.Contains(e.UserId))
+            .Select(e => new UserFaceIdStatusDto(
+                e.UserId,
+                true,
+                e.CreatedAt,
+                e.UpdatedAt
+            ))
+            .ToListAsync(cancellationToken);
+
+        // Create status for users without Face ID
+        var usersWithFaceIdIds = usersWithFaceId.Select(u => u.UserId).ToHashSet();
+        var usersWithoutFaceId = userIdsList
+            .Where(id => !usersWithFaceIdIds.Contains(id))
+            .Select(id => new UserFaceIdStatusDto(id, false, null, null));
+
+        // Combine both lists
+        return usersWithFaceId.Concat(usersWithoutFaceId);
+    }
+    
+    // ✅ Thêm method mới
+    public async Task<FaceIdVerifyRequest?> GetVerifyRequestByGroupAndUserAsync(
+        Guid requestGroupId, 
+        Guid targetUserId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FaceIdVerifyRequests
+            .FirstOrDefaultAsync(r => 
+                r.RequestGroupId == requestGroupId && 
+                r.TargetUserId == targetUserId, 
+                cancellationToken);
+    }
+
+    // ✅ Thêm: Method để cập nhật verify request
+    public async Task UpdateVerifyRequestAsync(FaceIdVerifyRequest request, CancellationToken cancellationToken = default)
+    {
+        _dbContext.FaceIdVerifyRequests.Update(request);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

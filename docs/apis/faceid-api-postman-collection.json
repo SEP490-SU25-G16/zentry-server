@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "Face ID API Collection",
+    "description": "Complete collection for testing Face ID API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "9444745a-4680-4052-849c-d9faa9b95adc",
+      "type": "string"
+    },
+    {
+      "key": "requestId",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Face ID Registration",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "type": "text"
+            },
+            {
+              "key": "embedding",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "register"]
+        },
+        "description": "Register a new face ID for a user"
+      }
+    },
+    {
+      "name": "Face ID Update",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "type": "text"
+            },
+            {
+              "key": "embedding",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/update",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "update"]
+        },
+        "description": "Update an existing face ID"
+      }
+    },
+    {
+      "name": "Face ID Verification",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "type": "text"
+            },
+            {
+              "key": "embedding",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "threshold",
+              "value": "0.7",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "verify"]
+        },
+        "description": "Verify a face ID"
+      }
+    },
+    {
+      "name": "Get Face ID Metadata",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/meta/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "meta", "{{userId}}"]
+        },
+        "description": "Get metadata for a user's face ID"
+      }
+    },
+    {
+      "name": "Get All Users with Face ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "users"]
+        },
+        "description": "Get all user IDs that have registered Face IDs"
+      }
+    },
+    {
+      "name": "Get Users Face ID Status",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userIds\": [\n    \"{{userId}}\",\n    \"00000000-0000-0000-0000-000000000000\",\n    \"11111111-1111-1111-1111-111111111111\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/users/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "users", "status"]
+        },
+        "description": "Get Face ID status for specific users"
+      }
+    },
+    {
+      "name": "Create Verification Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"initiatorUserId\": \"{{userId}}\",\n  \"classSectionId\": \"00000000-0000-0000-0000-000000000000\",\n  \"recipientUserIds\": [\"{{userId}}\"],\n  \"threshold\": 0.7,\n  \"durationMinutes\": 30\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/requests",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "requests"]
+        },
+        "description": "Create a new verification request session"
+      }
+    },
+    {
+      "name": "Verify Against Request",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "type": "text"
+            },
+            {
+              "key": "embedding",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/requests/{{requestId}}/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "requests", "{{requestId}}", "verify"]
+        },
+        "description": "Verify a user against a specific verification request"
+      }
+    },
+    {
+      "name": "Get Request Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/requests/{{requestId}}/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "requests", "{{requestId}}", "status"]
+        },
+        "description": "Get the status of a verification request"
+      }
+    },
+    {
+      "name": "Cancel Request",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/faceid/requests/{{requestId}}/cancel",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "faceid", "requests", "{{requestId}}", "cancel"]
+        },
+        "description": "Cancel an active verification request"
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Zentry.SharedKernel.Domain;
+using Zentry.SharedKernel.Contracts.Events;
 
 namespace Zentry.Modules.NotificationService.Entities;
 
@@ -18,11 +19,15 @@ public class Notification : Entity<Guid>
         Guid recipientUserId,
         string title,
         string body,
+        NotificationType type,
+        string? deeplink,
         string? data) : base(id)
     {
         RecipientUserId = recipientUserId;
         Title = title;
         Body = body;
+        Type = type;
+        Deeplink = deeplink;
         Data = data;
         IsRead = false;
         CreatedAt = DateTime.UtcNow;
@@ -54,6 +59,16 @@ public class Notification : Entity<Guid>
     public bool IsRead { get; private set; }
 
     /// <summary>
+    ///     Loại thông báo (InApp, Push, All).
+    /// </summary>
+    public NotificationType Type { get; private set; }
+
+    /// <summary>
+    ///     Deep link để điều hướng khi click vào notification.
+    /// </summary>
+    public string? Deeplink { get; private set; }
+
+    /// <summary>
     ///     Dữ liệu đi kèm (nếu có).
     /// </summary>
     public string? Data { get; private set; } // Stored as JSON string
@@ -62,13 +77,15 @@ public class Notification : Entity<Guid>
         Guid recipientUserId,
         string title,
         string body,
-        Dictionary<string, string>? data)
+        NotificationType type,
+        string? deeplink = null,
+        Dictionary<string, string>? data = null)
     {
         var jsonData = data is not null
             ? JsonSerializer.Serialize(data)
             : null;
 
-        return new Notification(Guid.NewGuid(), recipientUserId, title, body, jsonData);
+        return new Notification(Guid.NewGuid(), recipientUserId, title, body, type, deeplink, jsonData);
     }
 
     public void MarkAsRead()

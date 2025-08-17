@@ -1,4 +1,3 @@
-using Pgvector;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 
@@ -26,15 +25,15 @@ public class VerifyFaceIdCommandHandler : ICommandHandler<VerifyFaceIdCommand, V
                     Message = "User does not have a registered Face ID."
                 };
 
-            // Convert float array to Vector
-            var embedding = new Vector(command.EmbeddingArray);
-
-            // Verify embedding against stored one
+            // Verify embedding against stored one (now accepts float[] directly)
             var (isMatch, similarity) = await _faceIdRepository.VerifyAsync(
                 command.UserId,
-                embedding,
+                command.EmbeddingArray,
                 command.Threshold,
                 cancellationToken);
+
+            // If this verify is tied to a request, we could persist result (optional: handled at controller level)
+            // This handler remains pure to keep cross-module deps low.
 
             return new VerifyFaceIdResponse
             {
