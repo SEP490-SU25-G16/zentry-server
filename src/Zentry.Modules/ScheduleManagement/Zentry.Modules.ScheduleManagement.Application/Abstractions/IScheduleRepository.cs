@@ -66,4 +66,6 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
         DateOnly date,
         WeekDayEnum weekDay,
         CancellationToken cancellationToken);
+
+    Task DeleteRangeAsync(IEnumerable<Schedule> entities, CancellationToken cancellationToken);
 }

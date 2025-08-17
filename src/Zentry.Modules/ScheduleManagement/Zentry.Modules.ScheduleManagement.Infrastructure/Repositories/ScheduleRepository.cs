@@ -480,4 +480,9 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .Include(s => s.Room)
             .ToListAsync(cancellationToken);
     }
+    public async Task DeleteRangeAsync(IEnumerable<Schedule> entities, CancellationToken cancellationToken)
+    {
+        dbContext.Schedules.RemoveRange(entities);
+        await SaveChangesAsync(cancellationToken);
+    }
 }

@@ -14,6 +14,12 @@ public class DeviceRepository(DeviceDbContext dbContext) : IDeviceRepository
         return await dbContext.Devices.CountAsync(cancellationToken);
     }
 
+    public async Task<int> CountByStatusAsync(DeviceStatus status, CancellationToken cancellationToken)
+    {
+        return await dbContext.Devices
+            .CountAsync(d => d.Status == status, cancellationToken);
+    }
+
     public async Task<Device?> GetActiveDeviceForUserAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await dbContext.Devices
