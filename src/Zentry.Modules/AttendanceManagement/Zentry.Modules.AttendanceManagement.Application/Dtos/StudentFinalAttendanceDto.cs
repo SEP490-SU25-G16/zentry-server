@@ -11,7 +11,7 @@ public class StudentFinalAttendanceDto
     public int TotalRounds { get; set; }
     public int AttendedRoundsCount { get; set; }
     public int MissedRoundsCount { get; set; }
-
+    public string FinalStatus { get; set; }
     public List<RoundAttendanceDetailDto> RoundDetails { get; set; } = [];
 }
 
