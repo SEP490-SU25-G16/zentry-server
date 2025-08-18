@@ -215,24 +215,8 @@ public class AttendanceController(IMediator mediator) : BaseController
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SubmitScanData([FromBody] SubmitScanRequest request)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
-        
         try
         {
-            // ✅ Lấy DeviceId từ session context (đã được validate bởi middleware)
-            var deviceId = HttpContext.Items["DeviceId"] as Guid?;
-            if (!deviceId.HasValue)
-            {
-                return Unauthorized("Device not authenticated");
-            }
-
-            // ✅ Lấy UserId từ session context
-            var userId = HttpContext.Items["UserId"] as Guid?;
-            if (!userId.HasValue)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
             var utcTimestamp = request.Timestamp.ToUtcFromVietnamLocalTime();
             var command = new SubmitScanDataCommand(
                 request.SubmitterDeviceAndroidId,
