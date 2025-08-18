@@ -24,6 +24,7 @@ using Zentry.Modules.FaceId;
 using Zentry.Modules.FaceId.Persistence;
 using Zentry.Modules.NotificationService;
 using Zentry.Modules.NotificationService.Hubs;
+using Zentry.Modules.NotificationService.Persistence;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.Modules.ScheduleManagement.Application;
 using Zentry.Modules.ScheduleManagement.Infrastructure;
@@ -262,7 +263,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 });
 
 // ===== DATABASE MIGRATION CODE =====
-await RunDatabaseMigrationsAndSeedDataAsync(app);
+await RunSelectiveDatabaseMigrationsAsync(app);
 
 app.Run();
 
@@ -275,12 +276,13 @@ static bool IsGuidFormatError(string? errorMessage)
            errorMessage.Contains("is not valid", StringComparison.OrdinalIgnoreCase) ||
            errorMessage.Contains("format", StringComparison.OrdinalIgnoreCase);
 }
-
-static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
+// ✅ Method để chỉ drop các tables cần thiết
+static async Task RunSelectiveDatabaseMigrationsAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var serviceProvider = scope.ServiceProvider;
+    var environment = app.Environment;
 
     var retryPolicy = Policy
         .Handle<Exception>()
@@ -299,8 +301,8 @@ static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
         (typeof(DeviceDbContext), "DeviceManagementDbContext"),
         (typeof(ConfigurationDbContext), "ConfigurationDbContext"),
         (typeof(UserDbContext), "UserDbContext"),
-        (typeof(NotificationDbContext), "NotificationDbContext"),
-        (typeof(FaceIdDbContext), "FaceIdDbContext")
+        (typeof(FaceIdDbContext), "FaceIdDbContext"),
+        (typeof(NotificationDbContext), "NotificationDbContext")
     };
 
     foreach (var (contextType, contextName) in migrations)
@@ -308,11 +310,40 @@ static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
         await retryPolicy.ExecuteAsync(async () =>
         {
             var dbContext = (DbContext)serviceProvider.GetRequiredService(contextType);
-            logger.LogInformation("Applying migrations for {ContextName}...", contextName);
-            await dbContext.Database.MigrateAsync();
-            logger.LogInformation("{ContextName} migrations applied successfully.", contextName);
+
+            if (environment.IsDevelopment())
+            {
+                // ✅ Kiểm tra xem có pending migrations không
+                var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+                var hasPendingMigrations = pendingMigrations.Any();
+
+                if (hasPendingMigrations)
+                {
+                    logger.LogWarning("🔥 Found pending migrations for {ContextName}. Dropping and recreating...", contextName);
+
+                    // Drop chỉ những tables của context này
+                    await DropContextTablesAsync(dbContext, logger, contextName);
+
+                    // Recreate và apply migrations
+                    await dbContext.Database.MigrateAsync();
+                    logger.LogInformation("✅ {ContextName} recreated with new migrations.", contextName);
+                }
+                else
+                {
+                    logger.LogInformation("No pending migrations for {ContextName}. Skipping drop.", contextName);
+                    await dbContext.Database.MigrateAsync();
+                }
+            }
+            else
+            {
+                // Production: Chỉ apply migrations bình thường
+                logger.LogInformation("Applying migrations for {ContextName}...", contextName);
+                await dbContext.Database.MigrateAsync();
+                logger.LogInformation("{ContextName} migrations applied successfully.", contextName);
+            }
         });
 
+        // Seed data
         if (contextType == typeof(ConfigurationDbContext))
             await retryPolicy.ExecuteAsync(async () =>
             {
@@ -323,7 +354,35 @@ static async Task RunDatabaseMigrationsAndSeedDataAsync(WebApplication app)
             });
     }
 }
-// Thêm HealthCheckResponseWriter helper class
+
+// ✅ Helper method để drop tables của một context cụ thể
+static async Task DropContextTablesAsync(DbContext dbContext, ILogger logger, string contextName)
+{
+    try
+    {
+        var tableNames = dbContext.Model.GetEntityTypes()
+            .Select(t => t.GetTableName())
+            .Where(name => !string.IsNullOrEmpty(name))
+            .ToList();
+
+        foreach (var tableName in tableNames)
+        {
+            logger.LogInformation("Dropping table: {TableName} from {ContextName}", tableName, contextName);
+            await dbContext.Database.ExecuteSqlRawAsync($"DROP TABLE IF EXISTS \"{tableName}\" CASCADE");
+        }
+
+        // Drop migration history table for this context
+        var migrationTableName = $"__EFMigrationsHistory_{contextName}";
+        await dbContext.Database.ExecuteSqlRawAsync($"DROP TABLE IF EXISTS \"{migrationTableName}\" CASCADE");
+
+        logger.LogInformation("✅ All tables dropped for {ContextName}", contextName);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "❌ Error dropping tables for {ContextName}", contextName);
+        throw;
+    }
+}
 public static class HealthCheckResponseWriter
 {
     public static Task WriteResponse(HttpContext httpContext, HealthReport result)

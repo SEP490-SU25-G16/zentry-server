@@ -5,6 +5,7 @@ using Zentry.Modules.NotificationService.Application.Services;
 using Zentry.Modules.NotificationService.Infrastructure.DeviceTokens;
 using Zentry.Modules.NotificationService.Infrastructure.Push;
 using Zentry.Modules.NotificationService.Infrastructure.Services;
+using Zentry.Modules.NotificationService.Persistence;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 
 namespace Zentry.Modules.NotificationService;
