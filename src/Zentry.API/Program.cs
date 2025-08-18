@@ -263,7 +263,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 });
 
 // ===== DATABASE MIGRATION CODE =====
-await RunSelectiveDatabaseMigrationsAsync(app);
+// await RunSelectiveDatabaseMigrationsAsync(app);
 
 app.Run();
 

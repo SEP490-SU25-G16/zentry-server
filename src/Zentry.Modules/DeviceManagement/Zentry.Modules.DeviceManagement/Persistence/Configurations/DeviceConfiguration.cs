@@ -25,7 +25,7 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
             .IsRequired();
 
         builder.Property(d => d.DeviceToken)
-            .HasConversion(t => t.Value, v => DeviceToken.Create())
+            .HasConversion(t => t.Value, v => DeviceToken.FromValue(v))
             .HasMaxLength(255)
             .IsRequired();
 

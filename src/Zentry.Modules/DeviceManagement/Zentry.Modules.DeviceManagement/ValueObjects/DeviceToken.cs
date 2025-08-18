@@ -12,6 +12,7 @@ public class DeviceToken : ValueObject
 
     public string Value { get; }
 
+    // Tạo token mới (cho device mới)
     public static DeviceToken Create()
     {
         // Generate unique token (e.g., base64-encoded GUID)
@@ -22,8 +23,19 @@ public class DeviceToken : ValueObject
         return new DeviceToken(token);
     }
 
+    // Tạo từ giá trị existing (cho EF Core khi load từ DB)
+    public static DeviceToken FromValue(string value)
+    {
+        Guard.AgainstNullOrEmpty(value, nameof(value));
+        if (value.Length > 255)
+            throw new ArgumentException("Device token cannot exceed 255 characters.", nameof(value));
+        return new DeviceToken(value);
+    }
+
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return Value;
     }
+
+    public static implicit operator string(DeviceToken deviceToken) => deviceToken.Value;
 }
