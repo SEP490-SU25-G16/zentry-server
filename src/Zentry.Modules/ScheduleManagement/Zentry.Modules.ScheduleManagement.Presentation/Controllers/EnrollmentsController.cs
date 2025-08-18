@@ -8,6 +8,7 @@ using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.EnrollS
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetEnrollments;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.GetStudentCountBySemester;
 using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.ImportEnrollments;
+using Zentry.Modules.ScheduleManagement.Application.Features.Enrollments.RemoveStudentFromClassSection;
 using Zentry.SharedKernel.Abstractions.Data;
 using Zentry.SharedKernel.Abstractions.Models;
 using Zentry.SharedKernel.Exceptions;
@@ -55,6 +56,30 @@ public class EnrollmentController(IMediator mediator, IFileProcessor<EnrollmentI
             };
             var response = await mediator.Send(command, cancellationToken);
             return HandleResult(response, "Student enrolled successfully.");
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("remove-student")]
+    [ProducesResponseType(typeof(ApiResponse<EnrollmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveStudentFromClassSection(
+        [FromBody] RemoveStudentFromClassSectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new RemoveStudentFromClassSectionCommand
+            {
+                ClassSectionId = request.ClassSectionId,
+                StudentId = request.StudentId
+            };
+            await mediator.Send(command, cancellationToken);
+            return HandleNoContent();
         }
         catch (Exception ex)
         {

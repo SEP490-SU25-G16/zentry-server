@@ -6,6 +6,7 @@ using Zentry.Modules.ScheduleManagement.Domain.Entities;
 using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
 using Zentry.SharedKernel.Constants.Schedule;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Infrastructure.Repositories;
 
@@ -277,5 +278,23 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
             .ToListAsync(cancellationToken);
 
         return (enrollments, totalCount);
+    }
+
+    public async Task DeleteAsync(Guid studentId, Guid classSectionId, CancellationToken cancellationToken)
+    {
+        var enrollmentToDelete = await dbContext.Enrollments
+            .FirstOrDefaultAsync(e => e.StudentId == studentId && e.ClassSectionId == classSectionId,
+                cancellationToken);
+
+        if (enrollmentToDelete is not null)
+        {
+            dbContext.Enrollments.Remove(enrollmentToDelete);
+            await SaveChangesAsync(cancellationToken);
+        }
+        else
+        {
+            throw new ResourceNotFoundException(
+                $"No enrollment with class id {classSectionId} and student id {studentId} was found.");
+        }
     }
 }

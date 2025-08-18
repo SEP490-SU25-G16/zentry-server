@@ -38,4 +38,5 @@ public interface IEnrollmentRepository : IRepository<Enrollment, Guid>
         CancellationToken cancellationToken);
 
     Task DeleteRangeAsync(IEnumerable<Enrollment> enrollments, CancellationToken cancellationToken);
+    Task DeleteAsync(Guid studentId, Guid classSectionId, CancellationToken cancellationToken);
 }
