@@ -175,6 +175,15 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<List<Schedule>> GetSchedulesByDateAsync(DateOnly date,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.Schedules
+            .Where(s => s.StartDate <= date &&
+                        s.EndDate >= date && !s.IsDeleted)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<LecturerDailyReportScheduleProjectionDto>> GetLecturerReportSchedulesForDateAsync(
         Guid lecturerId,
         DateTime date,
@@ -480,6 +489,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .Include(s => s.Room)
             .ToListAsync(cancellationToken);
     }
+
     public async Task DeleteRangeAsync(IEnumerable<Schedule> entities, CancellationToken cancellationToken)
     {
         dbContext.Schedules.RemoveRange(entities);

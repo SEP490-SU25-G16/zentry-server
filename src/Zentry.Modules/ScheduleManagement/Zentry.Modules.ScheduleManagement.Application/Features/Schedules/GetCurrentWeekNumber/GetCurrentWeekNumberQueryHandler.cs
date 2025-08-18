@@ -1,8 +1,8 @@
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
-using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetTermWeek;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetCurrentWeekNumber;
+
 public class GetCurrentWeekNumberQueryHandler(
     IScheduleRepository scheduleRepository
 ) : IQueryHandler<GetCurrentWeekNumberQuery, GetCurrentWeekNumberResponse>
@@ -13,18 +13,16 @@ public class GetCurrentWeekNumberQueryHandler(
     {
         var response = new GetCurrentWeekNumberResponse
         {
-            ClassSectionId = request.ClassSectionId,
             QueryDate = request.Date,
             IsInSession = false
         };
 
-        var schedules = await scheduleRepository.GetSchedulesByClassSectionIdAsync(
-            request.ClassSectionId,
-            cancellationToken);
+        var schedules =
+            await scheduleRepository.GetSchedulesByDateAsync(request.Date, cancellationToken);
 
-        if (!schedules.Any())
+        if (schedules.Count == 0)
         {
-            response.Message = "Không tìm thấy lịch học cho class section này";
+            response.Message = "Không tìm thấy lịch học cho kì này";
             return response;
         }
 
@@ -35,13 +33,15 @@ public class GetCurrentWeekNumberQueryHandler(
 
         if (request.Date < earliestStartDate)
         {
-            response.Message = $"Ngày {request.Date:yyyy-MM-dd} chưa bắt đầu kỳ học. Kỳ học bắt đầu từ {earliestStartDate:yyyy-MM-dd}";
+            response.Message =
+                $"Ngày {request.Date:yyyy-MM-dd} chưa bắt đầu kỳ học. Kỳ học bắt đầu từ {earliestStartDate:yyyy-MM-dd}";
             return response;
         }
 
         if (request.Date > latestEndDate)
         {
-            response.Message = $"Ngày {request.Date:yyyy-MM-dd} đã kết thúc kỳ học. Kỳ học kết thúc vào {latestEndDate:yyyy-MM-dd}";
+            response.Message =
+                $"Ngày {request.Date:yyyy-MM-dd} đã kết thúc kỳ học. Kỳ học kết thúc vào {latestEndDate:yyyy-MM-dd}";
             return response;
         }
 

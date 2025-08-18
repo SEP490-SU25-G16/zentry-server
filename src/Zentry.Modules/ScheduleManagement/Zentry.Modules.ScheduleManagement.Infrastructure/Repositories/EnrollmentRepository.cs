@@ -16,15 +16,14 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
     {
         var sql = @"
         SELECT cs.""Semester"", COUNT(DISTINCT e.""StudentId"") as ""StudentCount""
-        FROM ""Enrollments"" 
+        FROM ""Enrollments"" e
         INNER JOIN ""ClassSections"" cs ON e.""ClassSectionId"" = cs.""Id""
         WHERE RIGHT(cs.""Semester"", 2) = {0}
-          AND e.""Status"" = {1}
           AND cs.""IsDeleted"" = false
         GROUP BY cs.""Semester""";
 
         var results = await dbContext.Database
-            .SqlQueryRaw<SemesterStudentCountDto>(sql, yearString, EnrollmentStatus.Active)
+            .SqlQueryRaw<SemesterStudentCountDto>(sql, yearString)
             .ToListAsync(cancellationToken);
 
         return results.ToDictionary(r => r.Semester, r => r.StudentCount);

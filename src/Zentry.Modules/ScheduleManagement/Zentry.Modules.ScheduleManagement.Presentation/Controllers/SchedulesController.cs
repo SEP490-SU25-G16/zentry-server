@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.CreateSchedule;
+using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetCurrentWeekNumber;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerDailySchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetLecturerMonthlyCalendar;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetScheduleDetail;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentDailySchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetStudentMonthlyCalendar;
-using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetTermWeek;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.ImportSchedules;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.SoftDeleteSchedule;
 using Zentry.Modules.ScheduleManagement.Application.Features.Schedules.UpdateSchedule;
@@ -279,7 +279,6 @@ public class SchedulesController(
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurrentWeekNumber(
-        [FromQuery] Guid classSectionId,
         [FromQuery] string? date,
         CancellationToken cancellationToken)
     {
@@ -297,7 +296,7 @@ public class SchedulesController(
                 queryDate = DateOnly.FromDateTime(DateTime.Today);
             }
 
-            var query = new GetCurrentWeekNumberQuery(classSectionId, queryDate);
+            var query = new GetCurrentWeekNumberQuery(queryDate);
             var response = await mediator.Send(query, cancellationToken);
             return HandleResult(response);
         }

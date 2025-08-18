@@ -1,13 +1,12 @@
 using Zentry.SharedKernel.Abstractions.Application;
 
-namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetTermWeek;
+namespace Zentry.Modules.ScheduleManagement.Application.Features.Schedules.GetCurrentWeekNumber;
 
-public record GetCurrentWeekNumberQuery(Guid ClassSectionId, DateOnly Date)
+public record GetCurrentWeekNumberQuery(DateOnly Date)
     : IQuery<GetCurrentWeekNumberResponse>;
 
 public class GetCurrentWeekNumberResponse
 {
-    public Guid ClassSectionId { get; set; }
     public DateOnly QueryDate { get; set; }
     public DateOnly? EarliestStartDate { get; set; }
     public int? WeekNumber { get; set; }

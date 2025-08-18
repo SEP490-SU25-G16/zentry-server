@@ -55,6 +55,8 @@ public interface IScheduleRepository : IRepository<Schedule, Guid>
     Task<List<Schedule>> GetSchedulesByClassSectionIdAndDateAsync(Guid classSectionId, DateTime date,
         WeekDayEnum weekDay, CancellationToken cancellationToken);
 
+    Task<List<Schedule>> GetSchedulesByDateAsync(DateOnly date, CancellationToken cancellationToken);
+
     Task<List<LecturerDailyReportScheduleProjectionDto>> GetLecturerReportSchedulesForDateAsync(
         Guid lecturerId,
         DateTime date,
