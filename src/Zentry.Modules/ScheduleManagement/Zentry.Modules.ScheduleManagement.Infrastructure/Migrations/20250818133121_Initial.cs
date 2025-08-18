@@ -35,7 +35,6 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     RoomName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Building = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Capacity = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
@@ -102,6 +101,7 @@ namespace Zentry.Modules.ScheduleManagement.Infrastructure.Migrations
                     StartTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
                     EndTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
                     WeekDay = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
