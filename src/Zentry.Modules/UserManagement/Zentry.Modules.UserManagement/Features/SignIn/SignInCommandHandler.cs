@@ -3,16 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.Modules.UserManagement.Persistence.DbContext;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
-using Zentry.SharedKernel.Contracts.Device;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Features.SignIn;
 
 public class SignInHandler(
-    UserDbContext dbContext, 
-    IJwtService jwtService, 
+    UserDbContext dbContext,
+    IJwtService jwtService,
     IPasswordHasher passwordHasher,
     IMediator mediator,
     ISessionService sessionService) : ICommandHandler<SignInCommand, SignInResponse>
@@ -53,7 +51,7 @@ public class SignInHandler(
         /*
         if (string.IsNullOrEmpty(request.DeviceToken))
         {
-            throw new BusinessRuleException("DEVICE_TOKEN_REQUIRED", 
+            throw new BusinessRuleException("DEVICE_TOKEN_REQUIRED",
                 "Device token là bắt buộc để đăng nhập.");
         }
 
@@ -62,19 +60,19 @@ public class SignInHandler(
 
         if (deviceResponse.Device == null)
         {
-            throw new BusinessRuleException("DEVICE_NOT_REGISTERED", 
+            throw new BusinessRuleException("DEVICE_NOT_REGISTERED",
                 "Thiết bị chưa được đăng ký. Vui lòng đăng ký thiết bị trước khi đăng nhập.");
         }
 
         if (deviceResponse.Device.Status != "Active")
         {
-            throw new BusinessRuleException("DEVICE_NOT_ACTIVE", 
+            throw new BusinessRuleException("DEVICE_NOT_ACTIVE",
                 "Thiết bị không ở trạng thái hoạt động. Vui lòng liên hệ admin.");
         }
 
         if (deviceResponse.Device.Status != "Active")
         {
-            throw new BusinessRuleException("DEVICE_NOT_OWNED", 
+            throw new BusinessRuleException("DEVICE_NOT_OWNED",
                 "Thiết bị không thuộc về tài khoản này.");
         }
         */
@@ -84,14 +82,12 @@ public class SignInHandler(
 
         // ✅ Kiểm tra user đã có active session chưa
         if (await sessionService.HasActiveSessionAsync(user.Id))
-        {
             // Force logout session cũ
             await sessionService.RevokeAllUserSessionsAsync(user.Id);
-        }
 
         // ✅ Tạo session để tương thích
         var sessionKey = await sessionService.CreateSessionAsync(
-            user.Id, 
+            user.Id,
             fakeDeviceId, // Sử dụng fake device ID
             TimeSpan.FromMinutes(30) // Session 30 phút
         );

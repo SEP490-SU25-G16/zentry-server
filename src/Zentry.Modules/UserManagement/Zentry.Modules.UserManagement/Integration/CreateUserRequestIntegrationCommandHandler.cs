@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.User;
 
 namespace Zentry.Modules.UserManagement.Integration;
@@ -21,11 +20,11 @@ public class CreateUserRequestIntegrationCommandHandler(
 
 
         var userRequest = UserRequest.Create(
-            requestedByUserId: command.RequestedByUserId,
-            targetUserId: command.TargetUserId ?? Guid.Empty,
-            requestType: command.RequestType,
-            relatedEntityId: command.RelatedEntityId,
-            reason: command.Reason
+            command.RequestedByUserId,
+            command.TargetUserId ?? Guid.Empty,
+            command.RequestType,
+            command.RelatedEntityId,
+            command.Reason
         );
 
         await userRequestRepository.AddAsync(userRequest, cancellationToken);

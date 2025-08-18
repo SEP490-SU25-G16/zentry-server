@@ -5,8 +5,8 @@ using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.Modules.AttendanceManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Constants.Attendance;
+using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Contracts.User;
 using Zentry.SharedKernel.Exceptions;
 
@@ -53,11 +53,9 @@ public class GetStudentFinalAttendanceQueryHandler(
             request.StudentId, request.SessionId, cancellationToken);
 
         if (attendanceRecord != null)
-        {
             // Sử dụng AttendanceRecord để tính toán
             return await CreateAttendanceDtoFromRecord(request, studentInfo, sessionStatus, attendanceRecord,
                 cancellationToken);
-        }
 
         // Fallback về logic cũ sử dụng rounds
         return await CreateAttendanceDtoFromRounds(request, studentInfo, sessionStatus, cancellationToken);

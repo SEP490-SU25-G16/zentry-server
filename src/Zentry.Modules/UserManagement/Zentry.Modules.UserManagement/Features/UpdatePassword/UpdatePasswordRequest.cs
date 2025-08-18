@@ -4,6 +4,5 @@ namespace Zentry.Modules.UserManagement.Features.UpdatePassword;
 
 public class UpdatePasswordRequest
 {
-    [Required]
-    public string NewPassword { get; set; } = string.Empty;
+    [Required] public string NewPassword { get; set; } = string.Empty;
 }

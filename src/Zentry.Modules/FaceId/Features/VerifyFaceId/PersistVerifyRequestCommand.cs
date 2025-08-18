@@ -33,7 +33,7 @@ public class PersistVerifyRequestCommandHandler(IFaceIdRepository repository)
 public record CompleteVerifyRequestCommand(
     Guid TargetUserId,
     Guid? SessionId,
-    Guid RequestGroupId,  // ← Đổi từ RequestId thành RequestGroupId
+    Guid RequestGroupId, // ← Đổi từ RequestId thành RequestGroupId
     bool Matched,
     float Similarity,
     bool completeIfFailed = false) : ICommand<bool>;
@@ -45,16 +45,15 @@ public class CompleteVerifyRequestCommandHandler(IFaceIdRepository repository)
     {
         // ✅ Sửa: Tìm kiếm bằng RequestGroupId và TargetUserId
         var request = await repository.GetVerifyRequestByGroupAndUserAsync(
-            command.RequestGroupId, 
-            command.TargetUserId, 
+            command.RequestGroupId,
+            command.TargetUserId,
             cancellationToken);
-            
+
         if (request is null) return false;
 
         if (command.Matched || command.completeIfFailed)
-        {
-            await repository.CompleteVerifyRequestAsync(request, command.Matched, command.Similarity, cancellationToken);
-        }
+            await repository.CompleteVerifyRequestAsync(request, command.Matched, command.Similarity,
+                cancellationToken);
         return true;
     }
 }
@@ -71,18 +70,16 @@ public class UpdateNotificationIdCommandHandler(IFaceIdRepository repository)
     public async Task<bool> Handle(UpdateNotificationIdCommand command, CancellationToken cancellationToken)
     {
         var request = await repository.GetVerifyRequestByGroupAndUserAsync(
-            command.RequestGroupId, 
-            command.TargetUserId, 
+            command.RequestGroupId,
+            command.TargetUserId,
             cancellationToken);
-            
+
         if (request is null) return false;
 
         // Cập nhật NotificationId
         request.UpdateNotificationId(command.NotificationId);
         await repository.UpdateVerifyRequestAsync(request, cancellationToken);
-        
+
         return true;
     }
 }
-
-

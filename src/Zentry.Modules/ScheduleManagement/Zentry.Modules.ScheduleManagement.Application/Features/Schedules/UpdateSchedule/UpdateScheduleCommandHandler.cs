@@ -50,12 +50,10 @@ public class UpdateScheduleCommandHandler(
         if (newRoomId != schedule.RoomId || !Equals(newWeekDay, schedule.WeekDay) ||
             newStartTime != schedule.StartTime ||
             newEndTime != schedule.EndTime || newStartDate != schedule.StartDate || newEndDate != schedule.EndDate)
-        {
             if (!await scheduleRepository.IsRoomAvailableForUpdateAsync(newRoomId, newWeekDay, newStartTime, newEndTime,
                     newStartDate, newEndDate, schedule.Id, cancellationToken))
                 throw new BusinessRuleException("ROOM_BOOKED",
                     $"Phòng đã được đặt vào {newWeekDay} từ {newStartTime} đến {newEndTime} trong khoảng thời gian này.");
-        }
 
         // Cập nhật schedule
         schedule.Update(
@@ -79,10 +77,8 @@ public class UpdateScheduleCommandHandler(
             // Trường hợp này chỉ xảy ra khi schedule chưa bắt đầu
             // (vì logic cũ đã kiểm tra schedule.StartDate <= DateOnly.FromDateTime(DateTime.UtcNow))
             if (schedule.StartDate <= DateOnly.FromDateTime(DateTime.UtcNow))
-            {
                 throw new BusinessRuleException("CANNOT_RECREATE_STARTED_SCHEDULE",
                     "Không thể thay đổi ngày bắt đầu, kết thúc hoặc thứ của lịch học đã bắt đầu.");
-            }
 
             // Recreate sessions cho schedule chưa bắt đầu
             await mediator.Send(
@@ -103,7 +99,8 @@ public class UpdateScheduleCommandHandler(
             );
             await publishEndpoint.Publish(scheduleCreatedEvent, cancellationToken);
 
-            logger.LogInformation("ScheduleCreatedMessage published for recreated ScheduleId: {ScheduleId}.", schedule.Id);
+            logger.LogInformation("ScheduleCreatedMessage published for recreated ScheduleId: {ScheduleId}.",
+                schedule.Id);
         }
         else if (oldStartTime != newStartTime || oldEndTime != newEndTime)
         {
@@ -121,7 +118,8 @@ public class UpdateScheduleCommandHandler(
         else
         {
             // Trường hợp chỉ thay đổi room mà không thay đổi time
-            logger.LogInformation("Only room information updated for ScheduleId: {ScheduleId}, no session update needed.", schedule.Id);
+            logger.LogInformation(
+                "Only room information updated for ScheduleId: {ScheduleId}, no session update needed.", schedule.Id);
         }
 
         return Unit.Value;

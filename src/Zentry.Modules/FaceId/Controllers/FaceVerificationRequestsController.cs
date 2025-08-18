@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.FaceId.Features.VerifyFaceId;
+using Zentry.Modules.FaceId.Interfaces;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
-using Zentry.Modules.FaceId.Interfaces;
 
 namespace Zentry.Modules.FaceId.Controllers;
 
@@ -35,51 +35,13 @@ public class FaceVerificationRequestsController : ControllerBase
         _repository = repository;
     }
 
-    public class CreateFaceVerificationRequestDto
-    {
-        public Guid LecturerId { get; set; }
-        public Guid SessionId { get; set; }
-        public Guid? ClassSectionId { get; set; }
-        public List<Guid>? RecipientUserIds { get; set; }
-        public int? ExpiresInMinutes { get; set; }
-        public string? Title { get; set; }
-        public string? Body { get; set; }
-    }
-
-    public class CreateFaceVerificationResponseDto
-    {
-        public required Guid RequestId { get; init; }
-        public required Guid SessionId { get; init; }
-        public required DateTime ExpiresAt { get; init; }
-        public required int TotalRecipients { get; init; }
-        public required float Threshold { get; init; }
-    }
-
-    private record FaceVerificationRequestMeta(
-        Guid RequestId,
-        Guid SessionId,
-        Guid LecturerId,
-        Guid? ClassSectionId,
-        DateTime ExpiresAt,
-        string? Title,
-        string? Body,
-        List<Guid> Recipients
-    );
-
-    private record FaceVerificationReceipt(
-        Guid RequestId,
-        Guid UserId,
-        bool Success,
-        float Similarity,
-        DateTime VerifiedAt
-    );
-
     [HttpPost]
     [ProducesResponseType(typeof(CreateFaceVerificationResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Create([FromBody] CreateFaceVerificationRequestDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateFaceVerificationRequestDto request,
+        CancellationToken cancellationToken)
     {
         if (request.LecturerId == Guid.Empty)
             return BadRequest(new { Message = "LecturerId is required" });
@@ -87,7 +49,8 @@ public class FaceVerificationRequestsController : ControllerBase
         if (request.SessionId == Guid.Empty)
             return BadRequest(new { Message = "SessionId is required" });
 
-        if ((request.ClassSectionId is null || request.ClassSectionId == Guid.Empty) && (request.RecipientUserIds is null || request.RecipientUserIds.Count == 0))
+        if ((request.ClassSectionId is null || request.ClassSectionId == Guid.Empty) &&
+            (request.RecipientUserIds is null || request.RecipientUserIds.Count == 0))
             return BadRequest(new { Message = "Provide either ClassSectionId or RecipientUserIds" });
 
         try
@@ -105,14 +68,18 @@ public class FaceVerificationRequestsController : ControllerBase
             if (request.RecipientUserIds is not null && request.RecipientUserIds.Count > 0)
             {
                 recipients = request.RecipientUserIds.Distinct().ToList();
-                _logger.LogInformation("Using explicit recipient list with {RecipientCount} users for Session {SessionId}", 
+                _logger.LogInformation(
+                    "Using explicit recipient list with {RecipientCount} users for Session {SessionId}",
                     recipients.Count, request.SessionId);
             }
             else
             {
-                var resp = await _mediator.Send(new GetStudentIdsByClassSectionIdIntegrationQuery(request.ClassSectionId!.Value), cancellationToken);
+                var resp = await _mediator.Send(
+                    new GetStudentIdsByClassSectionIdIntegrationQuery(request.ClassSectionId!.Value),
+                    cancellationToken);
                 recipients = resp.StudentIds.Distinct().ToList();
-                _logger.LogInformation("Resolved {RecipientCount} recipients from ClassSection {ClassSectionId} for Session {SessionId}", 
+                _logger.LogInformation(
+                    "Resolved {RecipientCount} recipients from ClassSection {ClassSectionId} for Session {SessionId}",
                     recipients.Count, request.ClassSectionId, request.SessionId);
             }
 
@@ -123,10 +90,11 @@ public class FaceVerificationRequestsController : ControllerBase
             }
 
             // 3) Check if there are existing active requests for this session
-            var existingRequests = await _repository.GetActiveVerifyRequestsBySessionAsync(request.SessionId, cancellationToken);
+            var existingRequests =
+                await _repository.GetActiveVerifyRequestsBySessionAsync(request.SessionId, cancellationToken);
             if (existingRequests.Any())
             {
-                _logger.LogWarning("Session {SessionId} already has {ExistingCount} active verification requests", 
+                _logger.LogWarning("Session {SessionId} already has {ExistingCount} active verification requests",
                     request.SessionId, existingRequests.Count);
                 return Conflict(new { Message = "Session already has active verification requests" });
             }
@@ -134,7 +102,8 @@ public class FaceVerificationRequestsController : ControllerBase
             // 4) Build request meta and store to redis
             var requestId = Guid.NewGuid();
             var now = DateTime.UtcNow;
-            var expiresInMinutes = Math.Max(1, Math.Min(request.ExpiresInMinutes.GetValueOrDefault(30), 120)); // Max 2 hours
+            var expiresInMinutes =
+                Math.Max(1, Math.Min(request.ExpiresInMinutes.GetValueOrDefault(30), 120)); // Max 2 hours
             var expiresAt = now.AddMinutes(expiresInMinutes);
             var threshold = 0.7f;
 
@@ -153,22 +122,24 @@ public class FaceVerificationRequestsController : ControllerBase
 
             // 5) Persist requests (one per recipient) to DB for auditing/expiry
             foreach (var uid in recipients)
-            {
-                await _mediator.Send(new PersistVerifyRequestCommand(requestId, uid, request.LecturerId, request.SessionId, request.ClassSectionId, threshold, expiresAt), cancellationToken);
-            }
+                await _mediator.Send(
+                    new PersistVerifyRequestCommand(requestId, uid, request.LecturerId, request.SessionId,
+                        request.ClassSectionId, threshold, expiresAt), cancellationToken);
 
             // 6) Push notifications
             var title = string.IsNullOrWhiteSpace(request.Title) ? "Yêu cầu xác thực Face ID" : request.Title!;
-            var body = string.IsNullOrWhiteSpace(request.Body) ? "Vui lòng xác thực khuôn mặt để tiếp tục." : request.Body!;
+            var body = string.IsNullOrWhiteSpace(request.Body)
+                ? "Vui lòng xác thực khuôn mặt để tiếp tục."
+                : request.Body!;
             var deeplink = $"zentry://face-verify?requestId={requestId}&sessionId={request.SessionId}";
 
             // ✅ Thêm: Lưu NotificationId vào database
             var notificationIds = new List<string>();
-            var publishTasks = recipients.Select(async userId => 
+            var publishTasks = recipients.Select(async userId =>
             {
                 var notificationId = Guid.NewGuid().ToString();
                 notificationIds.Add(notificationId);
-                
+
                 var notificationEvent = new NotificationCreatedEvent
                 {
                     Title = title,
@@ -186,7 +157,7 @@ public class FaceVerificationRequestsController : ControllerBase
                         ["notificationId"] = notificationId
                     }
                 };
-                
+
                 await _publishEndpoint.Publish(notificationEvent, cancellationToken);
                 return notificationId;
             });
@@ -197,10 +168,12 @@ public class FaceVerificationRequestsController : ControllerBase
             foreach (var uid in recipients)
             {
                 var notificationId = publishedNotificationIds[recipients.IndexOf(uid)];
-                await _mediator.Send(new UpdateNotificationIdCommand(requestId, uid, notificationId), cancellationToken);
+                await _mediator.Send(new UpdateNotificationIdCommand(requestId, uid, notificationId),
+                    cancellationToken);
             }
 
-            _logger.LogInformation("Face verification request {RequestId} created successfully for Session {SessionId} with {RecipientCount} recipients, expires at {ExpiresAt}", 
+            _logger.LogInformation(
+                "Face verification request {RequestId} created successfully for Session {SessionId} with {RecipientCount} recipients, expires at {ExpiresAt}",
                 requestId, request.SessionId, recipients.Count, expiresAt);
 
             return CreatedAtAction(nameof(GetStatus), new { requestId }, new CreateFaceVerificationResponseDto
@@ -214,8 +187,10 @@ public class FaceVerificationRequestsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create face verification request for Session {SessionId}", request.SessionId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Internal server error occurred" });
+            _logger.LogError(ex, "Failed to create face verification request for Session {SessionId}",
+                request.SessionId);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { Message = "Internal server error occurred" });
         }
     }
 
@@ -252,11 +227,11 @@ public class FaceVerificationRequestsController : ControllerBase
             if (DateTime.UtcNow > meta.ExpiresAt)
             {
                 _logger.LogWarning("Verify request {RequestId} has expired at {ExpiresAt}", requestId, meta.ExpiresAt);
-                
+
                 // Cleanup expired request from Redis
                 await _redis.RemoveAsync(metaKey);
                 await _redis.RemoveAsync($"faceid:req:{requestId}:verified");
-                
+
                 return StatusCode(StatusCodes.Status410Gone, new { Message = "Request expired" });
             }
 
@@ -273,7 +248,8 @@ public class FaceVerificationRequestsController : ControllerBase
             var verified = await _redis.GetAsync<List<Guid>>(verifiedKey) ?? new List<Guid>();
             if (verified.Contains(parsedUserId))
             {
-                _logger.LogInformation("User {UserId} has already verified for request {RequestId}", parsedUserId, requestId);
+                _logger.LogInformation("User {UserId} has already verified for request {RequestId}", parsedUserId,
+                    requestId);
                 return Conflict(new { Message = "User has already verified for this request" });
             }
 
@@ -281,7 +257,7 @@ public class FaceVerificationRequestsController : ControllerBase
             using var memoryStream = new MemoryStream();
             await embedding.CopyToAsync(memoryStream, cancellationToken);
             var embeddingBytes = memoryStream.ToArray();
-            
+
             if (embeddingBytes.Length == 0)
             {
                 _logger.LogWarning("Empty embedding file provided for request {RequestId}", requestId);
@@ -321,14 +297,15 @@ public class FaceVerificationRequestsController : ControllerBase
 
                 // ✅ Sửa: Truyền đúng thứ tự parameter mới
                 await _mediator.Send(new CompleteVerifyRequestCommand(
-                    parsedUserId,           // TargetUserId
-                    meta.SessionId,         // SessionId  
-                    requestId,              // RequestGroupId (đây là requestId từ controller)
-                    true,                   // Matched
-                    result.Similarity),     // Similarity
+                        parsedUserId, // TargetUserId
+                        meta.SessionId, // SessionId  
+                        requestId, // RequestGroupId (đây là requestId từ controller)
+                        true, // Matched
+                        result.Similarity), // Similarity
                     cancellationToken);
-                
-                _logger.LogInformation("User {UserId} successfully verified for request {RequestId} with similarity {Similarity}", 
+
+                _logger.LogInformation(
+                    "User {UserId} successfully verified for request {RequestId} with similarity {Similarity}",
                     parsedUserId, requestId, result.Similarity);
             }
             else
@@ -336,25 +313,26 @@ public class FaceVerificationRequestsController : ControllerBase
                 // Record failed attempt
                 // ✅ Sửa: Truyền đúng thứ tự parameter mới
                 await _mediator.Send(new CompleteVerifyRequestCommand(
-                    parsedUserId,           // TargetUserId
-                    meta.SessionId,         // SessionId  
-                    requestId,              // RequestGroupId (đây là requestId từ controller)
-                    false,                  // Matched
-                    result.Similarity,      // Similarity
-                    completeIfFailed: true), // completeIfFailed
+                        parsedUserId, // TargetUserId
+                        meta.SessionId, // SessionId  
+                        requestId, // RequestGroupId (đây là requestId từ controller)
+                        false, // Matched
+                        result.Similarity, // Similarity
+                        true), // completeIfFailed
                     cancellationToken);
-                
-                _logger.LogInformation("User {UserId} failed verification for request {RequestId} with similarity {Similarity}", 
+
+                _logger.LogInformation(
+                    "User {UserId} failed verification for request {RequestId} with similarity {Similarity}",
                     parsedUserId, requestId, result.Similarity);
             }
 
             return Ok(new
             {
-                Success = result.Success,
-                Similarity = result.Similarity,
-                VerifiedAt = receipt.VerifiedAt,
+                result.Success,
+                result.Similarity,
+                receipt.VerifiedAt,
                 RequestId = requestId,
-                SessionId = meta.SessionId
+                meta.SessionId
             });
         }
         catch (FormatException)
@@ -365,18 +343,9 @@ public class FaceVerificationRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during verification for request {RequestId}", requestId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Internal server error occurred" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { Message = "Internal server error occurred" });
         }
-    }
-
-    public class FaceVerificationStatusResponse
-    {
-        public required Guid RequestId { get; init; }
-        public required Guid SessionId { get; init; }
-        public required DateTime ExpiresAt { get; init; }
-        public required int TotalRecipients { get; init; }
-        public required int TotalVerified { get; init; }
-        public required List<Guid> VerifiedUserIds { get; init; }
     }
 
     [HttpGet("{requestId:guid}/status")]
@@ -429,7 +398,8 @@ public class FaceVerificationRequestsController : ControllerBase
                 return NoContent();
             }
 
-            _logger.LogInformation("Canceling face verification request {RequestId} for Session {SessionId} with {RecipientCount} recipients", 
+            _logger.LogInformation(
+                "Canceling face verification request {RequestId} for Session {SessionId} with {RecipientCount} recipients",
                 requestId, meta.SessionId, meta.Recipients.Count);
 
             // 1) Notify recipients that the verification session ended early
@@ -465,7 +435,8 @@ public class FaceVerificationRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error canceling face verification request {RequestId}", requestId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Internal server error occurred" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { Message = "Internal server error occurred" });
         }
     }
 
@@ -490,10 +461,7 @@ public class FaceVerificationRequestsController : ControllerBase
             await _repository.CancelVerifyRequestsBySessionAsync(sessionId, cancellationToken);
 
             // 3) Cleanup Redis keys for all requests
-            foreach (var request in activeRequests)
-            {
-                await CleanupRequestFromRedis(request.RequestGroupId);
-            }
+            foreach (var request in activeRequests) await CleanupRequestFromRedis(request.RequestGroupId);
 
             // 4) Notify all recipients that verification session ended
             var uniqueRecipients = activeRequests.Select(r => r.TargetUserId).Distinct().ToList();
@@ -516,7 +484,7 @@ public class FaceVerificationRequestsController : ControllerBase
             }, cancellationToken));
             await Task.WhenAll(publishTasks);
 
-            _logger.LogInformation("Cleaned up {RequestCount} face verification requests for Session {SessionId}", 
+            _logger.LogInformation("Cleaned up {RequestCount} face verification requests for Session {SessionId}",
                 activeRequests.Count, sessionId);
 
             return NoContent();
@@ -524,7 +492,8 @@ public class FaceVerificationRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cleaning up face verification requests for Session {SessionId}", sessionId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Internal server error occurred" });
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { Message = "Internal server error occurred" });
         }
     }
 
@@ -549,11 +518,55 @@ public class FaceVerificationRequestsController : ControllerBase
             $"faceid:req:{requestId}:verified"
         };
 
-        foreach (var key in keysToRemove)
-        {
-            await _redis.RemoveAsync(key);
-        }
+        foreach (var key in keysToRemove) await _redis.RemoveAsync(key);
+    }
+
+    public class CreateFaceVerificationRequestDto
+    {
+        public Guid LecturerId { get; set; }
+        public Guid SessionId { get; set; }
+        public Guid? ClassSectionId { get; set; }
+        public List<Guid>? RecipientUserIds { get; set; }
+        public int? ExpiresInMinutes { get; set; }
+        public string? Title { get; set; }
+        public string? Body { get; set; }
+    }
+
+    public class CreateFaceVerificationResponseDto
+    {
+        public required Guid RequestId { get; init; }
+        public required Guid SessionId { get; init; }
+        public required DateTime ExpiresAt { get; init; }
+        public required int TotalRecipients { get; init; }
+        public required float Threshold { get; init; }
+    }
+
+    private record FaceVerificationRequestMeta(
+        Guid RequestId,
+        Guid SessionId,
+        Guid LecturerId,
+        Guid? ClassSectionId,
+        DateTime ExpiresAt,
+        string? Title,
+        string? Body,
+        List<Guid> Recipients
+    );
+
+    private record FaceVerificationReceipt(
+        Guid RequestId,
+        Guid UserId,
+        bool Success,
+        float Similarity,
+        DateTime VerifiedAt
+    );
+
+    public class FaceVerificationStatusResponse
+    {
+        public required Guid RequestId { get; init; }
+        public required Guid SessionId { get; init; }
+        public required DateTime ExpiresAt { get; init; }
+        public required int TotalRecipients { get; init; }
+        public required int TotalVerified { get; init; }
+        public required List<Guid> VerifiedUserIds { get; init; }
     }
 }
-
-

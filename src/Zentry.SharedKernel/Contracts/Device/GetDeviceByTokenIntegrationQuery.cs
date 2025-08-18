@@ -3,16 +3,16 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.SharedKernel.Contracts.Device;
 
 /// <summary>
-/// Query để lấy device info từ device token
+///     Query để lấy device info từ device token
 /// </summary>
 public class GetDeviceByTokenIntegrationQuery : IQuery<GetDeviceByTokenIntegrationResponse>
 {
-    public string DeviceToken { get; }
-
     public GetDeviceByTokenIntegrationQuery(string deviceToken)
     {
         DeviceToken = deviceToken;
     }
+
+    public string DeviceToken { get; }
 }
 
 public class GetDeviceByTokenIntegrationResponse

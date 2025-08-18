@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.Modules.FaceId.Persistence;
 using Zentry.Modules.FaceId.Persistence.Repositories;

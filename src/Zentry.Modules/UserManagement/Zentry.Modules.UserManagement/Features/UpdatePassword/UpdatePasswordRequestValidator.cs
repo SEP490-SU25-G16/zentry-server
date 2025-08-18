@@ -1,5 +1,4 @@
 using FluentValidation;
-using Zentry.Modules.UserManagement.Features.UpdateUser;
 using Zentry.SharedKernel.Abstractions.Models;
 
 namespace Zentry.Modules.UserManagement.Features.UpdatePassword;

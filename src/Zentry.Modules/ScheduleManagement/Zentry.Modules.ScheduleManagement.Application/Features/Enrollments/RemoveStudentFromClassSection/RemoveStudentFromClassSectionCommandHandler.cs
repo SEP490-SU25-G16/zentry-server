@@ -18,10 +18,7 @@ public class RemoveStudentFromClassSectionCommandHandler(
         CancellationToken cancellationToken)
     {
         var classSection = await classSectionRepository.GetByIdAsync(request.ClassSectionId, cancellationToken);
-        if (classSection is null)
-        {
-            throw new ResourceNotFoundException(nameof(ClassSection), request.ClassSectionId);
-        }
+        if (classSection is null) throw new ResourceNotFoundException(nameof(ClassSection), request.ClassSectionId);
 
 
         try

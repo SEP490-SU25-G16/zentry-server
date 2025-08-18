@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Zentry.Modules.AttendanceManagement.Application.Services;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
+using Zentry.Modules.ScheduleManagement.Application.Integration;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Schedule;
-using Zentry.Modules.ScheduleManagement.Application.Integration;
 
 namespace Zentry.Modules.AttendanceManagement.Application;
 
@@ -18,8 +18,12 @@ public static class DependencyInjection
         services.AddScoped<IAttendancePersistenceService, AttendancePersistenceService>();
 
         // Register integration query handlers
-        services.AddScoped<IQueryHandler<GetClassSectionByScheduleIdIntegrationQuery, GetClassSectionByScheduleIdIntegrationResponse>, GetClassSectionByScheduleQueryHandler>();
-        services.AddScoped<IQueryHandler<GetStudentIdsByClassSectionIdIntegrationQuery, GetStudentIdsByClassSectionIdIntegrationResponse>, GetStudentIdsByClassSectionIdQueryHandler>();
+        services
+            .AddScoped<IQueryHandler<GetClassSectionByScheduleIdIntegrationQuery,
+                GetClassSectionByScheduleIdIntegrationResponse>, GetClassSectionByScheduleQueryHandler>();
+        services
+            .AddScoped<IQueryHandler<GetStudentIdsByClassSectionIdIntegrationQuery,
+                GetStudentIdsByClassSectionIdIntegrationResponse>, GetStudentIdsByClassSectionIdQueryHandler>();
 
         return services;
     }

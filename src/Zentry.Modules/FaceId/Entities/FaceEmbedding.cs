@@ -4,7 +4,9 @@ namespace Zentry.Modules.FaceId.Entities;
 
 public class FaceEmbedding : AggregateRoot<Guid>
 {
-    private FaceEmbedding() : base(Guid.Empty) { }
+    private FaceEmbedding() : base(Guid.Empty)
+    {
+    }
 
     private FaceEmbedding(Guid id, Guid userId, byte[]? encryptedEmbedding) : base(id)
     {

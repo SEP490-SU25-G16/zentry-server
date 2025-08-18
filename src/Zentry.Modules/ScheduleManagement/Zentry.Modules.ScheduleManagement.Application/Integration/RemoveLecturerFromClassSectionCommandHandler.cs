@@ -40,10 +40,7 @@ public class RemoveLecturerFromClassSectionCommandHandler(
             try
             {
                 // Remove lecturer from all class sections by setting LecturerId to null
-                foreach (var classSection in classSections)
-                {
-                    classSection.AssignLecturer(null);
-                }
+                foreach (var classSection in classSections) classSection.AssignLecturer(null);
 
                 // Update all class sections at once
                 await classSectionRepository.UpdateRangeAsync(classSections, cancellationToken);

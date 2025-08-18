@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Zentry.Modules.FaceId.Dtos;
 using Zentry.Modules.FaceId.Features.RegisterFaceId;
 using Zentry.Modules.FaceId.Features.UpdateFaceId;
 using Zentry.Modules.FaceId.Features.VerifyFaceId;
 using Zentry.Modules.FaceId.Interfaces;
-using Zentry.Modules.FaceId.Dtos;
 
 namespace Zentry.Modules.FaceId.Controllers;
 
@@ -65,9 +65,9 @@ public class FaceIdController(IMediator mediator, IFaceIdRepository faceIdReposi
 
         return Ok(new
         {
-            UserId = meta.Value.UserId,
-            CreatedAt = meta.Value.CreatedAt,
-            UpdatedAt = meta.Value.UpdatedAt
+            meta.Value.UserId,
+            meta.Value.CreatedAt,
+            meta.Value.UpdatedAt
         });
     }
 

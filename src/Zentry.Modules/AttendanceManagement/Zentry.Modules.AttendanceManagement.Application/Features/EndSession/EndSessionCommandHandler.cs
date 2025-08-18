@@ -98,36 +98,37 @@ public class EndSessionCommandHandler(
         {
             // 1. Get ClassSectionId from ScheduleId
             var classSectionResponse = await mediator.Send(
-                new GetClassSectionByScheduleIdIntegrationQuery(session.ScheduleId), 
+                new GetClassSectionByScheduleIdIntegrationQuery(session.ScheduleId),
                 cancellationToken);
 
             if (classSectionResponse.ClassSectionId == Guid.Empty)
             {
-                logger.LogWarning("Could not find ClassSection for Schedule {ScheduleId}, skipping notifications", 
+                logger.LogWarning("Could not find ClassSection for Schedule {ScheduleId}, skipping notifications",
                     session.ScheduleId);
                 return;
             }
 
             // 2. Get all student IDs enrolled in this class section
             var studentIdsResponse = await mediator.Send(
-                new GetStudentIdsByClassSectionIdIntegrationQuery(classSectionResponse.ClassSectionId), 
+                new GetStudentIdsByClassSectionIdIntegrationQuery(classSectionResponse.ClassSectionId),
                 cancellationToken);
 
             if (studentIdsResponse.StudentIds.Count == 0)
             {
-                logger.LogInformation("No students found for ClassSection {ClassSectionId}, skipping notifications", 
+                logger.LogInformation("No students found for ClassSection {ClassSectionId}, skipping notifications",
                     classSectionResponse.ClassSectionId);
                 return;
             }
 
             // 3. Create deeplink to StudentScheduleClassDetailFragment
-            var deeplink = $"zentry://schedule-detail?scheduleId={session.ScheduleId}&classSectionId={classSectionResponse.ClassSectionId}";
+            var deeplink =
+                $"zentry://schedule-detail?scheduleId={session.ScheduleId}&classSectionId={classSectionResponse.ClassSectionId}";
 
             // 4. Send notifications to all students
             var title = "Tiết học đã kết thúc sớm";
             var body = "Giảng viên đã kết thúc tiết học sớm hơn dự kiến.";
 
-            var notificationTasks = studentIdsResponse.StudentIds.Select(studentId => 
+            var notificationTasks = studentIdsResponse.StudentIds.Select(studentId =>
                 publishEndpoint.Publish(new NotificationCreatedEvent
                 {
                     Title = title,
@@ -155,7 +156,7 @@ public class EndSessionCommandHandler(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send session ended early notifications for Session {SessionId}", 
+            logger.LogError(ex, "Failed to send session ended early notifications for Session {SessionId}",
                 session.Id);
             // Don't throw - notification failure shouldn't prevent session from ending
         }

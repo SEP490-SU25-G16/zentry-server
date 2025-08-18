@@ -84,8 +84,7 @@ public class FinalAttendanceConsumer(
         try
         {
             var query = new GetHierarchicalSettingsIntegrationQuery(
-                AttributeKeys: [AttendanceThresholdConfigKey],
-                ScopeContexts:
+                [AttendanceThresholdConfigKey],
                 [
                     new ScopeContext(ScopeType.Global.ToString()),
                     new ScopeContext(ScopeType.Session.ToString(), sessionId)

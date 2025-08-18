@@ -3,9 +3,7 @@ using Microsoft.Extensions.Logging;
 using Zentry.Infrastructure.Caching;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Services.Interface;
-using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Constants.Attendance;
-using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
 

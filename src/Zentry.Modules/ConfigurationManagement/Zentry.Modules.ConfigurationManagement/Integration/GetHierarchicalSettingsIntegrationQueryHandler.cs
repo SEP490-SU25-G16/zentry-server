@@ -43,7 +43,6 @@ public class GetHierarchicalSettingsIntegrationQueryHandler(
 
         // Validate scope contexts
         foreach (var context in query.ScopeContexts)
-        {
             try
             {
                 var parsedScopeType = ScopeType.FromName(context.ScopeType);
@@ -54,7 +53,6 @@ public class GetHierarchicalSettingsIntegrationQueryHandler(
                 logger.LogWarning("Invalid ScopeType '{ScopeType}' in hierarchical query: {Message}",
                     context.ScopeType, ex.Message);
             }
-        }
 
         if (validScopeContexts.Count == 0)
         {
@@ -68,15 +66,16 @@ public class GetHierarchicalSettingsIntegrationQueryHandler(
             var attributeKeysLower = query.AttributeKeys.Select(k => k.ToLowerInvariant()).ToList();
             var scopeTypes = validScopeContexts.Select(vsc => vsc.ScopeType).Distinct().ToList();
 
-            logger.LogInformation("Fetching hierarchical settings for keys: [{Keys}] across scope contexts: [{ScopeContexts}]",
+            logger.LogInformation(
+                "Fetching hierarchical settings for keys: [{Keys}] across scope contexts: [{ScopeContexts}]",
                 string.Join(", ", query.AttributeKeys),
                 string.Join(", ", validScopeContexts.Select(vsc => $"{vsc.Context.ScopeType}:{vsc.Context.ScopeId}")));
 
             var allMatchingSettings = await dbContext.Settings
                 .Include(s => s.AttributeDefinition)
                 .Where(s => scopeTypes.Contains(s.ScopeType) &&
-                           s.AttributeDefinition != null &&
-                           attributeKeysLower.Contains(s.AttributeDefinition.Key.ToLower()))
+                            s.AttributeDefinition != null &&
+                            attributeKeysLower.Contains(s.AttributeDefinition.Key.ToLower()))
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
@@ -87,7 +86,7 @@ public class GetHierarchicalSettingsIntegrationQueryHandler(
             {
                 var keyMatchingSettings = allMatchingSettings
                     .Where(s => s.AttributeDefinition != null &&
-                               s.AttributeDefinition.Key.Equals(attributeKey, StringComparison.OrdinalIgnoreCase))
+                                s.AttributeDefinition.Key.Equals(attributeKey, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 var applicableSettings = new List<SettingContract>();
@@ -97,7 +96,7 @@ public class GetHierarchicalSettingsIntegrationQueryHandler(
                 {
                     var contextMatchingSettings = keyMatchingSettings
                         .Where(s => Equals(s.ScopeType, scopeType) &&
-                                   (context.ScopeId == null || s.ScopeId == context.ScopeId))
+                                    (context.ScopeId == null || s.ScopeId == context.ScopeId))
                         .Select(s => new SettingContract
                         {
                             Id = s.Id,
@@ -127,8 +126,10 @@ public class GetHierarchicalSettingsIntegrationQueryHandler(
                         .ThenByDescending(s => s.UpdatedAt) // If same priority, use most recently updated
                         .First();
 
-                    logger.LogDebug("Effective setting for key '{AttributeKey}': {ScopeType}:{ScopeId} = '{Value}' (chosen from {OptionsCount} options)",
-                        attributeKey, effectiveSetting.ScopeType, effectiveSetting.ScopeId, effectiveSetting.Value, applicableSettings.Count);
+                    logger.LogDebug(
+                        "Effective setting for key '{AttributeKey}': {ScopeType}:{ScopeId} = '{Value}' (chosen from {OptionsCount} options)",
+                        attributeKey, effectiveSetting.ScopeType, effectiveSetting.ScopeId, effectiveSetting.Value,
+                        applicableSettings.Count);
                 }
                 else
                 {
@@ -136,9 +137,9 @@ public class GetHierarchicalSettingsIntegrationQueryHandler(
                 }
 
                 result[attributeKey] = new HierarchicalSettingResult(
-                    AttributeKey: attributeKey,
-                    EffectiveSetting: effectiveSetting,
-                    AllMatchingSettings: applicableSettings
+                    attributeKey,
+                    effectiveSetting,
+                    applicableSettings
                 );
             }
         }

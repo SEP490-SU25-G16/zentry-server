@@ -41,15 +41,16 @@ public class HandleAttendanceUpdateRequestHandler(
                 logger.LogError("Attendance record not found for Student: {StudentId}, Session: {SessionId}",
                     studentId, sessionId);
                 throw new NotFoundException("AttendanceRecord",
-                    $"Không tìm thấy bản ghi điểm danh cho sinh viên trong phiên học này.");
+                    "Không tìm thấy bản ghi điểm danh cho sinh viên trong phiên học này.");
             }
 
             // Update attendance status from Absent to Present
-            attendanceRecord.Update(status: AttendanceStatus.Present, isManual: true);
+            attendanceRecord.Update(AttendanceStatus.Present, true);
             await attendanceRepository.UpdateAsync(attendanceRecord, cancellationToken);
             await attendanceRepository.SaveChangesAsync(cancellationToken);
 
-            logger.LogInformation("Updated attendance record {AttendanceRecordId} for student {StudentId} in session {SessionId} from {OldStatus} to {NewStatus}.",
+            logger.LogInformation(
+                "Updated attendance record {AttendanceRecordId} for student {StudentId} in session {SessionId} from {OldStatus} to {NewStatus}.",
                 attendanceRecord.Id, studentId, sessionId, "Absent", "Present");
 
             logger.LogInformation("UserRequest {UserRequestId} approved successfully.", command.UserRequestId);
@@ -59,7 +60,8 @@ public class HandleAttendanceUpdateRequestHandler(
                 AttendanceRecordId = attendanceRecord.Id,
                 UserRequestId = command.UserRequestId,
                 UpdatedStatus = AttendanceStatus.Present.ToString(),
-                Message = "Yêu cầu cập nhật trạng thái điểm danh đã được chấp nhận thành công. Trạng thái đã được cập nhật từ 'Vắng mặt' thành 'Có mặt'."
+                Message =
+                    "Yêu cầu cập nhật trạng thái điểm danh đã được chấp nhận thành công. Trạng thái đã được cập nhật từ 'Vắng mặt' thành 'Có mặt'."
             };
         }
 
