@@ -63,7 +63,7 @@ public class RoomsController(IMediator mediator) : BaseController
         try
         {
             var response =
-                await mediator.Send(new CreateRoomCommand(request.RoomName, request.Building, request.Capacity),
+                await mediator.Send(new CreateRoomCommand(request.RoomName, request.Building),
                     cancellationToken);
             return HandleCreated(response, nameof(CreateRoom), new { id = response.Id });
         }

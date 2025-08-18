@@ -6,6 +6,7 @@ using Zentry.Modules.AttendanceManagement.Domain.Entities;
 using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -52,12 +53,13 @@ public class SessionCreatedAttendanceConsumer(
                 new GetStudentIdsByClassSectionIdIntegrationQuery(classSectionResponse.ClassSectionId),
                 context.CancellationToken);
 
-            if (studentIdsResponse.StudentIds == null || studentIdsResponse.StudentIds.Count == 0)
+            if (studentIdsResponse.StudentIds.Count == 0)
             {
                 logger.LogInformation(
                     "No enrolled students found for ClassSectionId {ClassSectionId}, SessionId {SessionId}",
                     classSectionResponse.ClassSectionId, message.SessionId);
-                return;
+                throw new BusinessRuleException(nameof(SessionCreatedAttendanceConsumer),
+                    "Need student before create attendance records");
             }
 
             // Check if attendance records already exist (idempotency)

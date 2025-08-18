@@ -23,9 +23,6 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.Property(r => r.Capacity)
-            .IsRequired();
-
         builder.Property(r => r.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .IsRequired();

@@ -29,14 +29,5 @@ public class UpdateRoomRequestValidator : BaseValidator<UpdateRoomRequest>
         RuleFor(x => x.Building)
             .Must(building => !ValidatorHelper.ContainsInvalidCharacters(building))
             .WithMessage("Tên tòa nhà chứa ký tự đặc biệt không hợp lệ.");
-
-        // Rule for Capacity
-        RuleFor(x => x.Capacity)
-            .NotEmpty()
-            .WithMessage("Sức chứa là bắt buộc.")
-            .GreaterThan(0)
-            .WithMessage("Sức chứa phải lớn hơn 0.")
-            .LessThanOrEqualTo(1000)
-            .WithMessage("Sức chứa không được vượt quá 1000.");
     }
 }

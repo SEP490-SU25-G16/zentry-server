@@ -9,12 +9,11 @@ public class Room : AggregateRoot<Guid>
     {
     }
 
-    private Room(Guid id, string roomName, string building, int capacity)
+    private Room(Guid id, string roomName, string building)
         : base(id)
     {
         RoomName = roomName;
         Building = building;
-        Capacity = capacity;
         CreatedAt = DateTime.UtcNow;
         IsDeleted = false;
     }
@@ -23,23 +22,21 @@ public class Room : AggregateRoot<Guid>
 
     [Required] [StringLength(100)] public string Building { get; private set; }
 
-    [Range(0, 1000)] public int Capacity { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool IsDeleted { get; private set; }
 
 
-    public static Room Create(string roomName, string building, int capacity)
+    public static Room Create(string roomName, string building)
     {
-        return new Room(Guid.NewGuid(), roomName, building, capacity);
+        return new Room(Guid.NewGuid(), roomName, building);
     }
 
-    public void Update(string? roomName = null, string? building = null, int? capacity = null)
+    public void Update(string? roomName = null, string? building = null)
     {
         if (!string.IsNullOrWhiteSpace(roomName)) RoomName = roomName;
         if (!string.IsNullOrWhiteSpace(building)) Building = building;
-        if (capacity.HasValue) Capacity = capacity.Value;
         UpdatedAt = DateTime.UtcNow;
     }
 

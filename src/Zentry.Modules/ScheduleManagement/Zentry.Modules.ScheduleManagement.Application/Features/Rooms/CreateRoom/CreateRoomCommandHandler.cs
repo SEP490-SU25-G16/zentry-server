@@ -17,8 +17,7 @@ public class CreateRoomCommandHandler(IRoomRepository roomRepository)
 
         var room = Room.Create(
             command.RoomName,
-            command.Building,
-            command.Capacity
+            command.Building
         );
 
         await roomRepository.AddAsync(room, cancellationToken);
@@ -29,7 +28,6 @@ public class CreateRoomCommandHandler(IRoomRepository roomRepository)
             Id = room.Id,
             RoomName = room.RoomName,
             Building = room.Building,
-            Capacity = room.Capacity,
             CreatedAt = room.CreatedAt
         };
 

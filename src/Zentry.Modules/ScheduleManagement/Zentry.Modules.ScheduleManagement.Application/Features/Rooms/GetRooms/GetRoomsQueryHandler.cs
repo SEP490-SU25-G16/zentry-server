@@ -24,7 +24,6 @@ public class GetRoomsQueryHandler(IRoomRepository roomRepository) : IQueryHandle
             Id = r.Id,
             RoomName = r.RoomName,
             Building = r.Building,
-            Capacity = r.Capacity,
             CreatedAt = r.CreatedAt
         }).ToList();
 

@@ -2,6 +2,7 @@ namespace Zentry.Modules.DeviceManagement.Features.RegisterDevice;
 
 public class RegisterDeviceRequest
 {
+    public Guid UserId { get; set; }
     public string DeviceName { get; set; } = string.Empty;
     public string AndroidId { get; set; } = string.Empty;
     public string? Platform { get; set; } // Nền tảng (ví dụ: "iOS", "Android")

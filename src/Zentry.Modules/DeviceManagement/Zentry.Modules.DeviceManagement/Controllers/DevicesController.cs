@@ -29,13 +29,14 @@ public class DevicesController(IMediator mediator) : BaseController
     public async Task<IActionResult> Register([FromBody] RegisterDeviceRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return HandleValidationError();
-
         if (string.IsNullOrWhiteSpace(request.AndroidId))
             return BadRequest("Android ID is required for device registration.");
-        
+
+        var userId = request.UserId;
+
         var command = new RegisterDeviceCommand
         {
+            UserId = userId,
             DeviceName = request.DeviceName,
             AndroidId = request.AndroidId,
             Platform = request.Platform,

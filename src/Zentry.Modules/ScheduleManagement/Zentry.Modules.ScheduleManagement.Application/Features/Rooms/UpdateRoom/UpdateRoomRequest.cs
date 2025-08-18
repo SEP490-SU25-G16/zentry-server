@@ -2,6 +2,5 @@
 
 public record UpdateRoomRequest(
     string RoomName,
-    string Building,
-    int Capacity
+    string Building
 );

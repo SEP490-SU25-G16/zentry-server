@@ -162,7 +162,6 @@ public class ValidationExceptionMiddleware(RequestDelegate next, ILogger<Validat
             case UserAlreadyExistsException:
             case ResourceAlreadyExistsException:
             case ScheduleConflictException:
-            case RoomCapacityNotEnoughForSchedule:
             case RoomNotAvailableException:
             case DeviceAlreadyRegisteredException:
             case SessionAlreadyStartedException:

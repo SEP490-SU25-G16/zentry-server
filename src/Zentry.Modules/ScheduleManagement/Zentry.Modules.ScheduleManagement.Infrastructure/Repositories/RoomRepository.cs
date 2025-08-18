@@ -104,7 +104,6 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
             {
                 "roomname" => r => r.RoomName,
                 "building" => r => r.Building,
-                "capacity" => r => r.Capacity,
                 "createdat" => r => r.CreatedAt,
                 _ => r => r.CreatedAt
             };

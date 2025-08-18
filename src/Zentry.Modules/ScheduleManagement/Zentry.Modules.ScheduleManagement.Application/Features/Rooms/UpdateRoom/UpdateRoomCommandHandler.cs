@@ -26,8 +26,7 @@ public class UpdateRoomCommandHandler(IRoomRepository roomRepository)
 
         room.Update(
             command.RoomName,
-            command.Building,
-            command.Capacity
+            command.Building
         );
 
         await roomRepository.UpdateAsync(room, cancellationToken);
@@ -37,7 +36,6 @@ public class UpdateRoomCommandHandler(IRoomRepository roomRepository)
             Id = room.Id,
             RoomName = room.RoomName,
             Building = room.Building,
-            Capacity = room.Capacity,
             CreatedAt = room.CreatedAt,
             UpdatedAt = room.UpdatedAt
         };

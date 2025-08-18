@@ -18,7 +18,6 @@ public class GetRoomByIdQueryHandler(IRoomRepository roomRepository) : IQueryHan
             Id = room.Id,
             RoomName = room.RoomName,
             Building = room.Building,
-            Capacity = room.Capacity,
             CreatedAt = room.CreatedAt,
             UpdatedAt = room.UpdatedAt
         };

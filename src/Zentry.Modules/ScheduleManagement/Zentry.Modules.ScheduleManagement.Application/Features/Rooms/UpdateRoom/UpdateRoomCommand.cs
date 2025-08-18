@@ -9,5 +9,4 @@ public class UpdateRoomCommand(Guid roomId, UpdateRoomRequest request)
     public Guid Id { get; init; } = roomId;
     public string? RoomName { get; init; } = request.RoomName;
     public string? Building { get; init; } = request.Building;
-    public int? Capacity { get; init; } = request.Capacity;
 }
