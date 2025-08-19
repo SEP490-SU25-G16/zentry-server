@@ -223,6 +223,22 @@ public class FaceIdRepository : IFaceIdRepository
         }
     }
 
+    public async Task<List<FaceIdVerifyRequest>> GetVerifyRequestsBySessionAndUsersAsync(
+        Guid sessionId,
+        IEnumerable<Guid> userIds,
+        CancellationToken cancellationToken = default)
+    {
+        var userIdList = userIds.ToList();
+        if (userIdList.Count == 0)
+        {
+            return new List<FaceIdVerifyRequest>();
+        }
+
+        return await _dbContext.FaceIdVerifyRequests
+            .Where(r => r.SessionId == sessionId && userIdList.Contains(r.TargetUserId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(FaceEmbedding entity, CancellationToken cancellationToken = default)
     {
         _dbContext.FaceEmbeddings.Add(entity);

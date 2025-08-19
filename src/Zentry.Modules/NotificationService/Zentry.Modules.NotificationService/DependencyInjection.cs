@@ -7,6 +7,7 @@ using Zentry.Modules.NotificationService.Infrastructure.Push;
 using Zentry.Modules.NotificationService.Infrastructure.Services;
 using Zentry.Modules.NotificationService.Persistence;
 using Zentry.Modules.NotificationService.Persistence.Repository;
+using Zentry.Modules.NotificationService.Services;
 
 namespace Zentry.Modules.NotificationService;
 
@@ -27,6 +28,10 @@ public static class DependencyInjection
         services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
         services.AddScoped<IFcmSender, FcmSender>();
         services.AddScoped<INotificationSender, NotificationSender>();
+        
+        // Mock service để test FCM token registration
+        // TODO: Thay thế bằng DeviceManagement integration thực tế
+        services.AddScoped<IDeviceManagementService, MockDeviceManagementService>();
 
         services.AddSignalR();
 

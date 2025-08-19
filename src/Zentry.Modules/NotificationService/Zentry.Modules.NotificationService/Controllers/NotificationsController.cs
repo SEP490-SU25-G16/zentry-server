@@ -5,12 +5,13 @@ using Zentry.Modules.NotificationService.Entities;
 using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.Modules.NotificationService.Infrastructure.Push;
 
 namespace Zentry.Modules.NotificationService.Controllers;
 
 [ApiController]
 [Route("api/notifications")]
-public class NotificationsController(IMediator mediator, IBus bus, INotificationRepository notificationRepository)
+public class NotificationsController(IMediator mediator, IBus bus, INotificationRepository notificationRepository, IFcmSender fcmSender)
     : ControllerBase
 {
     [HttpGet]
@@ -52,36 +53,91 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     }
 
     /// <summary>
-    ///     Mark notification as read
+    ///     Test FCM integration
     /// </summary>
-    [HttpPost("{notificationId}/mark-read")]
-    public async Task<IActionResult> MarkAsRead(Guid notificationId, CancellationToken cancellationToken)
+    [HttpPost("test-fcm")]
+    public async Task<IActionResult> TestFcm([FromBody] TestFcmRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            var notification = await notificationRepository.GetByIdAsync(notificationId, cancellationToken);
+            // Check if FCM is initialized
+            if (fcmSender is FcmSender fcmSenderImpl && !fcmSenderImpl.IsFirebaseInitialized)
+            {
+                return BadRequest(new { 
+                    success = false, 
+                    message = "Firebase FCM not initialized. Check server logs for details." 
+                });
+            }
 
-            if (notification == null) return NotFound(new { message = "Notification not found" });
+            // Test push notification
+            var notificationEvent = new NotificationCreatedEvent
+            {
+                Title = "Test FCM",
+                Body = "This is a test push notification from Zentry server",
+                RecipientUserId = request.RecipientUserId,
+                Type = NotificationType.Push,
+                Data = new Dictionary<string, string>
+                {
+                    ["type"] = "TEST_FCM",
+                    ["timestamp"] = DateTime.UtcNow.ToString("O"),
+                    ["testId"] = Guid.NewGuid().ToString()
+                }
+            };
 
-            notification.MarkAsRead();
-            await notificationRepository.UpdateAsync(notification, cancellationToken);
-            await notificationRepository.SaveChangesAsync(cancellationToken);
+            await bus.Publish(notificationEvent, cancellationToken);
 
             return Ok(new
             {
                 success = true,
-                message = "Notification marked as read",
-                notificationId
+                message = "Test FCM notification sent successfully",
+                recipientUserId = request.RecipientUserId,
+                timestamp = DateTime.UtcNow,
+                fcmStatus = "initialized"
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new
-            {
-                success = false,
-                message = "Internal server error: " + ex.Message
+            return StatusCode(500, new { 
+                success = false, 
+                message = "Internal server error", 
+                error = ex.Message 
             });
         }
+    }
+
+    /// <summary>
+    ///     Check FCM status
+    /// </summary>
+    [HttpGet("fcm-status")]
+    public IActionResult GetFcmStatus()
+    {
+        var isInitialized = fcmSender is FcmSender fcmSenderImpl && fcmSenderImpl.IsFirebaseInitialized;
+        
+        return Ok(new
+        {
+            success = true,
+            fcmInitialized = isInitialized,
+            timestamp = DateTime.UtcNow,
+            message = isInitialized ? "FCM is ready" : "FCM is not initialized"
+        });
+    }
+
+    /// <summary>
+    ///     Mark notification as read
+    /// </summary>
+    [HttpPut("{notificationId}/read")]
+    public async Task<IActionResult> MarkAsRead(Guid notificationId, CancellationToken cancellationToken)
+    {
+        var notification = await notificationRepository.GetByIdAsync(notificationId, cancellationToken);
+        if (notification == null)
+        {
+            return NotFound(new { success = false, message = "Notification not found" });
+        }
+
+        notification.MarkAsRead();
+        await notificationRepository.SaveChangesAsync(cancellationToken);
+
+        return Ok(new { success = true, message = "Notification marked as read" });
     }
 
     /// <summary>
@@ -218,9 +274,14 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
 
 public class SendTestNotificationRequest
 {
-    public required string Title { get; set; }
-    public required string Body { get; set; }
-    public required Guid RecipientUserId { get; set; }
-    public NotificationType Type { get; set; } = NotificationType.All;
+    public string Title { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public Guid RecipientUserId { get; set; }
+    public NotificationType Type { get; set; }
     public Dictionary<string, string>? Data { get; set; }
+}
+
+public class TestFcmRequest
+{
+    public Guid RecipientUserId { get; set; }
 }

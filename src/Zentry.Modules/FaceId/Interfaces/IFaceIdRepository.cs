@@ -50,4 +50,10 @@ public interface IFaceIdRepository : IRepository<FaceEmbedding, Guid>
     Task<IEnumerable<UserFaceIdStatusDto>> GetAllUsersWithFaceIdStatusAsync(CancellationToken cancellationToken = default);
     
     Task<IEnumerable<UserFaceIdStatusDto>> GetUsersFaceIdStatusAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default);
+
+    // Query verify requests by session and a set of students
+    Task<List<FaceIdVerifyRequest>> GetVerifyRequestsBySessionAndUsersAsync(
+        Guid sessionId,
+        IEnumerable<Guid> userIds,
+        CancellationToken cancellationToken = default);
 }

@@ -2,10 +2,9 @@
 
 namespace Zentry.SharedKernel.Contracts.FaceId;
 
-public record
-    GetFaceIdResultByStudentIdsAndSessionIdIntegrationQuery
+public record GetFaceIdResultByStudentIdsAndSessionIdIntegrationQuery(List<Guid> StudentIds, Guid SessionId)
     : IQuery<GetFaceIdResultByStudentIdsAndSessionIdIntegrationResponse>;
 
-public record GetFaceIdResultByStudentIdsAndSessionIdIntegrationResponse(Dictionary<Guid, StudentFaceId> studentStatus);
+public record GetFaceIdResultByStudentIdsAndSessionIdIntegrationResponse(Dictionary<Guid, StudentFaceId> StudentStatus);
 
-public record StudentFaceId(Guid StudentId, Guid SesssionId, bool Matched);
+public record StudentFaceId(Guid StudentId, bool Matched);
