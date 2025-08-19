@@ -9,6 +9,7 @@ using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Constants.Configuration;
 using Zentry.SharedKernel.Contracts.Configuration;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Contracts.FaceId;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -134,6 +135,32 @@ public class FinalAttendanceConsumer(
         }
     }
 
+    private async Task<Dictionary<Guid, StudentFaceId>> GetFaceIdResultsAsync(
+        List<Guid> studentIds,
+        Guid sessionId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetFaceIdResultByStudentIdsAndSessionIdIntegrationQuery(studentIds, sessionId);
+
+            var response = await mediator.Send(query, cancellationToken);
+
+            logger.LogInformation(
+                "Retrieved FaceID results for {StudentCount} students in session {SessionId}",
+                response.StudentStatus.Count, sessionId);
+
+            return response.StudentStatus;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex,
+                "Failed to retrieve FaceID results for session {SessionId}. Continuing without FaceID verification.",
+                sessionId);
+            return new Dictionary<Guid, StudentFaceId>();
+        }
+    }
+
     private async Task ProcessFinalAttendance(Guid sessionId, int actualRoundsCount,
         CancellationToken cancellationToken)
     {
@@ -179,10 +206,14 @@ public class FinalAttendanceConsumer(
             throw;
         }
 
+        // Get FaceID results for all students in the session
+        var studentIds = allAttendanceRecords.Select(ar => ar.StudentId).Distinct().ToList();
+        var faceIdResults = await GetFaceIdResultsAsync(studentIds, sessionId, cancellationToken);
+
         logger.LogInformation(
-            "Session {SessionId} status: {CompletedRounds} completed rounds, {ActualRounds} rounds used for calculation, {TotalAttendanceRecords} total attendance records, {TrackedStudents} tracked students. Using threshold: {Threshold}%",
+            "Session {SessionId} status: {CompletedRounds} completed rounds, {ActualRounds} rounds used for calculation, {TotalAttendanceRecords} total attendance records, {TrackedStudents} tracked students, {FaceIdResults} FaceID results. Using threshold: {Threshold}%",
             sessionId, completedRounds.Count, actualRoundsCount, allAttendanceRecords.Count,
-            relevantStudentTracks.Count, attendanceThresholdPercentage);
+            relevantStudentTracks.Count, faceIdResults.Count, attendanceThresholdPercentage);
 
         var attendanceRecordsToProcess = new List<AttendanceRecord>();
 
@@ -194,8 +225,20 @@ public class FinalAttendanceConsumer(
             try
             {
                 AttendanceStatus newStatus;
+                FaceIdStatus? faceIdStatus = null;
                 double percentage;
                 var oldStatus = attendanceRecord.Status;
+                var oldFaceIdStatus = attendanceRecord.FaceIdStatus;
+
+                // Determine FaceID status first
+                if (faceIdResults.TryGetValue(attendanceRecord.StudentId, out var faceIdResult))
+                {
+                    faceIdStatus = faceIdResult.Matched ? FaceIdStatus.Success : FaceIdStatus.Failed;
+                }
+                else
+                {
+                    faceIdStatus = FaceIdStatus.NotChecked;
+                }
 
                 // Check if student was tracked (participated in the session)
                 if (studentTrackDict.TryGetValue(attendanceRecord.StudentId, out var studentTrack))
@@ -207,14 +250,14 @@ public class FinalAttendanceConsumer(
                     percentage = actualRoundsCount > 0
                         ? (double)attendedCompletedRounds / actualRoundsCount * 100.0
                         : 0.0;
-                    newStatus = percentage >= attendanceThresholdPercentage
-                        ? AttendanceStatus.Present
-                        : AttendanceStatus.Absent;
+
+                    // Determine final status based on attendance percentage and FaceID verification
+                    newStatus = DetermineAttendanceStatus(percentage, attendanceThresholdPercentage, faceIdStatus);
 
                     logger.LogDebug(
-                        "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds) - Threshold: {Threshold}%",
+                        "Calculated attendance for Student {StudentId} in Session {SessionId}: {Percentage:F2}% (Attended {AttendedRounds} / Actual {ActualRounds} rounds) - Threshold: {Threshold}%, FaceID: {FaceIdStatus}",
                         attendanceRecord.StudentId, sessionId, percentage, attendedCompletedRounds, actualRoundsCount,
-                        attendanceThresholdPercentage);
+                        attendanceThresholdPercentage, faceIdStatus);
                 }
                 else
                 {
@@ -223,20 +266,21 @@ public class FinalAttendanceConsumer(
                     percentage = 0.0;
 
                     logger.LogDebug(
-                        "Student {StudentId} in Session {SessionId} was not tracked (did not participate) -> marked as Absent",
-                        attendanceRecord.StudentId, sessionId);
+                        "Student {StudentId} in Session {SessionId} was not tracked (did not participate) -> marked as Absent, FaceID: {FaceIdStatus}",
+                        attendanceRecord.StudentId, sessionId, faceIdStatus);
                 }
 
                 // Update attendance record if there are changes
                 if (!Equals(attendanceRecord.Status, newStatus) ||
-                    Math.Abs(attendanceRecord.PercentageAttended - percentage) > 0.01)
+                    Math.Abs(attendanceRecord.PercentageAttended - percentage) > 0.01 ||
+                    !Equals(attendanceRecord.FaceIdStatus, faceIdStatus))
                 {
-                    attendanceRecord.Update(newStatus, false, null, percentage);
+                    attendanceRecord.Update(newStatus, false, null, percentage, faceIdStatus);
 
                     logger.LogInformation(
-                        "Updated AttendanceRecord for Student {StudentId} in Session {SessionId}: {OldStatus} -> {NewStatus}, Percentage: {Percentage:F2}% (Threshold: {Threshold}%)",
+                        "Updated AttendanceRecord for Student {StudentId} in Session {SessionId}: {OldStatus} -> {NewStatus}, Percentage: {Percentage:F2}% (Threshold: {Threshold}%), FaceID: {OldFaceId} -> {NewFaceId}",
                         attendanceRecord.StudentId, sessionId, oldStatus, newStatus, percentage,
-                        attendanceThresholdPercentage);
+                        attendanceThresholdPercentage, oldFaceIdStatus, faceIdStatus);
                 }
                 else
                 {
@@ -273,9 +317,33 @@ public class FinalAttendanceConsumer(
         var absentCount = attendanceRecordsToProcess.Count(r => Equals(r.Status, AttendanceStatus.Absent));
         var futureCount = attendanceRecordsToProcess.Count(r => Equals(r.Status, AttendanceStatus.Future));
 
+        var faceIdSuccessCount = attendanceRecordsToProcess.Count(r => Equals(r.FaceIdStatus, FaceIdStatus.Success));
+        var faceIdFailedCount = attendanceRecordsToProcess.Count(r => Equals(r.FaceIdStatus, FaceIdStatus.Failed));
+        var faceIdNotCheckedCount =
+            attendanceRecordsToProcess.Count(r => Equals(r.FaceIdStatus, FaceIdStatus.NotChecked));
+
         logger.LogInformation(
-            "Finished processing final attendance for Session {SessionId}. Updated {Total} records: {Present} Present, {Absent} Absent, {Future} Future (based on {ActualRounds} actual rounds with {Threshold}% threshold)",
+            "Finished processing final attendance for Session {SessionId}. Updated {Total} records: {Present} Present, {Absent} Absent, {Future} Future (based on {ActualRounds} actual rounds with {Threshold}% threshold). FaceID: {Success} Success, {Failed} Failed, {NotChecked} Not Checked",
             sessionId, attendanceRecordsToProcess.Count, presentCount, absentCount, futureCount, actualRoundsCount,
-            attendanceThresholdPercentage);
+            attendanceThresholdPercentage, faceIdSuccessCount, faceIdFailedCount, faceIdNotCheckedCount);
+    }
+
+    /// <summary>
+    /// Determines the final attendance status based on attendance percentage and FaceID verification
+    /// </summary>
+    /// <param name="attendancePercentage">Calculated attendance percentage</param>
+    /// <param name="threshold">Attendance threshold percentage</param>
+    /// <param name="faceIdStatus">FaceID verification status</param>
+    /// <returns>Final attendance status</returns>
+    private static AttendanceStatus DetermineAttendanceStatus(
+        double attendancePercentage,
+        double threshold,
+        FaceIdStatus? faceIdStatus)
+    {
+        // If attendance percentage is below threshold, always absent
+        if (attendancePercentage < threshold)
+            return AttendanceStatus.Absent;
+
+        return Equals(faceIdStatus, FaceIdStatus.Failed) ? AttendanceStatus.Absent : AttendanceStatus.Present;
     }
 }

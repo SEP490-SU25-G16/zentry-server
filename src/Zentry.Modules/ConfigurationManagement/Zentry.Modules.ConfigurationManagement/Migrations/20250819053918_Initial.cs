@@ -33,22 +33,6 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserAttributes",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AttributeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AttributeValue = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserAttributes", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Options",
                 columns: table => new
                 {
@@ -88,6 +72,28 @@ namespace Zentry.Modules.ConfigurationManagement.Migrations
                     table.PrimaryKey("PK_Settings", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Settings_AttributeDefinitions_AttributeId",
+                        column: x => x.AttributeId,
+                        principalTable: "AttributeDefinitions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserAttributes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AttributeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AttributeValue = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserAttributes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserAttributes_AttributeDefinitions_AttributeId",
                         column: x => x.AttributeId,
                         principalTable: "AttributeDefinitions",
                         principalColumn: "Id",

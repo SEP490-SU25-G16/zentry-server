@@ -30,6 +30,12 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
                 s => AttendanceStatus.FromName(s)
             )
             .IsRequired();
+        builder.Property(ar => ar.FaceIdStatus)
+            .HasConversion(
+                s => s.ToString(),
+                s => FaceIdStatus.FromName(s)
+            )
+            .IsRequired();
 
         builder.Property(ar => ar.IsManual)
             .IsRequired();

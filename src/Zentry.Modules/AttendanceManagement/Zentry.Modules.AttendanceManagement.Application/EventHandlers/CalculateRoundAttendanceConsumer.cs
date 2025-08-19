@@ -86,16 +86,6 @@ public class CalculateRoundAttendanceConsumer(
         if (session is null) throw new NotFoundException(nameof(CalculateRoundAttendanceConsumer), sessionId);
 
 
-        //
-        // // Validate lecturer assignment
-        // if (!Equals(session.UserId.ToString(), lecturerId))
-        // {
-        //     logger.LogWarning("Final processing failed: Lecturer {LecturerId} is not assigned to session {SessionId}.",
-        //         lecturerId, sessionId);
-        //     throw new BusinessRuleException("LECTURER_NOT_ASSIGNED",
-        //         "Giảng viên không được phân công cho phiên này.");
-        // }
-
         if (!(Equals(session.Status, SessionStatus.Active) || Equals(session.Status, SessionStatus.Completed)))
         {
             logger.LogWarning(

@@ -12,25 +12,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "AttendanceRecords",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SessionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    IsManual = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    PercentageAttended = table.Column<double>(type: "double precision", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AttendanceRecords", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Sessions",
                 columns: table => new
                 {
@@ -40,6 +21,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    SessionNumber = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ActualEndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -49,6 +31,32 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Sessions", x => x.Id);
                     table.CheckConstraint("CK_Sessions_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AttendanceRecords",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    StudentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    IsManual = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    PercentageAttended = table.Column<double>(type: "double precision", nullable: false),
+                    FaceIdStatus = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttendanceRecords", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AttendanceRecords_Sessions_SessionId",
+                        column: x => x.SessionId,
+                        principalTable: "Sessions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -87,9 +95,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AttendanceRecords_UserId",
+                name: "IX_AttendanceRecords_StudentId",
                 table: "AttendanceRecords",
-                column: "UserId");
+                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Rounds_EndTime",
@@ -121,6 +129,11 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                 name: "IX_Sessions_ScheduleId",
                 table: "Sessions",
                 column: "ScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Sessions_SessionNumber",
+                table: "Sessions",
+                column: "SessionNumber");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sessions_StartTime",
