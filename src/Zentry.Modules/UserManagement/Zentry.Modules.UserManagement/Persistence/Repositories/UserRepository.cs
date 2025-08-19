@@ -215,7 +215,15 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
 
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        var user = await dbContext.Users
+            .Include(u => u.Account)
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        if (user?.Account is null || Equals(user?.Account.Status, AccountStatus.Inactive))
+        {
+            return null;
+        }
+
+        return user;
     }
 
 

@@ -3,8 +3,6 @@ using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
 using Zentry.SharedKernel.Exceptions;
 
-// Đảm bảo using này có mặt
-
 namespace Zentry.Modules.UserManagement.Features.DeleteUser;
 
 public class DeleteUserCommandHandler(IUserRepository userRepository)
@@ -15,7 +13,7 @@ public class DeleteUserCommandHandler(IUserRepository userRepository)
         var user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null) throw new ResourceNotFoundException("USER", command.UserId);
 
-        var account = await userRepository.GetAccountById(user.AccountId);
+        var account = user.Account;
         if (account is null || !Equals(account.Status, AccountStatus.Active))
             throw new ResourceNotFoundException("USER", command.UserId);
 

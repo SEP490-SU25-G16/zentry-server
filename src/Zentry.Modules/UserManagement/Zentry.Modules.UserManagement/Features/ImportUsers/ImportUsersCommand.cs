@@ -3,14 +3,9 @@ using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.UserManagement.Features.ImportUsers;
 
-public class ImportUsersCommand : ICommand<ImportUsersResponse>
+public class ImportUsersCommand(List<UserImportDto> usersToImport) : ICommand<ImportUsersResponse>
 {
-    public ImportUsersCommand(List<UserImportDto> usersToImport)
-    {
-        UsersToImport = usersToImport;
-    }
-
-    public List<UserImportDto> UsersToImport { get; }
+    public List<UserImportDto> UsersToImport { get; } = usersToImport;
 }
 
 public class ImportUsersResponse
