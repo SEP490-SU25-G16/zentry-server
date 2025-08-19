@@ -25,10 +25,9 @@ public class FaceIdVerifyRequestConfiguration : IEntityTypeConfiguration<FaceIdV
         builder.Property(x => x.NotificationId).HasMaxLength(128).IsRequired(false);
         builder.Property(x => x.MetadataJson).HasColumnType("jsonb").IsRequired(false);
 
-        builder.HasIndex(x => new { x.RequestGroupId, x.TargetUserId, x.Status, x.ExpiresAt }).HasDatabaseName("IX_FaceIdReq_Group_Target_Status_Exp");
+        builder.HasIndex(x => new { x.RequestGroupId, x.TargetUserId, x.Status, x.ExpiresAt })
+            .HasDatabaseName("IX_FaceIdReq_Group_Target_Status_Exp");
         builder.HasIndex(x => new { x.SessionId, x.Status }).HasDatabaseName("IX_FaceIdReq_Session_Status");
         builder.HasIndex(x => x.ExpiresAt).HasDatabaseName("IX_FaceIdReq_ExpiresAt");
     }
 }
-
-

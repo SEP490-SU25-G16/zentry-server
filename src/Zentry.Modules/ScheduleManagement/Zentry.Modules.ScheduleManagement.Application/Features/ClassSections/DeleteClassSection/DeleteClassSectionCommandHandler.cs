@@ -1,9 +1,9 @@
 using MassTransit;
+using Microsoft.Extensions.Logging;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Exceptions;
-using Microsoft.Extensions.Logging;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.DeleteClassSection;
 
@@ -32,7 +32,6 @@ public class DeleteClassSectionCommandHandler(
                     await scheduleRepository.GetSchedulesByClassSectionIdAsync(command.Id, cancellationToken);
 
                 foreach (var schedule in schedulesToDelete)
-                {
                     try
                     {
                         await publishEndpoint.Publish(
@@ -50,7 +49,6 @@ public class DeleteClassSectionCommandHandler(
                             schedule.Id, command.Id);
                         throw;
                     }
-                }
 
                 await scheduleRepository.DeleteRangeAsync(schedulesToDelete, cancellationToken);
 

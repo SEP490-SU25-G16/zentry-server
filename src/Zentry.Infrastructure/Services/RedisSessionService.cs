@@ -7,50 +7,51 @@ using Zentry.SharedKernel.Models;
 namespace Zentry.Infrastructure.Services;
 
 /// <summary>
-/// Redis-based implementation của ISessionService
+///     Redis-based implementation của ISessionService
 /// </summary>
 public class RedisSessionService : ISessionService
 {
-    private readonly IDatabase _redis;
     private readonly ILogger<RedisSessionService> _logger;
-    
+    private readonly IDatabase _redis;
+
     public RedisSessionService(IConnectionMultiplexer redis, ILogger<RedisSessionService> logger)
     {
         _redis = redis.GetDatabase();
         _logger = logger;
     }
-    
+
     public async Task<string> CreateSessionAsync(Guid userId, Guid deviceId, TimeSpan expiration)
     {
         try
         {
             // Tạo session key unique
             var sessionKey = $"session_{Guid.NewGuid():N}";
-            
+
             // Tạo session data
             var sessionData = new SessionData(
-                userId, 
-                deviceId, 
-                DateTime.UtcNow, 
+                userId,
+                deviceId,
+                DateTime.UtcNow,
                 DateTime.UtcNow.Add(expiration)
             );
-            
+
             var sessionJson = JsonSerializer.Serialize(sessionData);
-            
+
             // Lưu session với TTL
             await _redis.StringSetAsync(sessionKey, sessionJson, expiration);
-            
+
             // Lưu mapping user -> session để revoke
             var userSessionKey = $"user_session:{userId}";
             await _redis.StringSetAsync(userSessionKey, sessionKey, expiration);
-            
+
             // Lưu mapping device -> session
             var deviceSessionKey = $"device_session:{deviceId}";
             await _redis.StringSetAsync(deviceSessionKey, sessionKey, expiration);
-            
-            _logger.LogInformation("Created session {SessionKey} for user {UserId} device {DeviceId} expires at {ExpiresAt}", 
+
+            _logger.LogInformation(
+                "Created session {SessionKey} for user {UserId} device {DeviceId} expires at {ExpiresAt}",
                 sessionKey, userId, deviceId, sessionData.ExpiresAt);
-            
+
             return sessionKey;
         }
         catch (Exception ex)
@@ -59,7 +60,7 @@ public class RedisSessionService : ISessionService
             throw;
         }
     }
-    
+
     public async Task<bool> ValidateSessionAsync(string sessionKey, Guid deviceId)
     {
         try
@@ -70,22 +71,23 @@ public class RedisSessionService : ISessionService
                 _logger.LogWarning("Session {SessionKey} not found", sessionKey);
                 return false;
             }
-            
+
             var session = JsonSerializer.Deserialize<SessionData>(sessionData.ToString());
             if (session == null)
             {
                 _logger.LogWarning("Failed to deserialize session {SessionKey}", sessionKey);
                 return false;
             }
-            
+
             // Kiểm tra deviceId có khớp không
             if (session.DeviceId != deviceId)
             {
-                _logger.LogWarning("Device mismatch for session {SessionKey}. Expected: {ExpectedDevice}, Actual: {ActualDevice}", 
+                _logger.LogWarning(
+                    "Device mismatch for session {SessionKey}. Expected: {ExpectedDevice}, Actual: {ActualDevice}",
                     sessionKey, session.DeviceId, deviceId);
                 return false;
             }
-            
+
             // Kiểm tra session có expired không
             if (session.ExpiresAt < DateTime.UtcNow)
             {
@@ -93,7 +95,7 @@ public class RedisSessionService : ISessionService
                 await RevokeSessionAsync(sessionKey);
                 return false;
             }
-            
+
             _logger.LogDebug("Session {SessionKey} validated successfully for device {DeviceId}", sessionKey, deviceId);
             return true;
         }
@@ -103,7 +105,7 @@ public class RedisSessionService : ISessionService
             return false;
         }
     }
-    
+
     public async Task<bool> RevokeSessionAsync(string sessionKey)
     {
         try
@@ -114,7 +116,7 @@ public class RedisSessionService : ISessionService
                 _logger.LogWarning("Session {SessionKey} not found for revocation", sessionKey);
                 return false;
             }
-            
+
             var session = JsonSerializer.Deserialize<SessionData>(sessionData.ToString());
             if (session != null)
             {
@@ -122,11 +124,11 @@ public class RedisSessionService : ISessionService
                 await _redis.KeyDeleteAsync(sessionKey);
                 await _redis.KeyDeleteAsync($"user_session:{session.UserId}");
                 await _redis.KeyDeleteAsync($"device_session:{session.DeviceId}");
-                
-                _logger.LogInformation("Revoked session {SessionKey} for user {UserId} device {DeviceId}", 
+
+                _logger.LogInformation("Revoked session {SessionKey} for user {UserId} device {DeviceId}",
                     sessionKey, session.UserId, session.DeviceId);
             }
-            
+
             return true;
         }
         catch (Exception ex)
@@ -135,19 +137,17 @@ public class RedisSessionService : ISessionService
             return false;
         }
     }
-    
+
     public async Task<bool> RevokeAllUserSessionsAsync(Guid userId)
     {
         try
         {
             var userSessionKey = $"user_session:{userId}";
             var sessionKey = await _redis.StringGetAsync(userSessionKey);
-            
+
             if (sessionKey.HasValue && !string.IsNullOrEmpty(sessionKey.ToString()))
-            {
                 await RevokeSessionAsync(sessionKey.ToString());
-            }
-            
+
             _logger.LogInformation("Revoked all sessions for user {UserId}", userId);
             return true;
         }
@@ -157,7 +157,7 @@ public class RedisSessionService : ISessionService
             return false;
         }
     }
-    
+
     public async Task<Guid?> GetUserIdFromSessionAsync(string sessionKey)
     {
         try
@@ -165,7 +165,7 @@ public class RedisSessionService : ISessionService
             var sessionData = await _redis.StringGetAsync(sessionKey);
             if (!sessionData.HasValue || string.IsNullOrEmpty(sessionData.ToString()))
                 return null;
-                
+
             var session = JsonSerializer.Deserialize<SessionData>(sessionData.ToString());
             return session?.UserId;
         }
@@ -175,7 +175,7 @@ public class RedisSessionService : ISessionService
             return null;
         }
     }
-    
+
     public async Task<Guid?> GetDeviceIdFromSessionAsync(string sessionKey)
     {
         try
@@ -183,7 +183,7 @@ public class RedisSessionService : ISessionService
             var sessionData = await _redis.StringGetAsync(sessionKey);
             if (!sessionData.HasValue || string.IsNullOrEmpty(sessionData.ToString()))
                 return null;
-                
+
             var session = JsonSerializer.Deserialize<SessionData>(sessionData.ToString());
             return session?.DeviceId;
         }
@@ -193,22 +193,22 @@ public class RedisSessionService : ISessionService
             return null;
         }
     }
-    
+
     public async Task<bool> HasActiveSessionAsync(Guid userId)
     {
         try
         {
             var userSessionKey = $"user_session:{userId}";
             var sessionKey = await _redis.StringGetAsync(userSessionKey);
-            
+
             if (!sessionKey.HasValue || string.IsNullOrEmpty(sessionKey.ToString()))
                 return false;
-                
+
             // Kiểm tra session có expired không
             var sessionData = await _redis.StringGetAsync(sessionKey.ToString());
             if (!sessionData.HasValue || string.IsNullOrEmpty(sessionData.ToString()))
                 return false;
-                
+
             var session = JsonSerializer.Deserialize<SessionData>(sessionData.ToString());
             return session?.ExpiresAt > DateTime.UtcNow;
         }

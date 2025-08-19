@@ -37,5 +37,8 @@ public class DeviceToken : ValueObject
         yield return Value;
     }
 
-    public static implicit operator string(DeviceToken deviceToken) => deviceToken.Value;
+    public static implicit operator string(DeviceToken deviceToken)
+    {
+        return deviceToken.Value;
+    }
 }

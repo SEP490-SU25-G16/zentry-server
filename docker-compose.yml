@@ -28,7 +28,7 @@ services:
       - Jwt__Audience=https://zentry.local
       - Jwt__ExpirationMinutes=60
 
-            # Thêm cấu hình Rate Limiting để đồng bộ
+      # Thêm cấu hình Rate Limiting để đồng bộ
       - RateLimiting__FixedWindow__PermitLimit=100
       - RateLimiting__FixedWindow__WindowMinutes=1
       - RateLimiting__FixedWindow__QueueLimit=10

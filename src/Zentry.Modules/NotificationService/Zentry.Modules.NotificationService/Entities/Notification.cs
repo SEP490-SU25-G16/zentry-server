@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Zentry.SharedKernel.Domain;
 using Zentry.SharedKernel.Contracts.Events;
+using Zentry.SharedKernel.Domain;
 
 namespace Zentry.Modules.NotificationService.Entities;
 

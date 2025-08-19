@@ -17,22 +17,22 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
             builder.Property(n => n.RecipientUserId).IsRequired();
             builder.Property(n => n.IsRead).IsRequired();
             builder.Property(n => n.CreatedAt).IsRequired();
-            
+
             // ✅ Thêm: Cấu hình cho field Type mới
             builder.Property(n => n.Type)
                 .IsRequired()
                 .HasConversion<string>(); // Lưu dưới dạng string trong DB
-            
+
             // ✅ Thêm: Cấu hình cho field Deeplink mới
             builder.Property(n => n.Deeplink)
                 .HasMaxLength(500); // Giới hạn độ dài deeplink
-            
+
             // ✅ Thêm: Index cho Type để query nhanh hơn
             builder.HasIndex(n => n.Type);
-            
+
             // ✅ Thêm: Index cho Deeplink để query nhanh hơn
             builder.HasIndex(n => n.Deeplink);
-            
+
             builder.HasIndex(n => n.RecipientUserId);
         });
     }

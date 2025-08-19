@@ -6,9 +6,9 @@ namespace Zentry.Modules.FaceId.Features.UpdateFaceId;
 
 public class UpdateFaceIdCommandHandler : ICommandHandler<UpdateFaceIdCommand, UpdateFaceIdResponse>
 {
+    private const float UpdateSimilarityThreshold = 0.7f;
     private readonly IFaceIdRepository _faceIdRepository;
     private readonly IMediator _mediator;
-    private const float UpdateSimilarityThreshold = 0.7f;
 
     public UpdateFaceIdCommandHandler(IFaceIdRepository faceIdRepository, IMediator mediator)
     {
@@ -40,7 +40,8 @@ public class UpdateFaceIdCommandHandler : ICommandHandler<UpdateFaceIdCommand, U
                 return new UpdateFaceIdResponse
                 {
                     Success = false,
-                    Message = $"Face ID update rejected: similarity {similarity:F3} below threshold {UpdateSimilarityThreshold}"
+                    Message =
+                        $"Face ID update rejected: similarity {similarity:F3} below threshold {UpdateSimilarityThreshold}"
                 };
 
             // Update embedding in database (now accepts float[] directly)

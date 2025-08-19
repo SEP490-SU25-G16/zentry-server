@@ -48,7 +48,7 @@ public class GetCurrentWeekNumberQueryHandler(
         response.IsInSession = true;
 
         var daysDifference = request.Date.DayNumber - earliestStartDate.DayNumber;
-        var weekNumber = (daysDifference / 7) + 1;
+        var weekNumber = daysDifference / 7 + 1;
 
         response.WeekNumber = weekNumber;
         response.Message = $"Tuần thứ {weekNumber} trong kỳ học (tính từ {earliestStartDate:yyyy-MM-dd})";

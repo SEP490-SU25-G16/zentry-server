@@ -10,37 +10,35 @@ public class DataProtectionService
     public DataProtectionService(IConfiguration configuration)
     {
         // Try multiple sources for the encryption key
-        var base64Key = Environment.GetEnvironmentVariable("FACEID_EMBEDDING_KEY")  // System environment variable
-                         ?? configuration["FACEID_EMBEDDING_KEY"]                   // Configuration
-                         ?? configuration.GetSection("FaceId")?["EncryptionKey"]   // FaceId:EncryptionKey
-                         ?? Environment.GetEnvironmentVariable("FaceId__EncryptionKey") // FaceId__EncryptionKey (dotnet style)
-                         ?? string.Empty;
+        var base64Key = Environment.GetEnvironmentVariable("FACEID_EMBEDDING_KEY") // System environment variable
+                        ?? configuration["FACEID_EMBEDDING_KEY"] // Configuration
+                        ?? configuration.GetSection("FaceId")?["EncryptionKey"] // FaceId:EncryptionKey
+                        ?? Environment.GetEnvironmentVariable(
+                            "FaceId__EncryptionKey") // FaceId__EncryptionKey (dotnet style)
+                        ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(base64Key))
         {
             var availableKeys = new List<string>();
             var envKey = Environment.GetEnvironmentVariable("FACEID_EMBEDDING_KEY");
             if (!string.IsNullOrEmpty(envKey)) availableKeys.Add("FACEID_EMBEDDING_KEY (env)");
-            
+
             var configKey = configuration["FACEID_EMBEDDING_KEY"];
             if (!string.IsNullOrEmpty(configKey)) availableKeys.Add("FACEID_EMBEDDING_KEY (config)");
-            
+
             var faceIdKey = configuration.GetSection("FaceId")?["EncryptionKey"];
             if (!string.IsNullOrEmpty(faceIdKey)) availableKeys.Add("FaceId:EncryptionKey (config)");
-            
+
             var dotnetKey = Environment.GetEnvironmentVariable("FaceId__EncryptionKey");
             if (!string.IsNullOrEmpty(dotnetKey)) availableKeys.Add("FaceId__EncryptionKey (env)");
 
             var errorMessage = "FACEID_EMBEDDING_KEY is not configured. ";
             if (availableKeys.Count > 0)
-            {
                 errorMessage += $"Available keys: {string.Join(", ", availableKeys)}";
-            }
             else
-            {
-                errorMessage += "Please set one of: FACEID_EMBEDDING_KEY environment variable, FaceId:EncryptionKey in appsettings, or FaceId__EncryptionKey environment variable";
-            }
-            
+                errorMessage +=
+                    "Please set one of: FACEID_EMBEDDING_KEY environment variable, FaceId:EncryptionKey in appsettings, or FaceId__EncryptionKey environment variable";
+
             throw new InvalidOperationException(errorMessage);
         }
 
@@ -48,7 +46,8 @@ public class DataProtectionService
         {
             _key = Convert.FromBase64String(base64Key);
             if (_key.Length != 32)
-                throw new InvalidOperationException($"FACEID_EMBEDDING_KEY must be 32 bytes (Base64 of 32 bytes) for AES-256-GCM. Current length: {_key.Length} bytes");
+                throw new InvalidOperationException(
+                    $"FACEID_EMBEDDING_KEY must be 32 bytes (Base64 of 32 bytes) for AES-256-GCM. Current length: {_key.Length} bytes");
         }
         catch (FormatException)
         {
@@ -88,6 +87,7 @@ public class DataProtectionService
             Buffer.BlockCopy(a, 0, result, offset, a.Length);
             offset += a.Length;
         }
+
         return result;
     }
 }

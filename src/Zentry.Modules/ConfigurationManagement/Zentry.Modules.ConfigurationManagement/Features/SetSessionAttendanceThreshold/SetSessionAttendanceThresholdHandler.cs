@@ -150,19 +150,17 @@ public class SetSessionAttendanceThresholdHandler(
                 existingSetting.Id, thresholdValue);
             return (existingSetting, "Updated");
         }
-        else
-        {
-            // Create new setting
-            var newSetting = Setting.Create(
-                attributeId,
-                ScopeType.Session,
-                sessionId,
-                thresholdValue);
 
-            await dbContext.Settings.AddAsync(newSetting, cancellationToken);
-            logger.LogDebug("Created new setting {SettingId} with value {Value}",
-                newSetting.Id, thresholdValue);
-            return (newSetting, "Created");
-        }
+        // Create new setting
+        var newSetting = Setting.Create(
+            attributeId,
+            ScopeType.Session,
+            sessionId,
+            thresholdValue);
+
+        await dbContext.Settings.AddAsync(newSetting, cancellationToken);
+        logger.LogDebug("Created new setting {SettingId} with value {Value}",
+            newSetting.Id, thresholdValue);
+        return (newSetting, "Created");
     }
 }

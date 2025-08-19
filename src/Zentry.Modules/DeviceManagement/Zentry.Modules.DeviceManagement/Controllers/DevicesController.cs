@@ -36,7 +36,7 @@ public class DevicesController(IMediator mediator) : BaseController
 
         var command = new RegisterDeviceCommand
         {
-            UserId = userId,
+            UserId = new Guid(userId),
             DeviceName = request.DeviceName,
             AndroidId = request.AndroidId,
             Platform = request.Platform,

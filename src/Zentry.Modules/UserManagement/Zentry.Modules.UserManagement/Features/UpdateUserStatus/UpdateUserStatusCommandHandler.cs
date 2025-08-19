@@ -72,7 +72,8 @@ public class UpdateUserStatusCommandHandler(
 
             if (needsEnrollmentRemoval)
             {
-                logger.LogInformation("User {UserId} is being set to inactive status, removing enrollments", command.UserId);
+                logger.LogInformation("User {UserId} is being set to inactive status, removing enrollments",
+                    command.UserId);
                 if (Equals(account.Role, Role.Student))
                 {
                     var enrollmentResponse = await mediator.Send(
@@ -81,18 +82,21 @@ public class UpdateUserStatusCommandHandler(
 
                     if (!enrollmentResponse.Success)
                     {
-                        logger.LogError("Failed to remove enrollments for User: {UserId}. Error: {Error}. Rolling back account status",
+                        logger.LogError(
+                            "Failed to remove enrollments for User: {UserId}. Error: {Error}. Rolling back account status",
                             command.UserId, enrollmentResponse.Message);
 
                         try
                         {
                             account.UpdateStatus(originalStatus);
                             await userRepository.UpdateAccountAsync(account, cancellationToken);
-                            logger.LogInformation("Successfully rolled back account status for User: {UserId}", command.UserId);
+                            logger.LogInformation("Successfully rolled back account status for User: {UserId}",
+                                command.UserId);
                         }
                         catch (Exception rollbackEx)
                         {
-                            logger.LogCritical(rollbackEx, "CRITICAL: Failed to rollback account status for User: {UserId}. Manual intervention required!",
+                            logger.LogCritical(rollbackEx,
+                                "CRITICAL: Failed to rollback account status for User: {UserId}. Manual intervention required!",
                                 command.UserId);
                         }
 
@@ -102,11 +106,6 @@ public class UpdateUserStatusCommandHandler(
 
                     logger.LogInformation("Successfully removed enrollments for User: {UserId}", command.UserId);
                 }
-                else
-                {
-
-                }
-
             }
 
             logger.LogInformation("Successfully updated user {UserId} status to {Status}",
@@ -131,11 +130,14 @@ public class UpdateUserStatusCommandHandler(
             {
                 account.UpdateStatus(originalStatus);
                 await userRepository.UpdateAccountAsync(account, cancellationToken);
-                logger.LogInformation("Successfully rolled back account status for User: {UserId} due to unexpected error", command.UserId);
+                logger.LogInformation(
+                    "Successfully rolled back account status for User: {UserId} due to unexpected error",
+                    command.UserId);
             }
             catch (Exception rollbackEx)
             {
-                logger.LogCritical(rollbackEx, "CRITICAL: Failed to rollback account status for User: {UserId} after unexpected error. Manual intervention required!",
+                logger.LogCritical(rollbackEx,
+                    "CRITICAL: Failed to rollback account status for User: {UserId} after unexpected error. Manual intervention required!",
                     command.UserId);
             }
 

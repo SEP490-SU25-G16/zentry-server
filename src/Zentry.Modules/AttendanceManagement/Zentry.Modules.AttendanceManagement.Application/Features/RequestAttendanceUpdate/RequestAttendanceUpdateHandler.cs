@@ -43,11 +43,11 @@ public class RequestAttendanceUpdateHandler(
 
         // Create user request
         var createUserRequestCommand = new CreateUserRequestIntegrationCommand(
-            RequestedByUserId: command.StudentId,
-            TargetUserId: lecturerId,
-            RequestType: RequestType.ClaimAttendance,
-            RelatedEntityId: session.Id,
-            Reason: command.Reason
+            command.StudentId,
+            lecturerId,
+            RequestType.ClaimAttendance,
+            session.Id,
+            command.Reason
         );
 
         var userRequestResponse = await mediator.Send(createUserRequestCommand, cancellationToken);

@@ -53,12 +53,14 @@ public class RemoveStudentEnrollmentCommandHandler(
 
                 try
                 {
-                    logger.LogWarning("Enrollment removal failed for StudentId: {StudentId}, operation will be rolled back by the calling handler",
+                    logger.LogWarning(
+                        "Enrollment removal failed for StudentId: {StudentId}, operation will be rolled back by the calling handler",
                         request.StudentId);
                 }
                 catch (Exception restoreEx)
                 {
-                    logger.LogCritical(restoreEx, "CRITICAL: Failed to restore enrollments for StudentId: {StudentId}. Manual intervention required!",
+                    logger.LogCritical(restoreEx,
+                        "CRITICAL: Failed to restore enrollments for StudentId: {StudentId}. Manual intervention required!",
                         request.StudentId);
                 }
 
@@ -69,13 +71,15 @@ public class RemoveStudentEnrollmentCommandHandler(
         }
         catch (ResourceNotFoundException ex)
         {
-            logger.LogWarning("Resource not found while removing enrollments for StudentId: {StudentId}. Error: {Error}",
+            logger.LogWarning(
+                "Resource not found while removing enrollments for StudentId: {StudentId}. Error: {Error}",
                 request.StudentId, ex.Message);
             return new RemoveStudentEnrollmentIntegrationResponse(false, ex.Message);
         }
         catch (BusinessRuleException ex)
         {
-            logger.LogWarning("Business rule violation while removing enrollments for StudentId: {StudentId}. Error: {Error}",
+            logger.LogWarning(
+                "Business rule violation while removing enrollments for StudentId: {StudentId}. Error: {Error}",
                 request.StudentId, ex.Message);
             return new RemoveStudentEnrollmentIntegrationResponse(false, ex.Message);
         }

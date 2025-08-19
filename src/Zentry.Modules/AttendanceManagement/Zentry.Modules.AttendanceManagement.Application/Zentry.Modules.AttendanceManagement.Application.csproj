@@ -9,10 +9,8 @@
         <ProjectReference Include="..\..\..\Zentry.Infrastructure\Zentry.Infrastructure.csproj"/>
         <ProjectReference Include="..\..\..\Zentry.SharedKernel\Zentry.SharedKernel.csproj"/>
         <ProjectReference Include="..\Zentry.Modules.AttendanceManagement.Domain\Zentry.Modules.AttendanceManagement.Domain.csproj"/>
-        <ProjectReference Include="..\..\ScheduleManagement\Zentry.Modules.ScheduleManagement.Application\Zentry.Modules.ScheduleManagement.Application.csproj"/>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="EPPlus" Version="8.0.8"/>
-        <PackageReference Include="MediatR" Version="13.0.0"/>
     </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@ namespace Zentry.Modules.UserManagement.Features.SignIn;
 public class SignInCommand : ICommand<SignInResponse>
 {
     public string Email { get; set; } = string.Empty;
+
     public string Password { get; set; } = string.Empty;
     // ✅ TẠM TẮT: DeviceToken để dễ test API
     // TODO: Bật lại khi cần production

@@ -14,6 +14,7 @@ public interface IClassSectionRepository : IRepository<ClassSection, Guid>
     Task<int> CountTotalClassSectionsAsync(CancellationToken cancellationToken);
     Task<List<ClassSectionInYearDto>> GetClassSectionsByYearAsync(string year, CancellationToken cancellationToken);
     Task UpdateRangeAsync(IEnumerable<ClassSection> entities, CancellationToken cancellationToken);
+
     Task<Dictionary<string, int>> CountClassSectionsBySemestersAsync(string yearString,
         CancellationToken cancellationToken);
 

@@ -2,7 +2,6 @@ using MediatR;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.Modules.AttendanceManagement.Application.Dtos;
 using Zentry.SharedKernel.Abstractions.Application;
-using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
 

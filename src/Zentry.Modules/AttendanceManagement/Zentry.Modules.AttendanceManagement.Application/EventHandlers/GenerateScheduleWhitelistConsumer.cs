@@ -107,7 +107,8 @@ public class GenerateScheduleWhitelistConsumer(
             if (existingWhitelist != null)
             {
                 // Whitelist đã tồn tại, chỉ cần thêm student devices
-                logger.LogInformation("Whitelist already exists for Schedule {ScheduleId}. Adding student devices only.",
+                logger.LogInformation(
+                    "Whitelist already exists for Schedule {ScheduleId}. Adding student devices only.",
                     message.ScheduleId);
 
                 var whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
@@ -125,14 +126,11 @@ public class GenerateScheduleWhitelistConsumer(
 
                     var addedDevices = 0;
                     foreach (var deviceId in studentDevicesResponse.UserDeviceMap.Values)
-                    {
                         if (whitelistedDeviceIds.Add(deviceId))
-                        {
                             addedDevices++;
-                        }
-                    }
 
-                    logger.LogInformation("Added {AddedCount} new student devices from {StudentCount} enrolled students.",
+                    logger.LogInformation(
+                        "Added {AddedCount} new student devices from {StudentCount} enrolled students.",
                         addedDevices, enrolledStudentIds.Count);
                 }
 

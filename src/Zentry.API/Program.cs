@@ -25,7 +25,6 @@ using Zentry.Modules.FaceId.Persistence;
 using Zentry.Modules.NotificationService;
 using Zentry.Modules.NotificationService.Hubs;
 using Zentry.Modules.NotificationService.Persistence;
-using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.Modules.ScheduleManagement.Application;
 using Zentry.Modules.ScheduleManagement.Infrastructure;
 using Zentry.Modules.ScheduleManagement.Infrastructure.Persistence;
@@ -263,7 +262,7 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 });
 
 // ===== DATABASE MIGRATION CODE =====
-// await RunSelectiveDatabaseMigrationsAsync(app);
+await RunSelectiveDatabaseMigrationsAsync(app);
 
 app.Run();
 
@@ -276,6 +275,7 @@ static bool IsGuidFormatError(string? errorMessage)
            errorMessage.Contains("is not valid", StringComparison.OrdinalIgnoreCase) ||
            errorMessage.Contains("format", StringComparison.OrdinalIgnoreCase);
 }
+
 // ✅ Method để chỉ drop các tables cần thiết
 static async Task RunSelectiveDatabaseMigrationsAsync(WebApplication app)
 {
@@ -319,7 +319,8 @@ static async Task RunSelectiveDatabaseMigrationsAsync(WebApplication app)
 
                 if (hasPendingMigrations)
                 {
-                    logger.LogWarning("🔥 Found pending migrations for {ContextName}. Dropping and recreating...", contextName);
+                    logger.LogWarning("🔥 Found pending migrations for {ContextName}. Dropping and recreating...",
+                        contextName);
 
                     // Drop chỉ những tables của context này
                     await DropContextTablesAsync(dbContext, logger, contextName);
@@ -383,6 +384,7 @@ static async Task DropContextTablesAsync(DbContext dbContext, ILogger logger, st
         throw;
     }
 }
+
 public static class HealthCheckResponseWriter
 {
     public static Task WriteResponse(HttpContext httpContext, HealthReport result)

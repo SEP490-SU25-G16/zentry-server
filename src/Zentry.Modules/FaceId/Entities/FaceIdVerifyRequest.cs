@@ -54,7 +54,8 @@ public class FaceIdVerifyRequest : AggregateRoot<Guid>
         float threshold,
         DateTime expiresAt)
     {
-        return new FaceIdVerifyRequest(Guid.NewGuid(), requestGroupId, targetUserId, initiatorUserId, sessionId, classSectionId,
+        return new FaceIdVerifyRequest(Guid.NewGuid(), requestGroupId, targetUserId, initiatorUserId, sessionId,
+            classSectionId,
             threshold, expiresAt);
     }
 
@@ -92,5 +93,3 @@ public enum FaceIdVerifyRequestStatus
     Expired = 2,
     Canceled = 3
 }
-
-

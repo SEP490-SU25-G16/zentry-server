@@ -11,7 +11,7 @@ public class AttendanceRecord : AggregateRoot<Guid>
     }
 
     private AttendanceRecord(Guid id, Guid studentId, Guid sessionId, AttendanceStatus status, bool isManual,
-        double percentageAttended)
+        double percentageAttended, FaceIdStatus? faceIdStatus = null)
         : base(id)
     {
         StudentId = studentId;
@@ -19,6 +19,7 @@ public class AttendanceRecord : AggregateRoot<Guid>
         Status = status;
         IsManual = isManual;
         PercentageAttended = percentageAttended;
+        FaceIdStatus = faceIdStatus;
         CreatedAt = DateTime.UtcNow;
         ExpiredAt = DateTime.UtcNow;
     }
@@ -37,20 +38,30 @@ public class AttendanceRecord : AggregateRoot<Guid>
 
     public double PercentageAttended { get; private set; }
 
+    /// <summary>
+    /// Face ID verification status for this attendance record
+    /// - NotChecked: Student did not perform FaceID verification
+    /// - Success: Student performed FaceID verification successfully
+    /// - Failed: Student performed FaceID verification but failed
+    /// </summary>
+    public FaceIdStatus? FaceIdStatus { get; private set; }
+
     public static AttendanceRecord Create(Guid userId, Guid sessionId, AttendanceStatus status, bool isManual,
-        double percentageAttended)
+        double percentageAttended, FaceIdStatus? faceIdStatus = null)
     {
-        return new AttendanceRecord(Guid.NewGuid(), userId, sessionId, status, isManual, percentageAttended);
+        return new AttendanceRecord(Guid.NewGuid(), userId, sessionId, status, isManual, percentageAttended,
+            faceIdStatus);
     }
 
     public void Update(AttendanceStatus? status = null, bool? isManual = null, DateTime? expiredAt = null,
-        double? percentageAttended = null)
+        double? percentageAttended = null, FaceIdStatus? faceIdStatus = null)
     {
         if (status != null) Status = status;
 
         if (isManual.HasValue) IsManual = isManual.Value;
         if (expiredAt.HasValue) ExpiredAt = expiredAt.Value;
         if (percentageAttended.HasValue) PercentageAttended = percentageAttended.Value;
+        if (faceIdStatus != null) FaceIdStatus = faceIdStatus;
         UpdatedAt = DateTime.UtcNow;
     }
 }

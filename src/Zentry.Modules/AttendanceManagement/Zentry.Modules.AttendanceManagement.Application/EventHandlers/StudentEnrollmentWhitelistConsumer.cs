@@ -65,7 +65,6 @@ public class StudentEnrollmentWhitelistConsumer(
 
             // Update whitelist cho từng schedule
             foreach (var schedule in schedulesResponse.Schedules)
-            {
                 try
                 {
                     var existingWhitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(
@@ -78,12 +77,8 @@ public class StudentEnrollmentWhitelistConsumer(
                         var addedDevicesCount = 0;
 
                         foreach (var deviceId in deviceIds)
-                        {
                             if (whitelistedDeviceIds.Add(deviceId))
-                            {
                                 addedDevicesCount++;
-                            }
-                        }
 
                         if (addedDevicesCount > 0)
                         {
@@ -121,7 +116,6 @@ public class StudentEnrollmentWhitelistConsumer(
                         "Error updating whitelist for Schedule {ScheduleId} during student enrollment.",
                         schedule);
                 }
-            }
 
             logger.LogInformation(
                 "Successfully updated {UpdatedCount} schedule whitelists for {StudentCount} enrolled students in ClassSection {ClassSectionId}.",

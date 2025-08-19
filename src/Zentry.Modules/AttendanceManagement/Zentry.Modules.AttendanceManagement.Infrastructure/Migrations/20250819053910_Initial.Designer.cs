@@ -12,8 +12,8 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250810132307_update")]
-    partial class update
+    [Migration("20250819053910_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,10 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
                     b.Property<DateTime>("ExpiredAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FaceIdStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsManual")
                         .HasColumnType("boolean");
@@ -144,6 +148,9 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("SessionNumber")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -161,12 +168,25 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
                     b.HasIndex("ScheduleId");
 
+                    b.HasIndex("SessionNumber");
+
                     b.HasIndex("StartTime");
 
                     b.ToTable("Sessions", null, t =>
                         {
                             t.HasCheckConstraint("CK_Sessions_EndTime_After_StartTime", "\"EndTime\" > \"StartTime\"");
                         });
+                });
+
+            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.AttendanceRecord", b =>
+                {
+                    b.HasOne("Zentry.Modules.AttendanceManagement.Domain.Entities.Session", "Session")
+                        .WithMany("AttendanceRecords")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Round", b =>
@@ -219,6 +239,11 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 
                     b.Navigation("SessionConfigs")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Zentry.Modules.AttendanceManagement.Domain.Entities.Session", b =>
+                {
+                    b.Navigation("AttendanceRecords");
                 });
 #pragma warning restore 612, 618
         }
