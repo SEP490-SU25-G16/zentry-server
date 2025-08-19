@@ -211,3 +211,9 @@ FakesAssemblies/
 # JetBrains Rider
 *.sln.iml
 .env
+
+# Firebase credentials - KHÔNG commit vào git
+src/Zentry.API/firebase-credentials/
+*.json
+!appsettings*.json
+!package*.json

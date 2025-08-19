@@ -11,15 +11,23 @@ public class GetDeviceByAndroidIdQueryHandler(IDeviceRepository repository)
     public async Task<GetDeviceByAndroidIdIntegrationResponse> Handle(GetDeviceByAndroidIdIntegrationQuery request,
         CancellationToken cancellationToken)
     {
-        var deviceInfo = await repository.GetDeviceAndUserIdByAndroidIdAsync(request.AndroidId, cancellationToken);
+        var device = await repository.GetByAndroidIdAsync(request.AndroidId, cancellationToken);
 
-        if (deviceInfo.HasValue)
+        if (device != null && device.Status.ToString() == "Active")
         {
-            var (deviceId, userId) = deviceInfo.Value;
-            return new GetDeviceByAndroidIdIntegrationResponse(deviceId, userId, request.AndroidId);
+            return new GetDeviceByAndroidIdIntegrationResponse
+            {
+                Device = new DeviceInfo
+                {
+                    Id = device.Id,
+                    UserId = device.UserId,
+                    Status = device.Status.ToString(),
+                    CreatedAt = device.CreatedAt,
+                    LastVerifiedAt = device.LastVerifiedAt
+                }
+            };
         }
 
-        throw new NotFoundException(nameof(GetDeviceByAndroidIdQueryHandler),
-            $"Active Device not found for Android ID: {request.AndroidId}");
+        return new GetDeviceByAndroidIdIntegrationResponse { Device = null };
     }
 }
