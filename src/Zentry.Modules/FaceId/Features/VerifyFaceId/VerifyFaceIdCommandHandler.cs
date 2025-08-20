@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+using Zentry.Modules.FaceId.Configuration;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 
@@ -6,7 +8,7 @@ namespace Zentry.Modules.FaceId.Features.VerifyFaceId;
 public class VerifyFaceIdCommandHandler : ICommandHandler<VerifyFaceIdCommand, VerifyFaceIdResponse>
 {
     private readonly IFaceIdRepository _faceIdRepository;
-
+    private readonly IOptions<FaceIdSettings> _faceIdSettings;
     public VerifyFaceIdCommandHandler(IFaceIdRepository faceIdRepository)
     {
         _faceIdRepository = faceIdRepository;
@@ -15,7 +17,8 @@ public class VerifyFaceIdCommandHandler : ICommandHandler<VerifyFaceIdCommand, V
     public async Task<VerifyFaceIdResponse> Handle(VerifyFaceIdCommand command, CancellationToken cancellationToken)
     {
         try
-        {
+        {   
+            var threshold = command.Threshold ?? _faceIdSettings.Value.VerificationThreshold;
             // Check if user has a face ID
             var exists = await _faceIdRepository.ExistsByUserIdAsync(command.UserId, cancellationToken);
             if (!exists)
@@ -29,7 +32,7 @@ public class VerifyFaceIdCommandHandler : ICommandHandler<VerifyFaceIdCommand, V
             var (isMatch, similarity) = await _faceIdRepository.VerifyAsync(
                 command.UserId,
                 command.EmbeddingArray,
-                command.Threshold,
+                threshold,
                 cancellationToken);
 
             // If this verify is tied to a request, we could persist result (optional: handled at controller level)

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Zentry.Modules.FaceId.Configuration;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.Modules.FaceId.Persistence;
 using Zentry.Modules.FaceId.Persistence.Repositories;
@@ -13,6 +14,7 @@ public static class DependencyInjection
     public static IServiceCollection AddFaceIdInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.Configure<FaceIdSettings>(configuration.GetSection(FaceIdSettings.SectionName));
         // Register DbContext
         services.AddDbContext<FaceIdDbContext>(options =>
             // Sử dụng chuỗi kết nối FaceIdConnection

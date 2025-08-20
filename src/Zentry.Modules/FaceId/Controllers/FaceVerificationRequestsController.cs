@@ -3,7 +3,9 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Zentry.Infrastructure.Caching;
+using Zentry.Modules.FaceId.Configuration;
 using Zentry.Modules.FaceId.Features.VerifyFaceId;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.SharedKernel.Contracts.Events;
@@ -20,6 +22,7 @@ public class FaceVerificationRequestsController : ControllerBase
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IRedisService _redis;
     private readonly IFaceIdRepository _repository;
+    private readonly IOptions<FaceIdSettings> _faceIdSettings;
 
     public FaceVerificationRequestsController(
         ILogger<FaceVerificationRequestsController> logger,
@@ -105,7 +108,7 @@ public class FaceVerificationRequestsController : ControllerBase
             var expiresInMinutes =
                 Math.Max(1, Math.Min(request.ExpiresInMinutes.GetValueOrDefault(30), 120)); // Max 2 hours
             var expiresAt = now.AddMinutes(expiresInMinutes);
-            var threshold = 0.7f;
+            var threshold = _faceIdSettings.Value.VerificationThreshold;
 
             var meta = new FaceVerificationRequestMeta(
                 requestId,
@@ -268,7 +271,8 @@ public class FaceVerificationRequestsController : ControllerBase
             Buffer.BlockCopy(embeddingBytes, 0, embeddingArray, 0, embeddingBytes.Length);
 
             // 6) Verify via FaceId module handler
-            var cmd = new VerifyFaceIdCommand(parsedUserId, embeddingArray, threshold ?? 0.7f, requestId);
+            var verifyThreshold = _faceIdSettings.Value.VerificationThreshold;
+            var cmd = new VerifyFaceIdCommand(parsedUserId, embeddingArray, verifyThreshold, requestId);
             var result = await _mediator.Send(cmd, cancellationToken);
 
             // 7) Store receipt for auditing

@@ -1,4 +1,6 @@
 using MediatR;
+using Microsoft.Extensions.Options;
+using Zentry.Modules.FaceId.Configuration;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 
@@ -6,20 +8,22 @@ namespace Zentry.Modules.FaceId.Features.UpdateFaceId;
 
 public class UpdateFaceIdCommandHandler : ICommandHandler<UpdateFaceIdCommand, UpdateFaceIdResponse>
 {
-    private const float UpdateSimilarityThreshold = 0.7f;
     private readonly IFaceIdRepository _faceIdRepository;
     private readonly IMediator _mediator;
+    private readonly IOptions<FaceIdSettings> _faceIdSettings;
 
-    public UpdateFaceIdCommandHandler(IFaceIdRepository faceIdRepository, IMediator mediator)
+    public UpdateFaceIdCommandHandler(IFaceIdRepository faceIdRepository, IMediator mediator, IOptions<FaceIdSettings> faceIdSettings)
     {
         _faceIdRepository = faceIdRepository;
         _mediator = mediator;
+        _faceIdSettings = faceIdSettings;
     }
 
     public async Task<UpdateFaceIdResponse> Handle(UpdateFaceIdCommand command, CancellationToken cancellationToken)
     {
         try
         {
+            var updateThreshold = _faceIdSettings.Value.UpdateThreshold;
             // Check if user has a face ID
             var exists = await _faceIdRepository.ExistsByUserIdAsync(command.UserId, cancellationToken);
             if (!exists)
@@ -33,7 +37,7 @@ public class UpdateFaceIdCommandHandler : ICommandHandler<UpdateFaceIdCommand, U
             var (isMatch, similarity) = await _faceIdRepository.VerifyAsync(
                 command.UserId,
                 command.EmbeddingArray,
-                UpdateSimilarityThreshold,
+                updateThreshold,
                 cancellationToken);
 
             if (!isMatch)
@@ -41,7 +45,7 @@ public class UpdateFaceIdCommandHandler : ICommandHandler<UpdateFaceIdCommand, U
                 {
                     Success = false,
                     Message =
-                        $"Face ID update rejected: similarity {similarity:F3} below threshold {UpdateSimilarityThreshold}"
+                        $"Face ID update rejected: similarity {similarity:F3} below threshold {updateThreshold}"
                 };
 
             // Update embedding in database (now accepts float[] directly)
