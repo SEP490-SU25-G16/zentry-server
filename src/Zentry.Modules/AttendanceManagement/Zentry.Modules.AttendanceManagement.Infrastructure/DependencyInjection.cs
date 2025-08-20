@@ -49,9 +49,9 @@ public static class DependencyInjection
         }
         else
         {
-            var mongoConnectionString = configuration["MongoDB_ConnectionString"] ??
+            var mongoConnectionString = configuration["MongoDB:ConnectionString"] ??
                                         throw new InvalidOperationException(
-                                            "MongoDB_ConnectionString is not configured.");
+                                            "MongoDB__ConnectionString is not configured.");
             BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
             services.AddSingleton<IMongoClient>(s =>
             {

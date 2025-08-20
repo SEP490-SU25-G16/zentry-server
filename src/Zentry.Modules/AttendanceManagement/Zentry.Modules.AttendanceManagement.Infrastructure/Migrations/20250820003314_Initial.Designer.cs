@@ -12,7 +12,7 @@ using Zentry.Modules.AttendanceManagement.Infrastructure.Persistence;
 namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250819053910_Initial")]
+    [Migration("20250820003314_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -40,7 +40,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FaceIdStatus")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsManual")

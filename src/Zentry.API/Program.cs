@@ -161,7 +161,7 @@ builder.Services.AddAuthorization();
 // --- Thêm health check ---
 builder.Services.AddHealthChecks();
 
-builder.Services.AddRabbitMqHealthChecks(builder.Configuration["RabbitMQ_ConnectionString"]!);
+builder.Services.AddRabbitMqHealthChecks(builder.Configuration["RabbitMQ:ConnectionString"]!);
 
 // ===== CẤU HÌNH MASSTRANSIT =====
 builder.Services.AddMassTransit(x =>
@@ -175,9 +175,25 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitMqConnectionString = builder.Configuration["RabbitMQ_ConnectionString"];
+        // ✅ Sử dụng configuration từ context thay vì builder
+        var configuration = context.GetRequiredService<IConfiguration>();
+        var rabbitMqConnectionString = configuration["RabbitMQ:ConnectionString"];
+
+        // ✅ Debug logging để kiểm tra config
+        Console.WriteLine($"=== RabbitMQ Configuration Debug ===");
+        Console.WriteLine($"RabbitMQ:ConnectionString = {rabbitMqConnectionString}");
+
+        // Kiểm tra tất cả RabbitMQ keys
+        foreach (var kvp in configuration.AsEnumerable()
+                     .Where(x => x.Key.Contains("RabbitMQ", StringComparison.OrdinalIgnoreCase)))
+        {
+            Console.WriteLine($"{kvp.Key} = {kvp.Value}");
+        }
+
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
-            throw new InvalidOperationException("RabbitMQ_ConnectionString is not configured.");
+        {
+            throw new InvalidOperationException("RabbitMQ:ConnectionString is not configured.");
+        }
 
         cfg.Host(new Uri(rabbitMqConnectionString), h =>
         {
@@ -190,7 +206,6 @@ builder.Services.AddMassTransit(x =>
             h.RequestedChannelMax(100);
         });
 
-        // Global settings cho tất cả endpoints
         cfg.UseDelayedMessageScheduler();
         cfg.UseInMemoryOutbox(context);
 
@@ -230,6 +245,8 @@ builder.Services.AddAttendanceInfrastructure(builder.Configuration);
 builder.Services.AddAttendanceApplication();
 builder.Services.AddNotificationModule(builder.Configuration);
 builder.Services.AddFaceIdInfrastructure(builder.Configuration);
+ValidateConfiguration(builder.Configuration);
+
 var app = builder.Build();
 
 // ===== CẤU HÌNH MIDDLEWARE PIPELINE =====
@@ -383,6 +400,42 @@ static async Task DropContextTablesAsync(DbContext dbContext, ILogger logger, st
         logger.LogError(ex, "❌ Error dropping tables for {ContextName}", contextName);
         throw;
     }
+}
+
+static void ValidateConfiguration(IConfiguration configuration)
+{
+    var requiredConfigs = new[]
+    {
+        "ConnectionStrings:DefaultConnection",
+        "ConnectionStrings:FaceIdConnection",
+        "Redis:ConnectionString",
+        "RabbitMQ:ConnectionString",
+        "Jwt:Secret"
+    };
+
+    var missingConfigs = new List<string>();
+
+    foreach (var config in requiredConfigs)
+    {
+        var value = configuration[config];
+        if (string.IsNullOrEmpty(value))
+        {
+            missingConfigs.Add(config);
+        }
+        else
+        {
+            Console.WriteLine($"✅ {config} = {(config.Contains("Secret") ? "***HIDDEN***" : value)}");
+        }
+    }
+
+    if (missingConfigs.Any())
+    {
+        Console.WriteLine("❌ Missing required configurations:");
+        missingConfigs.ForEach(config => Console.WriteLine($"  - {config}"));
+        throw new InvalidOperationException($"Missing required configurations: {string.Join(", ", missingConfigs)}");
+    }
+
+    Console.WriteLine("✅ All required configurations are present.");
 }
 
 public static class HealthCheckResponseWriter

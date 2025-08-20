@@ -17,4 +17,5 @@ public interface IScheduleWhitelistRepository
     Task AddRangeAsync(IEnumerable<ScheduleWhitelist> whitelists, CancellationToken cancellationToken = default);
 
     Task DeleteAllAsync(CancellationToken cancellationToken = default);
+    Task UpsertAsync(ScheduleWhitelist whitelist, CancellationToken cancellationToken = default);
 }

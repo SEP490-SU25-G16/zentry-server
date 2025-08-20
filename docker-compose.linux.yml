@@ -13,51 +13,43 @@ services:
         APP_GID: ${GID:-1000}
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_URLS=http://+:8080
-      - ASPNETCORE_ENVIRONMENT=Development
-      # Database connections
-      - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-#      - ConnectionStrings__DefaultConnection=Host=zentry.c2pgywcgsk5m.us-east-1.rds.amazonaws.com;Port=5432;Database=zentry;Username=postgres;Password=zentry_owner;
-      - Redis_ConnectionString=redis:6379
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - UseMarten=true
-      - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-      - RabbitMQ_ConnectionString=amqp://admin:pass@rabbitmq:5672/
-      # JWT Configuration
-      - Jwt__Secret=a-super-secret-key-that-is-long-enough-for-hs256-algorithm
-      - Jwt__Issuer=https://zentry.local
-      - Jwt__Audience=https://zentry.local
-      - Jwt__ExpirationMinutes=60
 
-      # ===== RATE LIMITING CONFIGURATION =====
-      # Fixed Window Policy (100 requests/minute)
+      # Connection Strings
+      - ConnectionStrings__FaceIdConnection=${FACEID_CONNECTION}
+      - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
+      - Redis__ConnectionString=${REDIS_CONNECTION}
+      - MongoDB__ConnectionString=${MONGO_CONNECTION}
+      - RabbitMQ__ConnectionString=${RABBITMQ_CONNECTION}
+
+      # JWT
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpirationMinutes=${JWT_EXPIRATION_MINUTES}
+
+      # Rate Limiting (hardcoded)
       - RateLimiting__FixedWindow__PermitLimit=100
       - RateLimiting__FixedWindow__WindowMinutes=1
       - RateLimiting__FixedWindow__QueueLimit=10
-
-      # Sliding Window Policy (50 requests/minute)
       - RateLimiting__SlidingWindow__PermitLimit=50
       - RateLimiting__SlidingWindow__WindowMinutes=1
       - RateLimiting__SlidingWindow__SegmentsPerWindow=6
       - RateLimiting__SlidingWindow__QueueLimit=5
-
-      # Token Bucket Policy
       - RateLimiting__TokenBucket__TokenLimit=100
       - RateLimiting__TokenBucket__ReplenishmentPeriodSeconds=10
       - RateLimiting__TokenBucket__TokensPerPeriod=20
       - RateLimiting__TokenBucket__QueueLimit=10
-
-      # Concurrency Policy (50 concurrent requests)
       - RateLimiting__Concurrency__PermitLimit=50
       - RateLimiting__Concurrency__QueueLimit=20
-
-      # Auth Policy (Strict - only 5 requests/minute for login/register)
       - RateLimiting__AuthPolicy__PermitLimit=5
       - RateLimiting__AuthPolicy__WindowMinutes=1
       - RateLimiting__AuthPolicy__QueueLimit=0
-
-      # Global Limiter (200 requests/minute per IP)
       - RateLimiting__GlobalLimiter__PermitLimit=200
       - RateLimiting__GlobalLimiter__WindowMinutes=1
       - RateLimiting__GlobalLimiter__AutoReplenishment=true
@@ -72,7 +64,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -85,23 +77,21 @@ services:
     volumes:
       - redis-data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 3
 
   postgres:
     image: pgvector/pgvector:pg16
-    environment:
-      - POSTGRES_DB=zentry
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=pass
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin -d zentry" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -119,7 +109,7 @@ services:
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
+      test: ["CMD", "rabbitmqctl", "status"]
       interval: 15s
       timeout: 5s
       retries: 5

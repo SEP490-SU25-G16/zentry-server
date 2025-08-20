@@ -37,7 +37,6 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FaceIdStatus")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsManual")

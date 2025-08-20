@@ -10,25 +10,33 @@ services:
       dockerfile: src/Zentry.API/Dockerfile
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
+      # ASP.NET
       - ASPNETCORE_URLS=http://+:8080
-      - ASPNETCORE_ENVIRONMENT=Development
-      # Sử dụng database cục bộ để đồng bộ
-      - ConnectionStrings__FaceIdConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      #      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-      - ConnectionStrings__DefaultConnection=Host=zentry.c2pgywcgsk5m.us-east-1.rds.amazonaws.com;Port=5432;Database=zentry;Username=postgres;Password=zentry_owner;
-
-      - Redis_ConnectionString=redis:6379
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - UseMarten=true
-      - MongoDB_ConnectionString=mongodb+srv://datnvhe176009:jAhjpBHF8vRYvmQK@cluster0.9wegobf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-      # Sửa chuỗi kết nối RabbitMQ
-      - RabbitMQ_ConnectionString=amqp://admin:pass@rabbitmq:5672/
-      - Jwt__Secret=a-super-secret-key-that-is-long-enough-for-hs256-algorithm
-      - Jwt__Issuer=https://zentry.local
-      - Jwt__Audience=https://zentry.local
-      - Jwt__ExpirationMinutes=60
 
-      # Thêm cấu hình Rate Limiting để đồng bộ
+      # PostgreSQL
+      - ConnectionStrings__FaceIdConnection=${FACEID_CONNECTION}
+      - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
+
+      # Redis
+      - Redis__ConnectionString=${REDIS_CONNECTION}
+      # MongoDB
+      - MongoDB__ConnectionString=${MONGO_CONNECTION}
+
+      # RabbitMQ
+      - RabbitMQ__ConnectionString=${RABBITMQ_CONNECTION}
+
+      # JWT
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpirationMinutes=${JWT_EXPIRATION_MINUTES}
+
+      # Rate Limiting (hardcoded)
       - RateLimiting__FixedWindow__PermitLimit=100
       - RateLimiting__FixedWindow__WindowMinutes=1
       - RateLimiting__FixedWindow__QueueLimit=10
@@ -79,16 +87,14 @@ services:
 
   postgres:
     image: pgvector/pgvector:pg16
-    environment:
-      - POSTGRES_DB=zentry
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=pass
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin -d zentry" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5

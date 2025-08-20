@@ -31,11 +31,7 @@ public class GenerateScheduleWhitelistConsumer(
 
         try
         {
-            var existingWhitelist =
-                await scheduleWhitelistRepository.GetByScheduleIdAsync(message.ScheduleId,
-                    consumeContext.CancellationToken);
-
-            // Lấy device của lecturer
+            // Lấy device của lecturer trước
             var getLecturerDeviceQuery = new GetDeviceByUserIntegrationQuery(message.LecturerId.Value);
             var lecturerDeviceResponse = await mediator.Send(getLecturerDeviceQuery, consumeContext.CancellationToken);
 
@@ -46,41 +42,15 @@ public class GenerateScheduleWhitelistConsumer(
                 return;
             }
 
-            if (existingWhitelist != null)
-            {
-                // Whitelist đã tồn tại, chỉ cần thêm lecturer device
-                var whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
+            // Sử dụng UpsertAsync thay vì check exist rồi Add/Update
+            await UpsertScheduleWhitelistWithLecturer(
+                message.ScheduleId,
+                lecturerDeviceResponse.DeviceId,
+                consumeContext.CancellationToken);
 
-                if (whitelistedDeviceIds.Add(lecturerDeviceResponse.DeviceId))
-                {
-                    existingWhitelist.UpdateWhitelist(whitelistedDeviceIds.ToList());
-                    await scheduleWhitelistRepository.UpdateAsync(existingWhitelist, consumeContext.CancellationToken);
-                    logger.LogInformation(
-                        "Successfully added lecturer's device {DeviceId} to existing whitelist for Schedule {ScheduleId}.",
-                        lecturerDeviceResponse.DeviceId, message.ScheduleId);
-                }
-                else
-                {
-                    logger.LogInformation(
-                        "Lecturer's device {DeviceId} for Schedule {ScheduleId} already exists in the whitelist. No update needed.",
-                        lecturerDeviceResponse.DeviceId, message.ScheduleId);
-                }
-            }
-            else
-            {
-                // Whitelist chưa tồn tại, tạo mới với chỉ lecturer device
-                logger.LogInformation(
-                    "Whitelist does not exist for Schedule {ScheduleId}. Creating a new whitelist with lecturer's device only.",
-                    message.ScheduleId);
-
-                var whitelistedDeviceIds = new List<Guid> { lecturerDeviceResponse.DeviceId };
-                var newWhitelist = ScheduleWhitelist.Create(message.ScheduleId, whitelistedDeviceIds);
-                await scheduleWhitelistRepository.AddAsync(newWhitelist, consumeContext.CancellationToken);
-
-                logger.LogInformation(
-                    "Successfully created new ScheduleWhitelist for Schedule {ScheduleId} with lecturer's device {DeviceId}.",
-                    message.ScheduleId, lecturerDeviceResponse.DeviceId);
-            }
+            logger.LogInformation(
+                "Successfully processed lecturer assignment for Schedule {ScheduleId} with device {DeviceId}.",
+                message.ScheduleId, lecturerDeviceResponse.DeviceId);
         }
         catch (Exception ex)
         {
@@ -100,96 +70,136 @@ public class GenerateScheduleWhitelistConsumer(
 
         try
         {
-            var existingWhitelist =
-                await scheduleWhitelistRepository.GetByScheduleIdAsync(message.ScheduleId,
-                    consumeContext.CancellationToken);
+            var whitelistedDeviceIds = new HashSet<Guid>();
 
-            if (existingWhitelist != null)
+            // Lấy student devices
+            var getStudentIdsQuery = new GetStudentIdsByClassSectionIdIntegrationQuery(message.ClassSectionId);
+            var studentIdsResponse = await mediator.Send(getStudentIdsQuery, consumeContext.CancellationToken);
+            var enrolledStudentIds = studentIdsResponse.StudentIds;
+
+            if (enrolledStudentIds.Any())
             {
-                // Whitelist đã tồn tại, chỉ cần thêm student devices
-                logger.LogInformation(
-                    "Whitelist already exists for Schedule {ScheduleId}. Adding student devices only.",
-                    message.ScheduleId);
+                var getStudentDevicesQuery = new GetDevicesByUsersIntegrationQuery(enrolledStudentIds);
+                var studentDevicesResponse =
+                    await mediator.Send(getStudentDevicesQuery, consumeContext.CancellationToken);
+                foreach (var deviceId in studentDevicesResponse.UserDeviceMap.Values)
+                    whitelistedDeviceIds.Add(deviceId);
 
-                var whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
-
-                // Lấy danh sách student devices và thêm vào
-                var getStudentIdsQuery = new GetStudentIdsByClassSectionIdIntegrationQuery(message.ClassSectionId);
-                var studentIdsResponse = await mediator.Send(getStudentIdsQuery, consumeContext.CancellationToken);
-                var enrolledStudentIds = studentIdsResponse.StudentIds;
-
-                if (enrolledStudentIds.Any())
-                {
-                    var getStudentDevicesQuery = new GetDevicesByUsersIntegrationQuery(enrolledStudentIds);
-                    var studentDevicesResponse =
-                        await mediator.Send(getStudentDevicesQuery, consumeContext.CancellationToken);
-
-                    var addedDevices = 0;
-                    foreach (var deviceId in studentDevicesResponse.UserDeviceMap.Values)
-                        if (whitelistedDeviceIds.Add(deviceId))
-                            addedDevices++;
-
-                    logger.LogInformation(
-                        "Added {AddedCount} new student devices from {StudentCount} enrolled students.",
-                        addedDevices, enrolledStudentIds.Count);
-                }
-
-                existingWhitelist.UpdateWhitelist(whitelistedDeviceIds.ToList());
-                await scheduleWhitelistRepository.UpdateAsync(existingWhitelist, consumeContext.CancellationToken);
-                logger.LogInformation(
-                    "Successfully updated existing ScheduleWhitelist for Schedule {ScheduleId} with {DeviceCount} total devices.",
-                    message.ScheduleId, whitelistedDeviceIds.Count);
+                logger.LogInformation("Found {Count} student devices from {StudentCount} enrolled students.",
+                    studentDevicesResponse.UserDeviceMap.Count, enrolledStudentIds.Count);
             }
-            else
+
+            // Lấy lecturer device nếu có
+            Guid? lecturerDeviceId = null;
+            if (message.LecturerId.HasValue && message.LecturerId.Value != Guid.Empty)
             {
-                // Whitelist chưa tồn tại, tạo mới với students và lecturer (nếu có)
-                logger.LogInformation("Whitelist does not exist for Schedule {ScheduleId}. Creating a new one.",
-                    message.ScheduleId);
-
-                var whitelistedDeviceIds = new HashSet<Guid>();
-
-                // Thêm student devices
-                var getStudentIdsQuery = new GetStudentIdsByClassSectionIdIntegrationQuery(message.ClassSectionId);
-                var studentIdsResponse = await mediator.Send(getStudentIdsQuery, consumeContext.CancellationToken);
-                var enrolledStudentIds = studentIdsResponse.StudentIds;
-
-                if (enrolledStudentIds.Any())
+                var getLecturerDeviceQuery = new GetDeviceByUserIntegrationQuery(message.LecturerId.Value);
+                var lecturerDeviceResponse =
+                    await mediator.Send(getLecturerDeviceQuery, consumeContext.CancellationToken);
+                if (lecturerDeviceResponse.DeviceId != Guid.Empty)
                 {
-                    var getStudentDevicesQuery = new GetDevicesByUsersIntegrationQuery(enrolledStudentIds);
-                    var studentDevicesResponse =
-                        await mediator.Send(getStudentDevicesQuery, consumeContext.CancellationToken);
-                    foreach (var deviceId in studentDevicesResponse.UserDeviceMap.Values)
-                        whitelistedDeviceIds.Add(deviceId);
-
-                    logger.LogInformation("Added {Count} student devices from {StudentCount} enrolled students.",
-                        studentDevicesResponse.UserDeviceMap.Count, enrolledStudentIds.Count);
+                    whitelistedDeviceIds.Add(lecturerDeviceResponse.DeviceId);
+                    lecturerDeviceId = lecturerDeviceResponse.DeviceId;
+                    logger.LogInformation("Found lecturer's device to add to whitelist.");
                 }
-
-                // Thêm lecturer device nếu có
-                if (message.LecturerId.HasValue && message.LecturerId.Value != Guid.Empty)
-                {
-                    var getLecturerDeviceQuery = new GetDeviceByUserIntegrationQuery(message.LecturerId.Value);
-                    var lecturerDeviceResponse =
-                        await mediator.Send(getLecturerDeviceQuery, consumeContext.CancellationToken);
-                    if (lecturerDeviceResponse.DeviceId != Guid.Empty)
-                    {
-                        whitelistedDeviceIds.Add(lecturerDeviceResponse.DeviceId);
-                        logger.LogInformation("Added lecturer's device to new whitelist.");
-                    }
-                }
-
-                var newWhitelist = ScheduleWhitelist.Create(message.ScheduleId, whitelistedDeviceIds.ToList());
-                await scheduleWhitelistRepository.AddAsync(newWhitelist, consumeContext.CancellationToken);
-                logger.LogInformation(
-                    "Successfully created new ScheduleWhitelist for Schedule {ScheduleId} with {DeviceCount} total devices.",
-                    message.ScheduleId, whitelistedDeviceIds.Count);
             }
+
+            // Sử dụng UpsertAsync
+            await UpsertScheduleWhitelist(
+                message.ScheduleId,
+                whitelistedDeviceIds.ToList(),
+                consumeContext.CancellationToken);
+
+            logger.LogInformation(
+                "Successfully processed whitelist for Schedule {ScheduleId} with {DeviceCount} total devices.",
+                message.ScheduleId, whitelistedDeviceIds.Count);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "MassTransit Consumer: Error generating/updating whitelist for Schedule {ScheduleId}.",
                 message.ScheduleId);
             throw;
+        }
+    }
+
+    private async Task UpsertScheduleWhitelistWithLecturer(Guid scheduleId, Guid lecturerDeviceId, CancellationToken cancellationToken)
+    {
+        var existingWhitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(scheduleId, cancellationToken);
+
+        if (existingWhitelist != null)
+        {
+            // Update existing whitelist
+            var whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
+
+            if (whitelistedDeviceIds.Add(lecturerDeviceId))
+            {
+                existingWhitelist.UpdateWhitelist(whitelistedDeviceIds.ToList());
+                await scheduleWhitelistRepository.UpdateAsync(existingWhitelist, cancellationToken);
+                logger.LogInformation(
+                    "Successfully added lecturer's device {DeviceId} to existing whitelist for Schedule {ScheduleId}.",
+                    lecturerDeviceId, scheduleId);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Lecturer's device {DeviceId} for Schedule {ScheduleId} already exists in the whitelist.",
+                    lecturerDeviceId, scheduleId);
+            }
+        }
+        else
+        {
+            // Create new whitelist with just the lecturer device
+            var whitelistedDeviceIds = new List<Guid> { lecturerDeviceId };
+            var newWhitelist = ScheduleWhitelist.Create(scheduleId, whitelistedDeviceIds);
+
+            // Use UpsertAsync instead of AddAsync to handle race conditions
+            await scheduleWhitelistRepository.UpsertAsync(newWhitelist, cancellationToken);
+            logger.LogInformation(
+                "Successfully created new ScheduleWhitelist for Schedule {ScheduleId} with lecturer's device {DeviceId}.",
+                scheduleId, lecturerDeviceId);
+        }
+    }
+
+    private async Task UpsertScheduleWhitelist(Guid scheduleId, List<Guid> deviceIds, CancellationToken cancellationToken)
+    {
+        var existingWhitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(scheduleId, cancellationToken);
+
+        if (existingWhitelist != null)
+        {
+            // Merge với existing devices
+            var whitelistedDeviceIds = new HashSet<Guid>(existingWhitelist.WhitelistedDeviceIds);
+            var initialCount = whitelistedDeviceIds.Count;
+
+            foreach (var deviceId in deviceIds)
+                whitelistedDeviceIds.Add(deviceId);
+
+            var addedCount = whitelistedDeviceIds.Count - initialCount;
+
+            if (addedCount > 0)
+            {
+                existingWhitelist.UpdateWhitelist(whitelistedDeviceIds.ToList());
+                await scheduleWhitelistRepository.UpdateAsync(existingWhitelist, cancellationToken);
+                logger.LogInformation(
+                    "Successfully updated existing ScheduleWhitelist for Schedule {ScheduleId}. Added {AddedCount} new devices, total: {TotalCount}.",
+                    scheduleId, addedCount, whitelistedDeviceIds.Count);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "No new devices to add for existing ScheduleWhitelist {ScheduleId}.",
+                    scheduleId);
+            }
+        }
+        else
+        {
+            // Create new whitelist
+            var newWhitelist = ScheduleWhitelist.Create(scheduleId, deviceIds);
+
+            // Use UpsertAsync instead of AddAsync to handle race conditions
+            await scheduleWhitelistRepository.UpsertAsync(newWhitelist, cancellationToken);
+            logger.LogInformation(
+                "Successfully created new ScheduleWhitelist for Schedule {ScheduleId} with {DeviceCount} devices.",
+                scheduleId, deviceIds.Count);
         }
     }
 }

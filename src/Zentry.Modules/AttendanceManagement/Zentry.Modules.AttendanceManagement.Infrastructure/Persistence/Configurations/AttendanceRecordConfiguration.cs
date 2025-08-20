@@ -1,5 +1,3 @@
-// Zentry.Modules.AttendanceManagement.Infrastructure/Persistence/Configurations/AttendanceRecordConfiguration.cs
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zentry.Modules.AttendanceManagement.Domain.Entities;
@@ -30,12 +28,13 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
                 s => AttendanceStatus.FromName(s)
             )
             .IsRequired();
+
+        // FIX: Remove .IsRequired() since FaceIdStatus is nullable
         builder.Property(ar => ar.FaceIdStatus)
             .HasConversion(
-                s => s.ToString(),
-                s => FaceIdStatus.FromName(s)
-            )
-            .IsRequired();
+                s => s != null ? s.ToString() : null,
+                s => s != null ? FaceIdStatus.FromName(s) : null
+            );
 
         builder.Property(ar => ar.IsManual)
             .IsRequired();

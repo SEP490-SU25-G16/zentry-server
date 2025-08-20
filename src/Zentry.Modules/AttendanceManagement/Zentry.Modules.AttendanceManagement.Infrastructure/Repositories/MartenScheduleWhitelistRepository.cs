@@ -54,4 +54,10 @@ public class MartenScheduleWhitelistRepository(IDocumentSession session) : ISche
     {
         await session.SaveChangesAsync(cancellationToken);
     }
+    public async Task UpsertAsync(ScheduleWhitelist whitelist, CancellationToken cancellationToken = default)
+    {
+        // Store method will insert if not exists, update if exists
+        session.Store(whitelist);
+        await SaveChangesAsync(cancellationToken);
+    }
 }

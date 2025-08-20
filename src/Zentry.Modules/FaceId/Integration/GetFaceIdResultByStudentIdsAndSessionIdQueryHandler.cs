@@ -19,18 +19,19 @@ public class GetFaceIdResultByStudentIdsAndSessionIdQueryHandler(IFaceIdReposito
             request.SessionId,
             request.StudentIds,
             cancellationToken);
-
-        // Group by student and compute matched according to business rules:
-        // - If any request for a student is Completed with Matched == true => matched = true
-        // - Else if any request is Completed with Matched == false => matched = false
-        // - Else if any request is Expired or Canceled or Pending => matched = false by default
         var statusMap = new Dictionary<Guid, StudentFaceId>();
+
+        if (verifyRequests.Count is 0)
+        {
+            return new GetFaceIdResultByStudentIdsAndSessionIdIntegrationResponse(statusMap);
+        }
 
         var requestsByUser = verifyRequests.GroupBy(r => r.TargetUserId);
         foreach (var group in requestsByUser)
         {
             var userId = group.Key;
-            var anyCompletedFalse = group.Any(r => r.Status == FaceIdVerifyRequestStatus.Completed && r.Matched == false);
+            var anyCompletedFalse =
+                group.Any(r => r.Status == FaceIdVerifyRequestStatus.Completed && r.Matched == false);
             var anyCompletedTrue = group.Any(r => r.Status == FaceIdVerifyRequestStatus.Completed && r.Matched == true);
 
             bool matched;

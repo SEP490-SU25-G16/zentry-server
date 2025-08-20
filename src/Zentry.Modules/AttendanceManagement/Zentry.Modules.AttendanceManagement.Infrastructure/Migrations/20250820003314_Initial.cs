@@ -46,7 +46,7 @@ namespace Zentry.Modules.AttendanceManagement.Infrastructure.Migrations
                     ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     PercentageAttended = table.Column<double>(type: "double precision", nullable: false),
-                    FaceIdStatus = table.Column<string>(type: "text", nullable: false)
+                    FaceIdStatus = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
