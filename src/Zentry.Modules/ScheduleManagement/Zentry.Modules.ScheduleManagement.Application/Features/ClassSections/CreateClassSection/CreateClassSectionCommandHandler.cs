@@ -4,8 +4,6 @@ using Zentry.Modules.ScheduleManagement.Domain.ValueObjects;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Exceptions;
 
-// Thêm Value Object Semester
-
 namespace Zentry.Modules.ScheduleManagement.Application.Features.ClassSections.CreateClassSection;
 
 public class CreateClassSectionCommandHandler(

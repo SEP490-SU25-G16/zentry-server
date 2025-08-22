@@ -148,7 +148,6 @@ public class CreateSessionConsumer(
                 {
                     var currentSessionConfigSnapshot = session.SessionConfigs;
 
-                    // Publish SessionCreatedMessage to trigger attendance record creation
                     var sessionCreatedMessage = new SessionCreatedMessage(
                         session.Id,
                         session.ScheduleId,

@@ -22,7 +22,7 @@ public static class AttendanceMassTransitExtensions
             typeof(BatchedSessionFinalAttendanceConsumerDefinition));
         configurator.AddConsumer<UpdateRoundsConsumer>(typeof(UpdateRoundsConsumerDefinition));
         configurator.AddConsumer<DeleteScheduleSessionsConsumer>(typeof(DeleteScheduleSessionsConsumerDefinition));
-        configurator.AddConsumer<SessionCreatedAttendanceConsumer>(typeof(SessionCreatedAttendanceConsumerDefinition));
+        configurator.AddConsumer<AttendanceRecordCreatorConsumer>(typeof(AttendanceRecordCreatorConsumerDefinition));
         configurator.AddConsumer<StudentEnrollmentWhitelistConsumer>(
             typeof(StudentEnrollmentWhitelistConsumerDefinition));
     }
@@ -49,7 +49,7 @@ public static class AttendanceMassTransitExtensions
             e.ConfigureConsumer<BatchedSessionFinalAttendanceConsumer>(context);
             e.ConfigureConsumer<UpdateRoundsConsumer>(context);
             e.ConfigureConsumer<DeleteScheduleSessionsConsumer>(context);
-            e.ConfigureConsumer<SessionCreatedAttendanceConsumer>(context);
+            e.ConfigureConsumer<AttendanceRecordCreatorConsumer>(context);
             e.ConfigureConsumer<StudentEnrollmentWhitelistConsumer>(context);
 
             // Retry policy cải thiện
@@ -261,10 +261,10 @@ public class DeleteScheduleSessionsConsumerDefinition : ConsumerDefinition<Delet
     }
 }
 
-public class SessionCreatedAttendanceConsumerDefinition : ConsumerDefinition<SessionCreatedAttendanceConsumer>
+public class AttendanceRecordCreatorConsumerDefinition : ConsumerDefinition<AttendanceRecordCreatorConsumer>
 {
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<SessionCreatedAttendanceConsumer> consumerConfigurator, IRegistrationContext context)
+        IConsumerConfigurator<AttendanceRecordCreatorConsumer> consumerConfigurator, IRegistrationContext context)
     {
         consumerConfigurator.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
     }
