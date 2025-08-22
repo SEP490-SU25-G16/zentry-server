@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Zentry.Modules.AttendanceManagement.Application.Abstractions;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
+using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -27,7 +28,7 @@ public class AssignLecturerConsumer(
         {
             logger.LogWarning("No schedules found for ClassSectionId {ClassSectionId}. Skipping.",
                 message.ClassSectionId);
-            return;
+            throw new ResourceNotFoundException("Class Section", message.ClassSectionId);
         }
 
         var scheduleIds = schedulesResponse.Schedules.Select(s => s.ScheduleId).ToList();
