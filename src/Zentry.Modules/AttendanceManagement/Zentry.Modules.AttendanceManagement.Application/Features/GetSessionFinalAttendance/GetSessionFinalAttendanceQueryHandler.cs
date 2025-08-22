@@ -67,7 +67,7 @@ public class GetSessionFinalAttendanceQueryHandler(
                 .OrderByDescending(ar => ar.CreatedAt)
                 .FirstOrDefault();
 
-            var attendanceStatus = lastAttendanceRecord?.Status ?? AttendanceStatus.Absent;
+            var attendanceStatus = lastAttendanceRecord?.Status ?? AttendanceStatus.Future;
 
             finalAttendance.Add(new FinalAttendanceDto
             {

@@ -2,7 +2,6 @@ namespace Zentry.Modules.AttendanceManagement.Application.Dtos;
 
 public class FinalAttendanceDto
 {
-    // Cập nhật tên các field để khớp với ví dụ
     public Guid StudentId { get; set; }
     public string? StudentCode { get; set; }
     public string? FullName { get; set; }
