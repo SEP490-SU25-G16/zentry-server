@@ -11,7 +11,7 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
 {
     public async Task<int> CountTotalCoursesAsync(CancellationToken cancellationToken)
     {
-        return await dbContext.Courses.CountAsync(cancellationToken);
+        return await dbContext.Courses.Where(c => !c.IsDeleted).CountAsync(cancellationToken);
     }
 
     public async Task AddAsync(Course entity, CancellationToken cancellationToken)
@@ -39,14 +39,14 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
 
     public async Task<IEnumerable<Course>> GetAllAsync(CancellationToken cancellationToken)
     {
-        // Do HasQueryFilter, nó sẽ tự động chỉ lấy các Course !IsDeleted
         return await dbContext.Courses.ToListAsync(cancellationToken);
     }
 
     public async Task<Course?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        // Do HasQueryFilter, nó sẽ tự động chỉ lấy các Course !IsDeleted
-        return await dbContext.Courses.FindAsync(new object[] { id }, cancellationToken);
+        return await dbContext.Courses
+            .Where(c => !c.IsDeleted)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
     public async Task<bool> IsCodeUniqueAsync(string code, CancellationToken cancellationToken)

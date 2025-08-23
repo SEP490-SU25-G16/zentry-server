@@ -11,13 +11,13 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
 {
     public async Task<int> CountTotalRoomsAsync(CancellationToken cancellationToken)
     {
-        return await dbContext.Rooms.CountAsync(cancellationToken);
+        return await dbContext.Rooms.Where(r => !r.IsDeleted).CountAsync(cancellationToken);
     }
 
     public async Task<List<Room>> GetByRoomNamesAsync(List<string> roomNames, CancellationToken cancellationToken)
     {
         return await dbContext.Rooms
-            .Where(r => roomNames.Contains(r.RoomName))
+            .Where(r => roomNames.Contains(r.RoomName) && !r.IsDeleted)
             .ToListAsync(cancellationToken);
     }
 
@@ -33,24 +33,26 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
 
     public async Task<IEnumerable<Room>> GetAllAsync(CancellationToken cancellationToken)
     {
-        return await dbContext.Rooms.ToListAsync(cancellationToken);
+        return await dbContext.Rooms.Where(r => !r.IsDeleted).ToListAsync(cancellationToken);
     }
 
     public async Task<Room?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await dbContext.Rooms.FindAsync(new object[] { id }, cancellationToken);
+        return await dbContext.Rooms
+            .Where(r => !r.IsDeleted)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
     public async Task<bool> IsRoomNameUniqueAsync(string roomName, string building, CancellationToken cancellationToken)
     {
-        return !await dbContext.Rooms.AnyAsync(r => r.RoomName == roomName && r.Building == building,
+        return !await dbContext.Rooms.AnyAsync(r => r.RoomName == roomName && r.Building == building && !r.IsDeleted,
             cancellationToken);
     }
 
     public async Task<bool> IsRoomNameUniqueExcludingSelfAsync(Guid roomId, string? roomName, string building,
         CancellationToken cancellationToken)
     {
-        return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName && r.Building == building,
+        return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName && r.Building == building && !r.IsDeleted,
             cancellationToken);
     }
 
@@ -86,7 +88,7 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
     public async Task<Tuple<List<Room>, int>> GetPagedRoomsAsync(RoomListCriteria criteria,
         CancellationToken cancellationToken)
     {
-        var query = dbContext.Rooms.AsQueryable();
+        var query = dbContext.Rooms.Where(r => !r.IsDeleted).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
             query = query.Where(r =>
@@ -94,7 +96,8 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
                 r.Building.Contains(criteria.SearchTerm)
             );
 
-        if (!string.IsNullOrWhiteSpace(criteria.Building)) query = query.Where(r => r.Building == criteria.Building);
+        if (!string.IsNullOrWhiteSpace(criteria.Building))
+            query = query.Where(r => r.Building == criteria.Building);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

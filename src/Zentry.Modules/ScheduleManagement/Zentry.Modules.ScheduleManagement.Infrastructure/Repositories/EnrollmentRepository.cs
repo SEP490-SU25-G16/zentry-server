@@ -132,7 +132,8 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
         CancellationToken cancellationToken)
     {
         return await dbContext.Enrollments
-            .Where(e => e.ClassSectionId == classSectionId)
+            .Where(e => e.ClassSectionId == classSectionId &&
+                        e.Status != EnrollmentStatus.Cancelled)
             .ToListAsync(cancellationToken);
     }
 
@@ -141,7 +142,7 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
     {
         return await dbContext.Enrollments
             .AsNoTracking()
-            .Where(e => e.ClassSectionId == classSectionId)
+            .Where(e => e.ClassSectionId == classSectionId && e.Status != EnrollmentStatus.Cancelled)
             .ToListAsync(cancellationToken);
     }
 
@@ -190,12 +191,16 @@ public class EnrollmentRepository(ScheduleDbContext dbContext) : IEnrollmentRepo
 
     public async Task<IEnumerable<Enrollment>> GetAllAsync(CancellationToken cancellationToken)
     {
-        return await dbContext.Enrollments.ToListAsync(cancellationToken);
+        return await dbContext.Enrollments
+            .Where(e => e.Status != EnrollmentStatus.Cancelled)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<Enrollment?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await dbContext.Enrollments.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+        return await dbContext.Enrollments
+            .Where(e => e.Status != EnrollmentStatus.Cancelled)
+            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
     public async Task UpdateAsync(Enrollment entity, CancellationToken cancellationToken)

@@ -27,7 +27,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
                            s.WeekDay == weekDay &&
                            s.StartTime < endTime &&
                            s.EndTime > startTime &&
-                           (s.StartDate < endDate || s.EndDate > startDate),
+                           (s.StartDate < endDate || s.EndDate > startDate) &&
+                           !s.IsDeleted,
                 cancellationToken);
 
         return !overlap;
@@ -55,7 +56,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .AsNoTracking()
             .AnyAsync(s => s.RoomId == roomId &&
                            s.StartDate <= dateOnly &&
-                           s.EndDate >= dateOnly,
+                           s.EndDate >= dateOnly &&
+                           !s.IsDeleted,
                 cancellationToken);
     }
 
@@ -68,14 +70,15 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .Include(s => s.ClassSection)
             .AnyAsync(s => s.ClassSection!.CourseId == courseId &&
                            s.StartDate <= dateOnly &&
-                           s.EndDate >= dateOnly,
+                           s.EndDate >= dateOnly &&
+                           !s.IsDeleted,
                 cancellationToken);
     }
 
     public async Task<bool> IsBookedScheduleByRoomIdAsync(Guid roomId, CancellationToken cancellationToken)
     {
         return await dbContext.Schedules
-            .AnyAsync(s => s.RoomId == roomId, cancellationToken);
+            .AnyAsync(s => s.RoomId == roomId && !s.IsDeleted, cancellationToken); // Thêm !s.IsDeleted
     }
 
     public async Task<List<Schedule>> GetSchedulesByClassSectionIdAsync(Guid classSectionId,
@@ -327,7 +330,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
             .AnyAsync(s => s.ClassSection!.LecturerId == lecturerId &&
                            s.WeekDay == weekDay &&
                            s.StartTime < endTime &&
-                           s.EndTime > startTime,
+                           s.EndTime > startTime &&
+                           !s.IsDeleted,
                 cancellationToken);
 
         return !overlap;
@@ -341,7 +345,8 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
                            s.WeekDay == weekDay &&
                            s.StartTime < endTime &&
                            s.EndTime > startTime &&
-                           (s.StartDate < endDate || s.EndDate > startDate),
+                           (s.StartDate < endDate || s.EndDate > startDate) &&
+                           !s.IsDeleted,
                 cancellationToken);
 
         return !overlap;
@@ -351,6 +356,7 @@ public class ScheduleRepository(ScheduleDbContext dbContext) : IScheduleReposito
         CancellationToken cancellationToken)
     {
         var query = dbContext.Schedules
+            .Where(s => !s.IsDeleted)
             .Include(s => s.ClassSection)
             .ThenInclude(cs => cs.Course)
             .AsQueryable();

@@ -96,19 +96,21 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
     {
         return await dbContext.ClassSections
             .Include(cs => cs.Course)
+            .Where(cs => !cs.IsDeleted)
             .FirstOrDefaultAsync(cs => cs.Schedules.Any(s => s.Id == scheduleId), cancellationToken);
     }
 
     public async Task<bool> IsExistClassSectionByCourseIdAsync(Guid courseId, CancellationToken cancellationToken)
     {
         return await dbContext.ClassSections
-            .AnyAsync(cs => cs.CourseId == courseId, cancellationToken);
+            .AnyAsync(cs => cs.CourseId == courseId && !cs.IsDeleted, cancellationToken);
     }
 
     public async Task<bool> IsExistClassSectionBySectionCodeAsync(Guid id, string sectionCode,
         CancellationToken cancellationToken)
     {
-        return await dbContext.ClassSections.AnyAsync(cs => cs.Id != id && cs.SectionCode == sectionCode,
+        return await dbContext.ClassSections.AnyAsync(
+            cs => cs.Id != id && cs.SectionCode == sectionCode && !cs.IsDeleted,
             cancellationToken);
     }
 
@@ -116,7 +118,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
         CancellationToken cancellationToken = default)
     {
         return await dbContext.ClassSections
-            .Where(cs => cs.SectionCode == sectionCode)
+            .Where(cs => cs.SectionCode == sectionCode && !cs.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -128,7 +130,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
             .Include(cs => cs.Schedules)
             .ThenInclude(s => s.Room)
             .Include(cs => cs.Enrollments)
-            .Where(cs => cs.LecturerId == lecturerId)
+            .Where(cs => cs.LecturerId == lecturerId && !cs.IsDeleted)
             .ToListAsync(cancellationToken);
     }
 
@@ -263,7 +265,7 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
     public async Task<List<ClassSection>> GetBySectionCodesAsync(List<string> sectionCodes,
         CancellationToken cancellationToken)
     {
-        return await dbContext.ClassSections.Where(cs => sectionCodes.Contains(cs.SectionCode))
+        return await dbContext.ClassSections.Where(cs => sectionCodes.Contains(cs.SectionCode) && !cs.IsDeleted)
             .ToListAsync(cancellationToken);
     }
 
@@ -283,7 +285,6 @@ public class ClassSectionRepository(ScheduleDbContext dbContext) : IClassSection
     {
         return await dbContext.ClassSections
             .AsNoTracking()
-            .Where(c => !c.IsDeleted)
             .Where(c => !c.IsDeleted)
             .Select(cs => cs.Semester)
             .Distinct()
