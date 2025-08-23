@@ -117,7 +117,7 @@ public class AttendanceCalculationService(
         var deviceRecords = await BuildDeviceRecords(filteredScanLogs, whitelist, cancellationToken);
 
         // 3. Find lecturer as BFS root
-        var lecturerDeviceId = FindLecturerRoot(deviceRecords);
+        var lecturerDeviceId = await FindLecturerRoot(deviceRecords, cancellationToken);
 
         // 4. Apply BFS algorithm
         var attendedDevices = ApplyBfsAlgorithm(deviceRecords, lecturerDeviceId, whitelist);
@@ -200,16 +200,77 @@ public class AttendanceCalculationService(
         return records;
     }
 
-    private string FindLecturerRoot(List<DeviceRecordDto> deviceRecords)
+    private async Task<string> FindLecturerRoot(List<DeviceRecordDto> deviceRecords,
+        CancellationToken cancellationToken)
     {
-        var lecturerRecord = deviceRecords.FirstOrDefault(r =>
-            r.Role.Equals(Role.Lecturer.ToString(), StringComparison.OrdinalIgnoreCase));
+        try
+        {
+            var lecturerRecord = deviceRecords.FirstOrDefault(r =>
+                r.Role.Equals(Role.Lecturer.ToString(), StringComparison.OrdinalIgnoreCase));
 
-        if (lecturerRecord == null)
-            throw new InvalidOperationException("No lecturer found in device records for BFS root");
+            if (lecturerRecord != null)
+            {
+                logger.LogInformation("Found lecturer {LecturerId} as BFS root", lecturerRecord.DeviceId);
+                return lecturerRecord.DeviceId;
+            }
 
-        logger.LogInformation("Found lecturer {LecturerId} as BFS root", lecturerRecord.DeviceId);
-        return lecturerRecord.DeviceId;
+            logger.LogWarning("No lecturer found in device records. Searching for alternative root...");
+
+            var allScannedDeviceIds = deviceRecords
+                .SelectMany(dr => dr.ScanList)
+                .Distinct()
+                .Select(Guid.Parse)
+                .ToList();
+
+            if (allScannedDeviceIds.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "No lecturer found and no scan data available for alternative root selection");
+            }
+
+            var getDeviceRolesQuery = new GetUserRolesByDevicesIntegrationQuery(allScannedDeviceIds);
+            var response = await mediator.Send(getDeviceRolesQuery, cancellationToken);
+            var deviceRolesMap = response.DeviceRolesMap;
+
+            logger.LogInformation("Fetched roles for {Count} devices from scan lists", deviceRolesMap.Count);
+
+            var candidateDevices = new List<string>();
+
+            foreach (var deviceRecord in deviceRecords)
+            {
+                if (deviceRecord.ScanList.Count == 0) continue;
+
+                var hasLecturerInScanList = deviceRecord.ScanList
+                    .Where(deviceIdString => Guid.TryParse(deviceIdString, out var deviceIdGuid) &&
+                                             deviceRolesMap.ContainsKey(deviceIdGuid))
+                    .Any(deviceIdString =>
+                    {
+                        var deviceIdGuid = Guid.Parse(deviceIdString);
+                        var role = deviceRolesMap[deviceIdGuid];
+                        return role.Equals(Role.Lecturer.ToString(), StringComparison.OrdinalIgnoreCase);
+                    });
+
+                if (!hasLecturerInScanList) continue;
+                candidateDevices.Add(deviceRecord.DeviceId);
+                logger.LogDebug("Device {DeviceId} can scan lecturer, added as candidate", deviceRecord.DeviceId);
+            }
+
+            if (candidateDevices.Count == 0)
+            {
+                throw new InvalidOperationException("No lecturer found and no devices can scan lecturer for BFS root");
+            }
+
+            var selectedRoot = candidateDevices.First();
+            logger.LogInformation("Selected device {DeviceId} as alternative BFS root (can scan lecturer)",
+                selectedRoot);
+
+            return selectedRoot;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error finding lecturer root for BFS algorithm");
+            throw;
+        }
     }
 
     private HashSet<string> ApplyBfsAlgorithm(List<DeviceRecordDto> deviceRecords, string lecturerId,

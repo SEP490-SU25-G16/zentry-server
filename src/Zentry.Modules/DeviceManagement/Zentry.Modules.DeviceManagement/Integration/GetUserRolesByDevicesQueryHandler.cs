@@ -8,7 +8,7 @@ namespace Zentry.Modules.DeviceManagement.Integration;
 
 public class GetUserRolesByDevicesQueryHandler(
     IDeviceRepository deviceRepository,
-    IMediator mediator, // Vẫn cần Mediator để gửi query tới UserManagement
+    IMediator mediator,
     ILogger<GetUserRolesByDevicesQueryHandler> logger)
     : IQueryHandler<GetUserRolesByDevicesIntegrationQuery, GetUserRolesByDevicesIntegrationResponse>
 {
