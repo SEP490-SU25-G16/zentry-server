@@ -25,7 +25,6 @@ public class ClassSectionConfiguration : IEntityTypeConfiguration<ClassSection>
             .HasMaxLength(50)
             .IsRequired();
 
-        // Cấu hình Value Object Semester
         builder.Property(cs => cs.Semester)
             .HasConversion(s => s.ToString(), v => Semester.Create(v))
             .HasMaxLength(20)
@@ -60,5 +59,7 @@ public class ClassSectionConfiguration : IEntityTypeConfiguration<ClassSection>
             .WithMany(c => c.ClassSections)
             .HasForeignKey(cs => cs.CourseId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasQueryFilter(c => !c.IsDeleted);
     }
 }

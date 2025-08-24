@@ -35,5 +35,6 @@ public class RoomConfiguration : IEntityTypeConfiguration<Room>
             .IsUnique();
 
         builder.HasIndex(r => r.Building);
+        builder.HasQueryFilter(c => !c.IsDeleted);
     }
 }
