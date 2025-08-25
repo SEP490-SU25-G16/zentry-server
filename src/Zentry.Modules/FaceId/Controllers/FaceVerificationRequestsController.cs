@@ -105,7 +105,7 @@ public class FaceVerificationRequestsController : ControllerBase
             var expiresInMinutes =
                 Math.Max(1, Math.Min(request.ExpiresInMinutes.GetValueOrDefault(30), 120)); // Max 2 hours
             var expiresAt = now.AddMinutes(expiresInMinutes);
-            var threshold = 0.7f;
+            var threshold = 0.5f;
 
             var meta = new FaceVerificationRequestMeta(
                 requestId,
@@ -268,7 +268,7 @@ public class FaceVerificationRequestsController : ControllerBase
             Buffer.BlockCopy(embeddingBytes, 0, embeddingArray, 0, embeddingBytes.Length);
 
             // 6) Verify via FaceId module handler
-            var cmd = new VerifyFaceIdCommand(parsedUserId, embeddingArray, threshold ?? 0.7f, requestId);
+            var cmd = new VerifyFaceIdCommand(parsedUserId, embeddingArray, threshold ?? 0.5f, requestId);
             var result = await _mediator.Send(cmd, cancellationToken);
 
             // 7) Store receipt for auditing
