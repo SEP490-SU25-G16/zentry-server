@@ -90,7 +90,6 @@ public class GenerateScheduleWhitelistConsumer(
             }
 
             // Lấy lecturer device nếu có
-            Guid? lecturerDeviceId = null;
             if (message.LecturerId.HasValue && message.LecturerId.Value != Guid.Empty)
             {
                 var getLecturerDeviceQuery = new GetDeviceByUserIntegrationQuery(message.LecturerId.Value);
@@ -99,7 +98,6 @@ public class GenerateScheduleWhitelistConsumer(
                 if (lecturerDeviceResponse.DeviceId != Guid.Empty)
                 {
                     whitelistedDeviceIds.Add(lecturerDeviceResponse.DeviceId);
-                    lecturerDeviceId = lecturerDeviceResponse.DeviceId;
                     logger.LogInformation("Found lecturer's device to add to whitelist.");
                 }
             }

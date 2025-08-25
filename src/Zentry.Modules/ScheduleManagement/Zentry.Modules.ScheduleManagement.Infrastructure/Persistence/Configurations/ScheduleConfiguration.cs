@@ -79,5 +79,6 @@ public class ScheduleConfiguration : IEntityTypeConfiguration<Schedule>
             "\"EndTime\" > \"StartTime\"");
 
         builder.HasIndex(s => new { s.RoomId, s.StartDate, s.StartTime, s.EndTime });
+        builder.HasQueryFilter(c => !c.IsDeleted);
     }
 }
