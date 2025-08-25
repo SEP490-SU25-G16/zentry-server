@@ -1,19 +1,16 @@
 using Moq;
-using MediatR;
-using Microsoft.Extensions.Logging;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Features.UpdateUserStatus;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Constants.User;
-using Zentry.SharedKernel.Contracts.Schedule;
 using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.UserManagement.Tests.Command;
 
 public class UpdateUserStatusCommandHandlerTests : BaseTest<UpdateUserStatusCommandHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly UpdateUserStatusCommandHandler _handler;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
 
     public UpdateUserStatusCommandHandlerTests()
     {

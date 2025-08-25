@@ -11,8 +11,8 @@ namespace Zentry.Modules.UserManagement.Tests.Query;
 
 public class GetUserQueryHandlerTests : BaseTest<GetUserQueryHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly GetUserQueryHandler _handler;
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
 
     public GetUserQueryHandlerTests()
     {
@@ -65,12 +65,12 @@ public class GetUserQueryHandlerTests : BaseTest<GetUserQueryHandler>
         // Arrange
         var userId = Guid.NewGuid();
         _userRepositoryMock.Setup(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
-                           .ReturnsAsync((User)null!);
+            .ReturnsAsync((User)null!);
         var query = new GetUserQuery(userId);
 
         // Act & Assert
         await FluentActions.Awaiting(() => _handler.Handle(query, CancellationToken.None))
-                           .Should().ThrowAsync<ResourceNotFoundException>();
+            .Should().ThrowAsync<ResourceNotFoundException>();
         _userRepositoryMock.Verify(r => r.GetByIdAsync(userId, It.IsAny<CancellationToken>()), Times.Once);
         _userRepositoryMock.Verify(r => r.GetAccountByUserId(It.IsAny<Guid>()), Times.Never);
     }

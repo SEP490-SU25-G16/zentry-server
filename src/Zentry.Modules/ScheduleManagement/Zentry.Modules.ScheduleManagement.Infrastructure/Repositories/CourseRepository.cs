@@ -51,13 +51,8 @@ public class CourseRepository(ScheduleDbContext dbContext) : ICourseRepository
 
     public async Task<bool> IsCodeUniqueAsync(string code, CancellationToken cancellationToken)
     {
-        // Quan trọng: Kiểm tra tính duy nhất cần bao gồm cả các bản ghi đã bị xóa mềm
-        // để tránh tạo một khóa học mới với cùng code của khóa học đã xóa mềm.
-        // Hoặc bạn có thể bỏ qua bản ghi đã xóa mềm nếu logic nghiệp vụ cho phép tái sử dụng code.
-        // Ở đây, tôi sẽ kiểm tra DUY NHẤT TRONG SỐ CÁC KHÓA HỌC HIỆN CÓ (chưa xóa mềm)
-        // Nếu bạn muốn kiểm tra trên tất cả các bản ghi (kể cả đã xóa mềm), bạn cần dùng IgnoreQueryFilters()
         return !await dbContext.Courses
-            .IgnoreQueryFilters() // Tạm thời bỏ qua global filter để kiểm tra tất cả các bản ghi
+            .IgnoreQueryFilters()
             .AnyAsync(c => c.Code == code, cancellationToken);
     }
 

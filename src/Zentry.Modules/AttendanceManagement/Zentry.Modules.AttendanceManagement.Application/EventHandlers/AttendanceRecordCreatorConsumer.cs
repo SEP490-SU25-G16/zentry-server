@@ -7,7 +7,6 @@ using Zentry.SharedKernel.Constants.Attendance;
 using Zentry.SharedKernel.Contracts.Attendance;
 using Zentry.SharedKernel.Contracts.Events;
 using Zentry.SharedKernel.Contracts.Schedule;
-using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.AttendanceManagement.Application.EventHandlers;
 
@@ -62,7 +61,8 @@ public class AttendanceRecordCreatorConsumer(
                 return;
             }
 
-            await CreateAttendanceRecordsForSession(message.SessionId, studentIdsResponse.StudentIds, context.CancellationToken);
+            await CreateAttendanceRecordsForSession(message.SessionId, studentIdsResponse.StudentIds,
+                context.CancellationToken);
 
             logger.LogInformation(
                 "Successfully processed SessionCreatedMessage for SessionId {SessionId}",
@@ -104,10 +104,7 @@ public class AttendanceRecordCreatorConsumer(
             if (message.StudentId != Guid.Empty)
             {
                 // Avoid duplicate if student is also in bulk list
-                if (!studentIds.Contains(message.StudentId))
-                {
-                    studentIds.Add(message.StudentId);
-                }
+                if (!studentIds.Contains(message.StudentId)) studentIds.Add(message.StudentId);
 
                 logger.LogInformation(
                     "Processing single student enrollment for StudentId {StudentId} in ClassSectionId {ClassSectionId}",
@@ -244,17 +241,13 @@ public class AttendanceRecordCreatorConsumer(
 
         // Log differently for single vs multiple students
         if (studentIds.Count == 1)
-        {
             logger.LogDebug(
                 "Processing attendance record creation for Student {StudentId} in Session {SessionId}",
                 studentIds[0], sessionId);
-        }
         else
-        {
             logger.LogDebug(
                 "Processing attendance record creation for {StudentCount} students in Session {SessionId}. Students: [{StudentIds}]",
                 studentIds.Count, sessionId, string.Join(", ", studentIds));
-        }
 
         // Check if attendance records already exist (idempotency)
         var existingRecords = await attendanceRecordRepository
@@ -268,17 +261,13 @@ public class AttendanceRecordCreatorConsumer(
         if (studentsNeedingRecords.Count == 0)
         {
             if (studentIds.Count == 1)
-            {
                 logger.LogDebug(
                     "Attendance record already exists for Student {StudentId} in Session {SessionId}. Skipping.",
                     studentIds[0], sessionId);
-            }
             else
-            {
                 logger.LogDebug(
                     "All {StudentCount} students already have attendance records for Session {SessionId}. Skipping.",
                     studentIds.Count, sessionId);
-            }
             return 0;
         }
 
@@ -306,17 +295,13 @@ public class AttendanceRecordCreatorConsumer(
         await attendanceRecordRepository.SaveChangesAsync(cancellationToken);
 
         if (studentsNeedingRecords.Count == 1)
-        {
             logger.LogInformation(
                 "Successfully created Future attendance record for Student {StudentId} in Session {SessionId}",
                 studentsNeedingRecords[0], sessionId);
-        }
         else
-        {
             logger.LogInformation(
                 "Successfully created {Count} Future attendance records for Session {SessionId}. Students: [{StudentIds}]",
                 futureAttendanceRecords.Count, sessionId, string.Join(", ", studentsNeedingRecords));
-        }
 
         return futureAttendanceRecords.Count;
     }

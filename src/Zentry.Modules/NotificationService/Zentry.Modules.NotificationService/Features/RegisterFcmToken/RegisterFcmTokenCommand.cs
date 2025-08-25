@@ -1,23 +1,12 @@
-using MediatR;
 using Zentry.SharedKernel.Abstractions.Application;
 
 namespace Zentry.Modules.NotificationService.Features.RegisterFcmToken;
 
 /// <summary>
-/// Command để đăng ký FCM token cho device
+///     Command để đăng ký FCM token cho device
 /// </summary>
 public class RegisterFcmTokenCommand : ICommand<RegisterFcmTokenResponse>
 {
-    public Guid UserId { get; }
-    public string AndroidId { get; }
-    public string FcmToken { get; }
-    public string Platform { get; }
-    public string? DeviceName { get; }
-    public string? Model { get; }
-    public string? Manufacturer { get; }
-    public string? OsVersion { get; }
-    public string? AppVersion { get; }
-
     public RegisterFcmTokenCommand(
         Guid userId,
         string androidId,
@@ -39,4 +28,14 @@ public class RegisterFcmTokenCommand : ICommand<RegisterFcmTokenResponse>
         OsVersion = osVersion;
         AppVersion = appVersion;
     }
+
+    public Guid UserId { get; }
+    public string AndroidId { get; }
+    public string FcmToken { get; }
+    public string Platform { get; }
+    public string? DeviceName { get; }
+    public string? Model { get; }
+    public string? Manufacturer { get; }
+    public string? OsVersion { get; }
+    public string? AppVersion { get; }
 }

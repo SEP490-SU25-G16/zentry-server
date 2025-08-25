@@ -10,10 +10,9 @@ namespace Zentry.Modules.UserManagement.Tests.Command;
 
 public class CreateUserCommandHandlerTests : BaseTest<CreateUserCommandHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock = new();
-    private readonly Mock<IPasswordHasher> _passwordHasherMock = new();
-
     private readonly CreateUserCommandHandler _handler;
+    private readonly Mock<IPasswordHasher> _passwordHasherMock = new();
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
 
     public CreateUserCommandHandlerTests()
     {
@@ -43,7 +42,7 @@ public class CreateUserCommandHandlerTests : BaseTest<CreateUserCommandHandler>
         MediatorMock.Setup(m => m.Send(
                 It.IsAny<CreateUserAttributesIntegrationCommand>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CreateUserAttributesIntegrationResponse(Success: true, Message: "Success", SkippedAttributes: null));
+            .ReturnsAsync(new CreateUserAttributesIntegrationResponse(true, "Success", null));
 
         MediatorMock.Setup(m => m.Send(
                 It.IsAny<GetUserAttributesIntegrationQuery>(),

@@ -1,5 +1,4 @@
 using Moq;
-using Xunit;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Features.UpdateFaceId;
 using Zentry.Modules.UserManagement.Interfaces;
@@ -8,8 +7,8 @@ namespace Zentry.Modules.UserManagement.Tests.Command;
 
 public class UpdateFaceIdCommandHandlerTests : BaseTest<UpdateFaceIdCommandHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly UpdateFaceIdCommandHandler _handler;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
 
     public UpdateFaceIdCommandHandlerTests()
     {
@@ -86,5 +85,4 @@ public class UpdateFaceIdCommandHandlerTests : BaseTest<UpdateFaceIdCommandHandl
 
         _userRepositoryMock.Verify(r => r.UpdateAsync(user, It.IsAny<CancellationToken>()), Times.Once);
     }
-
 }

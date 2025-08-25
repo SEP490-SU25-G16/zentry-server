@@ -223,10 +223,8 @@ public class AttendanceCalculationService(
                 .ToList();
 
             if (allScannedDeviceIds.Count == 0)
-            {
                 throw new InvalidOperationException(
                     "No lecturer found and no scan data available for alternative root selection");
-            }
 
             var getDeviceRolesQuery = new GetUserRolesByDevicesIntegrationQuery(allScannedDeviceIds);
             var response = await mediator.Send(getDeviceRolesQuery, cancellationToken);
@@ -256,9 +254,7 @@ public class AttendanceCalculationService(
             }
 
             if (candidateDevices.Count == 0)
-            {
                 throw new InvalidOperationException("No lecturer found and no devices can scan lecturer for BFS root");
-            }
 
             var selectedRoot = candidateDevices.First();
             logger.LogInformation("Selected device {DeviceId} as alternative BFS root (can scan lecturer)",

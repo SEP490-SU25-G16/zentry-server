@@ -120,7 +120,8 @@ public class GenerateScheduleWhitelistConsumer(
         }
     }
 
-    private async Task UpsertScheduleWhitelistWithLecturer(Guid scheduleId, Guid lecturerDeviceId, CancellationToken cancellationToken)
+    private async Task UpsertScheduleWhitelistWithLecturer(Guid scheduleId, Guid lecturerDeviceId,
+        CancellationToken cancellationToken)
     {
         var existingWhitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(scheduleId, cancellationToken);
 
@@ -158,7 +159,8 @@ public class GenerateScheduleWhitelistConsumer(
         }
     }
 
-    private async Task UpsertScheduleWhitelist(Guid scheduleId, List<Guid> deviceIds, CancellationToken cancellationToken)
+    private async Task UpsertScheduleWhitelist(Guid scheduleId, List<Guid> deviceIds,
+        CancellationToken cancellationToken)
     {
         var existingWhitelist = await scheduleWhitelistRepository.GetByScheduleIdAsync(scheduleId, cancellationToken);
 

@@ -49,8 +49,8 @@ public class GetCourseByIdQueryHandlerTests : BaseCourseTest
             .ReturnsAsync((Course?)null);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ResourceNotFoundException>(
-            () => _handler.Handle(query, CancellationToken.None));
+        var exception =
+            await Assert.ThrowsAsync<ResourceNotFoundException>(() => _handler.Handle(query, CancellationToken.None));
 
         exception.Message.Should().Contain("Course");
         exception.Message.Should().Contain(courseId.ToString());

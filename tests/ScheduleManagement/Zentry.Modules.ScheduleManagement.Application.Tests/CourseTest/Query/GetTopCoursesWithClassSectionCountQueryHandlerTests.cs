@@ -19,13 +19,13 @@ public class GetTopCoursesWithClassSectionCountQueryHandlerTests : BaseCourseTes
         var query = new GetTopCoursesWithClassSectionCountQuery(5);
         var expectedCourses = new List<CourseWithClassSectionCountDto>
         {
-            new CourseWithClassSectionCountDto
+            new()
             {
                 CourseId = Guid.NewGuid(),
                 CourseName = "Computer Science 101",
                 ClassSectionCount = 10
             },
-            new CourseWithClassSectionCountDto
+            new()
             {
                 CourseId = Guid.NewGuid(),
                 CourseName = "Advanced Mathematics",

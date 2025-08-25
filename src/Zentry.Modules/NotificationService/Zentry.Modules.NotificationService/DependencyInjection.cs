@@ -28,7 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
         services.AddScoped<IFcmSender, FcmSender>();
         services.AddScoped<INotificationSender, NotificationSender>();
-        
+
         // Mock service để test FCM token registration
         // TODO: Thay thế bằng DeviceManagement integration thực tế
         services.AddScoped<IDeviceManagementService, MockDeviceManagementService>();

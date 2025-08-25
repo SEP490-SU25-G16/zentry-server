@@ -52,7 +52,8 @@ public class RoomRepository(ScheduleDbContext dbContext) : IRoomRepository
     public async Task<bool> IsRoomNameUniqueExcludingSelfAsync(Guid roomId, string? roomName, string building,
         CancellationToken cancellationToken)
     {
-        return !await dbContext.Rooms.AnyAsync(r => r.Id != roomId && r.RoomName == roomName && r.Building == building && !r.IsDeleted,
+        return !await dbContext.Rooms.AnyAsync(
+            r => r.Id != roomId && r.RoomName == roomName && r.Building == building && !r.IsDeleted,
             cancellationToken);
     }
 

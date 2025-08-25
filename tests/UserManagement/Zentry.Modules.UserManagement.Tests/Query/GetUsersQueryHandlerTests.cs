@@ -9,8 +9,8 @@ namespace Zentry.Modules.UserManagement.Tests.Query;
 
 public class GetUsersQueryHandlerTests : BaseTest<GetUsersQueryHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock = new();
     private readonly GetUsersQueryHandler _handler;
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
 
     public GetUsersQueryHandlerTests()
     {
@@ -21,17 +21,17 @@ public class GetUsersQueryHandlerTests : BaseTest<GetUsersQueryHandler>
     public async Task Handle_ShouldReturn_UsersAndTotalCount_WhenDataExists()
     {
         // Arrange
-        var query = new GetUsersQuery(pageNumber: 1, pageSize: 10);
+        var query = new GetUsersQuery(1, 10);
         var userList = new List<UserListItemDto>
         {
-            new UserListItemDto()
+            new()
             {
                 UserId = Guid.NewGuid(),
                 FullName = "User A",
                 Email = "a@test.com",
                 Role = Role.Lecturer.ToString()
             },
-            new UserListItemDto()
+            new()
             {
                 UserId = Guid.NewGuid(),
                 FullName = "User B",

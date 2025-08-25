@@ -1,5 +1,4 @@
 using MediatR;
-using Moq;
 using Zentry.Modules.ScheduleManagement.Application.Abstractions;
 using Zentry.Modules.ScheduleManagement.Application.Dtos;
 using Zentry.Modules.ScheduleManagement.Application.Services;
@@ -9,13 +8,13 @@ namespace Zentry.Modules.ScheduleManagement.Application.Tests;
 
 public abstract class BaseCourseTest
 {
-    protected readonly Mock<ICourseRepository> CourseRepositoryMock = new();
-    protected readonly Mock<IClassSectionRepository> ClassSectionRepositoryMock = new();
-    protected readonly Mock<IScheduleRepository> ScheduleRepositoryMock = new();
-    protected readonly Mock<IMediator> MediatorMock = new();
     protected readonly Mock<IAttendanceCalculationService> AttendanceCalculationServiceMock = new();
+    protected readonly Mock<IClassSectionRepository> ClassSectionRepositoryMock = new();
+    protected readonly Mock<ICourseRepository> CourseRepositoryMock = new();
+    protected readonly Mock<IMediator> MediatorMock = new();
+    protected readonly Mock<IScheduleRepository> ScheduleRepositoryMock = new();
 
-    protected static Domain.Entities.Course CreateTestCourse(string code = "CS101", string name = "Computer Science 101",
+    protected static Course CreateTestCourse(string code = "CS101", string name = "Computer Science 101",
         string description = "Introduction to Computer Science")
     {
         return Course.Create(code, name, description);

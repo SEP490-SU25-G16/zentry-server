@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Zentry.Modules.FaceId.Entities;
+﻿using Zentry.Modules.FaceId.Entities;
 using Zentry.Modules.FaceId.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.FaceId;
@@ -21,10 +19,7 @@ public class GetFaceIdResultByStudentIdsAndSessionIdQueryHandler(IFaceIdReposito
             cancellationToken);
         var statusMap = new Dictionary<Guid, StudentFaceId>();
 
-        if (verifyRequests.Count is 0)
-        {
-            return new GetFaceIdResultByStudentIdsAndSessionIdIntegrationResponse(statusMap);
-        }
+        if (verifyRequests.Count is 0) return new GetFaceIdResultByStudentIdsAndSessionIdIntegrationResponse(statusMap);
 
         var requestsByUser = verifyRequests.GroupBy(r => r.TargetUserId);
         foreach (var group in requestsByUser)
@@ -37,30 +32,20 @@ public class GetFaceIdResultByStudentIdsAndSessionIdQueryHandler(IFaceIdReposito
             bool matched;
             // Business rule: any failure dominates => overall false
             if (anyCompletedFalse)
-            {
                 matched = false;
-            }
             else if (anyCompletedTrue)
-            {
                 matched = true;
-            }
             else
-            {
                 // All are non-completed (Pending/Expired/Canceled) or no records for user => default false
                 matched = false;
-            }
 
             statusMap[userId] = new StudentFaceId(userId, matched);
         }
 
         // Ensure all requested students appear in result, even if no verify request rows exist
         foreach (var sid in request.StudentIds)
-        {
             if (!statusMap.ContainsKey(sid))
-            {
                 statusMap[sid] = new StudentFaceId(sid, false);
-            }
-        }
 
         return new GetFaceIdResultByStudentIdsAndSessionIdIntegrationResponse(statusMap);
     }

@@ -8,7 +8,7 @@ using Zentry.SharedKernel.Extensions;
 namespace Zentry.Modules.NotificationService.Controllers;
 
 /// <summary>
-/// Controller để quản lý device tokens và FCM registration
+///     Controller để quản lý device tokens và FCM registration
 /// </summary>
 [ApiController]
 [Route("api/device-tokens")]
@@ -22,7 +22,7 @@ public class DeviceTokensController : BaseController
     }
 
     /// <summary>
-    /// Đăng ký FCM token cho device
+    ///     Đăng ký FCM token cho device
     /// </summary>
     /// <param name="request">Thông tin đăng ký FCM token</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -39,19 +39,13 @@ public class DeviceTokensController : BaseController
         {
             // Validate request
             if (string.IsNullOrWhiteSpace(request.FcmToken))
-            {
                 return HandleBadRequest("VALIDATION_ERROR", "FCM Token is required");
-            }
 
             if (string.IsNullOrWhiteSpace(request.AndroidId))
-            {
                 return HandleBadRequest("VALIDATION_ERROR", "Android ID is required");
-            }
 
             if (string.IsNullOrWhiteSpace(request.Platform))
-            {
                 return HandleBadRequest("VALIDATION_ERROR", "Platform is required");
-            }
 
             // Create command
             var command = new RegisterFcmTokenCommand(
@@ -77,7 +71,7 @@ public class DeviceTokensController : BaseController
     }
 
     /// <summary>
-    /// Kiểm tra trạng thái FCM token
+    ///     Kiểm tra trạng thái FCM token
     /// </summary>
     /// <param name="userId">ID của user</param>
     /// <param name="androidId">Android ID của device</param>
@@ -94,9 +88,7 @@ public class DeviceTokensController : BaseController
         try
         {
             if (string.IsNullOrWhiteSpace(androidId))
-            {
                 return HandleBadRequest("VALIDATION_ERROR", "Android ID is required");
-            }
 
             // TODO: Implement FCM token status check
             // For now, return basic info

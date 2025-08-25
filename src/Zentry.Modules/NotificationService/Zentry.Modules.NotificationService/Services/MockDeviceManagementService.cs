@@ -4,13 +4,13 @@ using Zentry.SharedKernel.Contracts.Device;
 namespace Zentry.Modules.NotificationService.Services;
 
 /// <summary>
-/// Mock service để test FCM token registration
-/// TODO: Thay thế bằng DeviceManagement integration thực tế
+///     Mock service để test FCM token registration
+///     TODO: Thay thế bằng DeviceManagement integration thực tế
 /// </summary>
 public class MockDeviceManagementService : IDeviceManagementService
 {
-    private readonly ILogger<MockDeviceManagementService> _logger;
     private readonly Dictionary<string, MockDeviceInfo> _devices = new();
+    private readonly ILogger<MockDeviceManagementService> _logger;
 
     public MockDeviceManagementService(ILogger<MockDeviceManagementService> logger)
     {
@@ -20,9 +20,8 @@ public class MockDeviceManagementService : IDeviceManagementService
     public async Task<GetDeviceByAndroidIdIntegrationResponse> GetDeviceByAndroidIdAsync(string androidId)
     {
         _logger.LogInformation("Mock: Getting device by Android ID {AndroidId}", androidId);
-        
+
         if (_devices.TryGetValue(androidId, out var device))
-        {
             return new GetDeviceByAndroidIdIntegrationResponse
             {
                 Device = new DeviceInfo
@@ -34,14 +33,13 @@ public class MockDeviceManagementService : IDeviceManagementService
                     LastVerifiedAt = device.LastVerifiedAt
                 }
             };
-        }
 
         return new GetDeviceByAndroidIdIntegrationResponse { Device = null };
     }
 
     public async Task<UpdateDeviceFcmTokenIntegrationResponse> UpdateDeviceFcmTokenAsync(
-        Guid deviceId, 
-        string fcmToken, 
+        Guid deviceId,
+        string fcmToken,
         string platform,
         string? model = null,
         string? manufacturer = null,
@@ -49,7 +47,7 @@ public class MockDeviceManagementService : IDeviceManagementService
         string? appVersion = null)
     {
         _logger.LogInformation("Mock: Updating FCM token for device {DeviceId}", deviceId);
-        
+
         // Tìm device theo ID
         var device = _devices.Values.FirstOrDefault(d => d.Id == deviceId);
         if (device != null)
@@ -85,8 +83,9 @@ public class MockDeviceManagementService : IDeviceManagementService
         string? osVersion = null,
         string? appVersion = null)
     {
-        _logger.LogInformation("Mock: Creating new device for user {UserId} with Android ID {AndroidId}", userId, androidId);
-        
+        _logger.LogInformation("Mock: Creating new device for user {UserId} with Android ID {AndroidId}", userId,
+            androidId);
+
         var newDevice = new MockDeviceInfo
         {
             Id = Guid.NewGuid(),
@@ -121,7 +120,7 @@ public class MockDeviceManagementService : IDeviceManagementService
     public async Task<List<string>> GetFcmTokensByUserIdAsync(Guid userId)
     {
         _logger.LogInformation("Mock: Getting FCM tokens for user {UserId}", userId);
-        
+
         return _devices.Values
             .Where(d => d.UserId == userId && !string.IsNullOrEmpty(d.FcmToken))
             .Select(d => d.FcmToken!)
@@ -148,19 +147,21 @@ public class MockDeviceManagementService : IDeviceManagementService
 }
 
 /// <summary>
-/// Interface cho DeviceManagement service
+///     Interface cho DeviceManagement service
 /// </summary>
 public interface IDeviceManagementService
 {
     Task<GetDeviceByAndroidIdIntegrationResponse> GetDeviceByAndroidIdAsync(string androidId);
+
     Task<UpdateDeviceFcmTokenIntegrationResponse> UpdateDeviceFcmTokenAsync(
-        Guid deviceId, 
-        string fcmToken, 
+        Guid deviceId,
+        string fcmToken,
         string platform,
         string? model = null,
         string? manufacturer = null,
         string? osVersion = null,
         string? appVersion = null);
+
     Task<CreateDeviceWithFcmTokenIntegrationResponse> CreateDeviceWithFcmTokenAsync(
         Guid userId,
         string androidId,
@@ -171,5 +172,6 @@ public interface IDeviceManagementService
         string? manufacturer = null,
         string? osVersion = null,
         string? appVersion = null);
+
     Task<List<string>> GetFcmTokensByUserIdAsync(Guid userId);
 }

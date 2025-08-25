@@ -45,8 +45,9 @@ public class CreateCourseCommandHandlerTests : BaseCourseTest
             .ReturnsAsync(false);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ResourceAlreadyExistsException>(
-            () => _handler.Handle(command, CancellationToken.None));
+        var exception =
+            await Assert.ThrowsAsync<ResourceAlreadyExistsException>(() =>
+                _handler.Handle(command, CancellationToken.None));
 
         exception.Message.Should().Contain("Course with code 'CS101' already exists.");
         CourseRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Course>(), It.IsAny<CancellationToken>()), Times.Never);

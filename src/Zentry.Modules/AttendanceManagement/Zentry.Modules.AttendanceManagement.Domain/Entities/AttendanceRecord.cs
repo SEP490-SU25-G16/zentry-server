@@ -39,10 +39,10 @@ public class AttendanceRecord : AggregateRoot<Guid>
     public double PercentageAttended { get; private set; }
 
     /// <summary>
-    /// Face ID verification status for this attendance record
-    /// - NotChecked: Student did not perform FaceID verification
-    /// - Success: Student performed FaceID verification successfully
-    /// - Failed: Student performed FaceID verification but failed
+    ///     Face ID verification status for this attendance record
+    ///     - NotChecked: Student did not perform FaceID verification
+    ///     - Success: Student performed FaceID verification successfully
+    ///     - Failed: Student performed FaceID verification but failed
     /// </summary>
     public FaceIdStatus? FaceIdStatus { get; private set; }
 

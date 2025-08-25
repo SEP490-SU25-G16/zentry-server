@@ -1,7 +1,6 @@
 using Zentry.Modules.DeviceManagement.Abstractions;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Contracts.Device;
-using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.DeviceManagement.Integration;
 
@@ -14,7 +13,6 @@ public class GetDeviceByAndroidIdQueryHandler(IDeviceRepository repository)
         var device = await repository.GetByAndroidIdAsync(request.AndroidId, cancellationToken);
 
         if (device != null && device.Status.ToString() == "Active")
-        {
             return new GetDeviceByAndroidIdIntegrationResponse
             {
                 Device = new DeviceInfo
@@ -26,7 +24,6 @@ public class GetDeviceByAndroidIdQueryHandler(IDeviceRepository repository)
                     LastVerifiedAt = device.LastVerifiedAt
                 }
             };
-        }
 
         return new GetDeviceByAndroidIdIntegrationResponse { Device = null };
     }

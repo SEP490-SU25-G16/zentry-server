@@ -3,15 +3,19 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Zentry.Modules.NotificationService.Entities;
 using Zentry.Modules.NotificationService.Features.ReceiveAttendanceNotification;
+using Zentry.Modules.NotificationService.Infrastructure.Push;
 using Zentry.Modules.NotificationService.Persistence.Repository;
 using Zentry.SharedKernel.Contracts.Events;
-using Zentry.Modules.NotificationService.Infrastructure.Push;
 
 namespace Zentry.Modules.NotificationService.Controllers;
 
 [ApiController]
 [Route("api/notifications")]
-public class NotificationsController(IMediator mediator, IBus bus, INotificationRepository notificationRepository, IFcmSender fcmSender)
+public class NotificationsController(
+    IMediator mediator,
+    IBus bus,
+    INotificationRepository notificationRepository,
+    IFcmSender fcmSender)
     : ControllerBase
 {
     [HttpGet]
@@ -62,12 +66,11 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         {
             // Check if FCM is initialized
             if (fcmSender is FcmSender fcmSenderImpl && !fcmSenderImpl.IsFirebaseInitialized)
-            {
-                return BadRequest(new { 
-                    success = false, 
-                    message = "Firebase FCM not initialized. Check server logs for details." 
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Firebase FCM not initialized. Check server logs for details."
                 });
-            }
 
             // Test push notification
             var notificationEvent = new NotificationCreatedEvent
@@ -97,10 +100,11 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { 
-                success = false, 
-                message = "Internal server error", 
-                error = ex.Message 
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Internal server error",
+                error = ex.Message
             });
         }
     }
@@ -112,7 +116,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     public IActionResult GetFcmStatus()
     {
         var isInitialized = fcmSender is FcmSender fcmSenderImpl && fcmSenderImpl.IsFirebaseInitialized;
-        
+
         return Ok(new
         {
             success = true,
@@ -129,10 +133,7 @@ public class NotificationsController(IMediator mediator, IBus bus, INotification
     public async Task<IActionResult> MarkAsRead(Guid notificationId, CancellationToken cancellationToken)
     {
         var notification = await notificationRepository.GetByIdAsync(notificationId, cancellationToken);
-        if (notification == null)
-        {
-            return NotFound(new { success = false, message = "Notification not found" });
-        }
+        if (notification == null) return NotFound(new { success = false, message = "Notification not found" });
 
         notification.MarkAsRead();
         await notificationRepository.SaveChangesAsync(cancellationToken);

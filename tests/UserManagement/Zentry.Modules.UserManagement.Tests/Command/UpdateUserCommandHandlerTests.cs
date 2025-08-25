@@ -9,8 +9,8 @@ namespace Zentry.Modules.UserManagement.Tests.Command;
 
 public class UpdateUserCommandHandlerTests : BaseTest<UpdateUserCommandHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly UpdateUserCommandHandler _handler;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
 
     public UpdateUserCommandHandlerTests()
     {
@@ -115,6 +115,7 @@ public class UpdateUserCommandHandlerTests : BaseTest<UpdateUserCommandHandler>
             .ReturnsAsync(true);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ResourceAlreadyExistsException>(() => _handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<ResourceAlreadyExistsException>(() =>
+            _handler.Handle(command, CancellationToken.None));
     }
 }

@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Features.UpdatePassword;
@@ -11,9 +10,9 @@ namespace Zentry.Modules.UserManagement.Tests.Command;
 
 public class UpdatePasswordCommandHandlerTests : BaseTest<UpdatePasswordCommandHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly Mock<IPasswordHasher> _passwordHasherMock;
     private readonly UpdatePasswordCommandHandler _handler;
+    private readonly Mock<IPasswordHasher> _passwordHasherMock;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
 
     public UpdatePasswordCommandHandlerTests()
     {

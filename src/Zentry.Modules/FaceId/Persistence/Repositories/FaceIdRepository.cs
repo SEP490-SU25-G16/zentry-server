@@ -224,10 +224,7 @@ public class FaceIdRepository : IFaceIdRepository
         CancellationToken cancellationToken = default)
     {
         var userIdList = userIds.ToList();
-        if (userIdList.Count == 0)
-        {
-            return new List<FaceIdVerifyRequest>();
-        }
+        if (userIdList.Count == 0) return new List<FaceIdVerifyRequest>();
 
         return await _dbContext.FaceIdVerifyRequests
             .Where(r => r.SessionId == sessionId && userIdList.Contains(r.TargetUserId))

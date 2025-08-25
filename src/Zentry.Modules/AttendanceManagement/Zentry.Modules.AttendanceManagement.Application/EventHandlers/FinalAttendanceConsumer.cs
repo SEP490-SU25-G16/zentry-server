@@ -232,13 +232,9 @@ public class FinalAttendanceConsumer(
 
                 // Determine FaceID status first
                 if (faceIdResults.TryGetValue(attendanceRecord.StudentId, out var faceIdResult))
-                {
                     faceIdStatus = faceIdResult.Matched ? FaceIdStatus.Success : FaceIdStatus.Failed;
-                }
                 else
-                {
                     faceIdStatus = FaceIdStatus.NotChecked;
-                }
 
                 // Check if student was tracked (participated in the session)
                 if (studentTrackDict.TryGetValue(attendanceRecord.StudentId, out var studentTrack))
@@ -329,7 +325,7 @@ public class FinalAttendanceConsumer(
     }
 
     /// <summary>
-    /// Determines the final attendance status based on attendance percentage and FaceID verification
+    ///     Determines the final attendance status based on attendance percentage and FaceID verification
     /// </summary>
     /// <param name="attendancePercentage">Calculated attendance percentage</param>
     /// <param name="threshold">Attendance threshold percentage</param>

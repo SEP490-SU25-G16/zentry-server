@@ -19,12 +19,13 @@ public class GetCoursesQueryHandlerTests : BaseCourseTest
         var query = new GetCoursesQuery(1, 10, "CS", null, "Name", "asc");
         var courses = new List<Course>
         {
-            CreateTestCourse("CS101", "Computer Science 101"),
+            CreateTestCourse(),
             CreateTestCourse("CS102", "Computer Science 102")
         };
         var totalCount = 2;
 
-        CourseRepositoryMock.Setup(x => x.GetPagedCoursesAsync(It.IsAny<CourseListCriteria>(), It.IsAny<CancellationToken>()))
+        CourseRepositoryMock.Setup(x =>
+                x.GetPagedCoursesAsync(It.IsAny<CourseListCriteria>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Tuple.Create(courses, totalCount));
 
         // Act
@@ -63,7 +64,8 @@ public class GetCoursesQueryHandlerTests : BaseCourseTest
         var courses = new List<Course>();
         var totalCount = 0;
 
-        CourseRepositoryMock.Setup(x => x.GetPagedCoursesAsync(It.IsAny<CourseListCriteria>(), It.IsAny<CancellationToken>()))
+        CourseRepositoryMock.Setup(x =>
+                x.GetPagedCoursesAsync(It.IsAny<CourseListCriteria>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Tuple.Create(courses, totalCount));
 
         // Act

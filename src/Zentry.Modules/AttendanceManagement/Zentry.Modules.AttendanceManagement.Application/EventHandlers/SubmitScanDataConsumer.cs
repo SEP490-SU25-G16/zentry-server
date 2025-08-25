@@ -356,12 +356,9 @@ public class SubmitScanDataConsumer(
         {
             var query = new GetDeviceByAndroidIdIntegrationQuery(message.SubmitterDeviceAndroidId);
             var response = await mediator.Send(query, cancellationToken);
-            
-            if (response.Device != null)
-            {
-                return (response.Device.Id, response.Device.UserId);
-            }
-            
+
+            if (response.Device != null) return (response.Device.Id, response.Device.UserId);
+
             logger.LogError("Submitter device not found: {AndroidId}", message.SubmitterDeviceAndroidId);
             return (Guid.Empty, Guid.Empty);
         }

@@ -3,7 +3,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.SharedKernel.Contracts.Device;
 
 /// <summary>
-/// Integration command để tạo device mới với FCM token
+///     Integration command để tạo device mới với FCM token
 /// </summary>
 public record CreateDeviceWithFcmTokenIntegrationCommand(
     Guid UserId,
@@ -18,7 +18,7 @@ public record CreateDeviceWithFcmTokenIntegrationCommand(
 ) : ICommand<CreateDeviceWithFcmTokenIntegrationResponse>;
 
 /// <summary>
-/// Response khi tạo device mới thành công
+///     Response khi tạo device mới thành công
 /// </summary>
 public record CreateDeviceWithFcmTokenIntegrationResponse
 {

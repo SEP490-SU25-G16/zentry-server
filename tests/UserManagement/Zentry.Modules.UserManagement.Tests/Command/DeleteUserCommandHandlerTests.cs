@@ -9,8 +9,8 @@ namespace Zentry.Modules.UserManagement.Tests.Command;
 
 public class DeleteUserCommandHandlerTests : BaseTest<DeleteUserCommandHandler>
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly DeleteUserCommandHandler _handler;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
 
     public DeleteUserCommandHandlerTests()
     {

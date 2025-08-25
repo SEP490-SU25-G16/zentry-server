@@ -3,7 +3,7 @@ using Zentry.SharedKernel.Abstractions.Application;
 namespace Zentry.SharedKernel.Contracts.Device;
 
 /// <summary>
-/// Integration command để update FCM token cho device
+///     Integration command để update FCM token cho device
 /// </summary>
 public record UpdateDeviceFcmTokenIntegrationCommand(
     Guid DeviceId,
@@ -16,7 +16,7 @@ public record UpdateDeviceFcmTokenIntegrationCommand(
 ) : ICommand<UpdateDeviceFcmTokenIntegrationResponse>;
 
 /// <summary>
-/// Response khi update FCM token thành công
+///     Response khi update FCM token thành công
 /// </summary>
 public record UpdateDeviceFcmTokenIntegrationResponse
 {

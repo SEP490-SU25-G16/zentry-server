@@ -218,10 +218,7 @@ public class UserRepository(UserDbContext dbContext) : IUserRepository
         var user = await dbContext.Users
             .Include(u => u.Account)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
-        if (user?.Account is null || Equals(user?.Account.Status, AccountStatus.Inactive))
-        {
-            return null;
-        }
+        if (user?.Account is null || Equals(user?.Account.Status, AccountStatus.Inactive)) return null;
 
         return user;
     }

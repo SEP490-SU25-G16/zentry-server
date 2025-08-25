@@ -54,7 +54,7 @@ public class DeleteClassSectionCommandHandler(
 
                 logger.LogInformation(
                     "Successfully deleted {ScheduleCount} schedules for ClassSectionId: {ClassSectionId}",
-                    schedulesToDelete.Count(), command.Id);
+                    schedulesToDelete.Count, command.Id);
             }
 
             await classSectionRepository.SoftDeleteAsync(command.Id, cancellationToken);

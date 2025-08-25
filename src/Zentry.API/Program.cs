@@ -180,20 +180,16 @@ builder.Services.AddMassTransit(x =>
         var rabbitMqConnectionString = configuration["RabbitMQ:ConnectionString"];
 
         // ✅ Debug logging để kiểm tra config
-        Console.WriteLine($"=== RabbitMQ Configuration Debug ===");
+        Console.WriteLine("=== RabbitMQ Configuration Debug ===");
         Console.WriteLine($"RabbitMQ:ConnectionString = {rabbitMqConnectionString}");
 
         // Kiểm tra tất cả RabbitMQ keys
         foreach (var kvp in configuration.AsEnumerable()
                      .Where(x => x.Key.Contains("RabbitMQ", StringComparison.OrdinalIgnoreCase)))
-        {
             Console.WriteLine($"{kvp.Key} = {kvp.Value}");
-        }
 
         if (string.IsNullOrEmpty(rabbitMqConnectionString))
-        {
             throw new InvalidOperationException("RabbitMQ:ConnectionString is not configured.");
-        }
 
         cfg.Host(new Uri(rabbitMqConnectionString), h =>
         {
@@ -419,13 +415,9 @@ static void ValidateConfiguration(IConfiguration configuration)
     {
         var value = configuration[config];
         if (string.IsNullOrEmpty(value))
-        {
             missingConfigs.Add(config);
-        }
         else
-        {
             Console.WriteLine($"✅ {config} = {(config.Contains("Secret") ? "***HIDDEN***" : value)}");
-        }
     }
 
     if (missingConfigs.Any())

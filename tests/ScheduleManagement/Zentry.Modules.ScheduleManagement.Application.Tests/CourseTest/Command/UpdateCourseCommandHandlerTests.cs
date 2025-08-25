@@ -1,6 +1,5 @@
 using Zentry.Modules.ScheduleManagement.Application.Features.Courses.UpdateCourse;
 using Zentry.Modules.ScheduleManagement.Domain.Entities;
-using Zentry.SharedKernel.Exceptions;
 
 namespace Zentry.Modules.ScheduleManagement.Application.Tests.CourseTest.Command;
 

@@ -13,7 +13,6 @@ public class SetSessionAttendanceThresholdCommand : ICommand<SetSessionAttendanc
 
 public class SetSessionAttendanceThresholdRequest
 {
-
     [Required]
     [Range(0.0, 100.0, ErrorMessage = "Threshold percentage must be between 0 and 100")]
     public double ThresholdPercentage { get; set; }
