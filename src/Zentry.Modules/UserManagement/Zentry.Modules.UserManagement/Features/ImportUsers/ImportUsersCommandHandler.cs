@@ -1,16 +1,18 @@
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Zentry.Modules.UserManagement.Dtos;
 using Zentry.Modules.UserManagement.Entities;
 using Zentry.Modules.UserManagement.Interfaces;
 using Zentry.SharedKernel.Abstractions.Application;
 using Zentry.SharedKernel.Constants.User;
+using Zentry.SharedKernel.Contracts.Configuration;
 
 namespace Zentry.Modules.UserManagement.Features.ImportUsers;
 
-// Inject IPasswordHasher vào constructor
 public class ImportUsersCommandHandler(
     IUserRepository userRepository,
     IPasswordHasher passwordHasher,
+    IMediator mediator,
     ILogger<ImportUsersCommandHandler> logger)
     : ICommandHandler<ImportUsersCommand, ImportUsersResponse>
 {
@@ -19,10 +21,9 @@ public class ImportUsersCommandHandler(
         var response = new ImportUsersResponse();
         var validUsers = new List<UserImportDto>();
 
-        // Lọc các bản ghi rỗng
         var usersToProcess = command.UsersToImport.Where(u => !string.IsNullOrWhiteSpace(u.Email)).ToList();
 
-        // 1. Xác thực và lọc dữ liệu đầu vào
+        // 1. Validate users
         foreach (var userDto in usersToProcess)
         {
             var validator = new UserImportDtoValidator();
@@ -44,14 +45,13 @@ public class ImportUsersCommandHandler(
             }
         }
 
-        // Nếu không có user hợp lệ để xử lý, trả về lỗi ngay
         if (validUsers.Count == 0)
         {
             response.FailedCount = usersToProcess.Count;
             return response;
         }
 
-        // 2. Kiểm tra các email trùng lặp trong hệ thống hiện tại
+        // 2. Check for existing emails and duplicates
         var existingEmails = await userRepository.GetExistingEmailsAsync(validUsers.Select(u => u.Email).ToList());
         var duplicateEmailsInInput = validUsers
             .GroupBy(u => u.Email, StringComparer.OrdinalIgnoreCase)
@@ -59,9 +59,9 @@ public class ImportUsersCommandHandler(
             .Select(g => g.Key)
             .ToList();
 
-        // Lọc lại danh sách users để loại bỏ các bản ghi trùng lặp
         var finalUsersToProcess = new List<UserImportDto>();
         foreach (var userDto in validUsers)
+        {
             if (existingEmails.Contains(userDto.Email, StringComparer.OrdinalIgnoreCase))
             {
                 response.Errors.Add(new ImportError
@@ -73,24 +73,28 @@ public class ImportUsersCommandHandler(
             }
             else if (duplicateEmailsInInput.Contains(userDto.Email, StringComparer.OrdinalIgnoreCase))
             {
-                // Chỉ cần ghi lỗi một lần cho các email trùng trong file
                 if (!response.Errors.Any(e => e.Email.Equals(userDto.Email, StringComparison.OrdinalIgnoreCase)))
+                {
                     response.Errors.Add(new ImportError
                     {
-                        RowIndex = userDto.RowIndex, // Ghi lại dòng đầu tiên có lỗi
+                        RowIndex = userDto.RowIndex,
                         Email = userDto.Email,
                         Message = $"Email '{userDto.Email}' bị trùng lặp trong file import."
                     });
+                }
             }
             else
             {
                 finalUsersToProcess.Add(userDto);
             }
+        }
 
         var accountsToCreate = new List<Account>();
         var usersToCreate = new List<User>();
+        var userAttributesMap = new Dictionary<Guid, Dictionary<string, string>>();
 
         foreach (var userDto in finalUsersToProcess)
+        {
             try
             {
                 var role = Role.FromName(userDto.Role);
@@ -101,6 +105,28 @@ public class ImportUsersCommandHandler(
 
                 accountsToCreate.Add(account);
                 usersToCreate.Add(user);
+
+                // Prepare user attributes based on role
+                var userAttributes = new Dictionary<string, string>();
+
+                // Attributes sẽ được generate tự động dựa trên role, không đọc từ CSV
+
+                // Generate role-specific codes
+                if (Equals(account.Role, Role.Student))
+                {
+                    var studentCode = GenerateUniqueStudentCode();
+                    userAttributes["StudentCode"] = studentCode;
+                }
+                else if (Equals(account.Role, Role.Lecturer))
+                {
+                    var lecturerCode = GenerateUniqueLecturerCode();
+                    userAttributes["EmployeeCode"] = lecturerCode;
+                }
+
+                if (userAttributes.Count > 0)
+                {
+                    userAttributesMap[user.Id] = userAttributes;
+                }
             }
             catch (Exception ex)
             {
@@ -112,17 +138,16 @@ public class ImportUsersCommandHandler(
                     Message = $"Lỗi khi chuẩn bị dữ liệu: {ex.Message}"
                 });
             }
+        }
 
         try
         {
             await userRepository.AddRangeAsync(accountsToCreate, usersToCreate, cancellationToken);
             response.ImportedCount = accountsToCreate.Count;
-            response.FailedCount = command.UsersToImport.Count - response.ImportedCount;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to save imported users to database.");
-            // Ghi lại lỗi chung
             response.Errors.Add(new ImportError
             {
                 RowIndex = 0,
@@ -131,8 +156,45 @@ public class ImportUsersCommandHandler(
             });
             response.ImportedCount = 0;
             response.FailedCount = command.UsersToImport.Count;
+            return response;
         }
 
+        // 5. Bulk create user attributes
+        if (userAttributesMap.Count > 0)
+        {
+            try
+            {
+                var bulkCreateAttributesCommand = new BulkCreateUserAttributesIntegrationCommand(userAttributesMap);
+                var attributesResponse = await mediator.Send(bulkCreateAttributesCommand, cancellationToken);
+
+                if (!attributesResponse.Success)
+                {
+                    logger.LogWarning("Failed to create some user attributes during import: {Message}",
+                        attributesResponse.Message);
+                }
+                else
+                {
+                    logger.LogInformation("Successfully created attributes for {Count} users during import",
+                        attributesResponse.TotalSuccessful);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to create user attributes during import");
+            }
+        }
+
+        response.FailedCount = command.UsersToImport.Count - response.ImportedCount;
         return response;
+    }
+
+    private string GenerateUniqueStudentCode()
+    {
+        return $"STU{new Random().Next(10000, 99999)}";
+    }
+
+    private string GenerateUniqueLecturerCode()
+    {
+        return $"EMP{new Random().Next(1000, 9999)}";
     }
 }
