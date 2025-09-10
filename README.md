@@ -19,10 +19,8 @@ POSTGRES_PASSWORD=pass
 # ConnectionStrings
 # =========================
 FACEID_CONNECTION=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
-# Only for dev
-# DEFAULT_CONNECTION=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
+DEFAULT_CONNECTION=Host=postgres;Port=5432;Database=zentry;Username=admin;Password=pass;
 
-DEFAULT_CONNECTION=Host=zentry.c2pgywcgsk5m.us-east-1.rds.amazonaws.com;Port=5432;Database=zentry;Username=postgres;Password=zentry_owner;
 # =========================
 # Redis
 # =========================
